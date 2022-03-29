@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
-	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -13,7 +12,7 @@ import (
 
 func makePrepareMsg(
 	proposalId common.Hash,
-	senderRole, receiverRole libcommonpb.TaskRole,
+	senderRole, receiverRole libtypes.TaskRole,
 	senderPartyId, receiverPartyId string,
 	nonConsTaks *types.NeedConsensusTask,
 	startTime uint64,
@@ -37,9 +36,9 @@ func makePrepareMsg(
 
 func makePrepareVote(
 	proposalId common.Hash,
-	senderRole, receiverRole libcommonpb.TaskRole,
+	senderRole, receiverRole libtypes.TaskRole,
 	senderPartyId, receiverPartyId string,
-	owner *libcommonpb.TaskOrganization,
+	owner *libtypes.TaskOrganization,
 	voteOption types.VoteOption,
 	peerInfo *types.PrepareVoteResource,
 	startTime uint64,
@@ -56,9 +55,9 @@ func makePrepareVote(
 
 func makeConfirmMsg(
 	proposalId common.Hash,
-	senderRole, receiverRole libcommonpb.TaskRole,
+	senderRole, receiverRole libtypes.TaskRole,
 	senderPartyId, receiverPartyId string,
-	owner *libcommonpb.TaskOrganization,
+	owner *libtypes.TaskOrganization,
 	peers *twopcpb.ConfirmTaskPeerInfo,
 	option types.TwopcMsgOption,
 	startTime uint64,
@@ -77,9 +76,9 @@ func makeConfirmMsg(
 
 func makeConfirmVote(
 	proposalId common.Hash,
-	senderRole, receiverRole libcommonpb.TaskRole,
+	senderRole, receiverRole libtypes.TaskRole,
 	senderPartyId, receiverPartyId string,
-	owner *libcommonpb.TaskOrganization,
+	owner *libtypes.TaskOrganization,
 	voteOption types.VoteOption,
 	startTime uint64,
 ) *twopcpb.ConfirmVote {
@@ -94,9 +93,9 @@ func makeConfirmVote(
 
 func makeCommitMsg(
 	proposalId common.Hash,
-	senderRole, receiverRole libcommonpb.TaskRole,
+	senderRole, receiverRole libtypes.TaskRole,
 	senderPartyId, receiverPartyId string,
-	owner *libcommonpb.TaskOrganization,
+	owner *libtypes.TaskOrganization,
 	option types.TwopcMsgOption,
 	startTime uint64,
 ) *twopcpb.CommitMsg {

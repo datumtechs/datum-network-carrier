@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/RosettaFlow/Carrier-Go/common"
-	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"io"
 	"strings"
@@ -65,8 +64,8 @@ func (m *Identity) GetImageUrl() string { return m.data.GetImageUrl() }
 func (m *Identity) GetDetails() string { return m.data.GetDetails() }
 func (m *Identity) GetCredential() string { return m.data.GetCredential() }
 func (m *Identity) GetUpdateAt() uint64 { return m.data.GetUpdateAt() }
-func (m *Identity) GetStatus() libcommonpb.CommonStatus { return m.data.GetStatus() }
-func (m *Identity) GetDataStatus() libcommonpb.DataStatus { return m.data.GetDataStatus() }
+func (m *Identity) GetStatus() libtypes.CommonStatus { return m.data.GetStatus() }
+func (m *Identity) GetDataStatus() libtypes.DataStatus { return m.data.GetDataStatus() }
 func (m *Identity) GetDataId() string { return m.data.GetDataId() }
 
 func (m *Identity) String() string {

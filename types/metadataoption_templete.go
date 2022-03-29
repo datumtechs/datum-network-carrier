@@ -2,7 +2,7 @@ package types
 
 import (
 	"fmt"
-	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 )
 
 
@@ -10,9 +10,9 @@ var (
 	CannotMatchMetadataOption = fmt.Errorf("cannot match metadata option")
 )
 
-func IsNotRowAndColumnData(fileType libcommonpb.OriginFileType) bool { return !IsRowAndColumnData(fileType) }
-func IsRowAndColumnData(fileType libcommonpb.OriginFileType) bool {
-	if fileType == libcommonpb.OriginFileType_FileType_CSV {
+func IsNotRowAndColumnData(fileType libtypes.OrigindataType) bool { return !IsRowAndColumnData(fileType) }
+func IsRowAndColumnData(fileType libtypes.OrigindataType) bool {
+	if fileType == libtypes.OrigindataType_OrigindataType_CSV {
 		return true
 	}
 	return false
@@ -37,7 +37,7 @@ func IsRowAndColumnData(fileType libcommonpb.OriginFileType) bool {
     ],
 }
 */
-// libcommonpb.OriginFileType_FileType_CSV |
+// libtypes.OriginFileType_FileType_CSV |
 type MetadataOptionRowAndColumn struct {
 	OriginId        string
 	FilePath        string

@@ -12,7 +12,6 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/policy"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -165,7 +164,7 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (resTask *types.NeedConsensusTask
 		task.GetTaskData().GetTaskId(), task.GetTaskData().GetSender().GetPartyId())
 
 	var (
-		powerOrgs      []*libcommonpb.TaskOrganization
+		powerOrgs      []*libtypes.TaskOrganization
 		powerResources []*libtypes.TaskPowerResourceOption
 	)
 
@@ -200,7 +199,7 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (resTask *types.NeedConsensusTask
 }
 
 func (sche *SchedulerStarveFIFO) ReplaySchedule(
-	partyId string, taskRole libcommonpb.TaskRole,
+	partyId string, taskRole libtypes.TaskRole,
 	replayTask *types.NeedReplayScheduleTask) *types.ReplayScheduleResult {
 
 	task := replayTask.GetTask()
@@ -219,7 +218,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 
 	switch taskRole {
 
-	case libcommonpb.TaskRole_TaskRole_DataSupplier:
+	case libtypes.TaskRole_TaskRole_DataSupplier:
 
 		// NOTE: verify the powerSupplier AND powerResourceOption into remote task.
 		switch task.GetTaskData().GetPowerPolicyType() {
@@ -281,7 +280,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 				return types.NewReplayScheduleResult(task.GetTaskId(), fmt.Errorf("query internal metadata by metadataId failed, %s", err), nil)
 			}
 
-			fileOriginId, err := policy.FetchOriginId(internalMetadata.GetData().GetFileType(), internalMetadata.GetData().GetMetadataOption())
+			fileOriginId, err := policy.FetchOriginId(internalMetadata.GetData().GetDataType(), internalMetadata.GetData().GetMetadataOption())
 			if nil != err {
 				log.WithError(err).Errorf("not fetch internalMetadata originId from task metadataOption on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, userType: {%s}, user: {%s}, metadataId: {%s}",
 					task.GetTaskId(), taskRole.String(), partyId, task.GetTaskData().GetUserType(), task.GetTaskData().GetUser(), internalMetadata.GetData().GetMetadataId())
@@ -321,7 +320,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 	// select your own internal power resource and lock it,
 	// and finally click 'publishfinishedtasktodatacenter'
 	// or 'sendtaskresultmsgtotasksender' in taskmnager.
-	case libcommonpb.TaskRole_TaskRole_PowerSupplier:
+	case libtypes.TaskRole_TaskRole_PowerSupplier:
 
 		log.Debugf("Succeed CalculateSlotCount when role is powerSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, cost.mem: {%d}, cost.Bandwidth: {%d}, cost.Processor: {%d}",
 			task.GetTaskId(), taskRole.String(), partyId,
@@ -355,7 +354,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 
 	// If the current participant is resultsupplier.
 	// just select their own available datanodes.
-	case libcommonpb.TaskRole_TaskRole_Receiver:
+	case libtypes.TaskRole_TaskRole_Receiver:
 
 		dataResourceTables, err := sche.resourceMng.GetDB().QueryDataResourceTables()
 		if nil != err {
@@ -391,7 +390,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 // NOTE: schedule powerSuppliers by powerPolicy of task
 
 func forTaskPowerPolicyAssignmentLabelSchedule(sche *SchedulerStarveFIFO, task *types.Task) (
-	*types.NeedConsensusTask, []*libcommonpb.TaskOrganization, []*libtypes.TaskPowerResourceOption, error) {
+	*types.NeedConsensusTask, []*libtypes.TaskOrganization, []*libtypes.TaskPowerResourceOption, error) {
 	// fetch partyIds from task powerPolicy
 	powerPartyIds, err := policy.FetchPowerPartyIds(task.GetTaskData().GetPowerPolicyType(), task.GetTaskData().GetPowerPolicyOption())
 	if nil != err {

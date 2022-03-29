@@ -3,7 +3,6 @@ package types
 import (
 	"bytes"
 	"github.com/RosettaFlow/Carrier-Go/common"
-	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"io"
 	"sync/atomic"
@@ -56,23 +55,23 @@ func (m *Task) GetTaskData() *libtypes.TaskPB {
 	return m.data
 }
 
-func (m *Task) GetTaskSender() *libcommonpb.TaskOrganization {
+func (m *Task) GetTaskSender() *libtypes.TaskOrganization {
 	return m.data.GetSender()
 }
 
 func (m *Task) SetEventList(eventList []*libtypes.TaskEvent) {
 	m.data.TaskEvents = eventList
 }
-func (m *Task) SetPowerSuppliers(arr []*libcommonpb.TaskOrganization) {
+func (m *Task) SetPowerSuppliers(arr []*libtypes.TaskOrganization) {
 	m.data.PowerSuppliers = arr
 }
 func (m *Task) SetPowerResources (arr []*libtypes.TaskPowerResourceOption) {
 	m.data.PowerResourceOptions = arr
 }
 func (m *Task) RemovePowerSuppliers() {
-	m.data.PowerSuppliers = make([]*libcommonpb.TaskOrganization, 0)
+	m.data.PowerSuppliers = make([]*libtypes.TaskOrganization, 0)
 }
-func (m *Task) SetReceivers(arr []*libcommonpb.TaskOrganization) {
+func (m *Task) SetReceivers(arr []*libtypes.TaskOrganization) {
 	m.data.Receivers = arr
 }
 
@@ -108,35 +107,35 @@ func (s TaskDataArray) To() []*libtypes.TaskPB {
 }
 
 //type TaskEventShowAndRole struct {
-//	Roles []libcommonpb.TaskRole
+//	Roles []libtypes.TaskRole
 //	Data  *pb.TaskDetailShow
 //}
 //
-//func (t *TaskEventShowAndRole) GetRoles() []libcommonpb.TaskRole { return t.Roles }
+//func (t *TaskEventShowAndRole) GetRoles() []libtypes.TaskRole { return t.Roles }
 //func (t *TaskEventShowAndRole) GetData() *pb.TaskDetailShow   { return t.Data }
 
 type TaskResultFileSummary struct {
-	TaskId     string
-	TableName  string
-	MetadataId string
-	OriginId   string
-	FilePath   string
-	NodeId     string
+	TaskId       string
+	MetadataId   string
+	OriginId     string
+	MetadataName string
+	FilePath     string
+	NodeId       string
 }
 
-func NewTaskResultFileSummary(taskId, tableName, metadataId, originId, filePath, id string) *TaskResultFileSummary {
+func NewTaskResultFileSummary(taskId, metadataId, originId, metadataName, filePath, id string) *TaskResultFileSummary {
 	return &TaskResultFileSummary{
-		TaskId:     taskId,
-		TableName:  tableName,
-		MetadataId: metadataId,
-		OriginId:   originId,
-		FilePath:   filePath,
-		NodeId:     id,
+		TaskId:       taskId,
+		MetadataId:   metadataId,
+		OriginId:     originId,
+		MetadataName: metadataName,
+		FilePath:     filePath,
+		NodeId:       id,
 	}
 }
-func (trfs *TaskResultFileSummary) GetTaskId() string     { return trfs.TaskId }
-func (trfs *TaskResultFileSummary) GetTableName() string  { return trfs.TableName }
-func (trfs *TaskResultFileSummary) GetMetadataId() string { return trfs.MetadataId }
+func (trfs *TaskResultFileSummary) GetTaskId() string       { return trfs.TaskId }
+func (trfs *TaskResultFileSummary) GetMetadataName() string { return trfs.MetadataName }
+func (trfs *TaskResultFileSummary) GetMetadataId() string   { return trfs.MetadataId }
 func (trfs *TaskResultFileSummary) GetOriginId() string   { return trfs.OriginId }
 func (trfs *TaskResultFileSummary) GetFilePath() string   { return trfs.FilePath }
 func (trfs *TaskResultFileSummary) GetNodeId() string     { return trfs.NodeId }

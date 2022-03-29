@@ -133,6 +133,29 @@
         ]
       }
     },
+    "/carrier/v1/yarn/generateObserverProxyWallet": {
+      "get": {
+        "summary": "v 0.4.0 生成当前组织内置系统钱包地址 (见证人代理钱包, 全局只有一个)",
+        "operationId": "YarnService_GetObServerProxyWalletAddress",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiGetObServerProxyWalletAddressResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
     "/carrier/v1/yarn/jobNodeList": {
       "get": {
         "summary": "查询计算服务列表 (宿主机的物理信息和网络连接信息)",
@@ -678,6 +701,21 @@
       },
       "title": "查看自身调度服务信息 resp"
     },
+    "rpcapiGetObServerProxyWalletAddressResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "address": {
+          "type": "string"
+        }
+      }
+    },
     "rpcapiGetRegisteredNodeListResponse": {
       "type": "object",
       "properties": {
@@ -722,7 +760,7 @@
         "task_id": {
           "type": "string"
         },
-        "table_name": {
+        "metadata_name": {
           "type": "string"
         },
         "metadata_id": {
@@ -738,6 +776,9 @@
           "type": "string"
         },
         "port": {
+          "type": "string"
+        },
+        "extra": {
           "type": "string"
         }
       },
@@ -818,7 +859,7 @@
           "format": "uint64"
         },
         "file_type": {
-          "$ref": "#/definitions/typesOriginFileType"
+          "$ref": "#/definitions/typesOrigindataType"
         }
       },
       "title": "查询可用数据服务资源目标 ip:port 信息 req"
@@ -1143,6 +1184,9 @@
         },
         "local_multi_addr": {
           "type": "string"
+        },
+        "observer_proxy_wallet_address": {
+          "type": "string"
         }
       },
       "title": "调度服务的信息"
@@ -1237,13 +1281,13 @@
         }
       }
     },
-    "typesOriginFileType": {
+    "typesOrigindataType": {
       "type": "string",
       "enum": [
-        "FileType_Unknown",
-        "FileType_CSV"
+        "OrigindataType_Unknown",
+        "OrigindataType_CSV"
       ],
-      "default": "FileType_Unknown",
+      "default": "OrigindataType_Unknown",
       "title": "原始文件类型"
     },
     "typesResourceUsageOverview": {

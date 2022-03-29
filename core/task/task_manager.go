@@ -13,7 +13,6 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	"github.com/RosettaFlow/Carrier-Go/core/schedule"
-	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	msgcommonpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/common"
 	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
 	taskmngpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/taskmng"
@@ -239,8 +238,8 @@ func (m *Manager) loop() {
 					}
 					m.sendNeedExecuteTaskByAction(types.NewNeedExecuteTask(
 						"",
-						libcommonpb.TaskRole_TaskRole_Sender,
-						libcommonpb.TaskRole_TaskRole_Sender,
+						libtypes.TaskRole_TaskRole_Sender,
+						libtypes.TaskRole_TaskRole_Sender,
 						task.GetTaskSender(),
 						task.GetTaskSender(),
 						task.GetTaskId(),
@@ -266,8 +265,8 @@ func (m *Manager) loop() {
 						m.scheduler.RemoveTask(task.GetTaskId())
 						m.sendNeedExecuteTaskByAction(types.NewNeedExecuteTask(
 							"",
-							libcommonpb.TaskRole_TaskRole_Sender,
-							libcommonpb.TaskRole_TaskRole_Sender,
+							libtypes.TaskRole_TaskRole_Sender,
+							libtypes.TaskRole_TaskRole_Sender,
 							task.GetTaskSender(),
 							task.GetTaskSender(),
 							task.GetTaskId(),
@@ -354,7 +353,7 @@ func (m *Manager) loop() {
 					task.GetLocalTaskOrganization().GetPartyId(), task.GetErr().Error()))
 
 				switch task.GetLocalTaskRole() {
-				case libcommonpb.TaskRole_TaskRole_Sender:
+				case libtypes.TaskRole_TaskRole_Sender:
 					m.publishFinishedTaskToDataCenter(task, localTask, true)
 				default:
 					m.sendTaskResultMsgToTaskSender(task)
@@ -436,8 +435,8 @@ func (m *Manager) TerminateTask(terminate *types.TaskTerminateMsg) {
 		if err = m.consensusEngine.OnConsensusMsg(
 			"", types.NewInterruptMsgWrap(task.GetTaskId(),
 				types.MakeMsgOption(common.Hash{},
-					libcommonpb.TaskRole_TaskRole_Sender,
-					libcommonpb.TaskRole_TaskRole_Sender,
+					libtypes.TaskRole_TaskRole_Sender,
+					libtypes.TaskRole_TaskRole_Sender,
 					task.GetTaskSender().GetPartyId(),
 					task.GetTaskSender().GetPartyId(),
 					task.GetTaskSender()))); nil != err {
@@ -477,8 +476,8 @@ func (m *Manager) onTerminateExecuteTask(taskId,  partyId string, task *types.Ta
 		// 4、 send a new needExecuteTask(status: types.TaskTerminate) for terminate with sender
 		m.sendNeedExecuteTaskByAction(types.NewNeedExecuteTask(
 			"",
-			libcommonpb.TaskRole_TaskRole_Sender,
-			libcommonpb.TaskRole_TaskRole_Sender,
+			libtypes.TaskRole_TaskRole_Sender,
+			libtypes.TaskRole_TaskRole_Sender,
 			task.GetTaskSender(),
 			task.GetTaskSender(),
 			task.GetTaskId(),

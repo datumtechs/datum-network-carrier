@@ -8,7 +8,6 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/service/discovery"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -232,7 +231,7 @@ func (m *Manager) LockLocalResourceWithTask(partyId, jobNodeId string, mem, band
 		log.Debugf("Update jobNode localResource state to `Occupation` state on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, jobNodeTaskCount: {%d}, LocalResource: %s",
 			task.GetTaskId(), partyId, jobNodeId, jobNodeRunningTaskCount, jobNodeResource.GetData().String())
 
-		jobNodeResource.GetData().State = libcommonpb.PowerState_PowerState_Occupation
+		jobNodeResource.GetData().State = libtypes.PowerState_PowerState_Occupation
 	}
 	if err := m.dataCenter.StoreLocalResource(jobNodeResource); nil != err {
 		// rollback useSlot => freeSlot
@@ -381,7 +380,7 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId, partyId string) error {
 		log.Debugf("Update jobNode localResource state to `Released` state on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, jobNodeTaskCount: {%d}, freeMemCount: {%d}, freeBandwidthCount: {%d}, freeDiskCount: {%d}, freeProcessorCount: {%d}, LocalResource: %s",
 			taskId, partyId, jobNodeId, jobNodeRunningTaskCount, freeMemCount, freeBandwidthCount, freeDiskCount, freeProcessorCount, jobNodeResource.GetData().String())
 
-		jobNodeResource.GetData().State = libcommonpb.PowerState_PowerState_Released
+		jobNodeResource.GetData().State = libtypes.PowerState_PowerState_Released
 	}
 	if err := m.dataCenter.StoreLocalResource(jobNodeResource); nil != err {
 		log.WithError(err).Errorf("Failed to update local jobNodeResource on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeMemCount: {%d}, freeBandwidthCount: {%d}, freeDiskCount: {%d}, freeProcessorCount: {%d}, LocalResource: %s",
@@ -659,7 +658,7 @@ func (m *Manager) DataNodeClientSize() int {
 	return m.resourceClientSet.DataNodeClientSize()
 }
 
-func (m *Manager) AddDiscoveryJobNodeResource(identity *libcommonpb.Organization, jobNodeId, jobNodeIP, jobNodePort, jobNodeExternalIP, jobNodeExternalPort string) error {
+func (m *Manager) AddDiscoveryJobNodeResource(identity *libtypes.Organization, jobNodeId, jobNodeIP, jobNodePort, jobNodeExternalIP, jobNodeExternalPort string) error {
 
 	log.Infof("Discovered a new jobNode from consul server, add jobNode resource on resourceManager.AddDiscoveryJobNodeResource(), jobNodeServiceId: {%s}, jobNodeService: {%s:%s}",
 		jobNodeId, jobNodeIP, jobNodePort)
@@ -685,9 +684,9 @@ func (m *Manager) AddDiscoveryJobNodeResource(identity *libcommonpb.Organization
 		JobNodeId:  jobNodeId,
 		DataId:     "", // can not own powerId now, because power have not publish
 		// the status of data, N means normal, D means deleted.
-		DataStatus: libcommonpb.DataStatus_DataStatus_Valid,
+		DataStatus: libtypes.DataStatus_DataStatus_Valid,
 		// resource status, eg: create/release/revoke
-		State: libcommonpb.PowerState_PowerState_Created,
+		State: libtypes.PowerState_PowerState_Created,
 		// unit: byte
 		TotalMem: jobNodeStatus.GetTotalMemory(),
 		UsedMem:  0,
@@ -729,7 +728,7 @@ func (m *Manager) AddDiscoveryJobNodeResource(identity *libcommonpb.Organization
 	return nil
 }
 
-func (m *Manager) UpdateDiscoveryJobNodeResource(identity *libcommonpb.Organization, jobNodeId, jobNodeIP, jobNodePort, jobNodeExternalIP, jobNodeExternalPort string, old *pb.YarnRegisteredPeerDetail) error {
+func (m *Manager) UpdateDiscoveryJobNodeResource(identity *libtypes.Organization, jobNodeId, jobNodeIP, jobNodePort, jobNodeExternalIP, jobNodeExternalPort string, old *pb.YarnRegisteredPeerDetail) error {
 
 	// check the  via external ip and port comparing old infomation,
 	// if it is, update the some things about jobNode.
@@ -856,7 +855,7 @@ func (m *Manager) UpdateDiscoveryJobNodeResource(identity *libcommonpb.Organizat
 	return nil
 }
 
-func (m *Manager) RemoveDiscoveryJobNodeResource(identity *libcommonpb.Organization, jobNodeId, jobNodeIP, jobNodePort, jobNodeExternalIP, jobNodeExternalPort string, old *pb.YarnRegisteredPeerDetail) error {
+func (m *Manager) RemoveDiscoveryJobNodeResource(identity *libtypes.Organization, jobNodeId, jobNodeIP, jobNodePort, jobNodeExternalIP, jobNodeExternalPort string, old *pb.YarnRegisteredPeerDetail) error {
 
 	log.Infof("Disappeared a old jobNode from consul server on resourceManager.RemoveDiscoveryJobNodeResource(), jobNodeId: {%s}", jobNodeId)
 
@@ -928,7 +927,7 @@ func (m *Manager) RemoveDiscoveryJobNodeResource(identity *libcommonpb.Organizat
 	return nil
 }
 
-func (m *Manager) AddDiscoveryDataNodeResource(identity *libcommonpb.Organization, dataNodeId, dataNodeIP, dataNodePort, dataNodeExternalIP, dataNodeExternalPort string) error {
+func (m *Manager) AddDiscoveryDataNodeResource(identity *libtypes.Organization, dataNodeId, dataNodeIP, dataNodePort, dataNodeExternalIP, dataNodeExternalPort string) error {
 
 	log.Infof("Discovered a new dataNode from consul server, add dataNode resource on resourceManager.AddDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%s}",
 		dataNodeId, dataNodeIP, dataNodePort)
@@ -978,7 +977,7 @@ func (m *Manager) AddDiscoveryDataNodeResource(identity *libcommonpb.Organizatio
 	return nil
 }
 
-func (m *Manager) UpdateDiscoveryDataNodeResource(identity *libcommonpb.Organization, dataNodeId, dataNodeIP, dataNodePort, dataNodeExternalIP, dataNodeExternalPort string, old *pb.YarnRegisteredPeerDetail) error {
+func (m *Manager) UpdateDiscoveryDataNodeResource(identity *libtypes.Organization, dataNodeId, dataNodeIP, dataNodePort, dataNodeExternalIP, dataNodeExternalPort string, old *pb.YarnRegisteredPeerDetail) error {
 	// check the  via external ip and port comparing old infomation,
 	// if it is, update the some things about dataNode.
 	if old.GetExternalIp() != dataNodeExternalIP || old.GetExternalPort() != dataNodeExternalPort {
@@ -1080,7 +1079,7 @@ func (m *Manager) UpdateDiscoveryDataNodeResource(identity *libcommonpb.Organiza
 	return nil
 }
 
-func (m *Manager) RemoveDiscoveryDataNodeResource(identity *libcommonpb.Organization, dataNodeId, dataNodeIP, dataNodePort, dataNodeExternalIP, dataNodeExternalPort string, old *pb.YarnRegisteredPeerDetail) error {
+func (m *Manager) RemoveDiscoveryDataNodeResource(identity *libtypes.Organization, dataNodeId, dataNodeIP, dataNodePort, dataNodeExternalIP, dataNodeExternalPort string, old *pb.YarnRegisteredPeerDetail) error {
 
 	log.Infof("Disappeared a old dataNode from consul server on resourceManager.RemoveDiscoveryDataNodeResource(), dataNodeId: {%s}", dataNodeId)
 

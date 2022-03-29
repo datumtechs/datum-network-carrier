@@ -1,7 +1,7 @@
 package rawdb
 
 import (
-	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 )
 
 var (
@@ -154,7 +154,7 @@ func GetLocalTaskExecuteStatus(taskId, partyId string) []byte {
 	return append(append(localTaskExecuteStatusKeyPrefix, []byte(taskId)...), []byte(partyId)...)
 }
 
-func GetUserMetadataAuthByMetadataIdKey(userType libcommonpb.UserType, user, metadataId string) []byte {
+func GetUserMetadataAuthByMetadataIdKey(userType libtypes.UserType, user, metadataId string) []byte {
 
 	// key: prefix + userType + user + metadataId
 

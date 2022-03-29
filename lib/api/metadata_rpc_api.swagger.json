@@ -145,6 +145,72 @@
         ]
       }
     },
+    "/carrier/v1/metadata/publishByInteranlMetadata": {
+      "post": {
+        "summary": "v 0.4.0 将内部元数据重新发布成 对外的元数据",
+        "operationId": "MetadataService_PublishMetadataByInteranlMetadata",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/typesSimpleResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiPublishMetadataByInteranlMetadataRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MetadataService"
+        ]
+      }
+    },
+    "/carrier/v1/metadata/publishByTaskResultFile": {
+      "post": {
+        "summary": "v 0.4.0 将任务的结果数据重新发布成 对外的元数据",
+        "operationId": "MetadataService_PublishMetadataByTaskResultFile",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiPublishMetadataResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiPublishMetadataByTaskResultFileRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MetadataService"
+        ]
+      }
+    },
     "/carrier/v1/metadata/revoke": {
       "post": {
         "summary": "撤销元数据 (从底层网络撤销)",
@@ -180,7 +246,7 @@
     },
     "/carrier/v1/metadata/usedTaskIdList": {
       "post": {
-        "summary": "V 2.0 新增\n查询某 metadata 参与过的任务的taskId列表",
+        "summary": "V 0.2.0 新增\n查询某 metadata 参与过的任务的taskId列表",
         "operationId": "MetadataService_GetMetadataUsedTaskIdList",
         "responses": {
           "200": {
@@ -321,6 +387,24 @@
       },
       "title": "查询某 metadata 参与过的任务的taskId列表 resp"
     },
+    "rpcapiPublishMetadataByInteranlMetadataRequest": {
+      "type": "object",
+      "properties": {
+        "metadata_id": {
+          "type": "string"
+        }
+      },
+      "title": "将内部元数据重新发布成 对外的元数据 req"
+    },
+    "rpcapiPublishMetadataByTaskResultFileRequest": {
+      "type": "object",
+      "properties": {
+        "task_id": {
+          "type": "string"
+        }
+      },
+      "title": "将任务的结果数据重新发布成 对外的元数据 req"
+    },
     "rpcapiPublishMetadataRequest": {
       "type": "object",
       "properties": {
@@ -423,14 +507,14 @@
           "type": "integer",
           "format": "int64"
         },
-        "file_hash": {
+        "data_hash": {
           "type": "string"
         },
         "desc": {
           "type": "string"
         },
-        "file_type": {
-          "$ref": "#/definitions/typesOriginFileType"
+        "data_type": {
+          "$ref": "#/definitions/typesOrigindataType"
         },
         "industry": {
           "type": "string"
@@ -452,6 +536,9 @@
         },
         "metadata_option": {
           "type": "string"
+        },
+        "allow_expose": {
+          "type": "boolean"
         },
         "token_address": {
           "type": "string"
@@ -494,13 +581,13 @@
       },
       "description": "A represents the basic information of the organization."
     },
-    "typesOriginFileType": {
+    "typesOrigindataType": {
       "type": "string",
       "enum": [
-        "FileType_Unknown",
-        "FileType_CSV"
+        "OrigindataType_Unknown",
+        "OrigindataType_CSV"
       ],
-      "default": "FileType_Unknown",
+      "default": "OrigindataType_Unknown",
       "title": "原始文件类型"
     },
     "typesSimpleResponse": {

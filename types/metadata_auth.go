@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
-	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"io"
 	"sync/atomic"
@@ -50,7 +49,7 @@ func (m *MetadataAuthority) Hash() common.Hash {
 }
 
 func (m *MetadataAuthority) GetUser() string                        { return m.data.GetUser() }
-func (m *MetadataAuthority) GetUserType() libcommonpb.UserType      { return m.data.GetUserType() }
+func (m *MetadataAuthority) GetUserType() libtypes.UserType      { return m.data.GetUserType() }
 func (m *MetadataAuthority) GetData() *libtypes.MetadataAuthorityPB { return m.data }
 
 type MetadataAuthArray []*MetadataAuthority
@@ -86,11 +85,11 @@ func (s MetadataAuthArray) ToArray() []*libtypes.MetadataAuthorityPB {
 
 type MetadataAuthAudit struct {
 	MetadataAuthId  string
-	AuditOption     libcommonpb.AuditMetadataOption
+	AuditOption     libtypes.AuditMetadataOption
 	AuditSuggestion string
 }
 
-func NewMetadataAuthAudit(metadataAuthId, suggestion string, option libcommonpb.AuditMetadataOption) *MetadataAuthAudit {
+func NewMetadataAuthAudit(metadataAuthId, suggestion string, option libtypes.AuditMetadataOption) *MetadataAuthAudit {
 	return &MetadataAuthAudit{
 		MetadataAuthId:  metadataAuthId,
 		AuditOption:     option,
@@ -99,7 +98,7 @@ func NewMetadataAuthAudit(metadataAuthId, suggestion string, option libcommonpb.
 }
 
 func (maa *MetadataAuthAudit) GetMetadataAuthId() string                       { return maa.MetadataAuthId }
-func (maa *MetadataAuthAudit) GetAuditOption() libcommonpb.AuditMetadataOption { return maa.AuditOption }
+func (maa *MetadataAuthAudit) GetAuditOption() libtypes.AuditMetadataOption { return maa.AuditOption }
 func (maa *MetadataAuthAudit) GetAuditSuggestion() string                      { return maa.AuditSuggestion }
 
 func (maa *MetadataAuthAudit) String() string {

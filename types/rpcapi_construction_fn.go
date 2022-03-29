@@ -2,7 +2,6 @@ package types
 
 import (
 	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
-	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 )
 
@@ -16,7 +15,7 @@ func NewMetadataSaveRequest(metadata *Metadata) *api.SaveMetadataRequest {
 
 func NewMetadataRevokeRequest(metadata *Metadata) *api.RevokeMetadataRequest {
 	request := &api.RevokeMetadataRequest{
-		Owner: &libcommonpb.Organization{
+		Owner: &libtypes.Organization{
 			IdentityId: metadata.GetData().GetOwner().GetIdentityId(),
 			NodeId:     metadata.GetData().GetOwner().GetNodeId(),
 			NodeName:   metadata.GetData().GetOwner().GetNodeName(),
@@ -35,7 +34,7 @@ func NewPublishPowerRequest(resource *Resource) *api.PublishPowerRequest {
 
 func RevokePowerRequest(resource *Resource) *api.RevokePowerRequest {
 	request := &api.RevokePowerRequest{
-		Owner: &libcommonpb.Organization{
+		Owner: &libtypes.Organization{
 			NodeName:   resource.GetNodeName(),
 			NodeId:     resource.GetNodeId(),
 			IdentityId: resource.GetIdentityId(),
@@ -53,7 +52,7 @@ func NewSyncPowerRequest(resource *LocalResource) *api.SyncPowerRequest {
 
 func NewSaveIdentityRequest(identity *Identity) *api.SaveIdentityRequest {
 	request := &api.SaveIdentityRequest{
-		Member: &libcommonpb.Organization{
+		Member: &libtypes.Organization{
 			NodeName:   identity.GetName(),
 			NodeId:     identity.GetNodeId(),
 			IdentityId: identity.GetIdentityId(),
@@ -88,7 +87,7 @@ func NewResourceArrayFromPowerTotalSummaryListResponse(response *api.ListPowerSu
 		resource := NewResource(&libtypes.ResourcePB{
 			Owner: v.GetOwner(),
 			DataId:         "", // todo: to be determined
-			DataStatus:     libcommonpb.DataStatus_DataStatus_Valid,
+			DataStatus:     libtypes.DataStatus_DataStatus_Valid,
 			State:          v.GetPowerSummary().GetState(),
 			TotalMem:       v.GetPowerSummary().GetInformation().GetTotalMem(),
 			TotalProcessor: v.GetPowerSummary().GetInformation().GetTotalProcessor(),
@@ -121,7 +120,7 @@ func NewResourceFromResponse(response *api.PowerSummaryResponse) ResourceArray {
 	resource := NewResource(&libtypes.ResourcePB{
 		Owner: response.GetOwner(),
 		DataId:         "", // todo: to be determined
-		DataStatus:     libcommonpb.DataStatus_DataStatus_Valid,
+		DataStatus:     libtypes.DataStatus_DataStatus_Valid,
 		State:          response.GetPowerSummary().GetState(),
 		TotalMem:       response.GetPowerSummary().GetInformation().GetTotalMem(),
 		TotalProcessor: response.GetPowerSummary().GetInformation().GetTotalProcessor(),

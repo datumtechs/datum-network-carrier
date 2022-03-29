@@ -7,7 +7,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/db"
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/sirupsen/logrus"
@@ -246,25 +246,25 @@ func (dc *DataCenter) QueryDataResourceDiskUsed(metadataId string) (*types.DataR
 	return rawdb.QueryDataResourceDiskUsed(dc.db, metadataId)
 }
 
-func (dc *DataCenter) StoreUserMetadataAuthIdByMetadataId (userType libcommonpb.UserType, user, metadataId, metadataAuthId string) error {
+func (dc *DataCenter) StoreUserMetadataAuthIdByMetadataId (userType libtypes.UserType, user, metadataId, metadataAuthId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.StoreUserMetadataAuthIdByMetadataId(dc.db, userType, user, metadataId, metadataAuthId)
 }
 
-func (dc *DataCenter) QueryUserMetadataAuthIdByMetadataId (userType libcommonpb.UserType, user, metadataId string) (string, error) {
+func (dc *DataCenter) QueryUserMetadataAuthIdByMetadataId (userType libtypes.UserType, user, metadataId string) (string, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.QueryUserMetadataAuthIdByMetadataId(dc.db, userType, user, metadataId)
 }
 
-func (dc *DataCenter) HasUserMetadataAuthIdByMetadataId (userType libcommonpb.UserType, user, metadataId string) (bool, error) {
+func (dc *DataCenter) HasUserMetadataAuthIdByMetadataId (userType libtypes.UserType, user, metadataId string) (bool, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.HasUserMetadataAuthIdByMetadataId(dc.db, userType, user, metadataId)
 }
 
-func (dc *DataCenter) RemoveUserMetadataAuthIdByMetadataId (userType libcommonpb.UserType, user, metadataId string) error {
+func (dc *DataCenter) RemoveUserMetadataAuthIdByMetadataId (userType libtypes.UserType, user, metadataId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.RemoveUserMetadataAuthIdByMetadataId(dc.db, userType, user, metadataId)

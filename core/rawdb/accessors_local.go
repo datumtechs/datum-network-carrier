@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	dbtype "github.com/RosettaFlow/Carrier-Go/lib/db"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -21,8 +20,8 @@ const seedNodeToKeep = 50
 const registeredNodeToKeep = 50
 
 // QueryLocalIdentity retrieves the identity of local.
-func QueryLocalIdentity(db DatabaseReader) (*libcommonpb.Organization, error) {
-	var blob libcommonpb.Organization
+func QueryLocalIdentity(db DatabaseReader) (*libtypes.Organization, error) {
+	var blob libtypes.Organization
 	enc, err := db.Get(localIdentityKey)
 	if nil != err {
 		return nil, err
@@ -34,7 +33,7 @@ func QueryLocalIdentity(db DatabaseReader) (*libcommonpb.Organization, error) {
 }
 
 // StoreLocalIdentity stores the local identity.
-func StoreLocalIdentity(db DatabaseWriter, identity *libcommonpb.Organization) error {
+func StoreLocalIdentity(db DatabaseWriter, identity *libtypes.Organization) error {
 	enc, err := identity.Marshal()
 	if nil != err {
 		return err

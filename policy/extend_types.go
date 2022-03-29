@@ -2,7 +2,6 @@ package policy
 
 import (
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
@@ -14,18 +13,13 @@ func NewTaskDetailShowFromTaskData(input *types.Task) *pb.TaskDetailShow {
 		TaskName: taskData.GetTaskName(),
 		UserType: taskData.GetUserType(),
 		User:     taskData.GetUser(),
-		Sender: &libcommonpb.TaskOrganization{
+		Sender: &libtypes.TaskOrganization{
 			PartyId:    input.GetTaskSender().GetPartyId(),
 			NodeName:   input.GetTaskSender().GetNodeName(),
 			NodeId:     input.GetTaskSender().GetNodeId(),
 			IdentityId: input.GetTaskSender().GetIdentityId(),
 		},
-		AlgoSupplier: &libcommonpb.TaskOrganization{
-			PartyId:    input.GetTaskData().GetAlgoSupplier().GetPartyId(),
-			NodeName:   input.GetTaskData().GetAlgoSupplier().GetNodeName(),
-			NodeId:     input.GetTaskData().GetAlgoSupplier().GetNodeId(),
-			IdentityId: input.GetTaskData().GetAlgoSupplier().GetIdentityId(),
-		},
+		//AlgoSupplier: ,
 		DataSuppliers:  make([]*pb.TaskDataSupplierShow, 0, len(taskData.GetDataSuppliers())),
 		PowerSuppliers: make([]*pb.TaskPowerSupplierShow, 0, len(taskData.GetPowerSuppliers())),
 		Receivers:      taskData.GetReceivers(),
@@ -33,13 +27,25 @@ func NewTaskDetailShowFromTaskData(input *types.Task) *pb.TaskDetailShow {
 		StartAt:        taskData.GetStartAt(),
 		EndAt:          taskData.GetEndAt(),
 		State:          taskData.GetState(),
-		OperationCost: &libcommonpb.TaskResourceCostDeclare{
+		OperationCost: &libtypes.TaskResourceCostDeclare{
 			Processor: taskData.GetOperationCost().GetProcessor(),
 			Memory:    taskData.GetOperationCost().GetMemory(),
 			Bandwidth: taskData.GetOperationCost().GetBandwidth(),
 			Duration:  taskData.GetOperationCost().GetDuration(),
 		},
 		UpdateAt: taskData.GetEndAt(), // The endAt of the task is the updateAt in the data center database
+	}
+
+	// AlgoSupplier
+	detailShow.AlgoSupplier = &pb.TaskAlgoSupplier{
+		Organization: &libtypes.TaskOrganization{
+			PartyId:    input.GetTaskData().GetAlgoSupplier().GetPartyId(),
+			NodeName:   input.GetTaskData().GetAlgoSupplier().GetNodeName(),
+			NodeId:     input.GetTaskData().GetAlgoSupplier().GetNodeId(),
+			IdentityId: input.GetTaskData().GetAlgoSupplier().GetIdentityId(),
+		},
+		//MetaAlgorithmId: "",  todo
+		//MetaAlgorithmName: "", todo
 	}
 
 	// DataSupplier
@@ -55,7 +61,7 @@ func NewTaskDetailShowFromTaskData(input *types.Task) *pb.TaskDetailShow {
 				taskData.GetTaskId(), dataSupplier.GetPartyId())
 		}
 		supplier := &pb.TaskDataSupplierShow{
-			Organization: &libcommonpb.TaskOrganization{
+			Organization: &libtypes.TaskOrganization{
 				PartyId:    dataSupplier.GetPartyId(),
 				NodeName:   dataSupplier.GetNodeName(),
 				NodeId:     dataSupplier.GetNodeId(),
@@ -77,7 +83,7 @@ func NewTaskDetailShowFromTaskData(input *types.Task) *pb.TaskDetailShow {
 			}
 		}
 		supplier := &pb.TaskPowerSupplierShow{
-			Organization: &libcommonpb.TaskOrganization{
+			Organization: &libtypes.TaskOrganization{
 				PartyId:    data.GetPartyId(),
 				NodeName:   data.GetNodeName(),
 				NodeId:     data.GetNodeId(),
@@ -107,7 +113,7 @@ func NewTaskEventFromAPIEvent(input []*libtypes.TaskEvent) []*pb.TaskEventShow {
 			Type:     event.GetType(),
 			CreateAt: event.GetCreateAt(),
 			Content:  event.GetContent(),
-			Owner: &libcommonpb.Organization{
+			Owner: &libtypes.Organization{
 				IdentityId: event.GetIdentityId(),
 			},
 			PartyId: event.GetPartyId(),
@@ -124,9 +130,9 @@ func NewGlobalMetadataInfoFromMetadata(input *types.Metadata) *pb.GetGlobalMetad
 				MetadataId:     input.GetData().GetDataId(),
 				MetadataName:   input.GetData().GetMetadataName(),
 				MetadataType:   input.GetData().GetMetadataType(),
-				FileHash:       input.GetData().GetFileHash(),
+				DataHash:       input.GetData().GetDataHash(),
 				Desc:           input.GetData().GetDesc(),
-				FileType:       input.GetData().GetFileType(),
+				DataType:       input.GetData().GetDataType(),
 				Industry:       input.GetData().GetIndustry(),
 				State:          input.GetData().GetState(),
 				PublishAt:      input.GetData().GetPublishAt(),
@@ -147,9 +153,9 @@ func NewLocalMetadataInfoFromMetadata(isInternal bool, input *types.Metadata) *p
 				MetadataId:     input.GetData().GetDataId(),
 				MetadataName:   input.GetData().GetMetadataName(),
 				MetadataType:   input.GetData().GetMetadataType(),
-				FileHash:       input.GetData().GetFileHash(),
+				DataHash:       input.GetData().GetDataHash(),
 				Desc:           input.GetData().GetDesc(),
-				FileType:       input.GetData().GetFileType(),
+				DataType:       input.GetData().GetDataType(),
 				Industry:       input.GetData().GetIndustry(),
 				State:          input.GetData().GetState(),
 				PublishAt:      input.GetData().GetPublishAt(),

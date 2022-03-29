@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -93,16 +93,16 @@ func (svr *Server) PublishMetadata(ctx context.Context, req *pb.PublishMetadataR
 	}, nil
 }
 
-func (svr *Server) RevokeMetadata(ctx context.Context, req *pb.RevokeMetadataRequest) (*libcommonpb.SimpleResponse, error) {
+func (svr *Server) RevokeMetadata(ctx context.Context, req *pb.RevokeMetadataRequest) (*libtypes.SimpleResponse, error) {
 
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:RevokeMetadata failed, query local identity failed, can not revoke metadata")
-		return &libcommonpb.SimpleResponse { Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
+		return &libtypes.SimpleResponse { Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
 	}
 
 	if "" == strings.Trim(req.GetMetadataId(), "") {
-		return &libcommonpb.SimpleResponse { Status: backend.ErrRequireParams.ErrCode(), Msg: "require metadataId"}, nil
+		return &libtypes.SimpleResponse { Status: backend.ErrRequireParams.ErrCode(), Msg: "require metadataId"}, nil
 	}
 
 	metadataRevokeMsg := types.NewMetadataRevokeMessageFromRequest(req)
@@ -111,10 +111,10 @@ func (svr *Server) RevokeMetadata(ctx context.Context, req *pb.RevokeMetadataReq
 		log.WithError(err).Error("RPC-API:RevokeMetadata failed")
 
 		errMsg := fmt.Sprintf("%s, metadataId: {%s}", backend.ErrRevokeMetadataMsg.Error(), req.GetMetadataId())
-		return &libcommonpb.SimpleResponse { Status: backend.ErrRevokeMetadataMsg.ErrCode(), Msg: errMsg }, nil
+		return &libtypes.SimpleResponse { Status: backend.ErrRevokeMetadataMsg.ErrCode(), Msg: errMsg }, nil
 	}
 	log.Debugf("RPC-API:RevokeMetadata succeed, metadataId: {%s}", req.GetMetadataId())
-	return &libcommonpb.SimpleResponse{
+	return &libtypes.SimpleResponse{
 		Status: 0,
 		Msg:    backend.OK,
 	}, nil
@@ -136,4 +136,12 @@ func (svr *Server) GetMetadataUsedTaskIdList(ctx context.Context, req *pb.GetMet
 		Msg:     backend.OK,
 		TaskIds: taskIds,
 	}, nil
+}
+
+func (svr *Server) PublishMetadataByInteranlMetadata(ctx context.Context, req *pb.PublishMetadataByInteranlMetadataRequest) (*libtypes.SimpleResponse, error) {
+	return nil, nil
+}
+
+func (svr *Server) PublishMetadataByTaskResultFile(ctx context.Context, req *pb.PublishMetadataByTaskResultFileRequest) (*pb.PublishMetadataResponse, error) {
+	return nil, nil
 }

@@ -30,12 +30,6 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // 发布算力请求参数
 type PublishPowerRequest struct {
-	//// 算力的拥有者
-	//types.Organization owner = 1;
-	//// 算力ID
-	//string power_id = 2;
-	//// 发布的算力信息
-	//PurePower information = 3;
 	Power                *types.ResourcePB `protobuf:"bytes,1,opt,name=power,proto3" json:"power,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
 	XXX_unrecognized     []byte            `json:"-"`

@@ -3,7 +3,7 @@ package types
 import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
-	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	msgcommonpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/common"
 	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
 )
@@ -111,17 +111,17 @@ func FetchTaskPeerInfoArr(peerInfoArr []*twopcpb.TaskPeerInfo) []*PrepareVoteRes
 
 type MsgOption struct {
 	ProposalId      common.Hash
-	SenderRole      libcommonpb.TaskRole
+	SenderRole      libtypes.TaskRole
 	SenderPartyId   string
-	ReceiverRole    libcommonpb.TaskRole
+	ReceiverRole    libtypes.TaskRole
 	ReceiverPartyId string
-	Owner           *libcommonpb.TaskOrganization
+	Owner           *libtypes.TaskOrganization
 }
 
 func MakeMsgOption(proposalId common.Hash,
-	senderRole, receiverRole libcommonpb.TaskRole,
+	senderRole, receiverRole libtypes.TaskRole,
 	senderPartyId, receiverPartyId string,
-	sender *libcommonpb.TaskOrganization,
+	sender *libtypes.TaskOrganization,
 ) *msgcommonpb.MsgOption {
 	return &msgcommonpb.MsgOption{
 		ProposalId:      proposalId.Bytes(),
@@ -144,11 +144,11 @@ func (option *MsgOption) String() string {
 }
 
 func (option *MsgOption) GetProposalId() common.Hash              { return option.ProposalId }
-func (option *MsgOption) GetSenderRole() libcommonpb.TaskRole     { return option.SenderRole }
+func (option *MsgOption) GetSenderRole() libtypes.TaskRole     { return option.SenderRole }
 func (option *MsgOption) GetSenderPartyId() string                { return option.SenderPartyId }
-func (option *MsgOption) GetReceiverRole() libcommonpb.TaskRole   { return option.ReceiverRole }
+func (option *MsgOption) GetReceiverRole() libtypes.TaskRole   { return option.ReceiverRole }
 func (option *MsgOption) GetReceiverPartyId() string              { return option.ReceiverPartyId }
-func (option *MsgOption) GetOwner() *libcommonpb.TaskOrganization { return option.Owner }
+func (option *MsgOption) GetOwner() *libtypes.TaskOrganization { return option.Owner }
 
 func ConvertMsgOption(option *MsgOption) *msgcommonpb.MsgOption {
 	return &msgcommonpb.MsgOption{
@@ -169,11 +169,11 @@ func ConvertMsgOption(option *MsgOption) *msgcommonpb.MsgOption {
 func FetchMsgOption(option *msgcommonpb.MsgOption) *MsgOption {
 	return &MsgOption{
 		ProposalId:      common.BytesToHash(option.GetProposalId()),
-		SenderRole:      libcommonpb.TaskRole(option.GetSenderRole()),
+		SenderRole:      libtypes.TaskRole(option.GetSenderRole()),
 		SenderPartyId:   string(option.GetSenderPartyId()),
-		ReceiverRole:    libcommonpb.TaskRole(option.GetReceiverRole()),
+		ReceiverRole:    libtypes.TaskRole(option.GetReceiverRole()),
 		ReceiverPartyId: string(option.GetReceiverPartyId()),
-		Owner: &libcommonpb.TaskOrganization{
+		Owner: &libtypes.TaskOrganization{
 			NodeName:   string(option.GetMsgOwner().GetName()),
 			NodeId:     string(option.GetMsgOwner().GetNodeId()),
 			IdentityId: string(option.GetMsgOwner().GetIdentityId()),

@@ -398,7 +398,7 @@
         "meta_algorithm_id": {
           "type": "string"
         },
-        "contract_extra_params": {
+        "algorithm_code_extra_params": {
           "type": "string"
         },
         "sign": {
@@ -426,6 +426,20 @@
         }
       },
       "title": "发布任务 resp"
+    },
+    "rpcapiTaskAlgoSupplier": {
+      "type": "object",
+      "properties": {
+        "organization": {
+          "$ref": "#/definitions/typesTaskOrganization"
+        },
+        "meta_algorithm_id": {
+          "type": "string"
+        },
+        "meta_algorithm_name": {
+          "type": "string"
+        }
+      }
     },
     "rpcapiTaskDataSupplierShow": {
       "type": "object",
@@ -461,7 +475,7 @@
           "$ref": "#/definitions/typesTaskOrganization"
         },
         "algo_supplier": {
-          "$ref": "#/definitions/typesTaskOrganization"
+          "$ref": "#/definitions/rpcapiTaskAlgoSupplier"
         },
         "data_suppliers": {
           "type": "array",
@@ -503,6 +517,10 @@
           "type": "string"
         },
         "update_at": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "nonce": {
           "type": "string",
           "format": "uint64"
         }

@@ -2,7 +2,6 @@ package iface
 
 import (
 	libapipb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -47,10 +46,10 @@ type LocalStoreCarrierDB interface {
 	RemoveDataResourceDiskUsed(metaDataId string) error
 	QueryDataResourceDiskUsed(metaDataId string) (*types.DataResourceDiskUsed, error)
 	// v 0.2.0  about user metadataAuthUsed by metadataId (userType + user + metadataId -> metadataAuthId)
-	StoreUserMetadataAuthIdByMetadataId(userType libcommonpb.UserType, user, metadataId, metadataAuthId string) error
-	QueryUserMetadataAuthIdByMetadataId(userType libcommonpb.UserType, user, metadataId string) (string, error)
-	HasUserMetadataAuthIdByMetadataId(userType libcommonpb.UserType, user, metadataId string) (bool, error)
-	RemoveUserMetadataAuthIdByMetadataId(userType libcommonpb.UserType, user, metadataId string) error
+	StoreUserMetadataAuthIdByMetadataId(userType libtypes.UserType, user, metadataId, metadataAuthId string) error
+	QueryUserMetadataAuthIdByMetadataId(userType libtypes.UserType, user, metadataId string) (string, error)
+	HasUserMetadataAuthIdByMetadataId(userType libtypes.UserType, user, metadataId string) (bool, error)
+	RemoveUserMetadataAuthIdByMetadataId(userType libtypes.UserType, user, metadataId string) error
 	// v 0.2.0 about metadata used taskId    (metadataId -> [taskId, taskId, ..., taskId])
 	StoreMetadataHistoryTaskId(metadataId, taskId string) error
 	HasMetadataHistoryTaskId(metadataId, taskId string) (bool, error)
@@ -107,11 +106,11 @@ type IdentityCarrierDB interface {
 	QueryIdentityList(lastUpdate, pageSize uint64) (types.IdentityArray, error)
 	//QueryIdentityListByIds(identityIds []string) (types.IdentityArray, error)
 	// about local identity
-	HasIdentity(identity *libcommonpb.Organization) (bool, error)
-	StoreIdentity(identity *libcommonpb.Organization) error
+	HasIdentity(identity *libtypes.Organization) (bool, error)
+	StoreIdentity(identity *libtypes.Organization) error
 	RemoveIdentity() error
 	QueryIdentityId() (string, error)
-	QueryIdentity() (*libcommonpb.Organization, error)
+	QueryIdentity() (*libtypes.Organization, error)
 }
 
 type MetadataAuthorityCarrierDB interface {

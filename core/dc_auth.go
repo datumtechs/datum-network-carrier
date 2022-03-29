@@ -6,14 +6,14 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
-	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"strings"
 )
 
 // about identity on local
-func (dc *DataCenter) StoreIdentity(identity *libcommonpb.Organization) error {
+func (dc *DataCenter) StoreIdentity(identity *libtypes.Organization) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.StoreLocalIdentity(dc.db, identity)
@@ -35,14 +35,14 @@ func (dc *DataCenter) QueryIdentityId() (string, error) {
 	return identity.GetIdentityId(), nil
 }
 
-func (dc *DataCenter) QueryIdentity() (*libcommonpb.Organization, error) {
+func (dc *DataCenter) QueryIdentity() (*libtypes.Organization, error) {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.QueryLocalIdentity(dc.db)
 }
 
 // about identity on datacenter
-func (dc *DataCenter) HasIdentity(identity *libcommonpb.Organization) (bool, error) {
+func (dc *DataCenter) HasIdentity(identity *libtypes.Organization) (bool, error) {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
 	responses, err := dc.client.GetIdentityList(dc.ctx, &api.ListIdentityRequest{

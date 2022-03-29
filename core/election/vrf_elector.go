@@ -8,7 +8,6 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	"github.com/RosettaFlow/Carrier-Go/crypto/vrf"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
@@ -88,7 +87,7 @@ func (s *VrfElector) ElectionOrganization(
 	skipIdentityIdCache map[string]struct{},
 	mem, bandwidth, disk uint64, processor uint32,
 	extra []byte,
-) ([]*libcommonpb.TaskOrganization, []*libtypes.TaskPowerResourceOption, []byte, [][]byte, error) {
+) ([]*libtypes.TaskOrganization, []*libtypes.TaskPowerResourceOption, []byte, [][]byte, error) {
 
 	calculateCount := len(powerPartyIds)
 
@@ -108,7 +107,7 @@ func (s *VrfElector) ElectionOrganization(
 	}
 	queue, weights := s.vrfElectionOrganizationResourceQueue(globalpowerSummarys, nonce, calculateCount)
 
-	orgs := make([]*libcommonpb.TaskOrganization, 0)
+	orgs := make([]*libtypes.TaskOrganization, 0)
 	resources := make([]*libtypes.TaskPowerResourceOption, 0)
 
 	i := 0
@@ -126,7 +125,7 @@ func (s *VrfElector) ElectionOrganization(
 		}
 
 		// append one, if it enouph
-		orgs = append(orgs, &libcommonpb.TaskOrganization{
+		orgs = append(orgs, &libtypes.TaskOrganization{
 			PartyId:    powerPartyIds[i],
 			NodeName:   r.GetNodeName(),
 			NodeId:     r.GetNodeId(),
@@ -194,7 +193,7 @@ func (s *VrfElector) EnoughAvailableOrganization(taskId string, calculateCount i
 	return true, nil
 }
 
-func (s *VrfElector) VerifyElectionOrganization(taskId string, powerSuppliers []*libcommonpb.TaskOrganization, powerResources []*libtypes.TaskPowerResourceOption, nodeIdStr string, extra, nonce []byte, weights [][]byte) error {
+func (s *VrfElector) VerifyElectionOrganization(taskId string, powerSuppliers []*libtypes.TaskOrganization, powerResources []*libtypes.TaskPowerResourceOption, nodeIdStr string, extra, nonce []byte, weights [][]byte) error {
 
 	if len(powerSuppliers) != len(weights) {
 		return fmt.Errorf("powerSuppliers count is invalid, powerSuppliers count : %d, weights count: %d", len(powerSuppliers), len(weights))
@@ -322,7 +321,7 @@ func (s *VrfElector) queryValidGlobalPowerList (logkeyword, taskId string) (type
 
 	for _, identityInfo := range identityInfoArr {
 		// Skip the invalid organization
-		if identityInfo.GetStatus() == libcommonpb.CommonStatus_CommonStatus_Invalid || identityInfo.GetDataStatus() == libcommonpb.DataStatus_DataStatus_Invalid {
+		if identityInfo.GetStatus() == libtypes.CommonStatus_CommonStatus_Invalid || identityInfo.GetDataStatus() == libtypes.DataStatus_DataStatus_Invalid {
 			continue
 		}
 		// Skip the mock identityId

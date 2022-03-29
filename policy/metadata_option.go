@@ -3,12 +3,12 @@ package policy
 import (
 	"encoding/json"
 	"fmt"
-	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
-func FetchOriginId (fileType libcommonpb.OriginFileType, metadataOption string) (string, error) {
-	if fileType == libcommonpb.OriginFileType_FileType_CSV {
+func FetchOriginId (fileType libtypes.OrigindataType, metadataOption string) (string, error) {
+	if fileType == libtypes.OrigindataType_OrigindataType_CSV {
 		var option *types.MetadataOptionRowAndColumn
 		if err := json.Unmarshal([]byte(metadataOption), &option); nil != err {
 			return "", fmt.Errorf("unmashal metadataOption failed, %s", err)
@@ -18,8 +18,8 @@ func FetchOriginId (fileType libcommonpb.OriginFileType, metadataOption string) 
 	return "", types.CannotMatchMetadataOption
 }
 
-func FetchFilePath (fileType libcommonpb.OriginFileType, metadataOption string) (string, error) {
-	if fileType == libcommonpb.OriginFileType_FileType_CSV {
+func FetchFilePath (fileType libtypes.OrigindataType, metadataOption string) (string, error) {
+	if fileType == libtypes.OrigindataType_OrigindataType_CSV {
 		var option *types.MetadataOptionRowAndColumn
 		if err := json.Unmarshal([]byte(metadataOption), &option); nil != err {
 			return "", fmt.Errorf("unmashal metadataOption failed, %s", err)
