@@ -40,7 +40,7 @@ func IsRowAndColumnData(fileType libtypes.OrigindataType) bool {
 // libtypes.OriginFileType_FileType_CSV |
 type MetadataOptionRowAndColumn struct {
 	OriginId        string
-	FilePath        string
+	DataPath        string
 	Rows            uint64
 	Columns         uint64
 	Size            uint64
@@ -49,7 +49,7 @@ type MetadataOptionRowAndColumn struct {
 }
 
 func (option *MetadataOptionRowAndColumn) GetOriginId() string { return option.OriginId }
-func (option *MetadataOptionRowAndColumn) GetFilePath() string { return option.FilePath }
+func (option *MetadataOptionRowAndColumn) GetDataPath() string { return option.DataPath }
 func (option *MetadataOptionRowAndColumn) GetRows() uint64     { return option.Rows }
 func (option *MetadataOptionRowAndColumn) GetColumns() uint64  { return option.Columns }
 func (option *MetadataOptionRowAndColumn) GetSize() uint64     { return option.Size }

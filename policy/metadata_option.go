@@ -24,7 +24,7 @@ func FetchFilePath (fileType libtypes.OrigindataType, metadataOption string) (st
 		if err := json.Unmarshal([]byte(metadataOption), &option); nil != err {
 			return "", fmt.Errorf("unmashal metadataOption failed, %s", err)
 		}
-		return option.GetFilePath(), nil
+		return option.GetDataPath(), nil
 	}
 	return "", types.CannotMatchMetadataOption
 }

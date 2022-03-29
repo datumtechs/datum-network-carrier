@@ -756,7 +756,7 @@ func (m *Manager) metadataPolicyRowColumn(task *types.NeedExecuteTask, localTask
 
 	partyId := task.GetLocalTaskOrganization().GetPartyId()
 
-	var filePath string
+	var dataPath string
 	var keyColumn string
 	var selectedColumns []string
 
@@ -861,8 +861,8 @@ func (m *Manager) metadataPolicyRowColumn(task *types.NeedExecuteTask, localTask
 					}
 				}
 
-				filePath = metadataOption.GetFilePath()
-				if strings.Trim(filePath, "") == "" {
+				dataPath = metadataOption.GetDataPath()
+				if strings.Trim(dataPath, "") == "" {
 					return "", fmt.Errorf("not found the filePath of task dataPolicy on metadataOption, taskId: {%s}, partyId: {%s}, metadataId: {%s}",
 						localTask.GetTaskId(), partyId, metadataId)
 				}
@@ -893,7 +893,7 @@ func (m *Manager) metadataPolicyRowColumn(task *types.NeedExecuteTask, localTask
 			KeyColumn       string   `json:"key_column"`
 			SelectedColumns []string `json:"selected_columns"`
 		}{
-			InputFile:       filePath,
+			InputFile:       dataPath,
 			KeyColumn:       keyColumn, // only dataSupplier own, but power supplier never own
 			SelectedColumns: selectedColumns,
 		},
