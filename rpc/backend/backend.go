@@ -28,6 +28,8 @@ type Backend interface {
 	// v 2.0
 	ReportTaskResourceUsage(nodeType pb.NodeType, ip, port string, usage *types.TaskResuorceUsage) error
 
+	// v 0.4.0
+	GenerateObServerProxyWalletAddress() (string, error)
 
 	// metadata api
 	IsInternalMetadata(metadataId string) (bool, error)

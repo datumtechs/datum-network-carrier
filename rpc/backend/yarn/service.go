@@ -552,7 +552,7 @@ func (svr *Server) GetTaskResultFileSummary(ctx context.Context, req *pb.GetTask
 func (svr *Server) GetTaskResultFileSummaryList(ctx context.Context, empty *emptypb.Empty) (*pb.GetTaskResultFileSummaryListResponse, error) {
 	taskResultFileSummaryArr, err := svr.B.QueryTaskResultFileSummaryList()
 	if nil != err {
-		log.WithError(err).Errorf("RPC-API:GetTaskResultFileSummaryList-QueryTaskResultFileSummaryList")
+		log.WithError(err).Errorf("RPC-API:GetTaskResultFileSummaryList-QueryTaskResultFileSummaryList failed")
 		return &pb.GetTaskResultFileSummaryListResponse{Status: backend.ErrQueryTaskResultFileSummaryList.ErrCode(), Msg: backend.ErrQueryTaskResultFileSummaryList.Error()}, nil
 	}
 
@@ -583,6 +583,16 @@ func (svr *Server) GetTaskResultFileSummaryList(ctx context.Context, empty *empt
 	}, nil
 }
 
-func (svr *Server) GetObServerProxyWalletAddress(ctx context.Context, req *emptypb.Empty) (*pb.GetObServerProxyWalletAddressResponse, error) {
-	return nil, nil
+func (svr *Server) GenerateObServerProxyWalletAddress(ctx context.Context, req *emptypb.Empty) (*pb.GenerateObServerProxyWalletAddressResponse, error) {
+
+	wallet, err := svr.B.GenerateObServerProxyWalletAddress()
+	if nil != err {
+		log.WithError(err).Errorf("RPC-API:GenerateObServerProxyWalletAddress failed")
+		return &pb.GenerateObServerProxyWalletAddressResponse{Status: backend.ErrGenerateObserverProxyWallet.ErrCode(), Msg: backend.ErrGenerateObserverProxyWallet.Error()}, nil
+	}
+	log.Debugf("RPC-API:GenerateObServerProxyWalletAddress Succeed, wallet: {%s}", wallet)
+	return &pb.GenerateObServerProxyWalletAddressResponse{
+		Status:          0,
+		Msg:             backend.OK,
+	}, nil
 }

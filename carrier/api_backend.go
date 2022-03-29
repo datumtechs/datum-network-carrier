@@ -598,6 +598,12 @@ func (s *CarrierAPIBackend) ReportTaskResourceUsage(nodeType pb.NodeType, ip, po
 	return nil
 }
 
+func (s *CarrierAPIBackend) GenerateObServerProxyWalletAddress() (string, error) {
+
+	// TODO 等待实现...
+	return "", nil
+}
+
 // metadata api
 func (s *CarrierAPIBackend) IsInternalMetadata(metadataId string) (bool, error) {
 	return s.carrier.carrierDB.IsInternalMetadataById(metadataId)

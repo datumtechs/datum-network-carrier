@@ -81,5 +81,6 @@ var (
 	ErrQueryAvailableDataNode         = &RpcBizErr{Code: 14036, Msg: "Query availableDataNode failed"}
 	ErrQueryFilePosition              = &RpcBizErr{Code: 14037, Msg: "Query filePosition failed"}
 	ErrQueryTaskResultFileSummaryList = &RpcBizErr{Code: 14038, Msg: "Query taskResultFileSummary list failed"}
-	ErrReportTaskResourceExpense      = &RpcBizErr{Code: 14039, Msg: "FReport taskResourceExpense failed"}
+	ErrReportTaskResourceExpense      = &RpcBizErr{Code: 14039, Msg: "Report taskResourceExpense failed"}
+	ErrGenerateObserverProxyWallet    = &RpcBizErr{Code: 14040, Msg: "Generate observer proxy wallet failed"}
 )

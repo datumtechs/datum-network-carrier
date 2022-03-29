@@ -136,12 +136,12 @@
     "/carrier/v1/yarn/generateObserverProxyWallet": {
       "get": {
         "summary": "v 0.4.0 生成当前组织内置系统钱包地址 (见证人代理钱包, 全局只有一个)",
-        "operationId": "YarnService_GetObServerProxyWalletAddress",
+        "operationId": "YarnService_GenerateObServerProxyWalletAddress",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/rpcapiGetObServerProxyWalletAddressResponse"
+              "$ref": "#/definitions/rpcapiGenerateObServerProxyWalletAddressResponse"
             }
           },
           "default": {
@@ -685,6 +685,21 @@
       },
       "title": "删除种子节点信息 req"
     },
+    "rpcapiGenerateObServerProxyWalletAddressResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "address": {
+          "type": "string"
+        }
+      }
+    },
     "rpcapiGetNodeInfoResponse": {
       "type": "object",
       "properties": {
@@ -700,21 +715,6 @@
         }
       },
       "title": "查看自身调度服务信息 resp"
-    },
-    "rpcapiGetObServerProxyWalletAddressResponse": {
-      "type": "object",
-      "properties": {
-        "status": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "msg": {
-          "type": "string"
-        },
-        "address": {
-          "type": "string"
-        }
-      }
     },
     "rpcapiGetRegisteredNodeListResponse": {
       "type": "object",
