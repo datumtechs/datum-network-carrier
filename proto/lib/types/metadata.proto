@@ -8,26 +8,27 @@ import "lib/types/base.proto";
 option go_package = "github.com/RosettaFlow/Carrier-Go/lib/types";
 
 // todo 定义 metadata_type 枚举
-// todo 是否支持 algo_metadata ?
-// todo 是否支持 module_metadata ?
+// todo 是否支持 algo_metadata ?  待定
+// todo 是否支持 module_metadata ? yes
+// todo 是否支持 serving_metadata ? 可能不支持
 // Metadata body data struct.
 message MetadataPB {
-  string                      metadata_id = 1;                // 元数据ID
+  string                      metadata_id = 1;                // 元数据Id
   types.Organization          owner = 2;                      // 元数据所属的组织信息
   string                      data_id = 3;                    // 预留
   types.DataStatus            data_status = 4;                // the status of data for local storage, 1 means valid, 2 means invalid.
   string                      metadata_name = 5;              // 元数据的名称 (对外的表名)
-  uint32                      metadata_type = 6;              // 表示该元数据是 普通数据 还是 模型数据的元数据 (0: 未定义; 1: 普通数据元数据; 2: 模型数据元数据)
-  string                      file_hash = 7;                  // 原始数据的Hash
+  uint32                      metadata_type = 6;              // 表示该元数据是 `普通数据` 还是 `模型数据` 的元数据 (0: 未定义; 1: 普通数据元数据; 2: 模型数据元数据)
+  string                      data_hash = 7;                  // 原始数据的Hash (如果是 远端数据源, 则为 资源Id 的Hash, 如: url的Hash)
   string                      desc = 8;                       // 元数据的摘要(描述)
-  types.OriginFileType        file_type = 9;                  // 源文件的类型 (目前只有 csv)
-  string                      industry = 10;                  // 元数据所属的行业
+  types.OrigindataType        data_type = 9;                  // 源数据的类型 (目前只有 csv)
+  string                      industry = 10;                  // 元数据所属的行业 (有用户自定义, 仅做展示用)
   types.MetadataState         state = 11;                     // 元数据的状态 (0: 未知; 1: 还未发布的新表; 2: 已发布的表; 3: 已撤销的表)
   uint64                      publish_at = 12;                // 元数据发布时间
   uint64                      update_at = 13;                 // 元数据更新时间
   uint64                      nonce = 14;                     // 元数据的 nonce (用来标识该元数据在所属组织中的元数据的序号, 从 0 开始递增)
-  string                      metadata_option = 15;           // 元数据的选项，和 file_type 配套使用
-  bool                        allow_download = 16;            // 
+  string                      metadata_option = 15;           // 元数据的选项，和 data_type 配套使用
+  bool                        allow_expose = 16;              // 是否可以被曝光 (true: 可以; false: 不可以; 如 数据原始内容可以被下载或者支持外域查看时则为 true, 默认为 false)
   string                      token_address = 17;             // 元数据对应的 dataToken 合约的地址
 }
 
@@ -57,16 +58,17 @@ message MetadataSummary {
   string                        metadata_id = 1;            // 元数据Id
   string                        metadata_name = 2;          // 元数据名称|数据名称 (表名)
   uint32                        metadata_type = 3;          // 表示该元数据是 普通数据 还是 模型数据的元数据 (0: 未定义; 1: 普通数据元数据; 2: 模型数据元数据)
-  string                        file_hash = 4;              // 原始数据的Hash
+  string                        data_hash = 4;              // 原始数据的Hash
   string                        desc = 5;                   // 元数据的描述 (摘要)
-  types.OriginFileType          file_type = 6;              // 源文件的类型 (目前只有 csv)
-  string                        industry = 7;               // 元数据所属行业
+  types.OrigindataType          data_type = 6;              // 源数据的类型 (目前只有 csv)
+  string                        industry = 7;               // 元数据所属行业 (有用户自定义, 仅做展示用)
   types.MetadataState           state = 8;                  // 元数据的状态 (0: 未知; 1: 还未发布的新表; 2: 已发布的表; 3: 已撤销的表)
   uint64                        publish_at = 9;             // 数据发布时间
   uint64                        update_at = 10;             // 数据更新时间
   uint64                        nonce = 11;                 // 元数据的 nonce (用来标识该元数据在所属组织中的元数据的序号, 从 0 开始递增)
   string                        metadata_option = 12;       // 元数据选项 (根据 fileType 的值来配对对应的模板)
-  string                        token_address = 13;         // 元数据对应的 dataToken 合约的地址
+  bool                          allow_expose = 13;          // 是否可以被曝光 (true: 可以; false: 不可以; 如 数据原始内容可以被下载或者支持外域查看时则为 true, 默认为 false)
+  string                        token_address = 14;         // 元数据对应的 dataToken 合约的地址
 }
 
 // 元数据的详情信息
