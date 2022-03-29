@@ -13,7 +13,7 @@ func (p *PrepareMsg) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the PrepareMsg object to a target array
 func (p *PrepareMsg) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(28)
+	offset := int(24)
 
 	// Offset (0) 'MsgOption'
 	dst = ssz.WriteOffset(dst, offset)
@@ -26,13 +26,14 @@ func (p *PrepareMsg) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = ssz.WriteOffset(dst, offset)
 	offset += len(p.TaskInfo)
 
-	// Offset (2) 'Nonce'
+	// Offset (2) 'Evidence'
 	dst = ssz.WriteOffset(dst, offset)
+	offset += len(p.Evidence)
 
-	// Field (4) 'CreateAt'
+	// Field (3) 'CreateAt'
 	dst = ssz.MarshalUint64(dst, p.CreateAt)
 
-	// Offset (5) 'Sign'
+	// Offset (4) 'Sign'
 	dst = ssz.WriteOffset(dst, offset)
 	offset += len(p.Sign)
 
@@ -48,7 +49,14 @@ func (p *PrepareMsg) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	}
 	dst = append(dst, p.TaskInfo...)
 
-	// Field (5) 'Sign'
+	// Field (2) 'Evidence'
+	if len(p.Evidence) > 1024 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	dst = append(dst, p.Evidence...)
+
+	// Field (4) 'Sign'
 	if len(p.Sign) > 1024 {
 		err = ssz.ErrBytesLength
 		return
@@ -62,19 +70,19 @@ func (p *PrepareMsg) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 func (p *PrepareMsg) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
-	if size < 28 {
+	if size < 24 {
 		return ssz.ErrSize
 	}
 
 	tail := buf
-	var o0, o1, o2, o3, o5 uint64
+	var o0, o1, o2, o4 uint64
 
 	// Offset (0) 'MsgOption'
 	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
 		return ssz.ErrOffset
 	}
 
-	if o0 < 28 {
+	if o0 < 24 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
@@ -83,21 +91,16 @@ func (p *PrepareMsg) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrOffset
 	}
 
-	// Offset (2) 'Nonce'
+	// Offset (2) 'Evidence'
 	if o2 = ssz.ReadOffset(buf[8:12]); o2 > size || o1 > o2 {
 		return ssz.ErrOffset
 	}
 
-	// Offset (3) 'Weights'
-	if o3 = ssz.ReadOffset(buf[12:16]); o3 > size || o2 > o3 {
-		return ssz.ErrOffset
-	}
+	// Field (3) 'CreateAt'
+	p.CreateAt = ssz.UnmarshallUint64(buf[12:20])
 
-	// Field (4) 'CreateAt'
-	p.CreateAt = ssz.UnmarshallUint64(buf[16:24])
-
-	// Offset (5) 'Sign'
-	if o5 = ssz.ReadOffset(buf[24:28]); o5 > size || o3 > o5 {
+	// Offset (4) 'Sign'
+	if o4 = ssz.ReadOffset(buf[20:24]); o4 > size || o2 > o4 {
 		return ssz.ErrOffset
 	}
 
@@ -124,9 +127,21 @@ func (p *PrepareMsg) UnmarshalSSZ(buf []byte) error {
 		p.TaskInfo = append(p.TaskInfo, buf...)
 	}
 
-	// Field (5) 'Sign'
+	// Field (2) 'Evidence'
 	{
-		buf = tail[o5:]
+		buf = tail[o2:o4]
+		if len(buf) > 1024 {
+			return ssz.ErrBytesLength
+		}
+		if cap(p.Evidence) == 0 {
+			p.Evidence = make([]byte, 0, len(buf))
+		}
+		p.Evidence = append(p.Evidence, buf...)
+	}
+
+	// Field (4) 'Sign'
+	{
+		buf = tail[o4:]
 		if len(buf) > 1024 {
 			return ssz.ErrBytesLength
 		}
@@ -140,7 +155,7 @@ func (p *PrepareMsg) UnmarshalSSZ(buf []byte) error {
 
 // SizeSSZ returns the ssz encoded size in bytes for the PrepareMsg object
 func (p *PrepareMsg) SizeSSZ() (size int) {
-	size = 28
+	size = 24
 
 	// Field (0) 'MsgOption'
 	if p.MsgOption == nil {
@@ -151,7 +166,10 @@ func (p *PrepareMsg) SizeSSZ() (size int) {
 	// Field (1) 'TaskInfo'
 	size += len(p.TaskInfo)
 
-	// Field (5) 'Sign'
+	// Field (2) 'Evidence'
+	size += len(p.Evidence)
+
+	// Field (4) 'Sign'
 	size += len(p.Sign)
 
 	return
@@ -172,21 +190,43 @@ func (p *PrepareMsg) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	}
 
 	// Field (1) 'TaskInfo'
-	if len(p.TaskInfo) > 16777216 {
-		err = ssz.ErrBytesLength
-		return
+	{
+		elemIndx := hh.Index()
+		byteLen := uint64(len(p.TaskInfo))
+		if byteLen > 16777216 {
+			err = ssz.ErrIncorrectListSize
+			return
+		}
+		hh.PutBytes(p.TaskInfo)
+		hh.MerkleizeWithMixin(elemIndx, byteLen, (16777216+31)/32)
 	}
-	hh.PutBytes(p.TaskInfo)
 
-	// Field (4) 'CreateAt'
+	// Field (2) 'Evidence'
+	{
+		elemIndx := hh.Index()
+		byteLen := uint64(len(p.Evidence))
+		if byteLen > 1024 {
+			err = ssz.ErrIncorrectListSize
+			return
+		}
+		hh.PutBytes(p.Evidence)
+		hh.MerkleizeWithMixin(elemIndx, byteLen, (1024+31)/32)
+	}
+
+	// Field (3) 'CreateAt'
 	hh.PutUint64(p.CreateAt)
 
-	// Field (5) 'Sign'
-	if len(p.Sign) > 1024 {
-		err = ssz.ErrBytesLength
-		return
+	// Field (4) 'Sign'
+	{
+		elemIndx := hh.Index()
+		byteLen := uint64(len(p.Sign))
+		if byteLen > 1024 {
+			err = ssz.ErrIncorrectListSize
+			return
+		}
+		hh.PutBytes(p.Sign)
+		hh.MerkleizeWithMixin(elemIndx, byteLen, (1024+31)/32)
 	}
-	hh.PutBytes(p.Sign)
 
 	hh.Merkleize(indx)
 	return
