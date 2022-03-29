@@ -68,8 +68,6 @@ func (r *LocalResourceTable) UseSlot(taskId, partId string, mem, bandwidth, disk
 		return nil
 	}
 
-
-
 	if r.RemainMem() < mem {
 		return fmt.Errorf("Failed to lock local resource, mem remain {%d} less than need lock count {%d}", r.RemainMem(), mem)
 	}
@@ -91,16 +89,16 @@ func (r *LocalResourceTable) UseSlot(taskId, partId string, mem, bandwidth, disk
 	oldDisk := r.used.disk
 	oldProcessor := r.used.processor
 
-	if !atomic.CompareAndSwapUint64(&(r.used.mem), oldMem, oldMem + mem) {
+	if !atomic.CompareAndSwapUint64(&(r.used.mem), oldMem, oldMem+mem) {
 		return fmt.Errorf("useSlot: compareAndSwap mem used value failed")
 	}
-	if !atomic.CompareAndSwapUint64(&(r.used.bandwidth), oldBandwidth, oldBandwidth + bandwidth) {
+	if !atomic.CompareAndSwapUint64(&(r.used.bandwidth), oldBandwidth, oldBandwidth+bandwidth) {
 		return fmt.Errorf("useSlot: compareAndSwap bandwidth used value failed")
 	}
-	if !atomic.CompareAndSwapUint64(&(r.used.disk), oldDisk, oldDisk + disk) {
+	if !atomic.CompareAndSwapUint64(&(r.used.disk), oldDisk, oldDisk+disk) {
 		return fmt.Errorf("useSlot: compareAndSwap disk used value failed")
 	}
-	if !atomic.CompareAndSwapUint32(&(r.used.processor), oldProcessor, oldProcessor + processor) {
+	if !atomic.CompareAndSwapUint32(&(r.used.processor), oldProcessor, oldProcessor+processor) {
 		return fmt.Errorf("useSlot: compareAndSwap processor used value failed")
 	}
 
@@ -150,16 +148,16 @@ func (r *LocalResourceTable) FreeSlot(taskId, partId string, mem, bandwidth, dis
 	oldDisk := r.used.disk
 	oldProcessor := r.used.processor
 
-	if !atomic.CompareAndSwapUint64(&(r.used.mem), oldMem, oldMem - mem) {
+	if !atomic.CompareAndSwapUint64(&(r.used.mem), oldMem, oldMem-mem) {
 		return fmt.Errorf("freeSlot: compareAndSwap mem used value failed")
 	}
-	if !atomic.CompareAndSwapUint64(&(r.used.bandwidth), oldBandwidth, oldBandwidth - bandwidth) {
+	if !atomic.CompareAndSwapUint64(&(r.used.bandwidth), oldBandwidth, oldBandwidth-bandwidth) {
 		return fmt.Errorf("freeSlot: compareAndSwap bandwidth used value failed")
 	}
-	if !atomic.CompareAndSwapUint64(&(r.used.disk), oldDisk, oldDisk - disk) {
+	if !atomic.CompareAndSwapUint64(&(r.used.disk), oldDisk, oldDisk-disk) {
 		return fmt.Errorf("freeSlot: compareAndSwap disk used value failed")
 	}
-	if !atomic.CompareAndSwapUint32(&(r.used.processor), oldProcessor, oldProcessor - processor) {
+	if !atomic.CompareAndSwapUint32(&(r.used.processor), oldProcessor, oldProcessor-processor) {
 		return fmt.Errorf("freeSlot: compareAndSwap processor used value failed")
 	}
 
@@ -508,19 +506,22 @@ type TaskUpResultFile struct {
 	taskId     string
 	originId   string
 	metadataId string
+	extra      string
 }
 
 type taskUpResultFileRlp struct {
 	TaskId     string
 	OriginId   string
 	MetadataId string
+	Extra      string
 }
 
-func NewTaskUpResultFile(taskId, originId, metadataId string) *TaskUpResultFile {
+func NewTaskUpResultFile(taskId, originId, metadataId, extra string) *TaskUpResultFile {
 	return &TaskUpResultFile{
 		taskId:     taskId,
 		originId:   originId,
 		metadataId: metadataId,
+		extra:      extra,
 	}
 }
 
@@ -530,6 +531,7 @@ func (turf *TaskUpResultFile) EncodeRLP(w io.Writer) error {
 		TaskId:     turf.taskId,
 		OriginId:   turf.originId,
 		MetadataId: turf.metadataId,
+		Extra:      turf.extra,
 	})
 }
 
@@ -538,7 +540,7 @@ func (turf *TaskUpResultFile) DecodeRLP(s *rlp.Stream) error {
 	var dec taskUpResultFileRlp
 	err := s.Decode(&dec)
 	if err == nil {
-		turf.taskId, turf.originId, turf.metadataId = dec.TaskId, dec.OriginId, dec.MetadataId
+		turf.taskId, turf.originId, turf.metadataId, turf.extra = dec.TaskId, dec.OriginId, dec.MetadataId, dec.Extra
 	}
 	return err
 }
@@ -546,6 +548,7 @@ func (turf *TaskUpResultFile) DecodeRLP(s *rlp.Stream) error {
 func (turf *TaskUpResultFile) GetTaskId() string     { return turf.taskId }
 func (turf *TaskUpResultFile) GetOriginId() string   { return turf.originId }
 func (turf *TaskUpResultFile) GetMetadataId() string { return turf.metadataId }
+func (turf *TaskUpResultFile) GetExtra() string      { return turf.extra }
 
 type TaskResuorceUsage struct {
 	taskId         string

@@ -968,6 +968,9 @@
         },
         "port": {
           "type": "string"
+        },
+        "extra": {
+          "type": "string"
         }
       },
       "title": "上报 任务结果文件摘要 req"

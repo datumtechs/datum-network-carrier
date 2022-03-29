@@ -201,6 +201,7 @@ message ReportTaskResultFileSummaryRequest {
   string file_path = 3;    // 任务结果的原始文件的相对 path
   string ip = 4;           // Fighter 的 grpc server IP
   string port = 5;         // Fighter 的 grpc server PORT
+  string extra = 6;        // 任务结果文件的额外字段 (如: 训练任务的模型评估结果json 等)
 }
 
 // 查询可用数据服务资源目标 ip:port 信息 req

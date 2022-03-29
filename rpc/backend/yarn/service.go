@@ -514,37 +514,38 @@ func (svr *Server) GetTaskResultFileSummary(ctx context.Context, req *pb.GetTask
 		return &pb.GetTaskResultFileSummaryResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require taskId"}, nil
 	}
 
-	taskResultFileSummary, err := svr.B.QueryTaskResultFileSummary(req.GetTaskId())
+	summary, err := svr.B.QueryTaskResultFileSummary(req.GetTaskId())
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:GetTaskResultFileSummary-QueryTaskResultFileSummary failed, taskId: {%s}", req.GetTaskId())
 
 		errMsg := fmt.Sprintf("%s, call QueryTaskResultFileSummary() failed, %s", backend.ErrQueryTaskResultFileSummary.Error(), req.GetTaskId())
 		return &pb.GetTaskResultFileSummaryResponse{Status: backend.ErrQueryTaskResultFileSummary.ErrCode(), Msg: errMsg}, nil
 	}
-	dataNode, err := svr.B.GetRegisterNode(pb.PrefixTypeDataNode, taskResultFileSummary.GetNodeId())
+	dataNode, err := svr.B.GetRegisterNode(pb.PrefixTypeDataNode, summary.GetNodeId())
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:GetTaskResultFileSummary-QueryRegisterNode failed, taskId: {%s}, dataNodeId: {%s}",
-			req.GetTaskId(), taskResultFileSummary.GetNodeId())
+			req.GetTaskId(), summary.GetNodeId())
 
 		errMsg := fmt.Sprintf("%s, call QueryRegisterNode() failed, %s, %s", backend.ErrQueryTaskResultFileSummary.Error(),
-			req.GetTaskId(), taskResultFileSummary.GetNodeId())
+			req.GetTaskId(), summary.GetNodeId())
 		return &pb.GetTaskResultFileSummaryResponse{Status: backend.ErrQueryTaskResultFileSummary.ErrCode(), Msg: errMsg}, nil
 	}
 
 	log.Debugf("RPC-API:GetTaskResultFileSummary Succeed, taskId: {%s}, return dataNodeIp: {%s}, dataNodePort: {%s}, metadataId: {%s}, originId: {%s}, fileName: {%s}, filePath: {%s}",
-		req.GetTaskId(), dataNode.GetInternalIp(), dataNode.GetInternalPort(), taskResultFileSummary.GetMetadataId(), taskResultFileSummary.GetOriginId(), taskResultFileSummary.GetMetadataName(), taskResultFileSummary.GetFilePath())
+		req.GetTaskId(), dataNode.GetInternalIp(), dataNode.GetInternalPort(), summary.GetMetadataId(), summary.GetOriginId(), summary.GetMetadataName(), summary.GetFilePath())
 
 	return &pb.GetTaskResultFileSummaryResponse{
 		Status: 0,
 		Msg:    backend.OK,
 		Information: &pb.GetTaskResultFileSummary{
-			TaskId:       taskResultFileSummary.GetTaskId(),
-			MetadataName: taskResultFileSummary.GetMetadataName(),
-			MetadataId:   taskResultFileSummary.GetMetadataId(),
-			OriginId:     taskResultFileSummary.GetOriginId(),
-			FilePath:     taskResultFileSummary.GetFilePath(),
+			TaskId:       summary.GetTaskId(),
+			MetadataName: summary.GetMetadataName(),
+			MetadataId:   summary.GetMetadataId(),
+			OriginId:     summary.GetOriginId(),
+			FilePath:     summary.GetFilePath(),
 			Ip:           dataNode.GetInternalIp(),
 			Port:         dataNode.GetInternalPort(),
+			Extra:        summary.GetExtra(),
 		},
 	}, nil
 }
@@ -572,6 +573,7 @@ func (svr *Server) GetTaskResultFileSummaryList(ctx context.Context, empty *empt
 			FilePath:     summary.GetFilePath(),
 			Ip:           dataNode.GetInternalIp(),
 			Port:         dataNode.GetInternalPort(),
+			Extra:        summary.GetExtra(),
 		})
 	}
 
@@ -592,7 +594,7 @@ func (svr *Server) GenerateObServerProxyWalletAddress(ctx context.Context, req *
 	}
 	log.Debugf("RPC-API:GenerateObServerProxyWalletAddress Succeed, wallet: {%s}", wallet)
 	return &pb.GenerateObServerProxyWalletAddressResponse{
-		Status:          0,
-		Msg:             backend.OK,
+		Status: 0,
+		Msg:    backend.OK,
 	}, nil
 }
