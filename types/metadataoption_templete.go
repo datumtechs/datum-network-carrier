@@ -21,18 +21,18 @@ func IsRowAndColumnData(fileType libtypes.OrigindataType) bool {
 /**
 {
     "originId": "d9b41e7138544c63f9fe25f6aa4983819793e5b46f14652a1ff1b51f99f71783",
-    "filePath": "/home/user1/data/data_root/bank_predict_partyA_20220218-090241.csv",
+    "dataPath": "/home/user1/data/data_root/bank_predict_partyA_20220218-090241.csv",
     "rows": 100,
     "columns": 27,
     "size": "7711",
     "hasTitle": true,
     "metadataColumns": [
         {
-            "cIndex": 1,
-            "cName": "CLIENT_ID",
-            "cType": "string",
-            "cSize": 0,
-            "cComment": ""
+            "index": 1,
+            "name": "CLIENT_ID",
+            "type": "string",
+            "size": 0,
+            "comment": ""
         }
     ],
 }
