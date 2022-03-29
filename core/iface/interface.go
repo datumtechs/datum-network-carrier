@@ -78,10 +78,11 @@ type MetadataCarrierDB interface {
 	QueryMetadataById(metadataId string) (*types.Metadata, error)
 	QueryMetadataList(lastUpdate, pageSize uint64) (types.MetadataArray, error)
 	QueryMetadataListByIdentity(identityId string, lastUpdate, pageSize uint64) (types.MetadataArray, error)
+	UpdateGlobalMetadata(metadata *types.Metadata) error // add by v 0.4.0
 	// v 0.3.0 about internal metadata (generate from a task result file)
 	StoreInternalMetadata(metadata *types.Metadata) error
-	IsInternalMetadataByDataId(metadataId string) (bool, error)
-	QueryInternalMetadataByDataId(metadataId string) (*types.Metadata, error)
+	IsInternalMetadataById(metadataId string) (bool, error)
+	QueryInternalMetadataById(metadataId string) (*types.Metadata, error)
 	QueryInternalMetadataList() (types.MetadataArray, error)
 }
 

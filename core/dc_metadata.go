@@ -14,7 +14,7 @@ func (dc *DataCenter) StoreInternalMetadata(metadata *types.Metadata) error {
 	return rawdb.StoreLocalMetadata(dc.db, metadata)
 }
 
-func (dc *DataCenter) IsInternalMetadataByDataId(metadataId string) (bool, error) {
+func (dc *DataCenter) IsInternalMetadataById(metadataId string) (bool, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	_, err := rawdb.QueryLocalMetadata(dc.db, metadataId)
@@ -27,7 +27,7 @@ func (dc *DataCenter) IsInternalMetadataByDataId(metadataId string) (bool, error
 	return true, nil
 }
 
-func (dc *DataCenter) QueryInternalMetadataByDataId(metadataId string) (*types.Metadata, error) {
+func (dc *DataCenter) QueryInternalMetadataById(metadataId string) (*types.Metadata, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.QueryLocalMetadata(dc.db, metadataId)
@@ -96,4 +96,18 @@ func (dc *DataCenter) QueryMetadataListByIdentity(identityId string, lastUpdate,
 		IdentityId:  identityId,
 	})
 	return types.NewMetadataArrayFromDetailListResponse(metaDataListResponse), err
+}
+
+func (dc *DataCenter) UpdateGlobalMetadata(metadata *types.Metadata) error {
+	dc.serviceMu.Lock()
+	defer dc.serviceMu.Unlock()
+	response, err := dc.client.UpdateMetadata(dc.ctx, types.NewMetadataUpdateRequest(metadata))
+	if err != nil {
+		log.WithError(err).WithField("hash", metadata.Hash()).Errorf("UpdateMetadata failed")
+		return err
+	}
+	if response.Status != 0 {
+		return fmt.Errorf("update metadata error: %s", response.Msg)
+	}
+	return nil
 }

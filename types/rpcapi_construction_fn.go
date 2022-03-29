@@ -13,6 +13,13 @@ func NewMetadataSaveRequest(metadata *Metadata) *api.SaveMetadataRequest {
 	return request
 }
 
+func NewMetadataUpdateRequest(metadata *Metadata) *api.UpdateMetadataRequest {
+	request := &api.UpdateMetadataRequest{
+		Metadata: metadata.GetData(),
+	}
+	return request
+}
+
 func NewMetadataRevokeRequest(metadata *Metadata) *api.RevokeMetadataRequest {
 	request := &api.RevokeMetadataRequest{
 		Owner: &libtypes.Organization{

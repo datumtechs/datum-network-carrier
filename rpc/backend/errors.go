@@ -41,6 +41,7 @@ var (
 	ErrPublishMetadataMsg          = &RpcBizErr{Code: 11003, Msg: "PublishMetaData failed"}
 	ErrRevokeMetadataMsg           = &RpcBizErr{Code: 11004, Msg: "RevokemetaData failed"}
 	ErrQueryMetadataUsedTaskIdList = &RpcBizErr{Code: 11005, Msg: "Query metadata used taskId list failed"}
+	ErrBindDataTokenAddress        = &RpcBizErr{Code: 11006, Msg: "bind metadata dataToken address failed"}
 )
 
 // power

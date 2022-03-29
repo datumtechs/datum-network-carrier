@@ -266,14 +266,14 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 		// Select the datanode where your metadata ID is located.
 		var dataNodeId string
 		// check the metadata whether internal metadata
-		internalMetadataFlag, err := sche.resourceMng.GetDB().IsInternalMetadataByDataId(metadataId)
+		internalMetadataFlag, err := sche.resourceMng.GetDB().IsInternalMetadataById(metadataId)
 		if nil != err {
 			log.WithError(err).Errorf("failed check metadata whether internal metadata by metaDataId when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, metadataId: {%s}",
 				task.GetTaskId(), taskRole.String(), partyId, metadataId)
 			return types.NewReplayScheduleResult(task.GetTaskId(), fmt.Errorf("check metadata whether internal failed, %s", err), nil)
 		}
 		if internalMetadataFlag {
-			internalMetadata, err := sche.resourceMng.GetDB().QueryInternalMetadataByDataId(metadataId)
+			internalMetadata, err := sche.resourceMng.GetDB().QueryInternalMetadataById(metadataId)
 			if nil != err {
 				log.WithError(err).Errorf("failed query internal metadataInfo by metaDataId when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, metadataId: {%s}",
 					task.GetTaskId(), taskRole.String(), partyId, metadataId)

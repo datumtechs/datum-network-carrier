@@ -10,10 +10,10 @@ option go_package = "github.com/RosettaFlow/Carrier-Go/lib/types";
 
 message NeedExecuteTask {
       string                              remote_pid = 1;
-      types.TaskRole                      local_task_role = 2;
-      types.TaskOrganization              local_task_organization = 3;
-      types.TaskRole                      remote_task_role = 4;
-      types.TaskOrganization              remote_task_organization = 5;
+      TaskRole                            local_task_role = 2;
+      TaskOrganization                    local_task_organization = 3;
+      TaskRole                            remote_task_role = 4;
+      TaskOrganization                    remote_task_organization = 5;
       string                              task_id = 6;
       bytes                               consStatus = 7;
       PrepareVoteResource                 local_resource = 8;

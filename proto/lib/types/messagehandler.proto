@@ -44,7 +44,7 @@ message MetadataAuthorityMsg {
    */
   string                        metadata_auth_id = 1;
   string                        user = 2;
-  types.UserType                user_type = 3;
+  UserType                      user_type = 3;
   MetadataAuthority             auth = 4;
   bytes                         sign = 5;
   uint64                        create_at = 6;

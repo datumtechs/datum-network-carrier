@@ -325,7 +325,7 @@ func (ma *MetadataAuthority) VerifyMetadataAuth(userType libtypes.UserType, user
 	log.Debugf("Start verify metadataAuth, userType: {%s}, user: {%s}, metadataId: {%s}", userType.String(), user, metadataId)
 
 	// If the metadata is internal metadata, no verify metadataAuth required
-	flag, err := ma.dataCenter.IsInternalMetadataByDataId(metadataId)
+	flag, err := ma.dataCenter.IsInternalMetadataById(metadataId)
 	if nil != err {
 		log.WithError(err).Errorf("Failed to check internal metadata by metadataId on MetadataAuthority.VerifyMetadataAuth(), userType: {%s}, user: {%s}, metadataId: {%s}",
 			userType.String(), user, metadataId)

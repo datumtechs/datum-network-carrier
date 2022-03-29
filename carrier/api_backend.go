@@ -78,6 +78,8 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 		nodeInfo.LocalMultiAddr = selfMultiAddrs[0].String()
 	}
 
+	// TODO add the observer proxy wallet address
+	nodeInfo.ObserverProxyWalletAddress = ""
 	return nodeInfo, nil
 }
 
@@ -598,33 +600,30 @@ func (s *CarrierAPIBackend) ReportTaskResourceUsage(nodeType pb.NodeType, ip, po
 
 // metadata api
 func (s *CarrierAPIBackend) IsInternalMetadata(metadataId string) (bool, error) {
-	return s.carrier.carrierDB.IsInternalMetadataByDataId(metadataId)
+	return s.carrier.carrierDB.IsInternalMetadataById(metadataId)
 }
 
-func (s *CarrierAPIBackend) GetMetadataDetail(identityId, metadataId string) (*types.Metadata, error) {
-
-	var (
-		metadata *types.Metadata
-		err      error
-	)
-
-	// find local metadata
-	if "" == identityId {
-		metadata, err = s.carrier.carrierDB.QueryInternalMetadataByDataId(metadataId)
-		if rawdb.IsNoDBNotFoundErr(err) {
-			return nil, fmt.Errorf("not found local metadata by special Id, %s", err)
-		}
-		if nil != metadata {
-			return metadata, nil
-		}
+func (s *CarrierAPIBackend) GetInternalMetadataDetail(metadataId string) (*types.Metadata, error) {
+	// find internal metadata
+	metadata, err := s.carrier.carrierDB.QueryInternalMetadataById(metadataId)
+	if rawdb.IsNoDBNotFoundErr(err) {
+		return nil, fmt.Errorf("not found internal metadata by metadataId, %s", err)
 	}
-	metadata, err = s.carrier.carrierDB.QueryMetadataById(metadataId)
-	if nil != err {
-		return nil, fmt.Errorf("not found local metadata by special Id, %s", err)
-	}
-
 	if nil == metadata {
-		return nil, fmt.Errorf("not found local metadata by special Id, metadata is empty")
+		return nil, fmt.Errorf("not found internal metadata by metadataId, metadata is empty")
+	}
+	return metadata, nil
+}
+
+func (s *CarrierAPIBackend) GetMetadataDetail(metadataId string) (*types.Metadata, error) {
+
+	// find global metadata
+	metadata, err := s.carrier.carrierDB.QueryMetadataById(metadataId)
+	if nil != err {
+		return nil, fmt.Errorf("not found global metadata by metadataId, %s", err)
+	}
+	if nil == metadata {
+		return nil, fmt.Errorf("not found metadata by metadataId, metadata is empty")
 	}
 	return metadata, nil
 }
@@ -759,6 +758,10 @@ func (s *CarrierAPIBackend) GetMetadataUsedTaskIdList(identityId, metadataId str
 		return nil, err
 	}
 	return taskIds, nil
+}
+
+func (s *CarrierAPIBackend)  UpdateGlobalMetadata(metadata *types.Metadata) error {
+	return s.carrier.carrierDB.UpdateGlobalMetadata(metadata)
 }
 
 // power api
@@ -1541,7 +1544,7 @@ func (s *CarrierAPIBackend) QueryTaskResultFileSummary(taskId string) (*types.Ta
 		return nil, err
 	}
 
-	localMetadata, err := s.carrier.carrierDB.QueryInternalMetadataByDataId(taskUpResultFile.GetMetadataId())
+	localMetadata, err := s.carrier.carrierDB.QueryInternalMetadataById(taskUpResultFile.GetMetadataId())
 	if nil != err {
 		log.WithError(err).Errorf("Failed query local metadata on CarrierAPIBackend.QueryTaskResultFileSummary(), taskId: {%s}, originId: {%s}, metadataId: {%s}",
 			taskId, taskUpResultFile.GetOriginId(), dataResourceFileUpload.GetMetadataId())
@@ -1575,7 +1578,7 @@ func (s *CarrierAPIBackend) QueryTaskResultFileSummaryList() (types.TaskResultFi
 			continue
 		}
 
-		localMetadata, err := s.carrier.carrierDB.QueryInternalMetadataByDataId(dataResourceFileUpload.GetMetadataId())
+		localMetadata, err := s.carrier.carrierDB.QueryInternalMetadataById(dataResourceFileUpload.GetMetadataId())
 		if nil != err {
 			log.WithError(err).Errorf("Failed query local metadata on CarrierAPIBackend.QueryTaskResultFileSummaryList(), taskId: {%s}, originId: {%s}, metadataId: {%s}",
 				summarry.GetTaskId(), summarry.GetOriginId(), dataResourceFileUpload.GetMetadataId())

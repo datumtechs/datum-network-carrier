@@ -275,18 +275,20 @@ type MetadataMsg struct {
 func NewMetadataMessageFromRequest(req *pb.PublishMetadataRequest) *MetadataMsg {
 	metadataMsg := &MetadataMsg{
 		MetadataSummary: &libtypes.MetadataSummary{
-			MetadataId:     req.GetInformation().GetMetadataSummary().GetMetadataId(),
-			MetadataName:   req.GetInformation().GetMetadataSummary().GetMetadataName(),
-			MetadataType:   req.GetInformation().GetMetadataSummary().GetMetadataType(),
-			DataHash:       req.GetInformation().GetMetadataSummary().GetDataHash(),
-			Desc:           req.GetInformation().GetMetadataSummary().GetDesc(),
-			DataType:       req.GetInformation().GetMetadataSummary().GetDataType(),
-			Industry:       req.GetInformation().GetMetadataSummary().GetIndustry(),
-			State:          req.GetInformation().GetMetadataSummary().GetState(),
-			PublishAt:      req.GetInformation().GetMetadataSummary().GetPublishAt(),
-			UpdateAt:       req.GetInformation().GetMetadataSummary().GetUpdateAt(),
-			Nonce:          req.GetInformation().GetMetadataSummary().GetNonce(),
-			MetadataOption: req.GetInformation().GetMetadataSummary().GetMetadataOption(),
+			MetadataId:     req.GetInformation().GetMetadataId(),
+			MetadataName:   req.GetInformation().GetMetadataName(),
+			MetadataType:   req.GetInformation().GetMetadataType(),
+			DataHash:       req.GetInformation().GetDataHash(),
+			Desc:           req.GetInformation().GetDesc(),
+			DataType:       req.GetInformation().GetDataType(),
+			Industry:       req.GetInformation().GetIndustry(),
+			State:          req.GetInformation().GetState(),
+			PublishAt:      req.GetInformation().GetPublishAt(),
+			UpdateAt:       req.GetInformation().GetUpdateAt(),
+			Nonce:          req.GetInformation().GetNonce(),
+			MetadataOption: req.GetInformation().GetMetadataOption(),
+			AllowExpose:    req.GetInformation().GetAllowExpose(),
+			//TokenAddress:   req.GetInformation().GetTokenAddress(),
 		},
 		CreateAt: timeutils.UnixMsecUint64(),
 	}
@@ -331,7 +333,7 @@ func (msg *MetadataMsg) GetMetadataSummary() *libtypes.MetadataSummary {
 }
 
 func (msg *MetadataMsg) GetMetadataName() string { return msg.GetMetadataSummary().MetadataName }
-func (msg *MetadataMsg) GetMetadataType() uint32 { return msg.GetMetadataSummary().MetadataType }
+func (msg *MetadataMsg) GetMetadataType() libtypes.MetadataType { return msg.GetMetadataSummary().MetadataType }
 func (msg *MetadataMsg) GetDataHash() string     { return msg.GetMetadataSummary().DataHash }
 func (msg *MetadataMsg) GetDesc() string         { return msg.GetMetadataSummary().Desc }
 func (msg *MetadataMsg) GetDataType() libtypes.OrigindataType {
@@ -361,7 +363,7 @@ func (msg *MetadataMsg) Hash() common.Hash {
 	var buf bytes.Buffer
 	buf.Write([]byte(msg.GetMetadataId()))
 	buf.Write([]byte(msg.GetMetadataName()))
-	buf.Write(bytesutil.Uint32ToBytes(msg.GetMetadataType()))
+	buf.Write([]byte(msg.GetMetadataType().String()))
 	buf.Write([]byte(msg.GetDataHash()))
 	buf.Write([]byte(msg.GetDesc()))
 	buf.Write([]byte(msg.GetDataType().String()))

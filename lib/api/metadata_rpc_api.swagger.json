@@ -11,6 +11,39 @@
     "application/json"
   ],
   "paths": {
+    "/carrier/v1/metadata/bindDataTokenAddress": {
+      "post": {
+        "summary": "v 0.4.0 将元数据发布的 datatoken 合约地址绑定 元数据信息中 (metadata : datatoken == 1 : 1)",
+        "operationId": "MetadataService_BindDataTokenAddress",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/typesSimpleResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiBindDataTokenAddressRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MetadataService"
+        ]
+      }
+    },
     "/carrier/v1/metadata/globalList": {
       "get": {
         "summary": "查看 全网元数据列表",
@@ -153,7 +186,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/typesSimpleResponse"
+              "$ref": "#/definitions/rpcapiPublishMetadataResponse"
             }
           },
           "default": {
@@ -291,6 +324,18 @@
         }
       }
     },
+    "rpcapiBindDataTokenAddressRequest": {
+      "type": "object",
+      "properties": {
+        "metadata_id": {
+          "type": "string"
+        },
+        "token_address": {
+          "type": "string"
+        }
+      },
+      "title": "v 0.4.0 datatoken合约地址和metadata一对一绑定"
+    },
     "rpcapiGetGlobalMetadataDetail": {
       "type": "object",
       "properties": {
@@ -390,26 +435,29 @@
     "rpcapiPublishMetadataByInteranlMetadataRequest": {
       "type": "object",
       "properties": {
-        "metadata_id": {
-          "type": "string"
+        "information": {
+          "$ref": "#/definitions/typesMetadataSummary"
         }
       },
-      "title": "将内部元数据重新发布成 对外的元数据 req"
+      "title": "v 0.4.0 将内部元数据重新发布成 对外的元数据 req"
     },
     "rpcapiPublishMetadataByTaskResultFileRequest": {
       "type": "object",
       "properties": {
         "task_id": {
           "type": "string"
+        },
+        "information": {
+          "$ref": "#/definitions/typesMetadataSummary"
         }
       },
-      "title": "将任务的结果数据重新发布成 对外的元数据 req"
+      "title": "v 0.4.0 将任务的结果数据重新发布成 对外的元数据 req"
     },
     "rpcapiPublishMetadataRequest": {
       "type": "object",
       "properties": {
         "information": {
-          "$ref": "#/definitions/typesMetadataDetail"
+          "$ref": "#/definitions/typesMetadataSummary"
         }
       },
       "title": "数据上架 req"
@@ -504,8 +552,7 @@
           "type": "string"
         },
         "metadata_type": {
-          "type": "integer",
-          "format": "int64"
+          "$ref": "#/definitions/typesMetadataType"
         },
         "data_hash": {
           "type": "string"
@@ -545,6 +592,16 @@
         }
       },
       "title": "=============================== For API =========================\n元数据的摘要内容 (不包含详细 列描述)"
+    },
+    "typesMetadataType": {
+      "type": "string",
+      "enum": [
+        "MetadataType_Unknown",
+        "MetadataType_DataFile",
+        "MetadataType_ModuleFile"
+      ],
+      "default": "MetadataType_Unknown",
+      "title": "元数据类型"
     },
     "typesOrganization": {
       "type": "object",

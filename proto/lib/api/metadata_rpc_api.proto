@@ -48,10 +48,9 @@ message GetLocalMetadataDetailListResponse {
   repeated GetLocalMetadataDetail           metadatas = 3;                   // 元数据列表
 }
 
-
 // 数据上架 req
 message PublishMetadataRequest {
-  types.MetadataDetail information = 1;             // 元数据详情
+  types.MetadataSummary information = 1;             // 元数据详情
 }
 // 数据上架 resp
 message PublishMetadataResponse {
@@ -78,14 +77,21 @@ message GetMetadataUsedTaskIdListResponse {
   repeated string             task_ids = 3;         // 任务Id
 }
 
-// 将内部元数据重新发布成 对外的元数据 req
-message PublishMetadataByInteranlMetadataRequest {
-  string metadata_id = 1; // 内部元数据Id
+// v 0.4.0 datatoken合约地址和metadata一对一绑定
+message BindDataTokenAddressRequest {
+  string    metadata_id = 1;        // 内部元数据Id
+  string    token_address = 2;      // 元数据对应的 dataToken 合约的地址
 }
 
-// 将任务的结果数据重新发布成 对外的元数据 req
+// v 0.4.0 将内部元数据重新发布成 对外的元数据 req
+message PublishMetadataByInteranlMetadataRequest {
+  types.MetadataSummary information = 1;             // 元数据详情
+}
+
+// v 0.4.0 将任务的结果数据重新发布成 对外的元数据 req
 message PublishMetadataByTaskResultFileRequest {
-  string  task_id = 1; //任务id
+  string                      task_id = 1;                  //任务id
+  types.MetadataSummary       information = 2;              // 元数据详情
 }
 
 // ## 元数据 相关接口
@@ -119,6 +125,7 @@ service MetadataService {
       body: "*"
     };
   }
+
   // 撤销元数据 (从底层网络撤销)
   rpc RevokeMetadata (RevokeMetadataRequest) returns (types.SimpleResponse) {
     option (google.api.http) = {
@@ -136,13 +143,22 @@ service MetadataService {
     };
   }
 
+  // v 0.4.0 将元数据发布的 datatoken 合约地址绑定 元数据信息中 (metadata : datatoken == 1 : 1)
+  rpc BindDataTokenAddress (BindDataTokenAddressRequest) returns (types.SimpleResponse) {
+    option (google.api.http) = {
+      post: "/carrier/v1/metadata/bindDataTokenAddress"
+      body: "*"
+    };
+  }
+
   // v 0.4.0 将内部元数据重新发布成 对外的元数据
-  rpc PublishMetadataByInteranlMetadata (PublishMetadataByInteranlMetadataRequest) returns (types.SimpleResponse) {
+  rpc PublishMetadataByInteranlMetadata (PublishMetadataByInteranlMetadataRequest) returns (PublishMetadataResponse) {
     option (google.api.http) = {
       post: "/carrier/v1/metadata/publishByInteranlMetadata"
       body: "*"
     };
   }
+
   // v 0.4.0 将任务的结果数据重新发布成 对外的元数据
   rpc PublishMetadataByTaskResultFile (PublishMetadataByTaskResultFileRequest) returns (PublishMetadataResponse) {
     option (google.api.http) = {
@@ -150,4 +166,5 @@ service MetadataService {
       body: "*"
     };
   }
+
 }

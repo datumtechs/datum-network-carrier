@@ -19,6 +19,10 @@ message RevokeMetadataRequest {
   string                    metadata_id = 2;
 }
 
+message UpdateMetadataRequest {
+  types.MetadataPB metadata = 1;          // metadata 数据实体
+}
+
 message ListMetadataSummaryRequest {
   uint64 last_updated = 1;  // 从对应updateAt那条记录开始拉
   uint64 page_size = 2;     // 单次批量数据的返回条数
@@ -95,4 +99,7 @@ service MetadataService {
 
   // 撤销元数据 (从底层网络撤销)
   rpc RevokeMetadata (RevokeMetadataRequest) returns (types.SimpleResponse);
+
+  // 更新已经发布的元数据信息 v 0.4.0
+  rpc UpdateMetadata (UpdateMetadataRequest) returns (types.SimpleResponse);
 }

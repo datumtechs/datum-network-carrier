@@ -115,6 +115,15 @@ func (gc *GrpcClient) RevokeMetadata(ctx context.Context, request *api.RevokeMet
 	defer cancel()
 	return gc.metadataService.RevokeMetadata(ctx, request)
 }
+// add by v 0.4.0
+func (gc *GrpcClient) UpdateMetadata(ctx context.Context, request *api.UpdateMetadataRequest) (*libtypes.SimpleResponse, error) {
+	if nil == gc {
+		return nil, fmt.Errorf("datacenter rpc client is nil")
+	}
+	ctx, cancel := context.WithTimeout(ctx, DefaultGrpcRequestTimeout)
+	defer cancel()
+	return gc.metadataService.UpdateMetadata(ctx, request)
+}
 
 // ************************************** Resource module *******************************************************
 

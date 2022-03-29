@@ -63,7 +63,6 @@ message GetLocalPowerDetailListResponse {
   repeated GetLocalPowerDetail            powers = 3;         // 单个节点的算力总摘要列表
 }
 
-
 // 启用算力 req
 message PublishPowerRequest {
   string job_node_id = 1;     // 计算服务id (节点内部的)

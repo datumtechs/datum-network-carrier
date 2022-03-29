@@ -31,12 +31,14 @@ type Backend interface {
 
 	// metadata api
 	IsInternalMetadata(metadataId string) (bool, error)
-	GetMetadataDetail(identityId, metadataId string) (*types.Metadata, error)
+	GetInternalMetadataDetail(metadataId string) (*types.Metadata, error)
+	GetMetadataDetail(metadataId string) (*types.Metadata, error)
 	GetGlobalMetadataDetailList(lastUpdate, pageSize uint64) ([]*pb.GetGlobalMetadataDetail, error)
 	GetGlobalMetadataDetailListByIdentityId(identityId string, lastUpdate, pageSize uint64) ([]*pb.GetGlobalMetadataDetail, error)
 	GetLocalMetadataDetailList(lastUpdate, pageSize uint64) ([]*pb.GetLocalMetadataDetail, error)
-	GetLocalInternalMetadataDetailList() ([]*pb.GetLocalMetadataDetail, error) // add by 0.3.0
+	GetLocalInternalMetadataDetailList() ([]*pb.GetLocalMetadataDetail, error) // add by v 0.3.0
 	GetMetadataUsedTaskIdList(identityId, metadataId string) ([]string, error)
+	UpdateGlobalMetadata(metadata *types.Metadata) error // add by v 0.4.0
 
 	// metadataAuthority api
 	AuditMetadataAuthority(audit *types.MetadataAuthAudit) (libtypes.AuditMetadataOption, error)

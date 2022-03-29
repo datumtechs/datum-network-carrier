@@ -800,7 +800,7 @@ func (m *Manager) metadataPolicyRowColumn(task *types.NeedExecuteTask, localTask
 						err, userType, user, localTask.GetTaskId(), partyId, metadataId)
 				}
 
-				internalMetadataFlag, err := m.resourceMng.GetDB().IsInternalMetadataByDataId(metadataId)
+				internalMetadataFlag, err := m.resourceMng.GetDB().IsInternalMetadataById(metadataId)
 				if nil != err {
 					return "", fmt.Errorf("check metadata whether internal metadata failed %s, taskId: {%s}, partyId: {%s}, metadataId: {%s}",
 						err, localTask.GetTaskId(), partyId, metadataId)
@@ -811,7 +811,7 @@ func (m *Manager) metadataPolicyRowColumn(task *types.NeedExecuteTask, localTask
 				// whether the metadata is internal metadata ?
 				if internalMetadataFlag {
 					// query internal metadata
-					metadata, err = m.resourceMng.GetDB().QueryInternalMetadataByDataId(metadataId)
+					metadata, err = m.resourceMng.GetDB().QueryInternalMetadataById(metadataId)
 					if nil != err {
 						return "", fmt.Errorf("query internale metadata failed %s, taskId: {%s}, partyId: {%s}, metadataId: {%s}",
 							err, localTask.GetTaskId(), partyId, metadataId)
