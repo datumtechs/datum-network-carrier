@@ -5,7 +5,6 @@ import (
 	"fmt"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
-	"github.com/RosettaFlow/Carrier-Go/policy"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"strings"
@@ -227,49 +226,49 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 
 	taskMsg := types.NewTaskMessageFromRequest(req)
 
-	checkPartyIdCache := make(map[string]struct{}, 0)
-	checkPartyIdCache[req.GetSender().GetPartyId()] = struct{}{}
-
-	if _, ok := checkPartyIdCache[req.GetAlgoSupplier().GetPartyId()]; ok {
-		log.Errorf("RPC-API:PublishTaskDeclare failed, check partyId of algoSupplier failed, this partyId has alreay exist, partyId: {%s}",
-			req.GetAlgoSupplier().GetPartyId())
-		return &pb.PublishTaskDeclareResponse { Status: backend.ErrPublishTaskMsg.ErrCode(), Msg: fmt.Sprintf("The partyId of the task participants cannot be repeated on algoSupplier, partyId: {%s}", req.GetAlgoSupplier().GetPartyId())}, nil
-	}
-	checkPartyIdCache[req.GetAlgoSupplier().GetPartyId()] = struct{}{}
-
-	for _, v := range req.GetDataSuppliers() {
-		if _, ok := checkPartyIdCache[v.GetPartyId()]; ok {
-			log.Errorf("RPC-API:PublishTaskDeclare failed, check partyId of dataSuppliers failed, this partyId has alreay exist, partyId: {%s}",
-				v.GetPartyId())
-			return &pb.PublishTaskDeclareResponse { Status: backend.ErrPublishTaskMsg.ErrCode(), Msg: fmt.Sprintf("The partyId of the task participants cannot be repeated on dataSuppliers, partyId: {%s}", v.GetPartyId())}, nil
-		}
-		checkPartyIdCache[v.GetPartyId()] = struct{}{}
-	}
-
-	// check partyId of powerSuppliers
-	powerPartyIds, err := policy.FetchPowerPartyIds(req.GetPowerPolicyType(), req.GetPowerPolicyOption())
-	if nil != err {
-		log.WithError(err).Errorf("not fetch partyIds from task powerPolicy")
-		return &pb.PublishTaskDeclareResponse { Status: backend.ErrPublishTaskMsg.ErrCode(), Msg: "not fetch partyIds from task powerPolicy" }, nil
-	}
-	for _, partyId := range powerPartyIds {
-		if _, ok := checkPartyIdCache[partyId]; ok {
-			log.Errorf("RPC-API:PublishTaskDeclare failed, check partyId of powerSuppliers failed, this partyId has alreay exist, partyId: {%s}",
-				partyId)
-			return &pb.PublishTaskDeclareResponse { Status: backend.ErrPublishTaskMsg.ErrCode(), Msg: fmt.Sprintf("The partyId of the task participants cannot be repeated on powerSuppliers, partyId: {%s}", partyId)}, nil
-		}
-		checkPartyIdCache[partyId] = struct{}{}
-	}
-
-	// check partyId of receivers
-	for _, v := range req.GetReceivers() {
-		if _, ok := checkPartyIdCache[v.GetPartyId()]; ok {
-			log.Errorf("RPC-API:PublishTaskDeclare failed, check partyId of receiver failed, this partyId has alreay exist, partyId: {%s}",
-				v.GetPartyId())
-			return &pb.PublishTaskDeclareResponse { Status: backend.ErrPublishTaskMsg.ErrCode(), Msg: fmt.Sprintf("The partyId of the task participants cannot be repeated on receivers, partyId: {%s}", v.GetPartyId())}, nil
-		}
-		checkPartyIdCache[v.GetPartyId()] = struct{}{}
-	}
+	//checkPartyIdCache := make(map[string]struct{}, 0)
+	//checkPartyIdCache[req.GetSender().GetPartyId()] = struct{}{}
+	//
+	//if _, ok := checkPartyIdCache[req.GetAlgoSupplier().GetPartyId()]; ok {
+	//	log.Errorf("RPC-API:PublishTaskDeclare failed, check partyId of algoSupplier failed, this partyId has alreay exist, partyId: {%s}",
+	//		req.GetAlgoSupplier().GetPartyId())
+	//	return &pb.PublishTaskDeclareResponse { Status: backend.ErrPublishTaskMsg.ErrCode(), Msg: fmt.Sprintf("The partyId of the task participants cannot be repeated on algoSupplier, partyId: {%s}", req.GetAlgoSupplier().GetPartyId())}, nil
+	//}
+	//checkPartyIdCache[req.GetAlgoSupplier().GetPartyId()] = struct{}{}
+	//
+	//for _, v := range req.GetDataSuppliers() {
+	//	if _, ok := checkPartyIdCache[v.GetPartyId()]; ok {
+	//		log.Errorf("RPC-API:PublishTaskDeclare failed, check partyId of dataSuppliers failed, this partyId has alreay exist, partyId: {%s}",
+	//			v.GetPartyId())
+	//		return &pb.PublishTaskDeclareResponse { Status: backend.ErrPublishTaskMsg.ErrCode(), Msg: fmt.Sprintf("The partyId of the task participants cannot be repeated on dataSuppliers, partyId: {%s}", v.GetPartyId())}, nil
+	//	}
+	//	checkPartyIdCache[v.GetPartyId()] = struct{}{}
+	//}
+	//
+	//// check partyId of powerSuppliers
+	//powerPartyIds, err := policy.FetchPowerPartyIds(req.GetPowerPolicyType(), req.GetPowerPolicyOption())
+	//if nil != err {
+	//	log.WithError(err).Errorf("not fetch partyIds from task powerPolicy")
+	//	return &pb.PublishTaskDeclareResponse { Status: backend.ErrPublishTaskMsg.ErrCode(), Msg: "not fetch partyIds from task powerPolicy" }, nil
+	//}
+	//for _, partyId := range powerPartyIds {
+	//	if _, ok := checkPartyIdCache[partyId]; ok {
+	//		log.Errorf("RPC-API:PublishTaskDeclare failed, check partyId of powerSuppliers failed, this partyId has alreay exist, partyId: {%s}",
+	//			partyId)
+	//		return &pb.PublishTaskDeclareResponse { Status: backend.ErrPublishTaskMsg.ErrCode(), Msg: fmt.Sprintf("The partyId of the task participants cannot be repeated on powerSuppliers, partyId: {%s}", partyId)}, nil
+	//	}
+	//	checkPartyIdCache[partyId] = struct{}{}
+	//}
+	//
+	//// check partyId of receivers
+	//for _, v := range req.GetReceivers() {
+	//	if _, ok := checkPartyIdCache[v.GetPartyId()]; ok {
+	//		log.Errorf("RPC-API:PublishTaskDeclare failed, check partyId of receiver failed, this partyId has alreay exist, partyId: {%s}",
+	//			v.GetPartyId())
+	//		return &pb.PublishTaskDeclareResponse { Status: backend.ErrPublishTaskMsg.ErrCode(), Msg: fmt.Sprintf("The partyId of the task participants cannot be repeated on receivers, partyId: {%s}", v.GetPartyId())}, nil
+	//	}
+	//	checkPartyIdCache[v.GetPartyId()] = struct{}{}
+	//}
 
 	// generate and store taskId
 	taskId := taskMsg.GenTaskId()

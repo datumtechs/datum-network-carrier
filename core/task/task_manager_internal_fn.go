@@ -452,7 +452,7 @@ func (m *Manager) publishFinishedTaskToDataCenter(task *types.NeedExecuteTask, l
 
 		log.Debugf("Start publishFinishedTaskToDataCenter, taskId: {%s}, taskState: {%s}", task.GetTaskId(), taskState.String())
 
-		finalTask := m.convertScheduleTaskToTask(localTask, eventList, taskState)
+		finalTask := m.fillTaskEventAndFinishedState(localTask, eventList, taskState)
 		if err := m.resourceMng.GetDB().InsertTask(finalTask); nil != err {
 			log.WithError(err).Errorf("Failed to save task to datacenter on publishFinishedTaskToDataCenter, taskId: {%s}, partyId: {%s}",
 				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
@@ -633,10 +633,6 @@ func (m *Manager) sendTaskTerminateMsg(task *types.Task) error {
 	return nil
 }
 
-func (m *Manager) sendLocalTaskToScheduler(tasks types.TaskDataArray) {
-	m.localTasksCh <- tasks
-	log.Debugf("Succeed send to manager.loop() tasks count on taskManager.SendTaskMsgArr(), task arr len: %d", len(tasks))
-}
 func (m *Manager) sendTaskEvent(event *libtypes.TaskEvent) {
 	go func(event *libtypes.TaskEvent) {
 		m.eventCh <- event
@@ -644,7 +640,7 @@ func (m *Manager) sendTaskEvent(event *libtypes.TaskEvent) {
 	}(event)
 }
 
-func (m *Manager) storeBadTask(task *types.Task, events []*libtypes.TaskEvent, reason string) error {
+func (m *Manager) publishBadTaskToDataCenter (task *types.Task, events []*libtypes.TaskEvent, reason string) error {
 	task.GetTaskData().TaskEvents = events
 	task.GetTaskData().State = libtypes.TaskState_TaskState_Failed
 	task.GetTaskData().Reason = reason
@@ -656,7 +652,7 @@ func (m *Manager) storeBadTask(task *types.Task, events []*libtypes.TaskEvent, r
 	return m.resourceMng.GetDB().InsertTask(task)
 }
 
-func (m *Manager) convertScheduleTaskToTask(task *types.Task, eventList []*libtypes.TaskEvent, state libtypes.TaskState) *types.Task {
+func (m *Manager) fillTaskEventAndFinishedState(task *types.Task, eventList []*libtypes.TaskEvent, state libtypes.TaskState) *types.Task {
 	task.GetTaskData().TaskEvents = eventList
 	task.GetTaskData().EndAt = timeutils.UnixMsecUint64()
 	task.GetTaskData().State = state

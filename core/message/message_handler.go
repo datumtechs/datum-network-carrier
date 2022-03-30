@@ -840,14 +840,14 @@ func (m *MessageHandler) BroadcastMetadataAuthRevokeMsgArr(metadataAuthRevokeMsg
 }
 
 func (m *MessageHandler) BroadcastTaskMsgArr(taskMsgArr types.TaskMsgArr) {
-	if err := m.taskManager.SendTaskMsgArr(taskMsgArr); nil != err {
+	if err := m.taskManager.HandleTaskMsgs(taskMsgArr); nil != err {
 		log.WithError(err).Errorf("Failed to call `BroadcastTaskMsgArr` on MessageHandler")
 	}
 	return
 }
 
 func (m *MessageHandler) BroadcastTaskTerminateMsgArr(terminateMsgArr types.TaskTerminateMsgArr) {
-	if err := m.taskManager.SendTaskTerminate(terminateMsgArr); nil != err {
+	if err := m.taskManager.HandleTaskTerminateMsgs(terminateMsgArr); nil != err {
 		log.WithError(err).Errorf("Failed to call `BroadcastTaskTerminateMsgArr` on MessageHandler")
 	}
 	return

@@ -64,8 +64,7 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 	eventEngine := evengine.NewEventEngine(config.CarrierDB)
 
 	// TODO The size of these ch is currently written dead ...
-	localTaskMsgCh, needReplayScheduleTaskCh, needExecuteTaskCh, taskConsResultCh :=
-		make(chan types.TaskDataArray, 100),
+	needReplayScheduleTaskCh, needExecuteTaskCh, taskConsResultCh :=
 		make(chan *types.NeedReplayScheduleTask, 600),
 		make(chan *types.NeedExecuteTask, 600),
 		make(chan *types.TaskConsResult, 600)
@@ -99,7 +98,6 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 		eventEngine,
 		resourceMng,
 		authManager,
-		localTaskMsgCh,
 		needReplayScheduleTaskCh,
 		needExecuteTaskCh,
 		taskConsResultCh,
