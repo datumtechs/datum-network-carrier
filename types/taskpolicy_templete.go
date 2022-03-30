@@ -17,22 +17,23 @@ var (
 //	GetMetadataName() string
 //}
 
-
 const (
 	// data policy
 	TASK_METADATA_POLICY_ROW_COLUMN = 1
 
 	// power policy
-	TASK_POWER_POLICY_ASSIGNMENT_LABEL = 1
+	TASK_POWER_POLICY_ASSIGNMENT_SYMBOL_RANDOM_ELECTION_POWER = 1
+	TASK_POWER_POLICY_DATANODE_PROVIDE_POWER                  = 2
 
 	// dataFlow policy
 
-
 )
 
-/**
+// ==================================================================== metadata policy option ====================================================================
 
- */
+/**
+TASK_METADATA_POLICY_ROW_COLUMN
+*/
 type TaskMetadataPolicyRowAndColumn struct {
 	PartyId         string
 	MetadataId      string
@@ -50,11 +51,24 @@ func (p *TaskMetadataPolicyRowAndColumn) GetMetadataId() string {
 func (p *TaskMetadataPolicyRowAndColumn) GetMetadataName() string {
 	return p.MetadataName
 }
-func (p *TaskMetadataPolicyRowAndColumn) QueryKeyColumn () uint32 {
+func (p *TaskMetadataPolicyRowAndColumn) QueryKeyColumn() uint32 {
 	return p.KeyColumn
 }
-func (p *TaskMetadataPolicyRowAndColumn) QuerySelectedColumns () []uint32 {
+func (p *TaskMetadataPolicyRowAndColumn) QuerySelectedColumns() []uint32 {
 	return p.SelectedColumns
 }
 
+// ==================================================================== power policy option ====================================================================
 
+type AssignmentProvidePower struct {
+	IdentityId string
+	PartyId    string
+}
+func (p *AssignmentProvidePower) GetIdentityId() string {
+	return p.IdentityId
+}
+func (p *AssignmentProvidePower) GetPartyId() string {
+	return p.PartyId
+}
+
+// ==================================================================== dataFlow policy option ====================================================================

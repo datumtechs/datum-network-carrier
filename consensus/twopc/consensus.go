@@ -156,7 +156,7 @@ func (t *Twopc) OnHandle(nonConsTask *types.NeedConsensusTask) error {
 	}
 
 	createAt := timeutils.UnixMsecUint64()
-	if task.GetTaskData().GetPowerPolicyType() == types.TASK_POWER_POLICY_ASSIGNMENT_LABEL {
+	if task.GetTaskData().GetPowerPolicyType() == types.TASK_POWER_POLICY_ASSIGNMENT_SYMBOL_RANDOM_ELECTION_POWER {
 		var evidence *policy.VRFElectionEvidence
 		if err := json.Unmarshal([]byte(nonConsTask.GetEvidence()), &evidence); nil != err {
 			log.WithError(err).Errorf("can not decode evidence of powerSuppliers election on OnHandle, taskId: {%s}, partyId: {%s}",

@@ -1293,7 +1293,7 @@ func (m *Manager) executeTaskEvent(logkeyword string, symbol types.NetworkMsgLoc
 	return nil
 }
 
-func (m *Manager) storeMetaUsedTaskId(task *types.Task) error {
+func (m *Manager) storeMetadataUsedTaskId(task *types.Task) error {
 	identityId, err := m.resourceMng.GetDB().QueryIdentityId()
 	if nil != err {
 		return err

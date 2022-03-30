@@ -284,7 +284,7 @@ func (m *Manager) loop() {
 					log.Infof("Start to store local task on taskManager.loop() when received needReplayScheduleTask, taskId: {%s}", needReplayScheduleTask.GetTask().GetTaskId())
 
 					// store metadata used taskId
-					if err := m.storeMetaUsedTaskId(needReplayScheduleTask.GetTask()); nil != err {
+					if err := m.storeMetadataUsedTaskId(needReplayScheduleTask.GetTask()); nil != err {
 						log.WithError(err).Errorf("Failed to store metadata used taskId when received remote task, taskId: {%s}", needReplayScheduleTask.GetTask().GetTaskId())
 					}
 					if err := m.resourceMng.GetDB().StoreLocalTask(needReplayScheduleTask.GetTask()); nil != err {
@@ -526,7 +526,7 @@ func (m *Manager) HandleTaskMsgs(msgArr types.TaskMsgArr) error {
 		task := msg.GetTask()
 
 		// store metadata used taskId
-		if err := m.storeMetaUsedTaskId(task); nil != err {
+		if err := m.storeMetadataUsedTaskId(task); nil != err {
 			log.WithError(err).Errorf("Failed to store metadata used taskId when received local task on taskManager.HandleTaskMsgs(), taskId: {%s}", task.GetTaskId())
 		}
 

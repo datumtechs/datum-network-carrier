@@ -38,12 +38,23 @@ func FetchMetedataNameByPartyId (partyId string, policyType uint32, policyOption
 
 func FetchPowerPartyIds(policyType uint32, policyOption string) ([]string, error) {
 	switch policyType {
-	case types.TASK_POWER_POLICY_ASSIGNMENT_LABEL:
+	case types.TASK_POWER_POLICY_ASSIGNMENT_SYMBOL_RANDOM_ELECTION_POWER:
 		var policys []string
 		if err := json.Unmarshal([]byte(policyOption), &policys); nil != err {
 			return nil, err
 		}
 		return policys, nil
+	case types.TASK_POWER_POLICY_DATANODE_PROVIDE_POWER:
+		var policys []*types.AssignmentProvidePower
+		if err := json.Unmarshal([]byte(policyOption), &policys); nil != err {
+			return nil, err
+		}
+		partyIds := make([]string, 0)
+		for _, p := range policys {
+			partyIds = append(partyIds, p.GetPartyId())
+		}
+		return partyIds, nil
+	default:
+		return nil, types.NotFoundPowerPolicy
 	}
-	return nil, types.NotFoundPowerPolicy
 }
