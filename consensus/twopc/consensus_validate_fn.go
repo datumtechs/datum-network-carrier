@@ -7,7 +7,7 @@ package twopc
 //	"github.com/RosettaFlow/Carrier-Go/common"
 //	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 //	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
-//	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+//	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 //	"github.com/RosettaFlow/Carrier-Go/p2p"
 //	"github.com/RosettaFlow/Carrier-Go/types"
 //	"github.com/ethereum/go-ethereum/crypto"
@@ -317,7 +317,7 @@ package twopc
 //	return nil
 //}
 //
-//func (t *Twopc) validateOrganizationIdentity(identityInfo *libcommonpb.TaskOrganization) error {
+//func (t *Twopc) validateOrganizationIdentity(identityInfo *libtypes.TaskOrganization) error {
 //	if "" == identityInfo.GetNodeName() {
 //		return ctypes.ErrOrganizationIdentity
 //	}
@@ -325,7 +325,7 @@ package twopc
 //	if nil != err {
 //		return ctypes.ErrOrganizationIdentity
 //	}
-//	has, err := t.resourceMng.GetDB().HasIdentity(&libcommonpb.Organization{
+//	has, err := t.resourceMng.GetDB().HasIdentity(&libtypes.Organization{
 //		NodeName:   identityInfo.GetNodeName(),
 //		NodeId:     identityInfo.GetNodeId(),
 //		IdentityId: identityInfo.QueryIdentityId(),

@@ -3,7 +3,7 @@ package types
 import (
 	"bytes"
 	"github.com/RosettaFlow/Carrier-Go/common"
-	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/lib/types"
 	"testing"
 )
@@ -13,8 +13,8 @@ var resource_test = NewResource(&types.ResourcePB{
 	NodeId:               "nodeId",
 	NodeName:             "nodeName",
 	DataId:               "dataId",
-	DataStatus:           libcommonpb.DataStatus_DataStatus_Deleted,
-	State:                libcommonpb.PowerState_PowerState_Created,
+	DataStatus:           libtypes.DataStatus_DataStatus_Deleted,
+	State:                libtypes.PowerState_PowerState_Created,
 	TotalMem:             1,
 	UsedMem:              2,
 	TotalProcessor:       0,

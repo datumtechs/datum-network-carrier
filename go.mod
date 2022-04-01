@@ -5,7 +5,6 @@ go 1.16
 require (
 	contrib.go.opencensus.io/exporter/jaeger v0.2.1
 	github.com/d4l3k/messagediff v1.2.1
-	github.com/davecgh/go-spew v1.1.1
 	github.com/ethereum/go-ethereum v1.10.3
 	github.com/ferranbt/fastssz v0.0.0-20210526181520-7df50c8568f8
 	github.com/fjl/memsize v0.0.0-20190710130421-bcb5799ab5e5
@@ -18,7 +17,6 @@ require (
 	github.com/hashicorp/consul/api v1.3.0
 	github.com/hashicorp/golang-lru v0.5.5-0.20210104140557-80c98217689d
 	github.com/ipfs/go-ipfs-addr v0.0.1
-	github.com/ipfs/go-log v1.0.4
 	github.com/ipfs/go-log/v2 v2.1.3
 	github.com/joonix/log v0.0.0-20200409080653-9c1d2ceb5f1d
 	github.com/kevinms/leakybucket-go v0.0.0-20200115003610-082473db97ca
@@ -26,10 +24,7 @@ require (
 	github.com/libp2p/go-libp2p v0.14.2
 	github.com/libp2p/go-libp2p-blankhost v0.2.0
 	github.com/libp2p/go-libp2p-core v0.8.5
-	github.com/libp2p/go-libp2p-crypto v0.1.0
 	github.com/libp2p/go-libp2p-noise v0.2.0
-	github.com/libp2p/go-libp2p-peer v0.2.0
-	github.com/libp2p/go-libp2p-peerstore v0.2.7
 	github.com/libp2p/go-libp2p-pubsub v0.4.0
 	github.com/libp2p/go-libp2p-swarm v0.5.0
 	github.com/libp2p/go-tcp-transport v0.2.1
@@ -53,7 +48,6 @@ require (
 	github.com/tidwall/gjson v1.8.1 // indirect
 	github.com/trailofbits/go-mutexasserts v0.0.0-20200708152505-19999e7d3cef
 	github.com/urfave/cli/v2 v2.3.0
-	github.com/whyrusleeping/go-logging v0.0.1
 	github.com/x-cray/logrus-prefixed-formatter v0.5.2
 	go.opencensus.io v0.23.0
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a

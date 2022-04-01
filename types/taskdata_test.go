@@ -3,21 +3,17 @@ package types
 import (
 	"bytes"
 	"github.com/RosettaFlow/Carrier-Go/common"
-	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/lib/types"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"testing"
 )
 
 var testTaskdata = NewTask(&types.TaskPB{
-	IdentityId: "",
-	NodeId:     "",
-	NodeName:   "",
 	DataId:     "",
-	DataStatus: libcommonpb.DataStatus_DataStatus_Unknown,
+	DataStatus: libtypes.DataStatus_DataStatus_Unknown,
 	TaskId:     "",
-	State:      libcommonpb.TaskState_TaskState_Unknown,
+	State:      libtypes.TaskState_TaskState_Unknown,
 	Reason:     "",
-	EventCount: 0,
 	Desc:       "",
 	TaskEvents: nil,
 })

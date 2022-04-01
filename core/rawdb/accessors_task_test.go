@@ -2,7 +2,6 @@ package rawdb
 
 import (
 	"github.com/RosettaFlow/Carrier-Go/db"
-	pbcommon "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"gotest.tools/assert"
@@ -13,17 +12,17 @@ import (
 func TestRunningTask(t *testing.T) {
 	database := db.NewMemoryDatabase()
 	task := types.NewTask(&libtypes.TaskPB{
-		Sender: &pbcommon.TaskOrganization{
+		Sender: &libtypes.TaskOrganization{
 			PartyId:    "p0",
 			IdentityId: "identity-task",
 			NodeId:     "nodeId-task",
 			NodeName:   "nodeName",
 		},
 		DataId:     "",
-		DataStatus: pbcommon.DataStatus_DataStatus_Valid,
+		DataStatus: libtypes.DataStatus_DataStatus_Valid,
 		TaskId:     "taskID-01",
 		TaskName:   "taskName-01",
-		State:      pbcommon.TaskState_TaskState_Succeed,
+		State:      libtypes.TaskState_TaskState_Succeed,
 		Reason:     "",
 		Desc:       "",
 		CreateAt:   0,
