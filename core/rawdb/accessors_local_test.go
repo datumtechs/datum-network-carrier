@@ -19,16 +19,12 @@ import (
 func TestLocalTask(t *testing.T) {
 	database := db.NewMemoryDatabase()
 	data01 := &libtypes.TaskPB{
-		IdentityId: "identity",
-		NodeId:     "nodeid",
-		NodeName:   "nodename",
 		DataId:     "taskId",
-		DataStatus: libtypes.DataStatus_DataStatus_Deleted,
+		DataStatus: libtypes.DataStatus_DataStatus_Invalid,
 		TaskId:     "taskID",
 		TaskName:   "taskName",
 		State:      libtypes.TaskState_TaskState_Failed,
 		Reason:     "reason",
-		EventCount: 4,
 		Desc:       "desc",
 		CreateAt:   timeutils.UnixMsecUint64(),
 		EndAt:      timeutils.UnixMsecUint64(),
@@ -182,12 +178,9 @@ func TestLocalIdentity(t *testing.T) {
 func TestLocalResource(t *testing.T) {
 	database := db.NewMemoryDatabase()
 	localResource01 := &libtypes.LocalResourcePB{
-		IdentityId:     "01-identity",
-		NodeId:         "01-nodeId",
-		NodeName:       "01-nodename",
 		JobNodeId:      "01",
 		DataId:         "01-dataId",
-		DataStatus:     libtypes.DataStatus_DataStatus_Deleted,
+		DataStatus:     libtypes.DataStatus_DataStatus_Invalid,
 		State:          libtypes.PowerState_PowerState_Created,
 		TotalMem:       111,
 		UsedMem:        222,
@@ -201,12 +194,9 @@ func TestLocalResource(t *testing.T) {
 	StoreLocalResource(database, types.NewLocalResource(localResource01))
 
 	localResource02 := &libtypes.LocalResourcePB{
-		IdentityId:     "01-identity",
-		NodeId:         "01-nodeId",
-		NodeName:       "01-nodename",
 		JobNodeId:      "02",
 		DataId:         "01-dataId",
-		DataStatus:     libtypes.DataStatus_DataStatus_Normal,
+		DataStatus:     libtypes.DataStatus_DataStatus_Valid,
 		State:         libtypes.PowerState_PowerState_Created,
 		TotalMem:       111,
 		UsedMem:        222,
@@ -232,22 +222,10 @@ func TestLocalMetadata(t *testing.T) {
 	database := db.NewMemoryDatabase()
 	localMetadata01 := &libtypes.MetadataPB{
 		MetadataId:           "metadataId",
-		IdentityId:           "identityId",
-		NodeId:               "nodeId",
-		NodeName:             "nodeName",
 		DataId:               "dataId",
 		DataStatus:           0,
-		OriginId:             "originId",
-		TableName:            "tableName",
-		FilePath:             "filePath",
 		Desc:                 "desc",
-		Rows:                 0,
-		Columns:              0,
-		Size_:                0,
-		FileType:             0,
 		State:                0,
-		HasTitle:             false,
-		MetadataColumns:      nil,
 		Industry:             "",
 	}
 	b, _ := localMetadata01.Marshal()
@@ -256,22 +234,10 @@ func TestLocalMetadata(t *testing.T) {
 
 	localMetadata02 := &libtypes.MetadataPB{
 		MetadataId:           "metadataId-02",
-		IdentityId:           "identityId-02",
-		NodeId:               "nodeId-02",
-		NodeName:             "nodeName",
 		DataId:               "dataId",
 		DataStatus:           0,
-		OriginId:             "originId",
-		TableName:            "tableName",
-		FilePath:             "filePath",
 		Desc:                 "desc",
-		Rows:                 0,
-		Columns:              0,
-		Size_:                0,
-		FileType:             0,
 		State:                0,
-		HasTitle:             false,
-		MetadataColumns:      nil,
 		Industry:             "",
 	}
 	StoreLocalMetadata(database, types.NewMetadata(localMetadata02))

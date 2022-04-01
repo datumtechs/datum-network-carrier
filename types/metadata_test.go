@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/lib/types"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"gotest.tools/assert"
 	"reflect"
 	"testing"
@@ -22,9 +22,7 @@ var metadata = NewMetadata(&types.MetadataPB{
 	DataStatus:     libtypes.DataStatus_DataStatus_Valid,
 	MetadataName:   "this is a metadata",
 	MetadataType:   1,
-	FileHash:       "hash",
 	Desc:           "desc",
-	FileType:       libtypes.OriginFileType_FileType_CSV,
 	Industry:       "1",
 	State:          libtypes.MetadataState_MetadataState_Created,
 	PublishAt:      timeutils.UnixMsecUint64(),

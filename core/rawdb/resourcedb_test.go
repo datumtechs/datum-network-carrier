@@ -222,28 +222,11 @@ func TestStoreMessageCache(t *testing.T) {
 		MetadataId: "MetadataId",
 		MetadataSummary: &libtypes.MetadataSummary{
 			MetadataId: "MetadataId",
-			OriginId:   "OriginId",
-			TableName:  "TestTable",
 			Desc:       "",
-			FilePath:   "/a/b/c",
-			Rows:       4,
-			Columns:    5,
-			Size_:      20,
-			FileType:   1,
-			HasTitle:   false,
 			Industry:   "",
 			State:      2,
 			PublishAt:  3344,
 			UpdateAt:   4455,
-		},
-		ColumnMetas: []*libtypes.MetadataColumn{
-			{
-				CIndex:   22,
-				CName:    "CType",
-				CType:    "CType",
-				CSize:    112,
-				CComment: "CComment",
-			},
 		},
 	})
 	if err != nil {
@@ -266,7 +249,6 @@ func TestStoreMessageCache(t *testing.T) {
 		Data: types.NewTask(&libtypes.TaskPB{
 			TaskId: "task:0xe7bdb5af4de9d851351c680fb0a9bfdff72bdc4ea86da3c2006d6a7a7d335e65",
 		}),
-		PowerPartyIds: []string{"P1", "P5"},
 	})
 	if err != nil {
 		panic(err.Error())
