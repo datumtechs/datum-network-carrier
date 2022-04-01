@@ -49,7 +49,7 @@ func (s *Service) initServicesWithDiscoveryCenter() error {
 	}
 
 	// 1. fetch datacenter ip&port config from discorvery center
-	datacenterIpAndPort, err := s.consulManager.GetKV(discovery.DataCenterConsulServiceAddressKey, nil)
+	datacenterIpAndPort, err := s.consulManager.GetKV(discovery.TaskGateWayConsulServiceAddressKey, nil)
 	if nil != err {
 		return fmt.Errorf("query datacenter IP and PORT KVconfig failed from discovery center, %s", err)
 	}
@@ -105,24 +105,24 @@ func (s *Service) refreshResourceNodes() error {
 		return nil
 	}
 
-	// 2. fetch via external ip&port config from discorvery center
-	viaExternalIpAndPort, err := s.consulManager.GetKV(discovery.ViaNodeConsulServiceExternalAddressKey, nil)
+	// 2. fetch taskGateWay ip&port config from discorvery center
+	taskGateWayIpAndPort, err := s.consulManager.GetKV(discovery.TaskGateWayConsulServiceAddressKey, nil)
 	if nil != err {
-		return fmt.Errorf("query via external IP and PORT KVconfig from discovery center failed, %s", err)
+		return fmt.Errorf("query taskGateWay IP and PORT KVconfig from discovery center failed, %s", err)
 	}
-	if "" == viaExternalIpAndPort {
-		return fmt.Errorf("via external IP and PORT KVconfig is empty from discovery center")
+	if "" == taskGateWayIpAndPort {
+		return fmt.Errorf("taskGateWay IP and PORT KVconfig is empty from discovery center")
 	}
-	configArr := strings.Split(viaExternalIpAndPort, discovery.ConsulServiceIdSeparator)
+	configArr := strings.Split(taskGateWayIpAndPort, discovery.ConsulServiceIdSeparator)
 
-	// via external address config in consul server
-	// 	key: metis/dataCenter_ip_port
+	// taskGateWay address config in consul server
+	// 	key: metis/glacier2_ip_port
 	//  value: pi_port
 	if len(configArr) != 2 {
-		return fmt.Errorf("via external IP and PORT lack one on KVconfig from discovery center")
+		return fmt.Errorf("taskGateWay IP and PORT lack one on KVconfig from discovery center")
 	}
 
-	viaExternalIP, viaExternalPort := configArr[0], configArr[1]
+	taskGateWaylIP, taskGateWaylPort := configArr[0], configArr[1]
 
 	// ##########################
 	// ##########################
@@ -151,7 +151,7 @@ func (s *Service) refreshResourceNodes() error {
 
 					if err = s.resourceManager.AddDiscoveryJobNodeResource(
 						identity, jobNodeService.ID, jobNodeService.Address, strconv.Itoa(jobNodeService.Port),
-						viaExternalIP, viaExternalPort); nil != err {
+						taskGateWaylIP, taskGateWaylPort); nil != err {
 						log.WithError(err).Errorf("Failed to store a new jobNode on service.refreshResourceNodes(), jobNodeServiceId: {%s}, jobNodeService: {%s:%d}",
 							jobNodeService.ID, jobNodeService.Address, jobNodeService.Port)
 						continue
@@ -161,7 +161,7 @@ func (s *Service) refreshResourceNodes() error {
 
 					if err = s.resourceManager.UpdateDiscoveryJobNodeResource(
 						identity, jobNodeService.ID, jobNodeService.Address, strconv.Itoa(jobNodeService.Port),
-						viaExternalIP, viaExternalPort, node); nil != err {
+						taskGateWaylIP, taskGateWaylPort, node); nil != err {
 						log.WithError(err).Errorf("Failed to update a old jobNode on service.refreshResourceNodes(), jobNodeServiceId: {%s}, jobNodeService: {%s:%d}",
 							jobNodeService.ID, jobNodeService.Address, jobNodeService.Port)
 						continue
@@ -176,7 +176,7 @@ func (s *Service) refreshResourceNodes() error {
 
 				if err = s.resourceManager.RemoveDiscoveryJobNodeResource(
 					identity, jobNodeId, node.GetInternalIp(), node.GetInternalPort(),
-					viaExternalIP, viaExternalPort, node); nil != err {
+					taskGateWaylIP, taskGateWaylPort, node); nil != err {
 					log.WithError(err).Errorf("Failed to removed a old jobNode on service.refreshResourceNodes(), jobNodeServiceId: {%s}, jobNodeService: {%s:%s}",
 						jobNodeId, node.GetInternalIp(), node.GetInternalPort())
 					continue
@@ -211,7 +211,7 @@ func (s *Service) refreshResourceNodes() error {
 
 					if err = s.resourceManager.AddDiscoveryDataNodeResource(
 						identity, dataNodeService.ID, dataNodeService.Address, strconv.Itoa(dataNodeService.Port),
-						viaExternalIP, viaExternalPort); nil != err {
+						taskGateWaylIP, taskGateWaylPort); nil != err {
 						log.WithError(err).Errorf("Failed to store a new dataNode on service.refreshResourceNodes(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
 							dataNodeService.ID, dataNodeService.Address, dataNodeService.Port)
 						continue
@@ -221,7 +221,7 @@ func (s *Service) refreshResourceNodes() error {
 
 					if err = s.resourceManager.UpdateDiscoveryDataNodeResource(
 						identity, dataNodeService.ID, dataNodeService.Address, strconv.Itoa(dataNodeService.Port),
-						viaExternalIP, viaExternalPort, node); nil != err {
+						taskGateWaylIP, taskGateWaylPort, node); nil != err {
 						log.WithError(err).Errorf("Failed to update a old dataNode on service.refreshResourceNodes(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
 							dataNodeService.ID, dataNodeService.Address, dataNodeService.Port)
 						continue
@@ -236,7 +236,7 @@ func (s *Service) refreshResourceNodes() error {
 
 				if err = s.resourceManager.RemoveDiscoveryDataNodeResource(
 					identity, dataNodeId, node.GetInternalIp(), node.GetInternalPort(),
-					viaExternalIP, viaExternalPort, node); nil != err {
+					taskGateWaylIP, taskGateWaylPort, node); nil != err {
 					log.WithError(err).Errorf("Failed to removed a old dataNode on service.refreshResourceNodes(), dataNodeServiceId: {%s}, dataNodeService: {%s:%s}",
 						dataNodeId, node.GetInternalIp(), node.GetInternalPort())
 					continue
