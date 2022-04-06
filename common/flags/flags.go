@@ -316,6 +316,37 @@ var (
 		Usage: "Configuration dir required to persist the consensus state.",
 		Value: "",
 	}
+
+	//lvxiaoyi
+	KMS_KeyId = &cli.StringFlag{
+		Name:  "kms.key-id",
+		Usage: "KMS KeyId.",
+		Value: "",
+	}
+
+	KMS_RegionId = &cli.StringFlag{
+		Name:  "kms.region-id",
+		Usage: "KMS RegionId.",
+		Value: "",
+	}
+
+	KMS_AccessKeyId = &cli.StringFlag{
+		Name:  "kms.access-key-id",
+		Usage: "KMS AccessKeyId.",
+		Value: "",
+	}
+
+	KMS_AccessKeySecret = &cli.StringFlag{
+		Name:  "kms.access-key-secret",
+		Usage: "KMS AccessKeySecret.",
+		Value: "",
+	}
+
+	Chain = &cli.StringFlag{
+		Name:  "chain.url",
+		Usage: "chain node endpoint.",
+		Value: "",
+	}
 )
 
 // DefaultDataDir is the default data directory to use for the databases and other
