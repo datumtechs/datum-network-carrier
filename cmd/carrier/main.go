@@ -8,18 +8,21 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common/debug"
 	"github.com/RosettaFlow/Carrier-Go/common/flags"
 	"github.com/RosettaFlow/Carrier-Go/common/logutil"
+	"github.com/RosettaFlow/Carrier-Go/metispay"
+	"github.com/RosettaFlow/Carrier-Go/metispay/kms"
 	"github.com/RosettaFlow/Carrier-Go/node"
 	gethlog "github.com/ethereum/go-ethereum/log"
+	"github.com/howeyc/gopass"
 	golog "github.com/ipfs/go-log/v2"
 	joonix "github.com/joonix/log"
 	"github.com/onrik/logrus/filename"
 	"github.com/sirupsen/logrus"
+	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v2/altsrc"
 	prefixed "github.com/x-cray/logrus-prefixed-formatter"
 	"os"
 	"runtime"
 	runtimeDebug "runtime/debug"
-
-	"github.com/urfave/cli/v2"
 )
 
 var (
@@ -106,6 +109,26 @@ var (
 	consensusFlags = []cli.Flag{
 		flags.ConsensusStateWalDir,
 	}
+
+	kmsFlags = []cli.Flag{
+		//这样仅仅支持命令行配置
+		/*flags.KMS_KeyId,
+		flags.KMS_RegionId,
+		flags.KMS_AccessKeyId,
+		flags.KMS_AccessKeySecret,*/
+		//支持配置文件中配置，也支持命令行直接配置
+		altsrc.NewStringFlag(flags.KMS_KeyId),
+		altsrc.NewStringFlag(flags.KMS_RegionId),
+		altsrc.NewStringFlag(flags.KMS_AccessKeyId),
+		altsrc.NewStringFlag(flags.KMS_AccessKeySecret),
+	}
+
+	chainFlags = []cli.Flag{
+		//这样仅仅支持命令行配置
+		//flags.Chain,
+		//支持配置文件中配置，也支持命令行直接配置
+		altsrc.NewStringFlag(flags.Chain),
+	}
 )
 
 func init() {
@@ -116,6 +139,9 @@ func init() {
 	debugFlags = cmd.WrapFlags(debugFlags)
 	mockFlags = cmd.WrapFlags(mockFlags)
 	consensusFlags = cmd.WrapFlags(consensusFlags)
+	//lvxiaoyi
+	kmsFlags = cmd.WrapFlags(kmsFlags)
+	chainFlags = cmd.WrapFlags(chainFlags)
 }
 
 func main() {
@@ -135,6 +161,9 @@ func main() {
 	app.Flags = append(app.Flags, debugFlags...)
 	app.Flags = append(app.Flags, mockFlags...)
 	app.Flags = append(app.Flags, consensusFlags...)
+	//lvxiaoyi
+	app.Flags = append(app.Flags, kmsFlags...)
+	app.Flags = append(app.Flags, chainFlags...)
 
 	app.Before = func(ctx *cli.Context) error {
 		// Load flags from config file, if specified.
@@ -178,6 +207,31 @@ func main() {
 		if ctx.IsSet(flags.SetGCPercent.Name) {
 			runtimeDebug.SetGCPercent(ctx.Int(flags.SetGCPercent.Name))
 		}
+		//lvxiaoyi 配置了链，则需要keystore密码
+		var metispayConfig *metispay.Config
+		if ctx.IsSet(flags.Chain.Name) {
+			fmt.Println("Please input password for wallet")
+			pwdBytes, err := gopass.GetPasswdMasked() // Silent use gopass.GetPasswd(), for *'s use gopass.GetPasswdMasked()
+			if err != nil {
+				log.Fatal("input password for wallet failure", err)
+			}
+			//fmt.Scanln(&walletPwd)
+
+			metispayConfig = &metispay.Config{URL: ctx.String(flags.Chain.Name), WalletPwd: string(pwdBytes)}
+
+			var kmsConfig *kms.Config
+			if ctx.IsSet(flags.KMS_KeyId.Name) && ctx.IsSet(flags.KMS_RegionId.Name) && ctx.IsSet(flags.KMS_AccessKeyId.Name) && ctx.IsSet(flags.KMS_AccessKeySecret.Name) {
+				kmsConfig = &kms.Config{
+					KeyId:           ctx.String(flags.KMS_KeyId.Name),
+					RegionId:        ctx.String(flags.KMS_RegionId.Name),
+					AccessKeyId:     ctx.String(flags.KMS_AccessKeyId.Name),
+					AccessKeySecret: ctx.String(flags.KMS_AccessKeySecret.Name),
+				}
+			}
+			//chainConfig.KMSConfig = kmsConfig
+			metispay.InitMetisPayService(metispayConfig, kmsConfig)
+		}
+
 		runtime.GOMAXPROCS(runtime.NumCPU())
 		return debug.Setup(ctx)
 	}

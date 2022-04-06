@@ -31,7 +31,6 @@ VERSION:
    {{end}}
 `
 
-
 type flagGroup struct {
 	Name  string
 	Flags []cli.Flag
@@ -124,6 +123,22 @@ var appHelpFlagGroups = []flagGroup{
 			flags.LogFileName,
 		},
 	},
+	//lvxiaoyi
+	{
+		Name: "kms",
+		Flags: []cli.Flag{
+			flags.KMS_KeyId,
+			flags.KMS_RegionId,
+			flags.KMS_AccessKeyId,
+			flags.KMS_AccessKeySecret,
+		},
+	},
+	{
+		Name: "chain",
+		Flags: []cli.Flag{
+			flags.Chain,
+		},
+	},
 }
 
 func init() {
@@ -146,5 +161,3 @@ func init() {
 		}
 	}
 }
-
-
