@@ -4,6 +4,8 @@ go 1.16
 
 require (
 	contrib.go.opencensus.io/exporter/jaeger v0.2.1
+	github.com/PlatONnetwork/PlatON-Go v1.1.3
+	github.com/aliyun/alibaba-cloud-sdk-go v1.61.1545
 	github.com/d4l3k/messagediff v1.2.1
 	github.com/ethereum/go-ethereum v1.10.3
 	github.com/ferranbt/fastssz v0.0.0-20210526181520-7df50c8568f8
@@ -16,6 +18,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/hashicorp/consul/api v1.3.0
 	github.com/hashicorp/golang-lru v0.5.5-0.20210104140557-80c98217689d
+	github.com/howeyc/gopass v0.0.0-20210920133722-c8aef6fb66ef
 	github.com/ipfs/go-ipfs-addr v0.0.1
 	github.com/ipfs/go-log/v2 v2.1.3
 	github.com/joonix/log v0.0.0-20200409080653-9c1d2ceb5f1d
@@ -34,6 +37,7 @@ require (
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/multiformats/go-multiaddr v0.3.1
 	github.com/onrik/logrus v0.9.0
+	github.com/pborman/uuid v1.2.1
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.9.0
 	github.com/prysmaticlabs/eth2-types v0.0.0-20210303084904-c9735a06829d
@@ -52,7 +56,6 @@ require (
 	go.opencensus.io v0.23.0
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
 	golang.org/x/net v0.0.0-20210525063256-abc453219eb5
-	golang.org/x/sys v0.0.0-20210831042530-f4d43177bf5e // indirect
 	google.golang.org/genproto v0.0.0-20210825212027-de86158e7fda
 	google.golang.org/grpc v1.40.0
 	google.golang.org/protobuf v1.27.1
