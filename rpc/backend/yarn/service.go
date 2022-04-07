@@ -503,7 +503,7 @@ func (svr *Server) QueryFilePosition(ctx context.Context, req *pb.QueryFilePosit
 		Information: &pb.QueryFilePosition{
 			Ip:       dataNode.GetInternalIp(),
 			Port:     dataNode.GetInternalPort(),
-			FilePath: dataResourceFileUpload.GetFilePath(),
+			DataPath: dataResourceFileUpload.GetFilePath(),
 		},
 	}, nil
 }
@@ -542,7 +542,7 @@ func (svr *Server) GetTaskResultFileSummary(ctx context.Context, req *pb.GetTask
 			MetadataName: summary.GetMetadataName(),
 			MetadataId:   summary.GetMetadataId(),
 			OriginId:     summary.GetOriginId(),
-			FilePath:     summary.GetFilePath(),
+			DataPath:     summary.GetFilePath(),
 			Ip:           dataNode.GetInternalIp(),
 			Port:         dataNode.GetInternalPort(),
 			Extra:        summary.GetExtra(),
@@ -570,7 +570,7 @@ func (svr *Server) GetTaskResultFileSummaryList(ctx context.Context, empty *empt
 			MetadataName: summary.GetMetadataName(),
 			MetadataId:   summary.GetMetadataId(),
 			OriginId:     summary.GetOriginId(),
-			FilePath:     summary.GetFilePath(),
+			DataPath:     summary.GetFilePath(),
 			Ip:           dataNode.GetInternalIp(),
 			Port:         dataNode.GetInternalPort(),
 			Extra:        summary.GetExtra(),

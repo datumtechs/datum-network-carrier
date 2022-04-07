@@ -769,7 +769,7 @@
         "origin_id": {
           "type": "string"
         },
-        "file_path": {
+        "data_path": {
           "type": "string"
         },
         "ip": {
@@ -888,7 +888,7 @@
         "port": {
           "type": "string"
         },
-        "file_path": {
+        "data_path": {
           "type": "string"
         }
       },
@@ -960,7 +960,7 @@
         "origin_id": {
           "type": "string"
         },
-        "file_path": {
+        "data_path": {
           "type": "string"
         },
         "ip": {
@@ -981,7 +981,7 @@
         "origin_id": {
           "type": "string"
         },
-        "file_path": {
+        "data_path": {
           "type": "string"
         },
         "ip": {
@@ -1291,7 +1291,7 @@
         "OrigindataType_CSV"
       ],
       "default": "OrigindataType_Unknown",
-      "title": "原始文件类型"
+      "title": "原始数据类型 (文件类型)"
     },
     "typesResourceUsageOverview": {
       "type": "object",

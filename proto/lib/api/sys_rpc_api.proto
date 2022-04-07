@@ -189,7 +189,7 @@ message ReportTaskResourceUsageRequest {
 // 上报 成功上传的原始文件Id req
 message ReportUpFileSummaryRequest {
   string origin_id = 1;    // 被成功上传的原始文件的 Id
-  string file_path = 2;    // 被成功上传的原始文件的相对 path
+  string data_path = 2;    // 被成功上传的原始文件的相对 path
   string ip = 3;           // Fighter 的 grpc server IP
   string port = 4;         // Fighter 的 grpc server PORT
 }
@@ -198,7 +198,7 @@ message ReportUpFileSummaryRequest {
 message ReportTaskResultFileSummaryRequest {
   string task_id = 1;      // 任务Id
   string origin_id = 2;    // 任务结果的原始文件的 Id
-  string file_path = 3;    // 任务结果的原始文件的相对 path
+  string data_path = 3;    // 任务结果的原始文件的相对 path
   string ip = 4;           // Fighter 的 grpc server IP
   string port = 5;         // Fighter 的 grpc server PORT
   string extra = 6;        // 任务结果文件的额外字段 (如: 训练任务的模型评估结果json 等)
@@ -227,7 +227,7 @@ message QueryFilePositionRequest {
 message QueryFilePosition {
   string ip = 1;                     // 需要被下载的目标原始文件所在的 数据服务内网ip
   string port = 2;                   // 需要被下载的目标原始文件所在的 数据服务内网port
-  string file_path = 3;              // 需要被下载的目标原始文件的完整相对路径名
+  string data_path = 3;              // 需要被下载的目标原始文件的完整相对路径名
 }
 message QueryFilePositionResponse {
   int32  status = 1;                          // 响应码
@@ -246,7 +246,7 @@ message GetTaskResultFileSummary {
   string metadata_name = 2;           // 任务结果文件的(系统生成的、内部的)元数据名称
   string metadata_id = 3;             // 任务结果文件的元数据Id <系统默认生成的元数据>
   string origin_id = 4;               // 任务结果文件的原始文件Id
-  string file_path = 5;               // 任务结果文件的完整相对路径名(目录名，不是文件名，因为文件名称是算法里面定的)
+  string data_path = 5;               // 任务结果文件的完整相对路径名(目录名，不是文件名，因为文件名称是算法里面定的)
   string ip = 6;                      // 任务结果文件所在的 数据服务内网ip
   string port = 7;                    // 任务结果文件所在的 数据服务内网port
   string extra = 8;                   // 任务结果文件的额外字段 (如: 训练任务的模型评估结果json 等)
