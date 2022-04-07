@@ -4,16 +4,16 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"errors"
-	platon "github.com/PlatONnetwork/PlatON-Go"
-	"github.com/PlatONnetwork/PlatON-Go/accounts/abi"
-	"github.com/PlatONnetwork/PlatON-Go/accounts/abi/bind"
-	"github.com/PlatONnetwork/PlatON-Go/accounts/keystore"
-	"github.com/PlatONnetwork/PlatON-Go/common"
-	"github.com/PlatONnetwork/PlatON-Go/crypto"
-	"github.com/PlatONnetwork/PlatON-Go/ethclient"
 	"github.com/RosettaFlow/Carrier-Go/common/hexutil"
 	"github.com/RosettaFlow/Carrier-Go/metispay/contract"
 	"github.com/RosettaFlow/Carrier-Go/metispay/kms"
+	ethereum "github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/accounts/keystore"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/ethclient"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"math/big"
@@ -139,7 +139,11 @@ func (metisPay *MetisPayService) buildTxOpts() *bind.TransactOpts {
 		log.Fatal(err)
 	}
 
-	txOpts := bind.NewKeyedTransactor(metisPay.Config.privateKey)
+	//txOpts := bind.NewKeyedTransactor(metisPay.Config.privateKey)
+	txOpts, err := bind.NewKeyedTransactorWithChainID(metisPay.Config.privateKey, metisPay.chainID)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	txOpts.Nonce = big.NewInt(int64(nonce))
 	txOpts.Value = big.NewInt(0)     // in wei
@@ -154,7 +158,7 @@ func (metisPay *MetisPayService) estimateGas(method string, params ...interface{
 		log.Fatal(err)
 	}
 
-	msg := platon.CallMsg{From: metisPay.Config.walletAddress, To: &contractMetisPayAddress, Data: input}
+	msg := ethereum.CallMsg{From: metisPay.Config.walletAddress, To: &contractMetisPayAddress, Data: input}
 	estimatedGas, err := metisPay.client.EstimateGas(context.Background(), msg)
 	if err != nil {
 		log.Fatal(err)
@@ -194,7 +198,7 @@ func (metisPay *MetisPayService) Prepay(taskID string, userAccount common.Addres
 	//估算gas, +30%
 	gasLimit := metisPay.estimateGas("Prepay", taskIDBigInt, new(big.Int).SetUint64(1), dataTokenList)
 
-	tx, err := metisPay.contractMetisPayInstance.Prepay(metisPay.buildTxOpts(), taskIDBigInt, new(big.Int).SetUint64(gasLimit), dataTokenList)
+	tx, err := metisPay.contractMetisPayInstance.Prepay(metisPay.buildTxOpts(), taskIDBigInt, userAccount, new(big.Int).SetUint64(gasLimit), dataTokenList)
 	if err != nil {
 		log.Fatal(err)
 	}
