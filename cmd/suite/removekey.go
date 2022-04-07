@@ -37,10 +37,6 @@ func main() {
 		fmt.Printf("Failed to remove local task, taskId: {%s}, %s\n,", taskId, err)
 	}
 
-	// Remove the only things in task that everyone refers to together
-	if err := carrierDB.RemoveTaskPowerPartyIds(taskId); nil != err {
-		fmt.Printf("Failed to remove power's partyIds of local task, taskId: {%s}, %s\n,", taskId, err)
-	}
 
 	// Remove the partyId list of current task participants saved by the task sender
 	if err := carrierDB.RemoveTaskPartnerPartyIds(taskId); nil != err {
