@@ -347,7 +347,6 @@ func (m *Manager) loop() {
 		// handle the executing expire tasks
 		case <-taskMonitorTimer.C:
 
-			//m.expireTaskMonitor()
 			future := m.checkNeedExecuteTaskMonitors(timeutils.UnixMsec())
 			taskMonitorTimer.Reset(time.Duration(future-timeutils.UnixMsec()) * time.Millisecond)
 
