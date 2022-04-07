@@ -4,7 +4,6 @@ go 1.16
 
 require (
 	contrib.go.opencensus.io/exporter/jaeger v0.2.1
-	github.com/PlatONnetwork/PlatON-Go v1.1.3
 	github.com/aliyun/alibaba-cloud-sdk-go v1.61.1545
 	github.com/d4l3k/messagediff v1.2.1
 	github.com/ethereum/go-ethereum v1.10.3
