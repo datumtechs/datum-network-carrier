@@ -18,7 +18,6 @@ import (
 	"github.com/onrik/logrus/filename"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
-	"github.com/urfave/cli/v2/altsrc"
 	prefixed "github.com/x-cray/logrus-prefixed-formatter"
 	"os"
 	"runtime"
@@ -111,23 +110,14 @@ var (
 	}
 
 	kmsFlags = []cli.Flag{
-		//这样仅仅支持命令行配置
-		/*flags.KMS_KeyId,
+		flags.KMS_KeyId,
 		flags.KMS_RegionId,
 		flags.KMS_AccessKeyId,
-		flags.KMS_AccessKeySecret,*/
-		//支持配置文件中配置，也支持命令行直接配置
-		altsrc.NewStringFlag(flags.KMS_KeyId),
-		altsrc.NewStringFlag(flags.KMS_RegionId),
-		altsrc.NewStringFlag(flags.KMS_AccessKeyId),
-		altsrc.NewStringFlag(flags.KMS_AccessKeySecret),
+		flags.KMS_AccessKeySecret,
 	}
 
 	chainFlags = []cli.Flag{
-		//这样仅仅支持命令行配置
-		//flags.Chain,
-		//支持配置文件中配置，也支持命令行直接配置
-		altsrc.NewStringFlag(flags.Chain),
+		flags.Chain,
 	}
 )
 
