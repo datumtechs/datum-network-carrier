@@ -27,8 +27,8 @@ import (
 //go:generate protoc -I ../ -I . -I ../repos/grpc-gateway/third_party/googleapis --grpc-gateway_out=logtostderr=true:./.. ./lib/rpc/debug/v1/debug.proto
 //go:generate protoc -I ../ -I . -I ../repos/grpc-gateway/third_party/googleapis --swagger_out=logtostderr=true:./.. ./lib/rpc/debug/v1/debug.proto
 
-//go:generate protoc -I ../ -I . -I ../repos/grpc-gateway/third_party/googleapis --grpc-gateway_out=logtostderr=true:./.. ./lib/api/*.proto
-//go:generate protoc -I ../ -I . -I ../repos/grpc-gateway/third_party/googleapis --swagger_out=logtostderr=true:./.. ./lib/api/*.proto
+// go:generate protoc -I ../ -I . -I ../repos/grpc-gateway/third_party/googleapis --grpc-gateway_out=logtostderr=true:./.. ./lib/api/*.proto
+// go:generate protoc -I ../ -I . -I ../repos/grpc-gateway/third_party/googleapis --swagger_out=logtostderr=true:./.. ./lib/api/*.proto
 
 
 func main() {
