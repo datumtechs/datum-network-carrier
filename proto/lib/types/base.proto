@@ -73,15 +73,22 @@ enum MetadataType {
   MetadataType_Unknown = 0;         // 未知
   MetadataType_DataFile = 1;        // 普通数据
   MetadataType_ModuleFile = 2;      // 模型数据
-//  MetadataType_AlgorithmFile = 3;   // 算法数据
+  //  MetadataType_AlgorithmFile = 3;   // 算法数据
 
 }
 
-// 原始文件类型
+// 数据的位置 (本地、远端、云等)
+enum DataLocationType {
+  DataLocationType_Unknown = 0;             // 未知
+  DataLocationType_Local = 1;               // (存储在组织本地服务器上, 直接可以拿到该文件)
+  DataLocationType_Remote = 2;              // (存储在远端服务器上, 通过 url 等方式拿到该文件)
+}
+
+// 原始数据类型 (文件类型)
 enum OrigindataType {
-  OrigindataType_Unknown = 0;       // 未知
-  OrigindataType_CSV = 1;           // csv
-//  OrigindataType_Python = 20001;    // python
+  OrigindataType_Unknown = 0;             // 未知
+  OrigindataType_CSV = 1;                 // csv
+  //  OrigindataType_Python = 20001;      // python
 }
 
 // 元数据的状态 (0: 未知; 1: 还未发布的新表; 2: 已发布的表; 3: 已撤销的表)

@@ -508,6 +508,16 @@
         }
       }
     },
+    "typesDataLocationType": {
+      "type": "string",
+      "enum": [
+        "DataLocationType_Unknown",
+        "DataLocationType_Local",
+        "DataLocationType_Remote"
+      ],
+      "default": "DataLocationType_Unknown",
+      "title": "数据的位置 (本地、远端、云等)"
+    },
     "typesDataStatus": {
       "type": "string",
       "enum": [
@@ -559,6 +569,9 @@
         },
         "desc": {
           "type": "string"
+        },
+        "location_type": {
+          "$ref": "#/definitions/typesDataLocationType"
         },
         "data_type": {
           "$ref": "#/definitions/typesOrigindataType"
@@ -645,7 +658,7 @@
         "OrigindataType_CSV"
       ],
       "default": "OrigindataType_Unknown",
-      "title": "原始文件类型"
+      "title": "原始数据类型 (文件类型)"
     },
     "typesSimpleResponse": {
       "type": "object",
