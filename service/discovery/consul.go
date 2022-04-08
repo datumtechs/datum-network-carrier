@@ -21,8 +21,8 @@ const (
 	DataNodeConsulServiceIdPrefix = "dataService"
 
 	// config prefix
-	ViaNodeConsulServiceExternalAddressKey = "metis/via_ip_port"  			// key: metis/via_ip_port; 			value: ${ip}_${port}
-	//DataCenterConsulServiceAddressKey      = "metis/dataCenter_ip_port"		// key: metis/dataCenter_ip_port	value: ${ip}_${port}
+	//ViaNodeConsulServiceExternalAddressKey = "metis/via_ip_port"  			// key: metis/via_ip_port; 			value: ${ip}_${port}
+	DataCenterConsulServiceAddressKey      = "metis/dataCenter_ip_port"		// key: metis/dataCenter_ip_port	value: ${ip}_${port}
 
 	TaskGateWayConsulServiceAddressKey = "metis/glacier2_ip_port"			// key: metis/glacier2_ip_port		value: ${ip}_${port}
 	// tag

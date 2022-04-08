@@ -49,7 +49,7 @@ func (s *Service) initServicesWithDiscoveryCenter() error {
 	}
 
 	// 1. fetch datacenter ip&port config from discorvery center
-	datacenterIpAndPort, err := s.consulManager.GetKV(discovery.TaskGateWayConsulServiceAddressKey, nil)
+	datacenterIpAndPort, err := s.consulManager.GetKV(discovery.DataCenterConsulServiceAddressKey, nil)
 	if nil != err {
 		return fmt.Errorf("query datacenter IP and PORT KVconfig failed from discovery center, %s", err)
 	}
