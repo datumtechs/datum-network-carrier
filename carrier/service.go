@@ -106,20 +106,23 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 		taskConsResultCh,
 	)
 
-	var metispayConfig *metispay.Config
-	metispayConfig = &metispay.Config{URL: cliCtx.String(flags.Chain.Name)}
+	var metisPayManager *metispay.MetisPayManager
 
-	var kmsConfig *kms.Config
-	if cliCtx.IsSet(flags.KMS_KeyId.Name) && cliCtx.IsSet(flags.KMS_RegionId.Name) && cliCtx.IsSet(flags.KMS_AccessKeyId.Name) && cliCtx.IsSet(flags.KMS_AccessKeySecret.Name) {
-		kmsConfig = &kms.Config{
-			KeyId:           cliCtx.String(flags.KMS_KeyId.Name),
-			RegionId:        cliCtx.String(flags.KMS_RegionId.Name),
-			AccessKeyId:     cliCtx.String(flags.KMS_AccessKeyId.Name),
-			AccessKeySecret: cliCtx.String(flags.KMS_AccessKeySecret.Name),
+	if cliCtx.IsSet(flags.Chain.Name) {
+		var metispayConfig *metispay.Config
+		metispayConfig = &metispay.Config{URL: cliCtx.String(flags.Chain.Name)}
+
+		var kmsConfig *kms.Config
+		if cliCtx.IsSet(flags.KMS_KeyId.Name) && cliCtx.IsSet(flags.KMS_RegionId.Name) && cliCtx.IsSet(flags.KMS_AccessKeyId.Name) && cliCtx.IsSet(flags.KMS_AccessKeySecret.Name) {
+			kmsConfig = &kms.Config{
+				KeyId:           cliCtx.String(flags.KMS_KeyId.Name),
+				RegionId:        cliCtx.String(flags.KMS_RegionId.Name),
+				AccessKeyId:     cliCtx.String(flags.KMS_AccessKeyId.Name),
+				AccessKeySecret: cliCtx.String(flags.KMS_AccessKeySecret.Name),
+			}
 		}
+		metisPayManager = metispay.NewMetisPayManager(config.CarrierDB, metispayConfig, kmsConfig)
 	}
-
-	metisPayManager := metispay.NewMetisPayManager(config.CarrierDB, metispayConfig, kmsConfig)
 
 	s := &Service{
 		ctx:             ctx,
