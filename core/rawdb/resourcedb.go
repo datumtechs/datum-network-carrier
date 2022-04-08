@@ -1557,5 +1557,5 @@ func QueryOrgWallet(db DatabaseReader) (*types.OrgWallet, error) {
 			}
 		}
 	}
-	return nil, nil
+	return nil, ErrNotFound
 }
