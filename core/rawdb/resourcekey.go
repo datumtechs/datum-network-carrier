@@ -57,8 +57,10 @@ var (
 
 	// ---------- for scheduler (task bullet) ----------
 	taskBulletKeyPrefix = []byte("taskBulletKeyPrefix:")
-)
 
+	// ---------- for organization built-in wallet ----------
+	orgWalletKeyPrefix = []byte("orgWalletKeyPrefix:")
+)
 
 const (
 	/**
@@ -66,10 +68,10 @@ const (
 	#   THE LOCAL NEEDEXECUTE TASK STATUS    #
 	######   ######   ######   ######   ######
 	*/
-	OnConsensusExecuteTaskStatus   LocalTaskExecuteStatus = 1 << iota 	// 0001: the execute task is on consensus period now.
-	OnRunningExecuteStatus                               				// 0010: the execute task is running now.
-	OnTerminingExecuteStatus                               				// 0010: the execute task is termining now.
-	UnKnownExecuteTaskStatus       = 0        							// 0000: the execute task status is unknown.
+	OnConsensusExecuteTaskStatus LocalTaskExecuteStatus = 1 << iota // 0001: the execute task is on consensus period now.
+	OnRunningExecuteStatus                                          // 0010: the execute task is running now.
+	OnTerminingExecuteStatus                                        // 0010: the execute task is termining now.
+	UnKnownExecuteTaskStatus     = 0                                // 0000: the execute task status is unknown.
 )
 
 type LocalTaskExecuteStatus uint32
@@ -105,21 +107,22 @@ func GetLocalTaskPowerUsedKeyPrefixByTaskId(taskId string) []byte {
 }
 
 // prefix + jobNodeId + taskId -> [partyId, ..., partyId]
-func GetJobNodeTaskPartyIdsKey (jobNodeId, taskId string) []byte {
+func GetJobNodeTaskPartyIdsKey(jobNodeId, taskId string) []byte {
 	return append(append(jobNodeTaskPartyIdsKeyPrefix, []byte(jobNodeId)...), []byte(taskId)...)
 }
 
 // prefix + jobNodeId + taskId -> [partyId, ..., partyId]
-func GetJobNodeTaskPartyIdsKeyPrefixByJobNodeId (jobNodeId string) []byte {
+func GetJobNodeTaskPartyIdsKeyPrefixByJobNodeId(jobNodeId string) []byte {
 	return append(jobNodeTaskPartyIdsKeyPrefix, []byte(jobNodeId)...)
 }
 
 // prefix + jobNodeId -> history task count
-func GetJobNodeHistoryTaskCountKey (jobNodeId string) []byte {
+func GetJobNodeHistoryTaskCountKey(jobNodeId string) []byte {
 	return append(jobNodeHistoryTaskCountKeyPrefix, []byte(jobNodeId)...)
 }
+
 // prefix + jobNodeId + taskId -> index
-func GetJobNodeHistoryTaskKey (jobNodeId, taskId string) []byte {
+func GetJobNodeHistoryTaskKey(jobNodeId, taskId string) []byte {
 	return append(append(jobNodeHistoryTaskKeyPrefix, []byte(jobNodeId)...), []byte(taskId)...)
 }
 
@@ -127,6 +130,7 @@ func GetJobNodeHistoryTaskKey (jobNodeId, taskId string) []byte {
 func GetDataResourceTableKeyPrefix() []byte {
 	return dataResourceTableKeyPrefix
 }
+
 // prefix + dataNodeId -> DataResourceTable{dataNodeId, totalDisk, usedDisk}
 func GetDataResourceTableKey(dataNodeId string) []byte {
 	return append(dataResourceTableKeyPrefix, []byte(dataNodeId)...)
@@ -136,6 +140,7 @@ func GetDataResourceTableKey(dataNodeId string) []byte {
 func GetDataResourceFileUploadKeyPrefix() []byte {
 	return dataResourceFileUploadKeyPrefix
 }
+
 // prefix + originId -> DataResourceFileUpload{originId, dataNodeId, metaDataId, filePath}
 func GetDataResourceFileUploadKey(originId string) []byte {
 	return append(dataResourceFileUploadKeyPrefix, []byte(originId)...)
@@ -179,15 +184,17 @@ func GetUserMetadataAuthByMetadataIdKey(userType libtypes.UserType, user, metada
 }
 
 // prefix + metadataId -> history task count
-func GetMetadataHistoryTaskCountKey (metadataId string) []byte {
+func GetMetadataHistoryTaskCountKey(metadataId string) []byte {
 	return append(metadataHistoryTaskCountKeyPrefix, []byte(metadataId)...)
 }
+
 // prefix + metadataId + taskId -> index
-func GetMetadataHistoryTaskKeyPrefixByMetadataId (metadataId string) []byte {
+func GetMetadataHistoryTaskKeyPrefixByMetadataId(metadataId string) []byte {
 	return append(metadataHistoryTaskKeyPrefix, []byte(metadataId)...)
 }
+
 // prefix + metadataId + taskId -> index
-func GetMetadataHistoryTaskKey (metadataId, taskId string) []byte {
+func GetMetadataHistoryTaskKey(metadataId, taskId string) []byte {
 	return append(append(metadataHistoryTaskKeyPrefix, []byte(metadataId)...), []byte(taskId)...)
 }
 
@@ -243,7 +250,6 @@ func GetTaskMsgKey(taskId string) []byte {
 	return append(taskMsgKeyPrefix, []byte(taskId)...)
 }
 
-
 func GetTaskBulletKeyPrefix() []byte {
 	return taskBulletKeyPrefix
 }
@@ -251,4 +257,8 @@ func GetTaskBulletKeyPrefix() []byte {
 // GetTaskBulletKey = taskBulletKeyPrefix + taskId
 func GetTaskBulletKey(taskId string) []byte {
 	return append(taskBulletKeyPrefix, []byte(taskId)...)
+}
+
+func GetOrgWalletKeyPrefix() []byte {
+	return orgWalletKeyPrefix
 }

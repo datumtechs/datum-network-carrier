@@ -8,6 +8,6 @@ type Config struct {
 }
 
 type KmsService interface {
-	Encrypt(jsonBytes []byte) ([]byte, error)
-	Decrypt(encryptedKeyStore []byte) ([]byte, error)
+	Encrypt(hexPriKey string) (string, error)
+	Decrypt(hexEncryptedPriKey string) (string, error)
 }

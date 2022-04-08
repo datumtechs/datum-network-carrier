@@ -11,6 +11,8 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/election"
 	"github.com/RosettaFlow/Carrier-Go/core/evengine"
 	"github.com/RosettaFlow/Carrier-Go/core/message"
+	"github.com/RosettaFlow/Carrier-Go/core/metispay"
+	"github.com/RosettaFlow/Carrier-Go/core/metispay/kms"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	"github.com/RosettaFlow/Carrier-Go/core/schedule"
 	"github.com/RosettaFlow/Carrier-Go/core/task"
@@ -40,14 +42,15 @@ type Service struct {
 	dataDb     db.Database
 	APIBackend *CarrierAPIBackend
 
-	resourceManager   *resource.Manager
-	messageManager    *message.MessageHandler
-	TaskManager       handler.TaskManager
-	authManager       *auth.AuthorityManager
-	scheduler         schedule.Scheduler
-	consulManager     *discovery.ConnectConsul
-	runError          error
-	quit              chan struct{}
+	resourceManager *resource.Manager
+	messageManager  *message.MessageHandler
+	TaskManager     handler.TaskManager
+	authManager     *auth.AuthorityManager
+	scheduler       schedule.Scheduler
+	consulManager   *discovery.ConnectConsul
+	runError        error
+	metisPayManager *metispay.MetisPayManager
+	quit            chan struct{}
 }
 
 // NewService creates a new CarrierServer object (including the
@@ -103,17 +106,33 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 		taskConsResultCh,
 	)
 
+	var metispayConfig *metispay.Config
+	metispayConfig = &metispay.Config{URL: cliCtx.String(flags.Chain.Name)}
+
+	var kmsConfig *kms.Config
+	if cliCtx.IsSet(flags.KMS_KeyId.Name) && cliCtx.IsSet(flags.KMS_RegionId.Name) && cliCtx.IsSet(flags.KMS_AccessKeyId.Name) && cliCtx.IsSet(flags.KMS_AccessKeySecret.Name) {
+		kmsConfig = &kms.Config{
+			KeyId:           cliCtx.String(flags.KMS_KeyId.Name),
+			RegionId:        cliCtx.String(flags.KMS_RegionId.Name),
+			AccessKeyId:     cliCtx.String(flags.KMS_AccessKeyId.Name),
+			AccessKeySecret: cliCtx.String(flags.KMS_AccessKeySecret.Name),
+		}
+	}
+
+	metisPayManager := metispay.NewMetisPayManager(config.CarrierDB, metispayConfig, kmsConfig)
+
 	s := &Service{
-		ctx:               ctx,
-		cancel:            cancel,
-		config:            config,
-		carrierDB:         config.CarrierDB,
-		mempool:           pool,
-		resourceManager:   resourceMng,
-		messageManager:    message.NewHandler(pool, resourceMng, taskManager, authManager),
-		TaskManager:       taskManager,
-		authManager:       authManager,
-		scheduler:         scheduler,
+		ctx:             ctx,
+		cancel:          cancel,
+		config:          config,
+		carrierDB:       config.CarrierDB,
+		mempool:         pool,
+		resourceManager: resourceMng,
+		messageManager:  message.NewHandler(pool, resourceMng, taskManager, authManager),
+		TaskManager:     taskManager,
+		authManager:     authManager,
+		metisPayManager: metisPayManager,
+		scheduler:       scheduler,
 		consulManager: discovery.NewConsulClient(&discovery.ConsulService{
 			ServiceIP:   p2p.IpAddr().String(),
 			ServicePort: strconv.Itoa(cliCtx.Int(flags.RPCPort.Name)),

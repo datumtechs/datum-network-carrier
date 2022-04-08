@@ -3,6 +3,7 @@ package rawdb
 import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
+	"github.com/RosettaFlow/Carrier-Go/db"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -386,7 +387,7 @@ func QueryJobNodeRunningTaskIds(db KeyValueStore, jobNodeId string) ([]string, e
 	if len(arr) == 0 {
 		return nil, ErrNotFound
 	}
-	log.Debugf("Call QueryJobNodeRunningTaskIds, jobNodeId: {%s}, taskIds: %s", jobNodeId, "[" + strings.Join(arr, ",") + "]")
+	log.Debugf("Call QueryJobNodeRunningTaskIds, jobNodeId: {%s}, taskIds: %s", jobNodeId, "["+strings.Join(arr, ",")+"]")
 	return arr, nil
 }
 
@@ -404,7 +405,7 @@ func QueryJobNodeRunningTaskIdCount(db KeyValueStore, jobNodeId string) (uint32,
 			taskId := string(it.Key()[len(prefixAndJobNodeId):])
 			if _, ok := tmp[taskId]; !ok {
 				tmp[taskId] = struct{}{}
-				count ++
+				count++
 			}
 		}
 	}
@@ -477,7 +478,7 @@ func HasJobNodeRunningTaskId(db DatabaseReader, jobNodeId, taskId string) (bool,
 	return true, nil
 }
 
-func HasJobNodeTaskPartyId (db DatabaseReader, jobNodeId, taskId, partyId string) (bool, error) {
+func HasJobNodeTaskPartyId(db DatabaseReader, jobNodeId, taskId, partyId string) (bool, error) {
 	// prefix + jobNodeId + taskId -> [partyId, ..., partyId]
 	key := GetJobNodeTaskPartyIdsKey(jobNodeId, taskId)
 	val, err := db.Get(key)
@@ -521,7 +522,7 @@ func QueryJobNodeTaskPartyIdCount(db DatabaseReader, jobNodeId, taskId string) (
 }
 
 // about jobNode history task
-func StoreJobNodeHistoryTaskId (db KeyValueStore, jobNodeId, taskId string) error {
+func StoreJobNodeHistoryTaskId(db KeyValueStore, jobNodeId, taskId string) error {
 
 	// prefix + jobNodeId + taskId -> index
 	item_key := GetJobNodeHistoryTaskKey(jobNodeId, taskId)
@@ -530,7 +531,7 @@ func StoreJobNodeHistoryTaskId (db KeyValueStore, jobNodeId, taskId string) erro
 	case IsNoDBNotFoundErr(err):
 		return err
 	case nil == err && has:
-		return nil   // It have been exists, don't inscrease count
+		return nil // It have been exists, don't inscrease count
 	}
 
 	// When taskId have not on jobNode, inscrease jobNode taskId count
@@ -550,7 +551,7 @@ func StoreJobNodeHistoryTaskId (db KeyValueStore, jobNodeId, taskId string) erro
 	case nil == err && len(count_val) != 0:
 		count = bytesutil.BytesToUint32(count_val)
 	}
-	count ++
+	count++
 
 	count_val = bytesutil.Uint32ToBytes(count)
 
@@ -563,7 +564,7 @@ func StoreJobNodeHistoryTaskId (db KeyValueStore, jobNodeId, taskId string) erro
 	return db.Put(count_key, count_val)
 }
 
-func HasJobNodeHistoryTaskId (db DatabaseReader,jobNodeId, taskId string) (bool, error) {
+func HasJobNodeHistoryTaskId(db DatabaseReader, jobNodeId, taskId string) (bool, error) {
 
 	item_key := GetJobNodeHistoryTaskKey(jobNodeId, taskId)
 	has, err := db.Has(item_key)
@@ -578,7 +579,7 @@ func HasJobNodeHistoryTaskId (db DatabaseReader,jobNodeId, taskId string) (bool,
 	return true, nil
 }
 
-func QueryJobNodeHistoryTaskCount (db KeyValueStore, jobNodeId string) (uint32, error) {
+func QueryJobNodeHistoryTaskCount(db KeyValueStore, jobNodeId string) (uint32, error) {
 	// prefix + jobNodeId -> history task count
 	key := GetJobNodeHistoryTaskCountKey(jobNodeId)
 	val, err := db.Get(key)
@@ -1051,7 +1052,7 @@ func StoreMetadataHistoryTaskId(db KeyValueStore, metadataId, taskId string) err
 	case IsNoDBNotFoundErr(err):
 		return err
 	case nil == err && has:
-		return nil   // It have been exists, don't inscrease count
+		return nil // It have been exists, don't inscrease count
 	}
 
 	// When taskId have not by metadata, inscrease metadata used taskId count
@@ -1071,7 +1072,7 @@ func StoreMetadataHistoryTaskId(db KeyValueStore, metadataId, taskId string) err
 	case nil == err && len(count_val) != 0:
 		count = bytesutil.BytesToUint32(count_val)
 	}
-	count ++
+	count++
 
 	count_val = bytesutil.Uint32ToBytes(count)
 
@@ -1084,7 +1085,7 @@ func StoreMetadataHistoryTaskId(db KeyValueStore, metadataId, taskId string) err
 	return db.Put(count_key, count_val)
 }
 
-func HasMetadataHistoryTaskId (db DatabaseReader,metadataId, taskId string) (bool, error) {
+func HasMetadataHistoryTaskId(db DatabaseReader, metadataId, taskId string) (bool, error) {
 
 	item_key := GetMetadataHistoryTaskKey(metadataId, taskId)
 	has, err := db.Has(item_key)
@@ -1117,7 +1118,7 @@ func QueryMetadataHistoryTaskIdCount(db DatabaseReader, metadataId string) (uint
 	return count, nil
 }
 
-func QueryMetadataHistoryTaskIds (db KeyValueStore, metadataId string) ([]string, error) {
+func QueryMetadataHistoryTaskIds(db KeyValueStore, metadataId string) ([]string, error) {
 	// prefix + metadataId + taskId -> index
 	prefixAndMetadataId := GetMetadataHistoryTaskKeyPrefixByMetadataId(metadataId)
 	it := db.NewIteratorWithPrefixAndStart(prefixAndMetadataId, nil)
@@ -1324,7 +1325,7 @@ func StoreMessageCache(db KeyValueStore, value interface{}) error {
 	case *types.TaskMsg:
 		key = GetTaskMsgKey(v.GetTaskId())
 		val, err = proto.Marshal(&libtypes.TaskMsg{
-			Data:          v.GetTaskData(),
+			Data: v.GetTaskData(),
 		})
 		if nil != err {
 			return fmt.Errorf("marshal taskMsg failed, %s", err)
@@ -1521,7 +1522,7 @@ func QueryTaskMsgArr(db KeyValueStore) (types.TaskMsgArr, error) {
 				continue
 			}
 			arr = append(arr, &types.TaskMsg{
-				Data:          types.NewTask(res.GetData()),
+				Data: types.NewTask(res.GetData()),
 			})
 		}
 	}
@@ -1531,4 +1532,30 @@ func QueryTaskMsgArr(db KeyValueStore) (types.TaskMsgArr, error) {
 	return arr, nil
 }
 
+func StoreOrgWallet(db db.Database, orgWallet *types.OrgWallet) error {
+	key := GetOrgWalletKeyPrefix()
+	val, err := rlp.EncodeToBytes(orgWallet)
+	if nil != err {
+		return err
+	}
+	return db.Put(key, val)
+}
 
+func QueryOrgWallet(db DatabaseReader) (*types.OrgWallet, error) {
+	key := GetOrgWalletKeyPrefix()
+	if has, err := db.Has(key); err != nil {
+		return nil, err
+	} else if has {
+		if val, err := db.Get(key); err != nil {
+			return nil, err
+		} else {
+			var res *types.OrgWallet
+			if err := rlp.DecodeBytes(val, res); err != nil {
+				return nil, err
+			} else {
+				return res, nil
+			}
+		}
+	}
+	return nil, nil
+}

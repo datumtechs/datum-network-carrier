@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common/flags"
-	"github.com/RosettaFlow/Carrier-Go/metispay/kms"
+	"github.com/RosettaFlow/Carrier-Go/core/metispay/kms"
 	"github.com/urfave/cli/v2"
 	"github.com/urfave/cli/v2/altsrc"
 	"io/ioutil"
@@ -13,9 +13,14 @@ import (
 )
 
 var (
-	srcFlag = &cli.StringFlag{
-		Name:  "src",
-		Usage: "source file",
+	keystoreFlag = &cli.StringFlag{
+		Name:  "keystore",
+		Usage: "keystore file",
+	}
+
+	inputFlag = &cli.StringFlag{
+		Name:  "input",
+		Usage: "input string",
 	}
 
 	appFlags = []cli.Flag{
@@ -27,7 +32,8 @@ var (
 		altsrc.NewStringFlag(flags.KMS_AccessKeySecret),
 		altsrc.NewStringFlag(flags.Chain),
 
-		srcFlag,
+		keystoreFlag,
+		inputFlag,
 	}
 )
 
@@ -85,29 +91,43 @@ func buildKMS(ctx *cli.Context) (kms.KmsService, error) {
 	}
 	return nil, errors.New("cannot load KMS configuration")
 }
+
 func encrypt(ctx *cli.Context) error {
 	if kms, err := buildKMS(ctx); err != nil {
 		fmt.Printf("build KMS error:%v\n", err)
 		return err
 	} else {
-		content, err := ioutil.ReadFile(ctx.String(srcFlag.Name))
-		if err != nil {
-			fmt.Printf("read source file error:%v\n", err)
-			return err
+		var content string
+		if ctx.IsSet(inputFlag.Name) {
+			content = ctx.String(inputFlag.Name)
+		} else if ctx.IsSet(keystoreFlag.Name) {
+			contentBytes, err := ioutil.ReadFile(ctx.String(keystoreFlag.Name))
+			if err != nil {
+				fmt.Printf("read source file error:%v\n", err)
+				return err
+			}
+			content = string(contentBytes)
+		} else {
+			fmt.Println("missing --input or --keystore")
 		}
 
 		encoded, err := kms.Encrypt(content)
 		if err != nil {
-			fmt.Printf("encrypt source file error:%v\n", err)
+			fmt.Printf("encrypt plaintext error:%v\n", err)
 			return err
 		}
 
-		err = ioutil.WriteFile(ctx.String(srcFlag.Name)+".enc", encoded, 0644)
-		if err != nil {
-			fmt.Printf("write dest file error:%v\n", err)
-			return err
+		fmt.Printf("encrypt resulst:\n\n%s\n", encoded)
+
+		if ctx.IsSet(keystoreFlag.Name) {
+			err = ioutil.WriteFile(ctx.String(keystoreFlag.Name)+".enc", []byte(encoded), 0644)
+			if err != nil {
+				fmt.Printf("write dest file error:%v\n", err)
+				return err
+			}
 		}
-		return err
+
+		return nil
 	}
 }
 
@@ -116,21 +136,35 @@ func decrypt(ctx *cli.Context) error {
 		fmt.Printf("build KMS error:%v\n", err)
 		return err
 	} else {
-		content, err := ioutil.ReadFile(ctx.String(srcFlag.Name))
-		if err != nil {
-			fmt.Printf("read source file error:%v\n", err)
-			return err
+		var content string
+		if ctx.IsSet(inputFlag.Name) {
+			content = ctx.String(inputFlag.Name)
+		} else if ctx.IsSet(keystoreFlag.Name) {
+			contentBytes, err := ioutil.ReadFile(ctx.String(keystoreFlag.Name))
+			if err != nil {
+				fmt.Printf("read source file error:%v\n", err)
+				return err
+			}
+			content = string(contentBytes)
+		} else {
+			fmt.Println("missing --input or --keystore")
 		}
+
 		plaintext, err := kms.Decrypt(content)
+		fmt.Printf("decrypt resulst:\n\n%s\n", plaintext)
+
 		if err != nil {
-			fmt.Printf("decrypt source file error:%v\n", err)
+			fmt.Printf("decrypt error:%v\n", err)
 			return err
 		}
-		err = ioutil.WriteFile(ctx.String(srcFlag.Name)+".plain", plaintext, 0644)
-		if err != nil {
-			fmt.Printf("write dest file error:%v\n", err)
-			return err
+		if ctx.IsSet(keystoreFlag.Name) {
+			err = ioutil.WriteFile(ctx.String(keystoreFlag.Name)+".plain", []byte(plaintext), 0644)
+			if err != nil {
+				fmt.Printf("write dest file error:%v\n", err)
+				return err
+			}
 		}
-		return err
+
+		return nil
 	}
 }

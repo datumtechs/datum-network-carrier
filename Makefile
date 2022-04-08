@@ -20,13 +20,13 @@ carrier-race:
 	@echo "Run \"$(GOBIN)/carrier\" to launch carrier."
 
 kmstool:
-	$(GORUN) build/ci.go install ./metispay/kms/kmstool
+	$(GORUN) build/ci.go install ./core/metispay/kms/kmstool
 	@echo "Done building."
 	@echo "Run \"$(GOBIN)/kmstool --help\" to get help."
 
 all:
 	$(GORUN) build/ci.go install ./cmd/
-	$(GORUN) build/ci.go install ./metispay/kms/kmstool
+	$(GORUN) build/ci.go install ./core/metispay/kms/kmstool
 
 test: all
 	$(GORUN) build/ci.go test

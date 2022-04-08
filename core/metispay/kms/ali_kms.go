@@ -16,10 +16,10 @@ type AliKms struct {
 	Config *Config
 }
 
-func (k *AliKms) Encrypt(jsonBytes []byte) ([]byte, error) {
+func (k *AliKms) Encrypt(plain string) (string, error) {
 	client, err := sdk.NewClientWithAccessKey(k.Config.RegionId, k.Config.AccessKeyId, k.Config.AccessKeySecret)
 	if err != nil {
-		return nil, errors.Wrapf(err, "new KMS client")
+		return "", errors.Wrapf(err, "new KMS client")
 	}
 
 	domain := fmt.Sprintf(domainPattern, k.Config.RegionId)
@@ -36,30 +36,30 @@ func (k *AliKms) Encrypt(jsonBytes []byte) ([]byte, error) {
 	request.QueryParams["KeyId"] = k.Config.KeyId // Assign values to parameters in the path
 
 	//request.QueryParams["Plaintext"] = base64.StdEncoding.EncodeToString(jsonBytes)
-	request.QueryParams["Plaintext"] = string(jsonBytes) // Specify the requested regionId, if not specified, use the client regionId, then default regionId
+	request.QueryParams["Plaintext"] = plain // Specify the requested regionId, if not specified, use the client regionId, then default regionId
 
 	request.QueryParams["RequestId"] = uuid.New() // Specify the requested regionId, if not specified, use the client regionId, then default regionId
 	commonResponse, err := client.ProcessCommonRequest(request)
 	if err != nil {
-		return nil, errors.Wrapf(err, "call KMS")
+		return "", errors.Wrapf(err, "call KMS")
 	}
 
 	resp := new(kms.EncryptResponse)
 	err = json.Unmarshal(commonResponse.GetHttpContentBytes(), &resp)
 
 	if err != nil {
-		return nil, errors.Wrapf(err, "unmarshal KMS response")
+		return "", errors.Wrapf(err, "unmarshal KMS response")
 	}
 
-	return []byte(resp.CiphertextBlob), nil
+	return resp.CiphertextBlob, nil
 }
 
-func (k *AliKms) Decrypt(encryptedKeyStore []byte) ([]byte, error) {
+func (k *AliKms) Decrypt(encryptedKeyStore string) (string, error) {
 	domain := fmt.Sprintf(domainPattern, k.Config.RegionId)
 
 	client, err := sdk.NewClientWithAccessKey(k.Config.RegionId, k.Config.AccessKeyId, k.Config.AccessKeySecret)
 	if err != nil {
-		return nil, errors.Wrapf(err, "new KMS client")
+		return "", errors.Wrapf(err, "new KMS client")
 	}
 	request := requests.NewCommonRequest() // Make a common request
 	request.Method = "GET"                 // Set request method
@@ -72,19 +72,19 @@ func (k *AliKms) Decrypt(encryptedKeyStore []byte) ([]byte, error) {
 	request.QueryParams["Action"] = "Decrypt"     // Assign values to parameters in the path
 	request.QueryParams["KeyId"] = k.Config.KeyId // Assign values to parameters in the path
 	//request.QueryParams["keyVersionId"] = k.Config.KeyVersionId
-	request.QueryParams["CiphertextBlob"] = string(encryptedKeyStore) // Specify the requested regionId, if not specified, use the client regionId, then default regionId
-	request.QueryParams["RequestId"] = uuid.New()                     // Specify the requested regionId, if not specified, use the client regionId, then default regionId
+	request.QueryParams["CiphertextBlob"] = encryptedKeyStore // Specify the requested regionId, if not specified, use the client regionId, then default regionId
+	request.QueryParams["RequestId"] = uuid.New()             // Specify the requested regionId, if not specified, use the client regionId, then default regionId
 	commonResponse, err := client.ProcessCommonRequest(request)
 	if err != nil {
-		return nil, errors.Wrapf(err, "call KMS")
+		return "", errors.Wrapf(err, "call KMS")
 	}
 
 	resp := new(kms.DecryptResponse)
 	err = json.Unmarshal(commonResponse.GetHttpContentBytes(), &resp)
 
 	if err != nil {
-		return nil, errors.Wrapf(err, "unmarshal KMS response")
+		return "", errors.Wrapf(err, "unmarshal KMS response")
 	}
 
-	return []byte(resp.Plaintext), nil
+	return resp.Plaintext, nil
 }

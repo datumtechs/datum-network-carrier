@@ -9,7 +9,7 @@ import (
 
 type LocalStoreCarrierDB interface {
 	// about datacenter config
-	SetConfig (config *params.CarrierChainConfig) error
+	SetConfig(config *params.CarrierChainConfig) error
 	// about carrier
 	QueryYarnName() (string, error)
 	SetSeedNode(seed *libapipb.SeedPeer) error
@@ -69,6 +69,9 @@ type LocalStoreCarrierDB interface {
 	QueryMetadataMsgArr() (types.MetadataMsgArr, error)
 	QueryMetadataAuthorityMsgArr() (types.MetadataAuthorityMsgArr, error)
 	QueryTaskMsgArr() (types.TaskMsgArr, error)
+
+	StoreOrgWallet(orgWallet *types.OrgWallet) error
+	QueryOrgWallet() (*types.OrgWallet, error)
 }
 
 type MetadataCarrierDB interface {
@@ -138,7 +141,7 @@ type TaskCarrierDB interface {
 	// about local task event
 	StoreTaskEvent(event *libtypes.TaskEvent) error
 	QueryTaskEventList(taskId string) ([]*libtypes.TaskEvent, error)
-	QueryTaskEventListByPartyId (taskId, partyId string) ([]*libtypes.TaskEvent, error)
+	QueryTaskEventListByPartyId(taskId, partyId string) ([]*libtypes.TaskEvent, error)
 	RemoveTaskEventList(taskId string) error
 	RemoveTaskEventListByPartyId(taskId, partyId string) error
 	// about global task on datacenter
@@ -169,9 +172,9 @@ type TaskCarrierDB interface {
 	HasJobNodeTaskPartyId(jobNodeId, taskId, partyId string) (bool, error)
 	QueryJobNodeTaskPartyIdCount(jobNodeId, taskId string) (uint32, error)
 	// v 2.0 about jobNode history task count (prefix + jobNodeId -> history task count AND prefix + jobNodeId + taskId -> index)
-	StoreJobNodeHistoryTaskId (jobNodeId, taskId string) error
-	HasJobNodeHistoryTaskId (jobNodeId, taskId string) (bool, error)
-	QueryJobNodeHistoryTaskCount (jobNodeId string) (uint32, error)
+	StoreJobNodeHistoryTaskId(jobNodeId, taskId string) error
+	HasJobNodeHistoryTaskId(jobNodeId, taskId string) (bool, error)
+	QueryJobNodeHistoryTaskCount(jobNodeId string) (uint32, error)
 	// v 2.0  about TaskResultFileMetadataId  (taskId -> {taskId, originId, metadataId})
 	StoreTaskUpResultFile(turf *types.TaskUpResultFile) error
 	QueryTaskUpResultFile(taskId string) (*types.TaskUpResultFile, error)
@@ -181,8 +184,8 @@ type TaskCarrierDB interface {
 	StoreTaskPartnerPartyIds(taskId string, partyIds []string) error
 	HasTaskPartnerPartyIds(taskId string) (bool, error)
 	QueryTaskPartnerPartyIds(taskId string) ([]string, error)
-	RemoveTaskPartnerPartyId (taskId, partyId string) error
-	RemoveTaskPartnerPartyIds (taskId string) error
+	RemoveTaskPartnerPartyId(taskId, partyId string) error
+	RemoveTaskPartnerPartyIds(taskId string) error
 	// v 1.0 -> v 2.0 about task exec status (prefix + taskId + partyId -> "cons"|"exec|terminate")
 	StoreLocalTaskExecuteStatusValConsByPartyId(taskId, partyId string) error
 	StoreLocalTaskExecuteStatusValExecByPartyId(taskId, partyId string) error
@@ -197,13 +200,12 @@ type TaskCarrierDB interface {
 	StoreNeedExecuteTask(task *types.NeedExecuteTask) error
 	RemoveNeedExecuteTaskByPartyId(taskId, partyId string) error
 	RemoveNeedExecuteTask(taskId string) error
-	ForEachNeedExecuteTaskWwithPrefix (prifix []byte, f func(key, value []byte) error) error
-	ForEachNeedExecuteTask (f func(key, value []byte) error) error
+	ForEachNeedExecuteTaskWwithPrefix(prifix []byte, f func(key, value []byte) error) error
+	ForEachNeedExecuteTask(f func(key, value []byte) error) error
 	// v 2.0 about taskbullet
 	StoreTaskBullet(bullet *types.TaskBullet) error
 	RemoveTaskBullet(taskId string) error
 	ForEachTaskBullets(f func(key, value []byte) error) error
-
 }
 
 type ForConsensusDB interface {
