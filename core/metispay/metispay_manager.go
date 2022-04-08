@@ -63,24 +63,26 @@ type MetisPayManager struct {
 	contractMetisPayInstance *contracts.MetisPay
 }
 
-func (metisPay *MetisPayManager) loadPrivateKey() error {
+func (metisPay *MetisPayManager) loadPrivateKey() {
 	if wallet, err := metisPay.dataCenter.QueryOrgWallet(); err != nil {
-		return err
+		log.Errorf("load organization wallet error: %v", err)
+		return
 	} else {
 		if metisPay.Kms != nil {
 			if key, err := metisPay.Kms.Decrypt(wallet.GetPriKey()); err != nil {
-				return err
+				log.Errorf("decrypt organization wallet private key error: %v", err)
 			} else {
 				priKey, err := crypto.ToECDSA([]byte(key))
 				if err != nil {
-					return err
+					log.Errorf("convert organization wallet private key to ECDSA error: %v", err)
+					return
 				}
 				metisPay.Config.privateKey = priKey
 				metisPay.Config.walletAddress = crypto.PubkeyToAddress(priKey.PublicKey)
 			}
 		}
 	}
-	return nil
+	return
 }
 
 func (metisPay *MetisPayManager) loadKeystore() {
@@ -187,6 +189,11 @@ func (metisPay *MetisPayManager) estimateGas(method string, params ...interface{
 // ReadyToStart get funds clearing to start a task.
 // the caller should use a channel to receive the result.
 func (metisPay *MetisPayManager) ReadyToStart(taskID string, userAccount common.Address, dataTokenList []common.Address) bool {
+	if metisPay.Config.privateKey == nil {
+		log.Errorf("cannot get funds clearing to start a task cause organization wallet missing")
+		return false
+	}
+
 	spliterIdx := 0
 	if idx := strings.Index(taskID, ":"); idx >= 0 {
 		spliterIdx = idx
@@ -243,8 +250,12 @@ func (metisPay *MetisPayManager) GenerateOrgWallet() (string, error) {
 }
 
 func (metisPay *MetisPayManager) Prepay(taskID *big.Int, userAccount common.Address, dataTokenList []common.Address) *PrepayResponse {
-
 	response := new(PrepayResponse)
+	if metisPay.Config.privateKey == nil {
+		log.Errorf("cannot send Prepay transaction cause organization wallet missing")
+		response.success = false
+		return response
+	}
 
 	//估算gas, +30%
 	gasLimit := metisPay.estimateGas("Prepay", taskID, new(big.Int).SetUint64(1), dataTokenList)
@@ -308,6 +319,11 @@ func (metisPay *MetisPayManager) getPrepayReceipt(txHash common.Hash, ch chan *p
 }
 
 func (metisPay *MetisPayManager) Settle(taskID *big.Int, gasRefundPrepayment int64) bool {
+	if metisPay.Config.privateKey == nil {
+		log.Errorf("cannot send Settle transaction cause organization wallet missing")
+		return false
+	}
+
 	//估算gas, +30%
 	gasLimit := metisPay.estimateGas("Settle", taskID, new(big.Int).SetUint64(1))
 	if int64(gasLimit) > gasRefundPrepayment {
