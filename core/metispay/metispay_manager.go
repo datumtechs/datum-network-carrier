@@ -218,18 +218,20 @@ func (metisPay *MetisPayManager) GenerateOrgWallet() (string, error) {
 	addr := crypto.PubkeyToAddress(key.PublicKey)
 	keyHex := hex.EncodeToString(crypto.FromECDSA(key))
 
-	if cipher, err := metisPay.Kms.Encrypt(keyHex); err != nil {
-		return "", errors.New("cannot encrypt private key of organization wallet")
-	} else {
-		wallet = new(types.OrgWallet)
-		wallet.SetPriKey(cipher)
-		wallet.SetAddress(addr)
-		if err := metisPay.dataCenter.StoreOrgWallet(wallet); err != nil {
-			log.WithError(err).Error("Failed to store organization wallet")
-			return "", errors.New("failed to store organization wallet")
+	if metisPay.Kms != nil {
+		if cipher, err := metisPay.Kms.Encrypt(keyHex); err != nil {
+			return "", errors.New("cannot encrypt private key of organization wallet")
+		} else {
+			wallet = new(types.OrgWallet)
+			wallet.SetPriKey(cipher)
+			wallet.SetAddress(addr)
+			if err := metisPay.dataCenter.StoreOrgWallet(wallet); err != nil {
+				log.WithError(err).Error("Failed to store organization wallet")
+				return "", errors.New("failed to store organization wallet")
+			}
 		}
-		return addr.Hex(), nil
 	}
+	return addr.Hex(), nil
 }
 
 func (metisPay *MetisPayManager) Prepay(taskID string, userAccount common.Address, dataTokenList []common.Address) PrepayResponse {
