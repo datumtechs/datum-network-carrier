@@ -8,11 +8,8 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common/debug"
 	"github.com/RosettaFlow/Carrier-Go/common/flags"
 	"github.com/RosettaFlow/Carrier-Go/common/logutil"
-	"github.com/RosettaFlow/Carrier-Go/metispay"
-	"github.com/RosettaFlow/Carrier-Go/metispay/kms"
 	"github.com/RosettaFlow/Carrier-Go/node"
 	gethlog "github.com/ethereum/go-ethereum/log"
-	"github.com/howeyc/gopass"
 	golog "github.com/ipfs/go-log/v2"
 	joonix "github.com/joonix/log"
 	"github.com/onrik/logrus/filename"
@@ -196,30 +193,6 @@ func main() {
 		}
 		if ctx.IsSet(flags.SetGCPercent.Name) {
 			runtimeDebug.SetGCPercent(ctx.Int(flags.SetGCPercent.Name))
-		}
-		//lvxiaoyi 配置了链，则需要keystore密码
-		var metispayConfig *metispay.Config
-		if ctx.IsSet(flags.Chain.Name) {
-			fmt.Println("Please input password for wallet")
-			pwdBytes, err := gopass.GetPasswdMasked() // Silent use gopass.GetPasswd(), for *'s use gopass.GetPasswdMasked()
-			if err != nil {
-				log.Fatal("input password for wallet failure", err)
-			}
-			//fmt.Scanln(&walletPwd)
-
-			metispayConfig = &metispay.Config{URL: ctx.String(flags.Chain.Name), WalletPwd: string(pwdBytes)}
-
-			var kmsConfig *kms.Config
-			if ctx.IsSet(flags.KMS_KeyId.Name) && ctx.IsSet(flags.KMS_RegionId.Name) && ctx.IsSet(flags.KMS_AccessKeyId.Name) && ctx.IsSet(flags.KMS_AccessKeySecret.Name) {
-				kmsConfig = &kms.Config{
-					KeyId:           ctx.String(flags.KMS_KeyId.Name),
-					RegionId:        ctx.String(flags.KMS_RegionId.Name),
-					AccessKeyId:     ctx.String(flags.KMS_AccessKeyId.Name),
-					AccessKeySecret: ctx.String(flags.KMS_AccessKeySecret.Name),
-				}
-			}
-			//chainConfig.KMSConfig = kmsConfig
-			metispay.InitMetisPayService(metispayConfig, kmsConfig)
 		}
 
 		runtime.GOMAXPROCS(runtime.NumCPU())

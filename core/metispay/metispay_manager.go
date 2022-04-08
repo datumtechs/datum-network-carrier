@@ -3,10 +3,13 @@ package metispay
 import (
 	"context"
 	"crypto/ecdsa"
+	"encoding/hex"
 	"errors"
 	"github.com/RosettaFlow/Carrier-Go/common/hexutil"
-	"github.com/RosettaFlow/Carrier-Go/metispay/contract"
-	"github.com/RosettaFlow/Carrier-Go/metispay/kms"
+	"github.com/RosettaFlow/Carrier-Go/core"
+	"github.com/RosettaFlow/Carrier-Go/core/metispay/contracts"
+	"github.com/RosettaFlow/Carrier-Go/core/metispay/kms"
+	"github.com/RosettaFlow/Carrier-Go/types"
 	ethereum "github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -18,18 +21,13 @@ import (
 	"io/ioutil"
 	"math/big"
 	"strings"
-	"sync"
 	"time"
 )
 
 const keystoreFile = ".keystore"
 
 var (
-	//Metispay *MetisPayService
 	contractMetisPayAddress = common.HexToAddress("0x147B8eb97fD247D06C4006D269c90C1908Fb5D54")
-
-	once     sync.Once
-	metisPay *MetisPayService
 )
 
 func LoadCarrierKey() (*ecdsa.PrivateKey, common.Address) {
@@ -55,28 +53,52 @@ type Config struct {
 	walletAddress common.Address
 }
 
-type MetisPayService struct {
+type MetisPayManager struct {
+	dataCenter               core.CarrierDB
 	Config                   *Config
 	Kms                      kms.KmsService
 	client                   *ethclient.Client
 	chainID                  *big.Int
 	abi                      abi.ABI
-	contractMetisPayInstance *contract.MetisPay
+	contractMetisPayInstance *contracts.MetisPay
 }
 
-func (metisPay *MetisPayService) loadKeystore() {
+func (metisPay *MetisPayManager) loadPrivateKey() error {
+	if wallet, err := metisPay.dataCenter.QueryOrgWallet(); err != nil {
+		return err
+	} else {
+		if metisPay.Kms != nil {
+			if key, err := metisPay.Kms.Decrypt(wallet.GetPriKey()); err != nil {
+				return err
+			} else {
+				priKey, err := crypto.ToECDSA([]byte(key))
+				if err != nil {
+					return err
+				}
+				metisPay.Config.privateKey = priKey
+				metisPay.Config.walletAddress = crypto.PubkeyToAddress(priKey.PublicKey)
+			}
+		}
+	}
+	return nil
+}
+
+func (metisPay *MetisPayManager) loadKeystore() {
+	var content string
 	keyBytes, err := ioutil.ReadFile(keystoreFile)
 	if err != nil {
 		log.Fatalf("read keystore error, %v", err)
 	}
+	content = string(keyBytes)
+
 	if metisPay.Kms != nil {
-		keyBytes, err = metisPay.Kms.Decrypt(keyBytes)
+		content, err = metisPay.Kms.Decrypt(content)
 		if err != nil {
 			log.Fatalf("KMS decrypt keystore error, %v", err)
 		}
 	}
 
-	key, err := keystore.DecryptKey(keyBytes, metisPay.Config.WalletPwd)
+	key, err := keystore.DecryptKey([]byte(content), metisPay.Config.WalletPwd)
 	if err != nil {
 		log.Fatalf("decrypt keystore error, %v", err)
 	}
@@ -84,51 +106,47 @@ func (metisPay *MetisPayService) loadKeystore() {
 	metisPay.Config.walletAddress = key.Address
 }
 
-func GetMetisPayService() *MetisPayService {
-	return metisPay
-}
+func NewMetisPayManager(db core.CarrierDB, config *Config, kmsConfig *kms.Config) *MetisPayManager {
+	log.Info("Init MetisPay manager ...")
+	metisPay := new(MetisPayManager)
+	metisPay.dataCenter = db
 
-func InitMetisPayService(config *Config, kmsConfig *kms.Config) {
-	once.Do(func() {
-		log.Info("Init MetisPay service ...")
-		metisPay = new(MetisPayService)
-		if config != nil {
-			metisPay.Config = config
+	if config != nil && len(config.URL) > 0 {
+		metisPay.Config = config
 
-			client, err := ethclient.Dial(config.URL)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			metisPay.client = client
-
-			chainID, err := metisPay.client.NetworkID(context.Background())
-			if err != nil {
-				log.Fatal(err)
-			}
-			metisPay.chainID = chainID
-
-			instance, err := contract.NewMetisPay(contractMetisPayAddress, client)
-			if err != nil {
-				log.Fatal(err)
-			}
-			metisPay.contractMetisPayInstance = instance
-
-			if kmsConfig != nil {
-				metisPay.Kms = &kms.AliKms{Config: kmsConfig}
-			}
-			metisPay.loadKeystore()
-		}
-
-		abiCode, err := abi.JSON(strings.NewReader(contract.MetisPayABI))
+		client, err := ethclient.Dial(config.URL)
 		if err != nil {
 			log.Fatal(err)
 		}
-		metisPay.abi = abiCode
-	})
+		chainID, err := client.NetworkID(context.Background())
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		metisPay.client = client
+		metisPay.chainID = chainID
+
+		instance, err := contracts.NewMetisPay(contractMetisPayAddress, client)
+		if err != nil {
+			log.Fatal(err)
+		}
+		metisPay.contractMetisPayInstance = instance
+
+		if kmsConfig != nil {
+			metisPay.Kms = &kms.AliKms{Config: kmsConfig}
+		}
+		metisPay.loadPrivateKey()
+	}
+
+	abiCode, err := abi.JSON(strings.NewReader(contracts.MetisPayABI))
+	if err != nil {
+		log.Fatal(err)
+	}
+	metisPay.abi = abiCode
+	return metisPay
 }
 
-func (metisPay *MetisPayService) buildTxOpts() *bind.TransactOpts {
+func (metisPay *MetisPayManager) buildTxOpts() *bind.TransactOpts {
 	nonce, err := metisPay.client.PendingNonceAt(context.Background(), metisPay.Config.walletAddress)
 	if err != nil {
 		log.Fatal(err)
@@ -152,7 +170,7 @@ func (metisPay *MetisPayService) buildTxOpts() *bind.TransactOpts {
 	return txOpts
 }
 
-func (metisPay *MetisPayService) estimateGas(method string, params ...interface{}) uint64 {
+func (metisPay *MetisPayManager) estimateGas(method string, params ...interface{}) uint64 {
 	input, err := metisPay.abi.Pack(method, params)
 	if err != nil {
 		log.Fatal(err)
@@ -166,7 +184,7 @@ func (metisPay *MetisPayService) estimateGas(method string, params ...interface{
 	return uint64(float64(estimatedGas) * 1.30)
 }
 
-func (metisPay *MetisPayService) Start(taskID string, userAccount common.Address, dataTokenList []common.Address) error {
+func (metisPay *MetisPayManager) Start(taskID string, userAccount common.Address, dataTokenList []common.Address) error {
 	response := metisPay.Prepay(taskID, userAccount, dataTokenList)
 	if !response.success {
 		return errors.New("prepayment failure")
@@ -188,12 +206,38 @@ type PrepayResponse struct {
 	success   bool
 }
 
-func (metisPay *MetisPayService) Prepay(taskID string, userAccount common.Address, dataTokenList []common.Address) PrepayResponse {
-	spliterCharIdx := 0
-	if idx := strings.Index(taskID, ":"); idx >= 0 {
-		spliterCharIdx = idx
+func (metisPay *MetisPayManager) GenerateOrgWallet() (string, error) {
+	wallet, err := metisPay.dataCenter.QueryOrgWallet()
+
+	if nil != err {
+		log.WithError(err).Error("Failed to check if organization wallet exists")
+		return "", errors.New("cannot generate organization wallet")
 	}
-	taskIDBigInt := hexutil.MustDecodeBig(taskID[spliterCharIdx:])
+
+	key, _ := crypto.GenerateKey()
+	addr := crypto.PubkeyToAddress(key.PublicKey)
+	keyHex := hex.EncodeToString(crypto.FromECDSA(key))
+
+	if cipher, err := metisPay.Kms.Encrypt(keyHex); err != nil {
+		return "", errors.New("cannot encrypt private key of organization wallet")
+	} else {
+		wallet = new(types.OrgWallet)
+		wallet.SetPriKey(cipher)
+		wallet.SetAddress(addr)
+		if err := metisPay.dataCenter.StoreOrgWallet(wallet); err != nil {
+			log.WithError(err).Error("Failed to store organization wallet")
+			return "", errors.New("failed to store organization wallet")
+		}
+		return addr.Hex(), nil
+	}
+}
+
+func (metisPay *MetisPayManager) Prepay(taskID string, userAccount common.Address, dataTokenList []common.Address) PrepayResponse {
+	spliterIdx := 0
+	if idx := strings.Index(taskID, ":"); idx >= 0 {
+		spliterIdx = idx
+	}
+	taskIDBigInt := hexutil.MustDecodeBig(taskID[spliterIdx:])
 
 	//估算gas, +30%
 	gasLimit := metisPay.estimateGas("Prepay", taskIDBigInt, new(big.Int).SetUint64(1), dataTokenList)
@@ -239,7 +283,7 @@ type prepayReceipt struct {
 	success  bool
 }
 
-func (metisPay *MetisPayService) getPrepayReceipt(txHash common.Hash, ch chan *prepayReceipt) {
+func (metisPay *MetisPayManager) getPrepayReceipt(txHash common.Hash, ch chan *prepayReceipt) {
 	receipt, err := metisPay.client.TransactionReceipt(context.Background(), txHash)
 	/*if err == platon.NotFound {
 		return nil
@@ -261,7 +305,7 @@ func (metisPay *MetisPayService) getPrepayReceipt(txHash common.Hash, ch chan *p
 	ch <- prepayReceipt
 }
 
-func (metisPay *MetisPayService) Settle(settleID []byte, gasRefundPrepayment int64) bool {
+func (metisPay *MetisPayManager) Settle(settleID []byte, gasRefundPrepayment int64) bool {
 	//估算gas, +30%
 	gasLimit := metisPay.estimateGas("Settle", settleID, new(big.Int).SetUint64(1))
 	if int64(gasLimit) > gasRefundPrepayment {
@@ -286,7 +330,7 @@ func (metisPay *MetisPayService) Settle(settleID []byte, gasRefundPrepayment int
 	return result
 }
 
-func (metisPay *MetisPayService) getSettleReceipt(txHash common.Hash, ch chan bool) {
+func (metisPay *MetisPayManager) getSettleReceipt(txHash common.Hash, ch chan bool) {
 	receipt, err := metisPay.client.TransactionReceipt(context.Background(), txHash)
 	if err != nil {
 		return

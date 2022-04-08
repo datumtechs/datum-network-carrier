@@ -599,9 +599,12 @@ func (s *CarrierAPIBackend) ReportTaskResourceUsage(nodeType pb.NodeType, ip, po
 }
 
 func (s *CarrierAPIBackend) GenerateObServerProxyWalletAddress() (string, error) {
-
-	// TODO 等待实现...
-	return "", nil
+	if addr, err := s.carrier.metisPayManager.GenerateOrgWallet(); nil != err {
+		log.WithError(err).Error("Failed to call GenerateOrgWallet() on CarrierAPIBackend.GenerateObServerProxyWalletAddress()")
+		return "", err
+	} else {
+		return addr, nil
+	}
 }
 
 // metadata api
@@ -766,7 +769,7 @@ func (s *CarrierAPIBackend) GetMetadataUsedTaskIdList(identityId, metadataId str
 	return taskIds, nil
 }
 
-func (s *CarrierAPIBackend)  UpdateGlobalMetadata(metadata *types.Metadata) error {
+func (s *CarrierAPIBackend) UpdateGlobalMetadata(metadata *types.Metadata) error {
 	return s.carrier.carrierDB.UpdateGlobalMetadata(metadata)
 }
 
@@ -1214,6 +1217,7 @@ next:
 	}
 	return result, err
 }
+
 // v0.4.0
 func (s *CarrierAPIBackend) GetGlobalTaskDetailList(lastUpdate, pageSize uint64) ([]*pb.TaskDetailShow, error) {
 
