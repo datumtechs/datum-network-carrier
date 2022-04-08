@@ -670,7 +670,7 @@ func (m *Manager) makeTaskReadyGoReq(task *types.NeedExecuteTask) (*fightercommo
 	var powerPartyArr []string
 	var receiverPartyArr []string
 
-	peerList := make([]*fightercommon.TaskReadyGoReq_Peer, 0)
+	peerList := make([]*fightercommon.Party, 0)
 
 	for _, dataSupplier := range task.GetResources().GetDataSupplierPeerInfos() {
 		portStr := string(dataSupplier.GetPort())
@@ -678,7 +678,7 @@ func (m *Manager) makeTaskReadyGoReq(task *types.NeedExecuteTask) (*fightercommo
 		if nil != err {
 			return nil, err
 		}
-		peerList = append(peerList, &fightercommon.TaskReadyGoReq_Peer{
+		peerList = append(peerList, &fightercommon.Party{
 			Ip:      string(dataSupplier.GetIp()),
 			Port:    int32(port),
 			PartyId: string(dataSupplier.GetPartyId()),
@@ -692,7 +692,7 @@ func (m *Manager) makeTaskReadyGoReq(task *types.NeedExecuteTask) (*fightercommo
 		if nil != err {
 			return nil, err
 		}
-		peerList = append(peerList, &fightercommon.TaskReadyGoReq_Peer{
+		peerList = append(peerList, &fightercommon.Party {
 			Ip:      string(powerSupplier.GetIp()),
 			Port:    int32(port),
 			PartyId: string(powerSupplier.GetPartyId()),
@@ -707,7 +707,7 @@ func (m *Manager) makeTaskReadyGoReq(task *types.NeedExecuteTask) (*fightercommo
 		if nil != err {
 			return nil, err
 		}
-		peerList = append(peerList, &fightercommon.TaskReadyGoReq_Peer{
+		peerList = append(peerList, &fightercommon.Party {
 			Ip:      string(receiver.GetIp()),
 			Port:    int32(port),
 			PartyId: string(receiver.GetPartyId()),
@@ -716,36 +716,54 @@ func (m *Manager) makeTaskReadyGoReq(task *types.NeedExecuteTask) (*fightercommo
 		receiverPartyArr = append(receiverPartyArr, string(receiver.GetPartyId()))
 	}
 
-	contractExtraParams, err := m.makeContractParams(task, localTask)
+	algorithmCfgType, contractExtraParams, err := m.makeContractParams(task, localTask)
 	if nil != err {
 		return nil, fmt.Errorf("make contractParams failed, %s", err)
 	}
 	log.Debugf("Succeed make contractCfg, taskId:{%s}, contractCfg: %s", task.GetTaskId(), contractExtraParams)
-	return &fightercommon.TaskReadyGoReq{
+
+	req := &fightercommon.TaskReadyGoReq{
+
 		TaskId:     task.GetTaskId(),
-		ContractId: localTask.GetTaskData().GetAlgorithmCode(),
-		//DataId: "",
 		PartyId: task.GetLocalTaskOrganization().GetPartyId(),
+		//DataId: "",
 		//EnvId: "",
-		Peers:            peerList,
-		ContractCfg:      contractExtraParams,
-		DataParty:        dataPartyArr,
-		ComputationParty: powerPartyArr,
-		ResultParty:      receiverPartyArr,
+		Parties: peerList,
+		AlgorithmCode: localTask.GetTaskData().GetAlgorithmCode(),
+		AlgorithmCfgType: algorithmCfgType,
+		AlgorithmCfg:      contractExtraParams,
+		DataPartyIds:        dataPartyArr,
+		ComputationPartyIds: powerPartyArr,
+		ResultPartyIds:      receiverPartyArr,
 		Duration:         localTask.GetTaskData().GetOperationCost().GetDuration(),
 		Memory:           localTask.GetTaskData().GetOperationCost().GetMemory(),
 		Processor:        localTask.GetTaskData().GetOperationCost().GetProcessor(),
 		Bandwidth:        localTask.GetTaskData().GetOperationCost().GetBandwidth(),
-	}, nil
+		ConnectPolicyFormat:  fightercommon.ConnectPolicyFormat_ConnectPolicyFormat_Json,
+		ConnectPolicy:        "{}", // {} it mean that  all nodes are fully connected
+	}
+
+	return req, nil
 }
 
-func (m *Manager) makeContractParams(task *types.NeedExecuteTask, localTask *types.Task) (string, error) {
+func (m *Manager) makeContractParams(task *types.NeedExecuteTask, localTask *types.Task) (fightercommon.AlgorithmCfgType, string, error) {
+
+	var (
+		typ  fightercommon.AlgorithmCfgType
+		params string
+		err error
+	)
+
 	switch localTask.GetTaskData().GetDataPolicyType() {
 	case types.TASK_METADATA_POLICY_ROW_COLUMN:
-		return m.metadataPolicyRowColumn(task, localTask)
+		typ =  fightercommon.AlgorithmCfgType_AlgorithmCfgType_2DTable
+		params, err = m.metadataPolicyRowColumn(task, localTask)
+
 	default:
-		return "", fmt.Errorf("unknown dataPolicy type, taskId: {%s}, dataPolicyType: {%d}", task.GetTaskId(), localTask.GetTaskData().GetDataPolicyType())
+		typ =  fightercommon.AlgorithmCfgType_AlgorithmCfgType_Unknown
+		params, err = "", fmt.Errorf("unknown dataPolicy type, taskId: {%s}, dataPolicyType: {%d}", task.GetTaskId(), localTask.GetTaskData().GetDataPolicyType())
 	}
+	return typ, params, err
 }
 
 func (m *Manager) metadataPolicyRowColumn(task *types.NeedExecuteTask, localTask *types.Task) (string, error) {
