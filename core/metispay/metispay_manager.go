@@ -184,25 +184,33 @@ func (metisPay *MetisPayManager) estimateGas(method string, params ...interface{
 	return uint64(float64(estimatedGas) * 1.30)
 }
 
-func (metisPay *MetisPayManager) Start(taskID string, userAccount common.Address, dataTokenList []common.Address) error {
-	response := metisPay.Prepay(taskID, userAccount, dataTokenList)
-	if !response.success {
-		return errors.New("prepayment failure")
+// ReadyToStart get funds clearing to start a task.
+// the caller should use a channel to receive the result.
+func (metisPay *MetisPayManager) ReadyToStart(taskID string, userAccount common.Address, dataTokenList []common.Address) bool {
+	spliterIdx := 0
+	if idx := strings.Index(taskID, ":"); idx >= 0 {
+		spliterIdx = idx
 	}
-	if len(response.settleId) == 0 {
-		return errors.New("settleID missing from task prepayment results")
+	taskIDBigInt, err := hexutil.DecodeBig(taskID[spliterIdx:])
+	if err != nil {
+		log.Errorf("cannot decode taskID to big.Int, %v", err)
+		return false
 	}
 
-	if !metisPay.Settle(response.settleId, response.gasRefund) {
-		return errors.New("settlement failure")
+	response := metisPay.Prepay(taskIDBigInt, userAccount, dataTokenList)
+	if !response.success {
+		return false
 	}
-	return nil
+
+	if !metisPay.Settle(taskIDBigInt, response.gasRefund) {
+		return false
+	}
+	return true
 }
 
 type PrepayResponse struct {
 	txHash    common.Hash
 	gasRefund int64
-	settleId  []byte
 	success   bool
 }
 
@@ -234,21 +242,21 @@ func (metisPay *MetisPayManager) GenerateOrgWallet() (string, error) {
 	return addr.Hex(), nil
 }
 
-func (metisPay *MetisPayManager) Prepay(taskID string, userAccount common.Address, dataTokenList []common.Address) PrepayResponse {
-	spliterIdx := 0
-	if idx := strings.Index(taskID, ":"); idx >= 0 {
-		spliterIdx = idx
-	}
-	taskIDBigInt := hexutil.MustDecodeBig(taskID[spliterIdx:])
+func (metisPay *MetisPayManager) Prepay(taskID *big.Int, userAccount common.Address, dataTokenList []common.Address) *PrepayResponse {
+
+	response := new(PrepayResponse)
 
 	//估算gas, +30%
-	gasLimit := metisPay.estimateGas("Prepay", taskIDBigInt, new(big.Int).SetUint64(1), dataTokenList)
+	gasLimit := metisPay.estimateGas("Prepay", taskID, new(big.Int).SetUint64(1), dataTokenList)
 
-	tx, err := metisPay.contractMetisPayInstance.Prepay(metisPay.buildTxOpts(), taskIDBigInt, userAccount, new(big.Int).SetUint64(gasLimit), dataTokenList)
+	tx, err := metisPay.contractMetisPayInstance.Prepay(metisPay.buildTxOpts(), taskID, userAccount, new(big.Int).SetUint64(gasLimit), dataTokenList)
 	if err != nil {
-		log.Fatal(err)
+		log.Errorf("call constract's Prepay error: %v", err)
+		response.success = false
+		return response
 	}
-	log.Debugf("prepay txHash:%v, taskID:%s ", tx.Hash().Hex(), taskID)
+	log.Debugf("call constract's Prepay txHash:%v, taskID:%s ", tx.Hash().Hex(), hexutil.EncodeBig(taskID))
+	response.txHash = tx.Hash()
 
 	ch := make(chan *prepayReceipt)
 	ticker := time.Tick(1 * time.Second)
@@ -260,9 +268,6 @@ func (metisPay *MetisPayManager) Prepay(taskID string, userAccount common.Addres
 		go metisPay.getPrepayReceipt(tx.Hash(), ch)
 	}
 
-	response := PrepayResponse{}
-	response.txHash = tx.Hash()
-
 	if receipt != nil && !receipt.success {
 		response.success = false
 		//todo:交易没有成功，那么如果gasUsed大于gasLimit,是否需要再发个交易补上？
@@ -273,52 +278,48 @@ func (metisPay *MetisPayManager) Prepay(taskID string, userAccount common.Addres
 		response.success = true
 		//需要退回的（有可能是负数需要清算时补上）
 		response.gasRefund = int64(gasLimit) - int64(receipt.gasUsed)
-		response.settleId = receipt.settleId
 	}
-
 	return response
 }
 
 type prepayReceipt struct {
-	gasUsed  uint64
-	settleId []byte
-	success  bool
+	gasUsed uint64
+	success bool
 }
 
 func (metisPay *MetisPayManager) getPrepayReceipt(txHash common.Hash, ch chan *prepayReceipt) {
 	receipt, err := metisPay.client.TransactionReceipt(context.Background(), txHash)
-	/*if err == platon.NotFound {
-		return nil
-	}else*/
 	if err != nil {
+		//including NotFound
+		log.Errorf("get Prepay transaction receipt error: %v", err)
 		return
 	}
-	prepayReceipt := &prepayReceipt{}
+	log.Debugf("get Prepay transaction receipt status: %d", receipt.Status)
 
+	prepayReceipt := new(prepayReceipt)
 	if receipt.Status == 0 { //FAILURE
 		prepayReceipt.success = false
 		prepayReceipt.gasUsed = receipt.GasUsed
 	} else { //SUCCESS
 		prepayReceipt.success = true
 		prepayReceipt.gasUsed = receipt.GasUsed
-		log := receipt.Logs[0]
-		prepayReceipt.settleId = log.Data
 	}
 	ch <- prepayReceipt
 }
 
-func (metisPay *MetisPayManager) Settle(settleID []byte, gasRefundPrepayment int64) bool {
+func (metisPay *MetisPayManager) Settle(taskID *big.Int, gasRefundPrepayment int64) bool {
 	//估算gas, +30%
-	gasLimit := metisPay.estimateGas("Settle", settleID, new(big.Int).SetUint64(1))
+	gasLimit := metisPay.estimateGas("Settle", taskID, new(big.Int).SetUint64(1))
 	if int64(gasLimit) > gasRefundPrepayment {
 		gasLimit = uint64(int64(gasLimit) - gasRefundPrepayment)
 	}
 
-	tx, err := metisPay.contractMetisPayInstance.Settle(metisPay.buildTxOpts(), new(big.Int).SetBytes(settleID), new(big.Int).SetUint64(gasLimit))
+	tx, err := metisPay.contractMetisPayInstance.Settle(metisPay.buildTxOpts(), taskID, new(big.Int).SetUint64(gasLimit))
 	if err != nil {
-		log.Fatal(err)
+		log.Errorf("call constract's Settle error: %v", err)
+		return false
 	}
-	log.Debugf("settle txHash:%v, settleID:%s ", tx.Hash().Hex(), hexutil.Encode(settleID))
+	log.Debugf("call constract's Settle txHash:%v, taskID:%s ", tx.Hash().Hex(), hexutil.EncodeBig(taskID))
 
 	ch := make(chan bool)
 	ticker := time.Tick(1 * time.Second)
@@ -335,7 +336,9 @@ func (metisPay *MetisPayManager) Settle(settleID []byte, gasRefundPrepayment int
 func (metisPay *MetisPayManager) getSettleReceipt(txHash common.Hash, ch chan bool) {
 	receipt, err := metisPay.client.TransactionReceipt(context.Background(), txHash)
 	if err != nil {
+		log.Errorf("get Settle transaction receipt error: %v", err)
 		return
 	}
+	log.Debugf("get Settle transaction receipt status: %d", receipt.Status)
 	ch <- receipt.Status == 1
 }
