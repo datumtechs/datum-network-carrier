@@ -414,22 +414,25 @@ type DataResourceFileUpload struct {
 	originId   string // db key
 	nodeId     string
 	metadataId string
-	filePath   string
+	dataPath   string
+	dataHash   string // sha 256 hash
 }
 
 type dataResourceFileUploadRlp struct {
 	NodeId     string
 	OriginId   string
 	MetadataId string
-	FilePath   string
+	DataPath   string
+	DataHash   string // sha 256 hash
 }
 
-func NewDataResourceFileUpload(nodeId, originId, metaDataId, filePath string) *DataResourceFileUpload {
+func NewDataResourceFileUpload(nodeId, originId, metaDataId, dataPath, dataHash string) *DataResourceFileUpload {
 	return &DataResourceFileUpload{
 		nodeId:     nodeId,
 		originId:   originId,
 		metadataId: metaDataId,
-		filePath:   filePath,
+		dataPath:   dataPath,
+		dataHash:   dataHash,
 	}
 }
 
@@ -439,7 +442,8 @@ func (drt *DataResourceFileUpload) EncodeRLP(w io.Writer) error {
 		NodeId:     drt.nodeId,
 		OriginId:   drt.originId,
 		MetadataId: drt.metadataId,
-		FilePath:   drt.filePath,
+		DataPath:   drt.dataPath,
+		DataHash:   drt.dataHash,
 	})
 }
 
@@ -448,7 +452,8 @@ func (drt *DataResourceFileUpload) DecodeRLP(s *rlp.Stream) error {
 	var dec dataResourceFileUploadRlp
 	err := s.Decode(&dec)
 	if err == nil {
-		drt.nodeId, drt.originId, drt.metadataId, drt.filePath = dec.NodeId, dec.OriginId, dec.MetadataId, dec.FilePath
+		drt.nodeId, drt.originId, drt.metadataId, drt.dataPath, drt.dataHash =
+			dec.NodeId, dec.OriginId, dec.MetadataId, dec.DataPath, dec.DataHash
 	}
 	return err
 }
@@ -456,7 +461,8 @@ func (drt *DataResourceFileUpload) GetNodeId() string               { return drt
 func (drt *DataResourceFileUpload) GetOriginId() string             { return drt.originId }
 func (drt *DataResourceFileUpload) SetMetadataId(metaDataId string) { drt.metadataId = metaDataId }
 func (drt *DataResourceFileUpload) GetMetadataId() string           { return drt.metadataId }
-func (drt *DataResourceFileUpload) GetFilePath() string             { return drt.filePath }
+func (drt *DataResourceFileUpload) GetDataPath() string             { return drt.dataPath }
+func (drt *DataResourceFileUpload) GetDataHash() string             { return drt.dataHash }
 
 type DataResourceDiskUsed struct {
 	metadataId string // db key

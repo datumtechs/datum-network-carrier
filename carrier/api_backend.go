@@ -1482,7 +1482,7 @@ func (s *CarrierAPIBackend) RemoveTaskUpResultFile(taskId string) error {
 	return s.carrier.carrierDB.RemoveTaskUpResultFile(taskId)
 }
 
-func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, dataHash, filePath, dataNodeId, extra string) error {
+func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, dataHash, dataPath, dataNodeId, extra string) error {
 	// generate metadataId
 	var buf bytes.Buffer
 	buf.Write([]byte(originId))
@@ -1493,8 +1493,8 @@ func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, dataHas
 
 	identity, err := s.carrier.carrierDB.QueryIdentity()
 	if nil != err {
-		log.WithError(err).Errorf("Failed query local identity on CarrierAPIBackend.StoreTaskResultFileSummary(), taskId: {%s}, dataNodeId: {%s}, originId: {%s}, metadataId: {%s}, filePath: {%s}",
-			taskId, dataNodeId, originId, metadataId, filePath)
+		log.WithError(err).Errorf("Failed query local identity on CarrierAPIBackend.StoreTaskResultFileSummary(), taskId: {%s}, dataNodeId: {%s}, originId: {%s}, metadataId: {%s}, dataPath: {%s}",
+			taskId, dataNodeId, originId, metadataId, dataPath)
 		return err
 	}
 
@@ -1522,10 +1522,10 @@ func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, dataHas
 	// todo whether need to store a dataResourceDiskUsed (metadataId. dataNodeId, diskUsed) ??? 后面需要上传 磁盘使用空间在弄吧
 
 	// store dataResourceFileUpload (about task result file)
-	err = s.carrier.carrierDB.StoreDataResourceFileUpload(types.NewDataResourceFileUpload(dataNodeId, originId, metadataId, filePath))
+	err = s.carrier.carrierDB.StoreDataResourceFileUpload(types.NewDataResourceFileUpload(dataNodeId, originId, metadataId, dataPath, dataHash))
 	if nil != err {
-		log.WithError(err).Errorf("Failed store dataResourceFileUpload about task result file on CarrierAPIBackend.StoreTaskResultFileSummary(), taskId: {%s}, dataNodeId: {%s}, originId: {%s}, metadataId: {%s}, filePath: {%s}",
-			taskId, dataNodeId, originId, metadataId, filePath)
+		log.WithError(err).Errorf("Failed store dataResourceFileUpload about task result file on CarrierAPIBackend.StoreTaskResultFileSummary(), taskId: {%s}, dataNodeId: {%s}, originId: {%s}, metadataId: {%s}, dataPath: {%s}",
+			taskId, dataNodeId, originId, metadataId, dataPath)
 		return err
 	}
 	// 记录原始数据占用资源大小   StoreDataResourceTable  todo 后续考虑是否加上, 目前不加 因为对于系统生成的元数据暂时不需要记录 disk 使用实况 ??
@@ -1534,8 +1534,8 @@ func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, dataHas
 	// store taskId -> TaskUpResultFile (about task result file)
 	err = s.carrier.carrierDB.StoreTaskUpResultFile(types.NewTaskUpResultFile(taskId, originId, metadataId, extra))
 	if nil != err {
-		log.WithError(err).Errorf("Failed store taskUpResultFile on CarrierAPIBackend.StoreTaskResultFileSummary(), taskId: {%s}, dataNodeId: {%s}, originId: {%s}, metadataId: {%s}, filePath: {%s}",
-			taskId, dataNodeId, originId, metadataId, filePath)
+		log.WithError(err).Errorf("Failed store taskUpResultFile on CarrierAPIBackend.StoreTaskResultFileSummary(), taskId: {%s}, dataNodeId: {%s}, originId: {%s}, metadataId: {%s}, dataPath: {%s}",
+			taskId, dataNodeId, originId, metadataId, dataPath)
 		return err
 	}
 	return nil
@@ -1566,7 +1566,7 @@ func (s *CarrierAPIBackend) QueryTaskResultFileSummary(taskId string) (*types.Ta
 		dataResourceFileUpload.GetMetadataId(),
 		dataResourceFileUpload.GetOriginId(),
 		localMetadata.GetData().GetMetadataName(),
-		dataResourceFileUpload.GetFilePath(),
+		dataResourceFileUpload.GetDataPath(),
 		dataResourceFileUpload.GetNodeId(),
 		summarry.GetExtra(),
 	), nil
@@ -1601,7 +1601,7 @@ func (s *CarrierAPIBackend) QueryTaskResultFileSummaryList() (types.TaskResultFi
 			dataResourceFileUpload.GetMetadataId(),
 			dataResourceFileUpload.GetOriginId(),
 			localMetadata.GetData().GetMetadataName(),
-			dataResourceFileUpload.GetFilePath(),
+			dataResourceFileUpload.GetDataPath(),
 			dataResourceFileUpload.GetNodeId(),
 			summarry.GetExtra(),
 		))
@@ -1609,3 +1609,6 @@ func (s *CarrierAPIBackend) QueryTaskResultFileSummaryList() (types.TaskResultFi
 
 	return arr, nil
 }
+
+
+// EstimateTaskGas

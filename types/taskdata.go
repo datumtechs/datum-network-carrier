@@ -111,18 +111,18 @@ type TaskResultFileSummary struct {
 	MetadataId   string
 	OriginId     string
 	MetadataName string
-	FilePath     string
+	DataPath     string
 	NodeId       string
 	Extra        string
 }
 
-func NewTaskResultFileSummary(taskId, metadataId, originId, metadataName, filePath, id, extra string) *TaskResultFileSummary {
+func NewTaskResultFileSummary(taskId, metadataId, originId, metadataName, dataPath, id, extra string) *TaskResultFileSummary {
 	return &TaskResultFileSummary{
 		TaskId:       taskId,
 		MetadataId:   metadataId,
 		OriginId:     originId,
 		MetadataName: metadataName,
-		FilePath:     filePath,
+		DataPath:     dataPath,
 		NodeId:       id,
 		Extra:        extra,
 	}
@@ -131,7 +131,7 @@ func (trfs *TaskResultFileSummary) GetTaskId() string       { return trfs.TaskId
 func (trfs *TaskResultFileSummary) GetMetadataName() string { return trfs.MetadataName }
 func (trfs *TaskResultFileSummary) GetMetadataId() string   { return trfs.MetadataId }
 func (trfs *TaskResultFileSummary) GetOriginId() string     { return trfs.OriginId }
-func (trfs *TaskResultFileSummary) GetFilePath() string     { return trfs.FilePath }
+func (trfs *TaskResultFileSummary) GetDataPath() string     { return trfs.DataPath }
 func (trfs *TaskResultFileSummary) GetNodeId() string       { return trfs.NodeId }
 func (trfs *TaskResultFileSummary) GetExtra() string        { return trfs.Extra }
 

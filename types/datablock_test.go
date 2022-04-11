@@ -16,7 +16,7 @@ package types
 //					NodeId:     "NodeId",
 //					DataId:     "dataId",
 //					DataStatus: libtypes.DataStatus_DataStatus_Deleted,
-//					FilePath:   "/a/b/c",
+//					DataPath:   "/a/b/c",
 //					Desc:       "desc",
 //					Rows:       10,
 //					Columns:    100,
