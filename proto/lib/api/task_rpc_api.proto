@@ -134,11 +134,17 @@ message TerminateTaskRequest {
   bytes                 sign = 12;                            //  发起任务的账户的签名
 }
 
+
+message DataTokenTransferItem {
+  string address = 1;       //data token合约地址
+  uint64 amount = 2;        //data token转账金额
+}
+
 // 预估gas request
 message EstimateTaskGasRequest {
-  string                      task_id = 1;              // 任务Id，可以为空；如果为空，则估算时将生成一个临时taskID
-  repeated string  data_token_addresses = 2;            // 当前组织参与的所有任务结果文件摘要列表
+  repeated DataTokenTransferItem      data_token_transfer_items = 1;       // 当前任务用到的data token 合约地址和转账金额列表
 }
+
 // 预估gas response
 message EstimateTaskGasResponse {
   int32  status = 1;
