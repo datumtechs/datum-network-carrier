@@ -594,7 +594,8 @@ func (svr *Server) GenerateObServerProxyWalletAddress(ctx context.Context, req *
 	}
 	log.Debugf("RPC-API:GenerateObServerProxyWalletAddress Succeed, wallet: {%s}", wallet)
 	return &pb.GenerateObServerProxyWalletAddressResponse{
-		Status: 0,
-		Msg:    backend.OK,
+		Status:  0,
+		Msg:     backend.OK,
+		Address: wallet,
 	}, nil
 }
