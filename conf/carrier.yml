@@ -193,10 +193,10 @@ pprof-addr: 0.0.0.0
 ## Configuration dir required to persist the consensus state.
 #consensus-state-wal-dir:
 
-kms:
-  key-id: 0ead1984-01c9-44de-8f56-6a4aa450a917
-  region-id: cn-hangzhou
-  access-key-id: LTAI4GG5R3n1A7euPzEJNUex
-  access-key-secret: 7OuIn5EIAOxViSRBuGOHuR88mrHYh7
+#kms:
+#  key-id:
+#  region-id:
+#  access-key-id:
+#  access-key-secret:
 chain:
   url: https://mainnet.infura.io

@@ -134,6 +134,16 @@ message TerminateTaskRequest {
   bytes                 sign = 12;                            //  发起任务的账户的签名
 }
 
+// 预估gas request
+message EstimateTaskGasRequest {
+  string                      task_id = 1;              // 任务Id，可以为空；如果为空，则估算时将生成一个临时taskID
+  repeated string  data_token_addresses = 2;            // 当前组织参与的所有任务结果文件摘要列表
+}
+// 预估gas response
+message EstimateTaskGasResponse {
+  uint64 gas_limit = 1;
+}
+
 // ## 任务 相关接口
 service TaskService {
 
@@ -190,6 +200,13 @@ service TaskService {
     };
   }
 
+  // v 0.4.0 预估gas
+  rpc EstimateTaskGas (EstimateTaskGasRequest) returns (EstimateTaskGasResponse) {
+    option (google.api.http) = {
+      post: "/carrier/v1/task/estimateTaskGas"
+      body: "*"
+    };
+  }
 }
 
 
