@@ -91,4 +91,5 @@ type Backend interface {
 	StoreTaskResultFileSummary(taskId, originId, dataHash, filePath, dataNodeId, extra string) error
 	QueryTaskResultFileSummary (taskId string) (*types.TaskResultFileSummary, error)
 	QueryTaskResultFileSummaryList () (types.TaskResultFileSummaryArr, error)
+	EstimateTaskGas
 }

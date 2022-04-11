@@ -147,7 +147,9 @@ message EstimateTaskGasRequest {
 
 // 预估gas response
 message EstimateTaskGasResponse {
-  uint64 gas_limit = 1;
+  int32  status = 1;
+  string msg = 2;
+  uint64 gas_limit = 3;       // 需要消耗的gas数量
 }
 
 // ## 任务 相关接口

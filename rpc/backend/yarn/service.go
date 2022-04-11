@@ -495,7 +495,7 @@ func (svr *Server) QueryFilePosition(ctx context.Context, req *pb.QueryFilePosit
 	}
 
 	log.Debugf("RPC-API:QueryFilePosition Succeed, originId: {%s}, return dataNodeIp: {%s}, dataNodePort: {%s}, filePath: {%s}",
-		req.GetOriginId(), dataNode.GetInternalIp(), dataNode.GetInternalPort(), dataResourceFileUpload.GetFilePath())
+		req.GetOriginId(), dataNode.GetInternalIp(), dataNode.GetInternalPort(), dataResourceFileUpload.GetDataPath())
 
 	return &pb.QueryFilePositionResponse{
 		Status: 0,
@@ -503,7 +503,7 @@ func (svr *Server) QueryFilePosition(ctx context.Context, req *pb.QueryFilePosit
 		Information: &pb.QueryFilePosition{
 			Ip:       dataNode.GetInternalIp(),
 			Port:     dataNode.GetInternalPort(),
-			DataPath: dataResourceFileUpload.GetFilePath(),
+			DataPath: dataResourceFileUpload.GetDataPath(),
 		},
 	}, nil
 }
@@ -532,7 +532,7 @@ func (svr *Server) GetTaskResultFileSummary(ctx context.Context, req *pb.GetTask
 	}
 
 	log.Debugf("RPC-API:GetTaskResultFileSummary Succeed, taskId: {%s}, return dataNodeIp: {%s}, dataNodePort: {%s}, metadataId: {%s}, originId: {%s}, fileName: {%s}, filePath: {%s}",
-		req.GetTaskId(), dataNode.GetInternalIp(), dataNode.GetInternalPort(), summary.GetMetadataId(), summary.GetOriginId(), summary.GetMetadataName(), summary.GetFilePath())
+		req.GetTaskId(), dataNode.GetInternalIp(), dataNode.GetInternalPort(), summary.GetMetadataId(), summary.GetOriginId(), summary.GetMetadataName(), summary.GetDataPath())
 
 	return &pb.GetTaskResultFileSummaryResponse{
 		Status: 0,
@@ -542,7 +542,7 @@ func (svr *Server) GetTaskResultFileSummary(ctx context.Context, req *pb.GetTask
 			MetadataName: summary.GetMetadataName(),
 			MetadataId:   summary.GetMetadataId(),
 			OriginId:     summary.GetOriginId(),
-			DataPath:     summary.GetFilePath(),
+			DataPath:     summary.GetDataPath(),
 			Ip:           dataNode.GetInternalIp(),
 			Port:         dataNode.GetInternalPort(),
 			Extra:        summary.GetExtra(),
@@ -570,7 +570,7 @@ func (svr *Server) GetTaskResultFileSummaryList(ctx context.Context, empty *empt
 			MetadataName: summary.GetMetadataName(),
 			MetadataId:   summary.GetMetadataId(),
 			OriginId:     summary.GetOriginId(),
-			DataPath:     summary.GetFilePath(),
+			DataPath:     summary.GetDataPath(),
 			Ip:           dataNode.GetInternalIp(),
 			Port:         dataNode.GetInternalPort(),
 			Extra:        summary.GetExtra(),
