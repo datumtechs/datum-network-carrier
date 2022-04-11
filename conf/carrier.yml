@@ -1,0 +1,202 @@
+##common:
+## The percentage of freshly allocated data to live data on which the gc will be run again.
+#gc-percent: 100
+
+## Ephemeral proof-of-authority network with a pre-funded developer account, mining enabled
+dev: true
+
+## Ropsten network: pre-configured proof-of-work test network
+#testnet: true
+
+## node:
+## Data directory for the databases and keystore
+datadir: /home/user1/carrier/datadir
+
+## Prompt for clearing any previously stored data at the data directory
+#clear-db: false
+
+## Logging verbosity (trace, debug, info=default, warn, error, fatal, panic)
+verbosity: debug
+
+## Filepath to the backed-up database file which will be used to restore the database
+#restore-source-file:
+
+## Target directory of the restored database
+#restore-target-dir:
+
+## Specify log formatting. Supports: text, json, fluentd, journald.
+#log-format: text
+
+## Specify log file name, relative or absolute
+#log-file:
+
+##rpc:
+## Host on which the RPC server should listen
+#rpc-host: 0.0.0.0
+
+## RPC port exposed by a carrier node
+rpc-port: 10033
+
+## Certificate for secure gRPC. Pass this and the tls-key flag in order to use gRPC securely.
+#tls-cert:
+
+## Key for secure gRPC. Pass this and the tls-cert flag in order to use gRPC securely.
+#tls-key:
+
+## Disable the gRPC gateway for JSON-HTTP requests
+disable-grpc-gateway: false
+
+## Comma separated list of domains from which to accept cross origin requests
+## (browser enforced). This flag has no effect if not used with --grpc-gateway-port.
+#grpc-gateway-corsdomain: http://localhost:4200,http://localhost:7500,http://127.0.0.1:4200,http://127.0.0.1:7500,http://0.0.0.0:4200,http://0.0.0.0:7500
+
+## The host on which the gateway server runs on
+grpc-gateway-host: 0.0.0.0
+
+## Enable gRPC gateway for JSON requests
+grpc-gateway-port: 10034
+
+## Integer to define max receive message call size (default: /*4194304*/ 8388608 (for 8MB))
+#grpc-max-msg-size: 16777216
+
+## Integer to define max send message call size (default: /*4194304*/ 8388608 (for 8MB))
+#grpc-max-send-msg-size: 16777216
+
+## The ip of discovery center
+#discovery-server-ip: 192.168.112.150
+
+## The port of discovery center
+#discovery-server-port: 8500
+
+## The id of the current service registered with the discovery center
+#discovery-service-id:
+
+## The name of the current service registered with the discovery center
+#discovery-service-name:
+
+## Tags registered with the service discovery center
+#discovery-service-tags:
+
+## When the service leaves, the service discovery center removes the service information (unit: ms, default 10s)
+#discovery-service-health-check-deregister: 10000
+
+## Health check interval between service discovery center and this service (unit: ms, default 3s)
+#discovery-service-health-check-interval: 3000
+
+##p2p:
+## The local ip address to listen for incoming data.
+p2p-local-ip: 0.0.0.0
+
+## The IP address advertised by libp2p. This may be used to advertise an external IP.
+p2p-host-ip: 192.168.112.150
+
+## The CIDR subnet for allowing only certain peer connections. Example:
+## 192.168.0.0/16 would permit connections to peers on your local network only. The
+## default is to accept all connections.
+#p2p-allowlist:
+
+## The DNS address advertised by libp2p. This may be used to advertise an external DNS.
+#p2p-host-dns:
+
+## The CIDR subnets for denying certainy peer connections. Example: " +
+## 192.168.0.0/16 would deny connections from peers on your local network only. The
+## default is to accept all connections.
+#p2p-denylist:
+
+## The max number of p2p peers to maintain.
+#p2p-max-peers:
+
+## The file containing the metadata to communicate with other peers.
+#p2p-metadata:
+
+## The file containing the private key to use in communications with other peers.
+p2p-priv-key: /home/user1/carrier/p2p_priv_key/p2p_priv_key
+
+## The port used by libp2p.
+p2p-tcp-port: 10036
+
+## The port used by discv5.
+p2p-udp-port: 10035
+
+## Enable only local network p2p and do not connect to cloud bootstrap nodes.
+no-discovery: false
+
+## Enable only local network p2p and connect to nodes by special.
+#enable-fake-network: false
+
+## The address of bootstrap node. Beacon node will connect for peer discovery via DHT.
+## Multiple nodes can be passed by using the flag multiple times but not comma-separated. You can also pass YAML files containing multiple nodes
+bootstrap-node: [""]
+
+## Enable the service (Carrier chain or Validator) to use UPnP when possible.
+#enable-upnp: false
+
+## Does not run the discoveryV5 dht
+#disable-discv5: false
+
+## Connect with this peer. This flag may be used multiple times.
+#peer:
+
+## The address of relay node. The beacon node will connect to the
+## relay node and advertise their address via the relay node to other peers
+#relay-node:
+
+
+##debug:
+## Prepends log messages with call-site location (file and line number)
+#debug: false
+
+## Enables the debug rpc service
+enable-debug-rpc-endpoints: true
+
+## Enable the pprof HTTP server
+pprof: true
+
+## pprof HTTP server listening port
+pprof-port: 10032
+
+## pprof HTTP server listening interface
+pprof-addr: 0.0.0.0
+
+## Turn on memory profiling with the given rate
+#mempro-file-rate: 524288
+
+## Turn on mutex profiling with the given rate
+#mutex-profile-fraction:
+
+## Turn on block profiling with the given rate
+#block-profile-rate:
+
+## Write CPU profile to the given file
+#cpu-profile:
+
+## Write execution trace to the given file
+#trace:
+
+## Enable request tracing.
+#enable-tracing: false
+
+## The name to apply to tracing tag "process_name"
+#tracing-process-name:
+
+## Tracing endpoint defines where network traces are exposed to Jaeger.
+#tracing-endpoint: http://127.0.0.1:14268/api/traces
+
+## Indicate what fraction of p2p messages are sampled for tracing.
+#trace-sample-fraction: 0.20
+
+## mock:
+## Specifies the file path of the identityid information required by mock.
+#mock-identity-file:
+
+## consensus:
+## Configuration dir required to persist the consensus state.
+#consensus-state-wal-dir:
+
+#kms:
+#  key-id:
+#  region-id:
+#  access-key-id:
+#  access-key-secret:
+chain:
+  url: https://mainnet.infura.io
