@@ -640,7 +640,7 @@ func (m *Manager) sendTaskEvent(event *libtypes.TaskEvent) {
 	}(event)
 }
 
-func (m *Manager) publishBadTaskToDataCenter (task *types.Task, events []*libtypes.TaskEvent, reason string) error {
+func (m *Manager) publishBadTaskToDataCenter(task *types.Task, events []*libtypes.TaskEvent, reason string) error {
 	task.GetTaskData().TaskEvents = events
 	task.GetTaskData().State = libtypes.TaskState_TaskState_Failed
 	task.GetTaskData().Reason = reason
@@ -692,7 +692,7 @@ func (m *Manager) makeTaskReadyGoReq(task *types.NeedExecuteTask) (*fightercommo
 		if nil != err {
 			return nil, err
 		}
-		peerList = append(peerList, &fightercommon.Party {
+		peerList = append(peerList, &fightercommon.Party{
 			Ip:      string(powerSupplier.GetIp()),
 			Port:    int32(port),
 			PartyId: string(powerSupplier.GetPartyId()),
@@ -707,7 +707,7 @@ func (m *Manager) makeTaskReadyGoReq(task *types.NeedExecuteTask) (*fightercommo
 		if nil != err {
 			return nil, err
 		}
-		peerList = append(peerList, &fightercommon.Party {
+		peerList = append(peerList, &fightercommon.Party{
 			Ip:      string(receiver.GetIp()),
 			Port:    int32(port),
 			PartyId: string(receiver.GetPartyId()),
@@ -724,23 +724,23 @@ func (m *Manager) makeTaskReadyGoReq(task *types.NeedExecuteTask) (*fightercommo
 
 	req := &fightercommon.TaskReadyGoReq{
 
-		TaskId:     task.GetTaskId(),
+		TaskId:  task.GetTaskId(),
 		PartyId: task.GetLocalTaskOrganization().GetPartyId(),
 		//DataId: "",
 		//EnvId: "",
-		Parties: peerList,
-		AlgorithmCode: localTask.GetTaskData().GetAlgorithmCode(),
-		AlgorithmCfgType: algorithmCfgType,
-		AlgorithmCfg:      contractExtraParams,
+		Parties:             peerList,
+		AlgorithmCode:       localTask.GetTaskData().GetAlgorithmCode(),
+		AlgorithmCfgType:    algorithmCfgType,
+		AlgorithmCfg:        contractExtraParams,
 		DataPartyIds:        dataPartyArr,
 		ComputationPartyIds: powerPartyArr,
 		ResultPartyIds:      receiverPartyArr,
-		Duration:         localTask.GetTaskData().GetOperationCost().GetDuration(),
-		Memory:           localTask.GetTaskData().GetOperationCost().GetMemory(),
-		Processor:        localTask.GetTaskData().GetOperationCost().GetProcessor(),
-		Bandwidth:        localTask.GetTaskData().GetOperationCost().GetBandwidth(),
-		ConnectPolicyFormat:  fightercommon.ConnectPolicyFormat_ConnectPolicyFormat_Json,
-		ConnectPolicy:        "{}", // {} it mean that  all nodes are fully connected
+		Duration:            localTask.GetTaskData().GetOperationCost().GetDuration(),
+		Memory:              localTask.GetTaskData().GetOperationCost().GetMemory(),
+		Processor:           localTask.GetTaskData().GetOperationCost().GetProcessor(),
+		Bandwidth:           localTask.GetTaskData().GetOperationCost().GetBandwidth(),
+		ConnectPolicyFormat: fightercommon.ConnectPolicyFormat_ConnectPolicyFormat_Json,
+		ConnectPolicy:       "{}", // {} it mean that  all nodes are fully connected
 	}
 
 	return req, nil
@@ -749,18 +749,18 @@ func (m *Manager) makeTaskReadyGoReq(task *types.NeedExecuteTask) (*fightercommo
 func (m *Manager) makeContractParams(task *types.NeedExecuteTask, localTask *types.Task) (fightercommon.AlgorithmCfgType, string, error) {
 
 	var (
-		typ  fightercommon.AlgorithmCfgType
+		typ    fightercommon.AlgorithmCfgType
 		params string
-		err error
+		err    error
 	)
 
 	switch localTask.GetTaskData().GetDataPolicyType() {
 	case types.TASK_METADATA_POLICY_ROW_COLUMN:
-		typ =  fightercommon.AlgorithmCfgType_AlgorithmCfgType_2DTable
+		typ = fightercommon.AlgorithmCfgType_AlgorithmCfgType_2DTable
 		params, err = m.metadataPolicyRowColumn(task, localTask)
 
 	default:
-		typ =  fightercommon.AlgorithmCfgType_AlgorithmCfgType_Unknown
+		typ = fightercommon.AlgorithmCfgType_AlgorithmCfgType_Unknown
 		params, err = "", fmt.Errorf("unknown dataPolicy type, taskId: {%s}, dataPolicyType: {%d}", task.GetTaskId(), localTask.GetTaskData().GetDataPolicyType())
 	}
 	return typ, params, err
@@ -775,7 +775,6 @@ func (m *Manager) metadataPolicyRowColumn(task *types.NeedExecuteTask, localTask
 	var selectedColumns []string
 
 	if task.GetLocalTaskRole() == libtypes.TaskRole_TaskRole_DataSupplier {
-
 
 		// find dataPolicyOption
 		var dataPolicyArr []*types.TaskMetadataPolicyRowAndColumn
@@ -931,9 +930,8 @@ func (m *Manager) metadataPolicyRowColumn(task *types.NeedExecuteTask, localTask
 	return string(b), nil
 }
 
-
 // make terminate rpc req
-func (m *Manager) makeTerminateTaskReq (task *types.NeedExecuteTask) (*fightercommon.TaskCancelReq, error) {
+func (m *Manager) makeTerminateTaskReq(task *types.NeedExecuteTask) (*fightercommon.TaskCancelReq, error) {
 	return &fightercommon.TaskCancelReq{
 		TaskId:  task.GetTaskId(),
 		PartyId: task.GetLocalTaskOrganization().GetPartyId(),
@@ -1221,7 +1219,6 @@ func (m *Manager) handleNeedExecuteTask(task *types.NeedExecuteTask, localTask *
 
 func (m *Manager) executeTaskEvent(logkeyword string, symbol types.NetworkMsgLocationSymbol, event *libtypes.TaskEvent, localNeedtask *types.NeedExecuteTask, localTask *types.Task) error {
 
-
 	if err := m.resourceMng.GetDB().StoreTaskEvent(event); nil != err {
 		log.WithError(err).Errorf("Failed to store %s taskEvent %s, event: %s", symbol.String(), logkeyword, event.String())
 	} else {
@@ -1380,7 +1377,7 @@ func (m *Manager) handleResourceUsage(keyword, usageIdentityId string, usage *ty
 
 	var (
 		terminating bool
-		running bool
+		running     bool
 	)
 
 	if nmls == types.LocalNetworkMsg {
@@ -1507,7 +1504,6 @@ func (m *Manager) handleResourceUsage(keyword, usageIdentityId string, usage *ty
 	return needUpdate, nil
 }
 
-
 func (m *Manager) ValidateTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResultMsg) error {
 	msg := types.FetchTaskResultMsg(taskResultMsg) // fetchTaskResultMsg(taskResultMsg)
 
@@ -1622,7 +1618,7 @@ func (m *Manager) onTaskResourceUsageMsg(pid peer.ID, usageMsg *taskmngpb.TaskRe
 	_, ok := m.queryNeedExecuteTaskCache(msg.GetUsage().GetTaskId(), msg.GetMsgOption().GetReceiverPartyId())
 	if !ok {
 		log.Warnf("Not found needExecuteTask when received taskResourceUsageMsg, taskId: {%s}, partyId: {%s}",
-			msg.GetUsage().GetTaskId(),  msg.GetUsage().GetPartyId())
+			msg.GetUsage().GetTaskId(), msg.GetUsage().GetPartyId())
 		return fmt.Errorf("Can not find `need execute task` cache")
 	}
 
@@ -1752,8 +1748,7 @@ func (m *Manager) onTaskTerminateMsg(pid peer.ID, terminateMsg *taskmngpb.TaskTe
 	return nil
 }
 
-
-func (m *Manager) startTerminateWithNeedExecuteTask (needExecuteTask *types.NeedExecuteTask) error {
+func (m *Manager) startTerminateWithNeedExecuteTask(needExecuteTask *types.NeedExecuteTask) error {
 
 	// ## 1、 check whether the task has been terminated
 
@@ -1822,7 +1817,6 @@ func (m *Manager) startTerminateWithNeedExecuteTask (needExecuteTask *types.Need
 	))
 	return nil
 }
-
 
 func (m *Manager) checkNeedExecuteTaskMonitors(now int64) int64 {
 	return m.syncExecuteTaskMonitors.CheckMonitors(now)
