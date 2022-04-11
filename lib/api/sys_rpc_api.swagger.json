@@ -989,6 +989,9 @@
         },
         "port": {
           "type": "string"
+        },
+        "data_hash": {
+          "type": "string"
         }
       },
       "title": "上报 成功上传的原始文件Id req"

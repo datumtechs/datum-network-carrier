@@ -11,6 +11,39 @@
     "application/json"
   ],
   "paths": {
+    "/carrier/v1/task/estimateTaskGas": {
+      "post": {
+        "summary": "v 0.4.0 预估gas",
+        "operationId": "TaskService_EstimateTaskGas",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiEstimateTaskGasResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiEstimateTaskGasRequest"
+            }
+          }
+        ],
+        "tags": [
+          "TaskService"
+        ]
+      }
+    },
     "/carrier/v1/task/eventList": {
       "post": {
         "summary": "查看某个任务的全部事件列表",
@@ -269,6 +302,31 @@
           "format": "byte"
         }
       }
+    },
+    "rpcapiEstimateTaskGasRequest": {
+      "type": "object",
+      "properties": {
+        "task_id": {
+          "type": "string"
+        },
+        "data_token_addresses": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "预估gas request"
+    },
+    "rpcapiEstimateTaskGasResponse": {
+      "type": "object",
+      "properties": {
+        "gas_limit": {
+          "type": "string",
+          "format": "uint64"
+        }
+      },
+      "title": "预估gas response"
     },
     "rpcapiGetTaskDetail": {
       "type": "object",
