@@ -65,7 +65,7 @@ type Backend interface {
 	GetTaskDetailListByTaskIds(taskIds []string) ([]*pb.TaskDetailShow, error) // v3.0
 	GetTaskEventList(taskId string) ([]*pb.TaskEventShow, error)
 	GetTaskEventListByTaskIds(taskIds []string) ([]*pb.TaskEventShow, error)
-	HasLocalTask () (bool, error)
+	HasLocalTask() (bool, error)
 
 	// about jobResource
 	QueryPowerRunningTaskList(powerId string) ([]string, error)
@@ -89,7 +89,9 @@ type Backend interface {
 	QueryTaskUpResultFile(taskId string) (*types.TaskUpResultFile, error)
 	RemoveTaskUpResultFile(taskId string) error
 	StoreTaskResultFileSummary(taskId, originId, dataHash, filePath, dataNodeId, extra string) error
-	QueryTaskResultFileSummary (taskId string) (*types.TaskResultFileSummary, error)
-	QueryTaskResultFileSummaryList () (types.TaskResultFileSummaryArr, error)
-	EstimateTaskGas
+	QueryTaskResultFileSummary(taskId string) (*types.TaskResultFileSummary, error)
+	QueryTaskResultFileSummaryList() (types.TaskResultFileSummaryArr, error)
+
+	// v 0.4.0
+	EstimateTaskGas(dataTokenTransferList []*pb.DataTokenTransferItem) (uint64, error)
 }

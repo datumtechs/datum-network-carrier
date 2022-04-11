@@ -1610,5 +1610,13 @@ func (s *CarrierAPIBackend) QueryTaskResultFileSummaryList() (types.TaskResultFi
 	return arr, nil
 }
 
+func (s *CarrierAPIBackend) EstimateTaskGas(dataTokenTransferList []*pb.DataTokenTransferItem) (uint64, error) {
+	if gasLimit, err := s.carrier.metisPayManager.EstimateTaskGas(dataTokenTransferList); nil != err {
+		log.WithError(err).Error("Failed to call EstimateTaskGas() on CarrierAPIBackend.EstimateTaskGas()")
+		return 0, err
+	} else {
+		return gasLimit, nil
+	}
+}
 
 // EstimateTaskGas

@@ -60,6 +60,7 @@ var (
 	ErrQueryTaskEventList  = &RpcBizErr{Code: 13004, Msg: "Query all events of task by taskId failed"}
 	ErrPublishTaskMsg      = &RpcBizErr{Code: 13005, Msg: "PublishTask failed"}
 	ErrTerminateTaskMsg    = &RpcBizErr{Code: 13006, Msg: "TerminateTask failed, send task terminate msg failed"}
+	ErrEstimateTaskGas     = &RpcBizErr{Code: 13007, Msg: "Estimate task gas failed"}
 )
 
 // yarn
