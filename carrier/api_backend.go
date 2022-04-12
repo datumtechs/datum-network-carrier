@@ -79,8 +79,13 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 		nodeInfo.LocalMultiAddr = selfMultiAddrs[0].String()
 	}
 
-	// TODO add the observer proxy wallet address
-	nodeInfo.ObserverProxyWalletAddress = ""
+	if addr, err := s.carrier.metisPayManager.QueryOrgWallet(); err == nil {
+		nodeInfo.ObserverProxyWalletAddress = addr
+	} else {
+		log.WithError(err).Errorf("cannot load organization wallet of node info: %v", err)
+		return nil, err
+	}
+
 	return nodeInfo, nil
 }
 

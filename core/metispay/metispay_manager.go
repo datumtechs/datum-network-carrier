@@ -29,7 +29,7 @@ const keystoreFile = ".keystore"
 const mockTaskID = "task:0x81050ea1c64ab0ed96e50b151c36bcef180eea18d3b3245e7c4a42aa08638c58"
 
 var (
-	contractMetisPayAddress = common.HexToAddress("0x147B8eb97fD247D06C4006D269c90C1908Fb5D54")
+	contractMetisPayAddress = common.HexToAddress("0xa23A5ab6BA4095c9Eb3affd99c3F9949f3e6170a")
 )
 
 func LoadCarrierKey() (*ecdsa.PrivateKey, common.Address) {
@@ -73,9 +73,12 @@ func (metisPay *MetisPayManager) loadPrivateKey() {
 		log.Warnf("organization wallet not found, please generate it.")
 		return
 	} else {
+		metisPay.Config.walletAddress = wallet.GetAddress()
+
 		if metisPay.Kms != nil {
 			if key, err := metisPay.Kms.Decrypt(wallet.GetPriKey()); err != nil {
 				log.Errorf("decrypt organization wallet private key error: %v", err)
+				return
 			} else {
 				priKey, err := crypto.ToECDSA([]byte(key))
 				if err != nil {
@@ -83,11 +86,25 @@ func (metisPay *MetisPayManager) loadPrivateKey() {
 					return
 				}
 				metisPay.Config.privateKey = priKey
-				metisPay.Config.walletAddress = crypto.PubkeyToAddress(priKey.PublicKey)
+
+			}
+		} else {
+			key, err := crypto.HexToECDSA(wallet.GetPriKey())
+			if err != nil {
+				log.Errorf("not a valid private key hex: %v", err)
+				return
+			} else {
+				metisPay.Config.privateKey = key
 			}
 		}
 	}
-	return
+}
+
+func (metisPay *MetisPayManager) getPrivateKey() *ecdsa.PrivateKey {
+	if metisPay.Config.privateKey == nil {
+		metisPay.loadPrivateKey()
+	}
+	return metisPay.Config.privateKey
 }
 
 func (metisPay *MetisPayManager) loadKeystore() {
@@ -165,7 +182,7 @@ func (metisPay *MetisPayManager) buildTxOpts() *bind.TransactOpts {
 	}
 
 	//txOpts := bind.NewKeyedTransactor(metisPay.Config.privateKey)
-	txOpts, err := bind.NewKeyedTransactorWithChainID(metisPay.Config.privateKey, metisPay.chainID)
+	txOpts, err := bind.NewKeyedTransactorWithChainID(metisPay.getPrivateKey(), metisPay.chainID)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -221,7 +238,7 @@ func (metisPay *MetisPayManager) estimateGas(method string, params ...interface{
 // ReadyToStart get funds clearing to start a task.
 // the caller should use a channel to receive the result.
 func (metisPay *MetisPayManager) ReadyToStart(taskID string, userAccount common.Address, dataTokenTransferItemList []*pb.DataTokenTransferItem) bool {
-	if metisPay.Config.privateKey == nil {
+	if metisPay.getPrivateKey() == nil {
 		log.Errorf("cannot get funds clearing to start a task cause organization wallet missing")
 		return false
 	}
@@ -253,41 +270,56 @@ type PrepayResponse struct {
 	success   bool
 }
 
-func (metisPay *MetisPayManager) GenerateOrgWallet() (string, error) {
+func (metisPay *MetisPayManager) QueryOrgWallet() (string, error) {
 	wallet, err := metisPay.dataCenter.QueryOrgWallet()
 
 	if nil != err {
-		log.WithError(err).Error("Failed to check if organization wallet exists")
-		return "", errors.New("cannot generate organization wallet")
+		log.WithError(err).Error("failed to query organization wallet. %v", err)
+		return "", errors.New("failed to query organization wallet")
 	}
+
 	if wallet != nil {
-		log.WithError(err).Error("cannot regenerate organization wallet")
-		return "", errors.New("cannot regenerate organization wallet")
+		return wallet.GetAddress().Hex(), nil
+	}
+
+	return "", nil
+}
+
+func (metisPay *MetisPayManager) GenerateOrgWallet() (string, error) {
+	walletAddr, err := metisPay.QueryOrgWallet()
+	if err != nil {
+		return "", err
+	}
+	if len(walletAddr) > 0 {
+		return walletAddr, nil
 	}
 
 	key, _ := crypto.GenerateKey()
-	addr := crypto.PubkeyToAddress(key.PublicKey)
 	keyHex := hex.EncodeToString(crypto.FromECDSA(key))
+	addr := crypto.PubkeyToAddress(key.PublicKey)
 
 	if metisPay.Kms != nil {
 		if cipher, err := metisPay.Kms.Encrypt(keyHex); err != nil {
-			return "", errors.New("cannot encrypt private key of organization wallet")
+			return "", errors.New("cannot encrypt organization wallet private key")
 		} else {
-			wallet = new(types.OrgWallet)
-			wallet.SetPriKey(cipher)
-			wallet.SetAddress(addr)
-			if err := metisPay.dataCenter.StoreOrgWallet(wallet); err != nil {
-				log.WithError(err).Error("Failed to store organization wallet")
-				return "", errors.New("failed to store organization wallet")
-			}
+			keyHex = cipher
 		}
 	}
-	return addr.Hex(), nil
+
+	wallet := new(types.OrgWallet)
+	wallet.SetPriKey(keyHex)
+	wallet.SetAddress(addr)
+	if err := metisPay.dataCenter.StoreOrgWallet(wallet); err != nil {
+		log.WithError(err).Error("Failed to store organization wallet")
+		return "", errors.New("failed to store organization wallet")
+	} else {
+		return addr.Hex(), nil
+	}
 }
 
 func (metisPay *MetisPayManager) Prepay(taskID *big.Int, userAccount common.Address, dataTokenTransferItemList []*pb.DataTokenTransferItem) *PrepayResponse {
 	response := new(PrepayResponse)
-	if metisPay.Config.privateKey == nil {
+	if metisPay.getPrivateKey() == nil {
 		log.Errorf("cannot send Prepay transaction cause organization wallet missing")
 		response.success = false
 		return response
@@ -363,7 +395,7 @@ func (metisPay *MetisPayManager) getPrepayReceipt(txHash common.Hash, ch chan *p
 }
 
 func (metisPay *MetisPayManager) Settle(taskID *big.Int, gasRefundPrepayment int64) bool {
-	if metisPay.Config.privateKey == nil {
+	if metisPay.getPrivateKey() == nil {
 		log.Errorf("cannot send Settle transaction cause organization wallet missing")
 		return false
 	}
