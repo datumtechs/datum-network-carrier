@@ -69,6 +69,9 @@ func (metisPay *MetisPayManager) loadPrivateKey() {
 	if wallet, err := metisPay.dataCenter.QueryOrgWallet(); err != nil {
 		log.Errorf("load organization wallet error: %v", err)
 		return
+	} else if wallet == nil {
+		log.Warnf("organization wallet not found, please generate it.")
+		return
 	} else {
 		if metisPay.Kms != nil {
 			if key, err := metisPay.Kms.Decrypt(wallet.GetPriKey()); err != nil {
@@ -256,6 +259,10 @@ func (metisPay *MetisPayManager) GenerateOrgWallet() (string, error) {
 	if nil != err {
 		log.WithError(err).Error("Failed to check if organization wallet exists")
 		return "", errors.New("cannot generate organization wallet")
+	}
+	if wallet != nil {
+		log.WithError(err).Error("cannot regenerate organization wallet")
+		return "", errors.New("cannot regenerate organization wallet")
 	}
 
 	key, _ := crypto.GenerateKey()

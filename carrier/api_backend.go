@@ -3,6 +3,7 @@ package carrier
 import (
 	"bytes"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
 	"github.com/RosettaFlow/Carrier-Go/common/rlputil"
@@ -599,11 +600,15 @@ func (s *CarrierAPIBackend) ReportTaskResourceUsage(nodeType pb.NodeType, ip, po
 }
 
 func (s *CarrierAPIBackend) GenerateObServerProxyWalletAddress() (string, error) {
-	if addr, err := s.carrier.metisPayManager.GenerateOrgWallet(); nil != err {
-		log.WithError(err).Error("Failed to call GenerateOrgWallet() on CarrierAPIBackend.GenerateObServerProxyWalletAddress()")
-		return "", err
+	if s.carrier.metisPayManager != nil {
+		if addr, err := s.carrier.metisPayManager.GenerateOrgWallet(); nil != err {
+			log.WithError(err).Error("Failed to call GenerateOrgWallet() on CarrierAPIBackend.GenerateObServerProxyWalletAddress()")
+			return "", err
+		} else {
+			return addr, nil
+		}
 	} else {
-		return addr, nil
+		return "", errors.New("MetisPay manager not initialized properly")
 	}
 }
 
