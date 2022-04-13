@@ -70,6 +70,7 @@ type LocalStoreCarrierDB interface {
 	QueryTaskMsgArr() (types.TaskMsgArr, error)
 
 	StoreOrgWallet(orgWallet *types.OrgWallet) error
+	// QueryOrgWallet does not return ErrNotFound if the organization wallet not found.
 	QueryOrgWallet() (*types.OrgWallet, error)
 }
 

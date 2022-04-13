@@ -3,6 +3,7 @@ package carrier
 import (
 	"bytes"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
 	"github.com/RosettaFlow/Carrier-Go/common/rlputil"
@@ -83,8 +84,13 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 		nodeInfo.LocalMultiAddr = selfMultiAddrs[0].String()
 	}
 
-	// TODO add the observer proxy wallet address
-	nodeInfo.ObserverProxyWalletAddress = ""
+	if addr, err := s.carrier.metisPayManager.QueryOrgWallet(); err == nil {
+		nodeInfo.ObserverProxyWalletAddress = addr
+	} else {
+		log.WithError(err).Errorf("cannot load organization wallet of node info: %v", err)
+		return nil, err
+	}
+
 	return nodeInfo, nil
 }
 
@@ -604,11 +610,15 @@ func (s *CarrierAPIBackend) ReportTaskResourceUsage(nodeType pb.NodeType, ip, po
 }
 
 func (s *CarrierAPIBackend) GenerateObServerProxyWalletAddress() (string, error) {
-	if addr, err := s.carrier.metisPayManager.GenerateOrgWallet(); nil != err {
-		log.WithError(err).Error("Failed to call GenerateOrgWallet() on CarrierAPIBackend.GenerateObServerProxyWalletAddress()")
-		return "", err
+	if s.carrier.metisPayManager != nil {
+		if addr, err := s.carrier.metisPayManager.GenerateOrgWallet(); nil != err {
+			log.WithError(err).Error("Failed to call GenerateOrgWallet() on CarrierAPIBackend.GenerateObServerProxyWalletAddress()")
+			return "", err
+		} else {
+			return addr, nil
+		}
 	} else {
-		return addr, nil
+		return "", errors.New("MetisPay manager not initialized properly")
 	}
 }
 
@@ -621,23 +631,16 @@ func (s *CarrierAPIBackend) GetInternalMetadataDetail(metadataId string) (*types
 	// find internal metadata
 	metadata, err := s.carrier.carrierDB.QueryInternalMetadataById(metadataId)
 	if rawdb.IsNoDBNotFoundErr(err) {
-		return nil, fmt.Errorf("not found internal metadata by metadataId, %s", err)
-	}
-	if nil == metadata {
-		return nil, fmt.Errorf("not found internal metadata by metadataId, metadata is empty")
+		return nil, fmt.Errorf("found internal metadata by metadataId failed, %s", err)
 	}
 	return metadata, nil
 }
 
 func (s *CarrierAPIBackend) GetMetadataDetail(metadataId string) (*types.Metadata, error) {
-
 	// find global metadata
 	metadata, err := s.carrier.carrierDB.QueryMetadataById(metadataId)
 	if nil != err {
-		return nil, fmt.Errorf("not found global metadata by metadataId, %s", err)
-	}
-	if nil == metadata {
-		return nil, fmt.Errorf("not found metadata by metadataId, metadata is empty")
+		return nil, fmt.Errorf("global metadata by metadataId failed, %s", err)
 	}
 	return metadata, nil
 }

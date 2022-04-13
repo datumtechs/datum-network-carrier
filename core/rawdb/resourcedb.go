@@ -1541,6 +1541,7 @@ func StoreOrgWallet(db db.Database, orgWallet *types.OrgWallet) error {
 	return db.Put(key, val)
 }
 
+// QueryOrgWallet does not return ErrNotFound if the organization wallet not found.
 func QueryOrgWallet(db DatabaseReader) (*types.OrgWallet, error) {
 	key := GetOrgWalletKeyPrefix()
 	if has, err := db.Has(key); err != nil {
@@ -1549,13 +1550,13 @@ func QueryOrgWallet(db DatabaseReader) (*types.OrgWallet, error) {
 		if val, err := db.Get(key); err != nil {
 			return nil, err
 		} else {
-			var res *types.OrgWallet
-			if err := rlp.DecodeBytes(val, res); err != nil {
+			var wallet *types.OrgWallet
+			if err := rlp.DecodeBytes(val, wallet); err != nil {
 				return nil, err
 			} else {
-				return res, nil
+				return wallet, nil
 			}
 		}
 	}
-	return nil, ErrNotFound
+	return nil, nil
 }
