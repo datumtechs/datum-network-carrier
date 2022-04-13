@@ -8,9 +8,8 @@ import (
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
+	"github.com/RosettaFlow/Carrier-Go/signsuite"
 	"github.com/RosettaFlow/Carrier-Go/types"
-	etypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/crypto"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"strings"
 )
@@ -183,16 +182,15 @@ func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *pb.ApplyMeta
 	if len(req.GetSign()) == 0 {
 		return &pb.ApplyMetadataAuthorityResponse{ Status: backend.ErrApplyMetadataAuthority.ErrCode(), Msg: "the user signature is nil"}, nil
 	}
-	signer := etypes.NewEIP155Signer(svr.B.GetCarrierChainConfig().BlockChainIdCache[req.GetUserType()])
-	from, err := signer.Sender(tx)
+	from, err := signsuite.Sender(req.GetUserType(), req.GetSign())
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:ApplyMetadataAuthority failed, cannot fetch sender from sign, userType: {%s}, user: {%s}",
 			req.GetUserType().String(), req.GetUser())
 		return &pb.ApplyMetadataAuthorityResponse{ Status: backend.ErrApplyMetadataAuthority.ErrCode(), Msg: "cannot fetch sender from sign"}, nil
 	}
-	if from.Hex() != req.GetUser() {
+	if from != req.GetUser() {
 		log.WithError(err).Errorf("RPC-API:ApplyMetadataAuthority failed, sender from sign and user is not sameone, userType: {%s}, user: {%s}, sender of sign: {%s}",
-			req.GetUserType().String(), req.GetUser(), from.Hex())
+			req.GetUserType().String(), req.GetUser(), from)
 		return &pb.ApplyMetadataAuthorityResponse{ Status: backend.ErrApplyMetadataAuthority.ErrCode(), Msg: "the user sign is invalid"}, nil
 	}
 
@@ -317,6 +315,17 @@ func (svr *Server) RevokeMetadataAuthority(ctx context.Context, req *pb.RevokeMe
 	}
 	if len(req.GetSign()) == 0 {
 		return &libtypes.SimpleResponse{ Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "the user signature is nil"}, nil
+	}
+	from, err := signsuite.Sender(req.GetUserType(), req.GetSign())
+	if nil != err {
+		log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, cannot fetch sender from sign, userType: {%s}, user: {%s}",
+			req.GetUserType().String(), req.GetUser())
+		return &libtypes.SimpleResponse{ Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "cannot fetch sender from sign"}, nil
+	}
+	if from != req.GetUser() {
+		log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, sender from sign and user is not sameone, userType: {%s}, user: {%s}, sender of sign: {%s}",
+			req.GetUserType().String(), req.GetUser(), from)
+		return &libtypes.SimpleResponse{ Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "the user sign is invalid"}, nil
 	}
 
 	authorityList, err := svr.B.GetLocalMetadataAuthorityList(timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
@@ -482,11 +491,11 @@ func (svr *Server) GetGlobalMetadataAuthorityList(ctx context.Context, req *pb.G
 
 func verifyUserType(userType libtypes.UserType) bool {
 	switch userType {
-	case libtypes.UserType_User_1:
+	case libtypes.UserType_User_1: // PlatON
 		return true
-	case libtypes.UserType_User_2:
+	case libtypes.UserType_User_2: // Alaya
 		return true
-	case libtypes.UserType_User_3:
+	case libtypes.UserType_User_3: // Ethereum
 		return true
 	default:
 		return false

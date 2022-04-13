@@ -8,6 +8,7 @@ import (
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
+	"github.com/RosettaFlow/Carrier-Go/signsuite"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"strings"
@@ -219,6 +220,17 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 		log.Errorf("RPC-API:PublishTaskDeclare failed, check sign failed, sign is empty")
 		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require sign"}, nil
 	}
+	from, err := signsuite.Sender(req.GetUserType(), req.GetSign())
+	if nil != err {
+		log.WithError(err).Errorf("RPC-API:PublishTaskDeclare failed, cannot fetch sender from sign, userType: {%s}, user: {%s}",
+			req.GetUserType().String(), req.GetUser())
+		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "cannot fetch sender from sign"}, nil
+	}
+	if from != req.GetUser() {
+		log.WithError(err).Errorf("RPC-API:PublishTaskDeclare failed, sender from sign and user is not sameone, userType: {%s}, user: {%s}, sender of sign: {%s}",
+			req.GetUserType().String(), req.GetUser(), from)
+		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "the user sign is invalid"}, nil
+	}
 	// Maybe the desc is empty,
 	// Because desc is not necessary.
 	//
@@ -309,6 +321,17 @@ func (svr *Server) TerminateTask(ctx context.Context, req *pb.TerminateTaskReque
 	}
 	if len(req.GetSign()) == 0 {
 		return &libtypes.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require sign"}, nil
+	}
+	from, err := signsuite.Sender(req.GetUserType(), req.GetSign())
+	if nil != err {
+		log.WithError(err).Errorf("RPC-API:TerminateTask failed, cannot fetch sender from sign, userType: {%s}, user: {%s}",
+			req.GetUserType().String(), req.GetUser())
+		return &libtypes.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "cannot fetch sender from sign"}, nil
+	}
+	if from != req.GetUser() {
+		log.WithError(err).Errorf("RPC-API:TerminateTask failed, sender from sign and user is not sameone, userType: {%s}, user: {%s}, sender of sign: {%s}",
+			req.GetUserType().String(), req.GetUser(), from)
+		return &libtypes.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "the user sign is invalid"}, nil
 	}
 
 	task, err := svr.B.GetLocalTask(req.GetTaskId())
