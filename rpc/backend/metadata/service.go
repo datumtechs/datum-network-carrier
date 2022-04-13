@@ -177,6 +177,11 @@ func (svr *Server) BindDataTokenAddress(ctx context.Context, req *pb.BindDataTok
 		log.Errorf("RPC-API:BindDataTokenAddress failed, not found metadata")
 		return &libtypes.SimpleResponse{Status: backend.ErrBindDataTokenAddress.ErrCode(), Msg: fmt.Sprintf("%s, not found metadata", backend.ErrBindDataTokenAddress.Error())}, nil
 	}
+	if "" != metadata.GetData().GetTokenAddress() {
+		log.Errorf("RPC-API:BindDataTokenAddress failed, the metadata had tokenAddress already")
+		return &libtypes.SimpleResponse{Status: backend.ErrBindDataTokenAddress.ErrCode(), Msg: fmt.Sprintf("%s, the metadata had tokenAddress already", backend.ErrBindDataTokenAddress.Error())}, nil
+
+	}
 
 	metadata.GetData().TokenAddress = strings.Trim(req.GetTokenAddress(), "")
 	if err := svr.B.UpdateGlobalMetadata(metadata); nil != err {
