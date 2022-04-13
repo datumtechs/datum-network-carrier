@@ -8,7 +8,6 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/event"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
-	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	lru "github.com/hashicorp/golang-lru"
 	"sync"
@@ -20,7 +19,7 @@ const (
 )
 
 type DataChain struct {
-	chainConfig *params.CarrierChainConfig // network configuration
+	chainConfig *types.CarrierChainConfig // network configuration
 
 	db        db.Database // Low level persistent database to store final content.
 	chainFeed event.Feed
@@ -42,7 +41,7 @@ type DataChain struct {
 }
 
 // NewDataChain returns a fully initialised data chain using information available in the database.
-func NewDataChain(ctx context.Context, db db.Database, chainConfig *params.CarrierChainConfig) (*DataChain, error) {
+func NewDataChain(ctx context.Context, db db.Database, chainConfig *types.CarrierChainConfig) (*DataChain, error) {
 	blockCache, _ := lru.New(blockCacheLimit)
 	bodyCache, _ := lru.New(blockCacheLimit)
 	bodyPbCache, _ := lru.New(blockCacheLimit)
@@ -309,7 +308,7 @@ func (dc *DataChain) GetJobNodeRunningTaskIdList (jobNodeId string) []string {
 //}
 
 // Config retrieves the datachain's chain configuration.
-func (dc *DataChain) Config() *params.CarrierChainConfig { return dc.chainConfig }
+func (dc *DataChain) Config() *types.CarrierChainConfig { return dc.chainConfig }
 
 // Stop stops the DataChain service. If any imports are currently in progress
 // it will abort them using the procInterrupt.

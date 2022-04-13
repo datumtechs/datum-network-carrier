@@ -12,6 +12,7 @@ import (
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	"github.com/RosettaFlow/Carrier-Go/lib/fighter/computesvc"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/RosettaFlow/Carrier-Go/policy"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -26,6 +27,10 @@ type CarrierAPIBackend struct {
 
 func NewCarrierAPIBackend(carrier *Service) *CarrierAPIBackend {
 	return &CarrierAPIBackend{carrier: carrier}
+}
+
+func (s *CarrierAPIBackend) GetCarrierChainConfig() *types.CarrierChainConfig {
+	return params.CarrierConfig()
 }
 
 func (s *CarrierAPIBackend) SendMsg(msg types.Msg) error {

@@ -1,6 +1,9 @@
 package params
 
-import "math/big"
+import (
+	"github.com/RosettaFlow/Carrier-Go/types"
+	"math/big"
+)
 
 func UseTestnetNetworkConfig() {
 	cfg := CarrierNetworkConfig().Copy()
@@ -14,7 +17,7 @@ func UseTestnetConfig() {
 	OverrideCarrierConfig(cfg)
 }
 
-func TestnetConfig() *CarrierChainConfig {
+func TestnetConfig() *types.CarrierChainConfig {
 	cfg := MainnetConfig().Copy()
 	//TODO: could be set some extra config.
 	cfg.ChainID = big.NewInt(1111)	// eg.

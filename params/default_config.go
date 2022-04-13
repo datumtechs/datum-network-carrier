@@ -1,12 +1,14 @@
 package params
 
-import "github.com/mohae/deepcopy"
+import (
+	"github.com/RosettaFlow/Carrier-Go/types"
+)
 
 // use Default config
 var carrierConfig = MainnetConfig()
 
 // CarrierConfig retrieves carrier chain config.
-func CarrierConfig() *CarrierChainConfig {
+func CarrierConfig() *types.CarrierChainConfig {
 	return carrierConfig
 }
 
@@ -14,15 +16,6 @@ func CarrierConfig() *CarrierChainConfig {
 // call BeaconConfig(), change the specific parameters, and then call
 // OverrideCarrierConfig(c). Any subsequent calls to params.CarrierConfig() will
 // return this new configuration.
-func OverrideCarrierConfig(c *CarrierChainConfig) {
+func OverrideCarrierConfig(c *types.CarrierChainConfig) {
 	carrierConfig = c
-}
-
-// Copy returns a copy of the config object.
-func (c *CarrierChainConfig) Copy() *CarrierChainConfig {
-	config, ok := deepcopy.Copy(*c).(CarrierChainConfig)
-	if !ok {
-		config = *carrierConfig
-	}
-	return &config
 }

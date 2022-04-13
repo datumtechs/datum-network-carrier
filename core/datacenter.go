@@ -8,7 +8,6 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
-	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/sirupsen/logrus"
 	"sync"
@@ -18,7 +17,7 @@ import (
 // DataCenter is mainly responsible for communicating with the data center service
 type DataCenter struct {
 	ctx       context.Context
-	config    *params.CarrierChainConfig
+	config    *types.CarrierChainConfig
 	client    *grpclient.GrpcClient
 	mu        sync.RWMutex // global mutex for locking data center operations.
 	serviceMu sync.RWMutex // data processor lock
@@ -53,7 +52,7 @@ func (dc *DataCenter) GrpcClient() *grpclient.GrpcClient {
 	return dc.client
 }
 
-func (dc *DataCenter) SetConfig (config *params.CarrierChainConfig) error {
+func (dc *DataCenter) SetConfig (config *types.CarrierChainConfig) error {
 	log.Infof("Start build datacenter rpcClient, %s", fmt.Sprintf("%v:%v", config.GrpcUrl, config.Port))
 	if config.GrpcUrl == "" || config.Port == 0 {
 		panic("Invalid Grpc Config.")
