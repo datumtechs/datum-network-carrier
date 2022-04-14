@@ -1,6 +1,7 @@
 package chaincons
 
 import (
+	"github.com/RosettaFlow/Carrier-Go/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/libp2p/go-libp2p-core/peer"
 	log "github.com/sirupsen/logrus"
@@ -22,4 +23,5 @@ func (c *Chaincons) Stop() error {
 func (c *Chaincons)OnPrepare(task *types.NeedConsensusTask) error {return nil}
 func (c *Chaincons)OnHandle(task *types.NeedConsensusTask) error {return nil}
 func (c *Chaincons) OnConsensusMsg(pid peer.ID, msg types.ConsensusMsg) error {return nil}
+func (c *Chaincons) GetConsensusStateInfo() *twopc.ConsensusStateInfo {return &twopc.ConsensusStateInfo{}}
 func (c *Chaincons) OnError() error  {return nil}
