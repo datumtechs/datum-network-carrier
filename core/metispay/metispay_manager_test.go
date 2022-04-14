@@ -12,7 +12,9 @@ var (
 
 func TestPrepayReceipt(t *testing.T) {
 	ch := make(chan *prepayReceipt)
-	ticker := time.Tick(1 * time.Second)
+	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
+
 	var receipt *prepayReceipt
 LOOP:
 	for {
@@ -20,7 +22,7 @@ LOOP:
 		case receipt = <-ch:
 			t.Log("get the receipt")
 			break LOOP
-		case <-ticker:
+		case <-ticker.C:
 			t.Log("try to get the receipt")
 			go getPrepayReceipt(common.HexToHash("0x00"), ch)
 		}

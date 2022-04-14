@@ -347,6 +347,8 @@ func (metisPay *MetisPayManager) Prepay(taskID *big.Int, userAccount common.Addr
 
 	ch := make(chan *prepayReceipt)
 	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
+
 	var receipt *prepayReceipt
 
 LOOP:
@@ -425,6 +427,8 @@ func (metisPay *MetisPayManager) Settle(taskID *big.Int, gasRefundPrepayment int
 
 	ch := make(chan bool)
 	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
+
 	var result bool
 
 LOOP:
