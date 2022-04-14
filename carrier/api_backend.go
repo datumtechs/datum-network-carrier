@@ -610,6 +610,7 @@ func (s *CarrierAPIBackend) GenerateObServerProxyWalletAddress() (string, error)
 			log.WithError(err).Error("Failed to call GenerateOrgWallet() on CarrierAPIBackend.GenerateObServerProxyWalletAddress()")
 			return "", err
 		} else {
+			log.Debugf("Success to generate organization wallet %s", addr)
 			return addr, nil
 		}
 	} else {

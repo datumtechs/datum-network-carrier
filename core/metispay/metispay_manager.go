@@ -73,10 +73,9 @@ func (metisPay *MetisPayManager) loadPrivateKey() {
 		log.Warnf("organization wallet not found, please generate it.")
 		return
 	} else {
-		metisPay.Config.walletAddress = wallet.GetAddress()
-
+		metisPay.Config.walletAddress = wallet.Address
 		if metisPay.Kms != nil {
-			if key, err := metisPay.Kms.Decrypt(wallet.GetPriKey()); err != nil {
+			if key, err := metisPay.Kms.Decrypt(wallet.PriKey); err != nil {
 				log.Errorf("decrypt organization wallet private key error: %v", err)
 				return
 			} else {
@@ -89,7 +88,7 @@ func (metisPay *MetisPayManager) loadPrivateKey() {
 
 			}
 		} else {
-			key, err := crypto.HexToECDSA(wallet.GetPriKey())
+			key, err := crypto.HexToECDSA(wallet.PriKey)
 			if err != nil {
 				log.Errorf("not a valid private key hex: %v", err)
 				return
@@ -274,12 +273,12 @@ func (metisPay *MetisPayManager) QueryOrgWallet() (string, error) {
 	wallet, err := metisPay.dataCenter.QueryOrgWallet()
 
 	if nil != err {
-		log.WithError(err).Error("failed to query organization wallet. %v", err)
+		log.WithError(err).Error("failed to query organization wallet. ", err)
 		return "", errors.New("failed to query organization wallet")
 	}
 
 	if wallet != nil {
-		return wallet.GetAddress().Hex(), nil
+		return wallet.Address.Hex(), nil
 	}
 
 	return "", nil
@@ -291,6 +290,7 @@ func (metisPay *MetisPayManager) GenerateOrgWallet() (string, error) {
 		return "", err
 	}
 	if len(walletAddr) > 0 {
+		log.Warnf("organization wallet exists, just retuens current wallet: %s", walletAddr)
 		return walletAddr, nil
 	}
 
@@ -307,8 +307,8 @@ func (metisPay *MetisPayManager) GenerateOrgWallet() (string, error) {
 	}
 
 	wallet := new(types.OrgWallet)
-	wallet.SetPriKey(keyHex)
-	wallet.SetAddress(addr)
+	wallet.PriKey = keyHex
+	wallet.Address = addr
 	if err := metisPay.dataCenter.StoreOrgWallet(wallet); err != nil {
 		log.WithError(err).Error("Failed to store organization wallet")
 		return "", errors.New("failed to store organization wallet")

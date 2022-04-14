@@ -1550,7 +1550,7 @@ func QueryOrgWallet(db DatabaseReader) (*types.OrgWallet, error) {
 		if val, err := db.Get(key); err != nil {
 			return nil, err
 		} else {
-			var wallet *types.OrgWallet
+			wallet := new(types.OrgWallet)
 			if err := rlp.DecodeBytes(val, wallet); err != nil {
 				return nil, err
 			} else {
