@@ -346,13 +346,17 @@ func (metisPay *MetisPayManager) Prepay(taskID *big.Int, userAccount common.Addr
 	response.txHash = tx.Hash()
 
 	ch := make(chan *prepayReceipt)
-	ticker := time.Tick(1 * time.Second)
+	ticker := time.NewTicker(1 * time.Second)
 	var receipt *prepayReceipt
-	select {
-	case receipt = <-ch:
-		break
-	case <-ticker:
-		go metisPay.getPrepayReceipt(tx.Hash(), ch)
+
+LOOP:
+	for {
+		select {
+		case receipt = <-ch:
+			break LOOP
+		case <-ticker.C:
+			go metisPay.getPrepayReceipt(tx.Hash(), ch)
+		}
 	}
 
 	if receipt != nil && !receipt.success {
@@ -420,12 +424,14 @@ func (metisPay *MetisPayManager) Settle(taskID *big.Int, gasRefundPrepayment int
 	log.Debugf("call constract's Settle txHash:%v, taskID:%s ", tx.Hash().Hex(), hexutil.EncodeBig(taskID))
 
 	ch := make(chan bool)
-	ticker := time.Tick(1 * time.Second)
+	ticker := time.NewTicker(1 * time.Second)
 	var result bool
+
+LOOP:
 	select {
 	case result = <-ch:
-		break
-	case <-ticker:
+		break LOOP
+	case <-ticker.C:
 		go metisPay.getSettleReceipt(tx.Hash(), ch)
 	}
 	return result
