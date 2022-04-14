@@ -627,23 +627,16 @@ func (s *CarrierAPIBackend) GetInternalMetadataDetail(metadataId string) (*types
 	// find internal metadata
 	metadata, err := s.carrier.carrierDB.QueryInternalMetadataById(metadataId)
 	if rawdb.IsNoDBNotFoundErr(err) {
-		return nil, fmt.Errorf("not found internal metadata by metadataId, %s", err)
-	}
-	if nil == metadata {
-		return nil, fmt.Errorf("not found internal metadata by metadataId, metadata is empty")
+		return nil, fmt.Errorf("found internal metadata by metadataId failed, %s", err)
 	}
 	return metadata, nil
 }
 
 func (s *CarrierAPIBackend) GetMetadataDetail(metadataId string) (*types.Metadata, error) {
-
 	// find global metadata
 	metadata, err := s.carrier.carrierDB.QueryMetadataById(metadataId)
 	if nil != err {
-		return nil, fmt.Errorf("not found global metadata by metadataId, %s", err)
-	}
-	if nil == metadata {
-		return nil, fmt.Errorf("not found metadata by metadataId, metadata is empty")
+		return nil, fmt.Errorf("global metadata by metadataId failed, %s", err)
 	}
 	return metadata, nil
 }

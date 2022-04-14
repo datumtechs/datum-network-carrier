@@ -106,8 +106,8 @@ func (dc *DataCenter) UpdateGlobalMetadata(metadata *types.Metadata) error {
 		log.WithError(err).WithField("hash", metadata.Hash()).Errorf("UpdateMetadata failed")
 		return err
 	}
-	if response.Status != 0 {
-		return fmt.Errorf("update metadata error: %s", response.Msg)
+	if response.GetStatus() != 0 {
+		return fmt.Errorf("update metadata failed: resp.status: %d, resp.msg: %s", response.GetStatus(), response.GetMsg())
 	}
 	return nil
 }
