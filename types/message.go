@@ -206,23 +206,27 @@ func (msg *PowerMsg) Hash() common.Hash {
 
 	var buf bytes.Buffer
 	buf.Write([]byte(msg.GetJobNodeId()))
-	buf.Write([]byte(msg.GetPowerId()))
-	buf.Write(bytesutil.Uint64ToBytes(msg.GetCreateAt()))
+
 	v := rlputil.RlpHash(buf.Bytes())
 	msg.hash.Store(v)
 	return v
 }
 
 func (msg *PowerMsg) HashByCreateTime() common.Hash {
+
 	var buf bytes.Buffer
 	buf.Write([]byte(msg.GetJobNodeId()))
 	buf.Write(bytesutil.Uint64ToBytes(timeutils.UnixMsecUint64()))
+
 	return rlputil.RlpHash(buf.Bytes())
 }
 
 type PowerRevokeMsg struct {
 	PowerId  string `json:"powerId"`
 	CreateAt uint64 `json:"createAt"`
+
+	// caches
+	hash atomic.Value
 }
 
 func NewPowerRevokeMessageFromRequest(req *pb.RevokePowerRequest) *PowerRevokeMsg {
@@ -244,6 +248,19 @@ func (msg *PowerRevokeMsg) String() string {
 	return string(result)
 }
 func (msg *PowerRevokeMsg) MsgType() string { return MSG_POWER_REVOKE }
+func (msg *PowerRevokeMsg) Hash() common.Hash {
+	if hash := msg.hash.Load(); hash != nil {
+		return hash.(common.Hash)
+	}
+
+	var buf bytes.Buffer
+	buf.Write([]byte(msg.GetPowerId()))
+
+	v := rlputil.RlpHash(buf.Bytes())
+	msg.hash.Store(v)
+	return v
+}
+
 
 type PowerMsgArr []*PowerMsg
 type PowerRevokeMsgArr []*PowerRevokeMsg
@@ -332,14 +349,16 @@ func (msg *MetadataMsg) GetMetadataSummary() *libtypes.MetadataSummary {
 }
 
 func (msg *MetadataMsg) GetMetadataName() string { return msg.GetMetadataSummary().MetadataName }
-func (msg *MetadataMsg) GetMetadataType() libtypes.MetadataType { return msg.GetMetadataSummary().MetadataType }
-func (msg *MetadataMsg) GetDataHash() string     { return msg.GetMetadataSummary().DataHash }
-func (msg *MetadataMsg) GetDesc() string         { return msg.GetMetadataSummary().Desc }
-func (msg *MetadataMsg) GetType() libtypes.OrigindataType {
-	return msg.GetMetadataSummary().DataType
+func (msg *MetadataMsg) GetMetadataType() libtypes.MetadataType {
+	return msg.GetMetadataSummary().MetadataType
 }
+func (msg *MetadataMsg) GetDataHash() string { return msg.GetMetadataSummary().DataHash }
+func (msg *MetadataMsg) GetDesc() string     { return msg.GetMetadataSummary().Desc }
 func (msg *MetadataMsg) GetLocationType() libtypes.DataLocationType {
 	return msg.GetMetadataSummary().LocationType
+}
+func (msg *MetadataMsg) GetDataType() libtypes.OrigindataType {
+	return msg.GetMetadataSummary().DataType
 }
 func (msg *MetadataMsg) GetNonce() uint64 { return msg.GetMetadataSummary().Nonce }
 func (msg *MetadataMsg) GetState() libtypes.MetadataState {
@@ -347,6 +366,7 @@ func (msg *MetadataMsg) GetState() libtypes.MetadataState {
 }
 func (msg *MetadataMsg) GetIndustry() string       { return msg.GetMetadataSummary().Industry }
 func (msg *MetadataMsg) GetMetadataOption() string { return msg.GetMetadataSummary().MetadataOption }
+func (msg *MetadataMsg) GetAllowExpose() bool      { return msg.GetMetadataSummary().AllowExpose }
 func (msg *MetadataMsg) GetCreateAt() uint64       { return msg.CreateAt }
 func (msg *MetadataMsg) GetMetadataId() string     { return msg.GetMetadataSummary().MetadataId }
 
@@ -371,11 +391,10 @@ func (msg *MetadataMsg) Hash() common.Hash {
 	DataType             OrigindataType
 	Industry             string
 	State                MetadataState
-	PublishAt            uint64
-	UpdateAt             uint64
 	Nonce                uint64
 	MetadataOption       string
 	AllowExpose          bool
+
 	*/
 	var buf bytes.Buffer
 	buf.Write([]byte(msg.GetMetadataName()))
@@ -388,7 +407,8 @@ func (msg *MetadataMsg) Hash() common.Hash {
 	buf.Write([]byte(msg.GetState().String()))
 	buf.Write(bytesutil.Uint64ToBytes(msg.GetNonce()))
 	buf.Write([]byte(msg.GetMetadataOption()))
-	buf.Write(bytesutil.Uint64ToBytes(timeutils.UnixMsecUint64()))
+	buf.Write([]byte{bytesutil.FromBool(msg.GetAllowExpose())})
+
 	v := rlputil.RlpHash(buf.Bytes())
 	msg.hash.Store(v)
 	return v
@@ -396,17 +416,18 @@ func (msg *MetadataMsg) Hash() common.Hash {
 
 func (msg *MetadataMsg) HashByCreateTime() common.Hash {
 
-
 	var buf bytes.Buffer
 	buf.Write([]byte(msg.GetMetadataName()))
 	buf.Write([]byte(msg.GetMetadataType().String()))
 	buf.Write([]byte(msg.GetDataHash()))
 	buf.Write([]byte(msg.GetDesc()))
+	buf.Write([]byte(msg.GetLocationType().String()))
 	buf.Write([]byte(msg.GetDataType().String()))
 	buf.Write([]byte(msg.GetIndustry()))
 	buf.Write([]byte(msg.GetState().String()))
 	buf.Write(bytesutil.Uint64ToBytes(msg.GetNonce()))
 	buf.Write([]byte(msg.GetMetadataOption()))
+	buf.Write([]byte{bytesutil.FromBool(msg.GetAllowExpose())})
 	buf.Write(bytesutil.Uint64ToBytes(timeutils.UnixMsecUint64()))
 
 	return rlputil.RlpHash(buf.Bytes())
@@ -415,6 +436,8 @@ func (msg *MetadataMsg) HashByCreateTime() common.Hash {
 type MetadataRevokeMsg struct {
 	MetadataId string `json:"metadataId"`
 	CreateAt   uint64 `json:"createAt"`
+	// caches
+	hash atomic.Value
 }
 
 func NewMetadataRevokeMessageFromRequest(req *pb.RevokeMetadataRequest) *MetadataRevokeMsg {
@@ -447,6 +470,22 @@ func (msg *MetadataRevokeMsg) String() string {
 	return string(result)
 }
 func (msg *MetadataRevokeMsg) MsgType() string { return MSG_METADATA_REVOKE }
+func (msg *MetadataRevokeMsg) Hash() common.Hash {
+	if hash := msg.hash.Load(); hash != nil {
+		return hash.(common.Hash)
+	}
+
+	/**
+	MetadataId         string
+	*/
+	var buf bytes.Buffer
+	buf.Write([]byte(msg.GetMetadataId()))
+	v := rlputil.RlpHash(buf.Bytes())
+
+	msg.hash.Store(v)
+	return v
+}
+
 
 type MetadataMsgArr []*MetadataMsg
 type MetadataRevokeMsgArr []*MetadataRevokeMsg
@@ -499,7 +538,7 @@ func (msg *MetadataAuthorityMsg) GetMetadataAuthority() *types.MetadataAuthority
 func (msg *MetadataAuthorityMsg) GetMetadataAuthorityOwner() *libtypes.Organization {
 	return msg.Auth.GetOwner()
 }
-func (msg *MetadataAuthorityMsg) GetMetadataAuthorityOwnerIdentity() string {
+func (msg *MetadataAuthorityMsg) GetMetadataAuthorityOwnerIdentityId() string {
 	return msg.Auth.GetOwner().GetIdentityId()
 }
 func (msg *MetadataAuthorityMsg) GetMetadataAuthorityOwnerNodeId() string {
@@ -507,6 +546,12 @@ func (msg *MetadataAuthorityMsg) GetMetadataAuthorityOwnerNodeId() string {
 }
 func (msg *MetadataAuthorityMsg) GetMetadataAuthorityOwnerNodeName() string {
 	return msg.Auth.GetOwner().GetNodeName()
+}
+func (msg *MetadataAuthorityMsg) GetMetadataAuthorityOwnerImageUrl() string {
+	return msg.Auth.GetOwner().GetImageUrl()
+}
+func (msg *MetadataAuthorityMsg) GetMetadataAuthorityOwnerDetails() string {
+	return msg.Auth.GetOwner().GetDetails()
 }
 func (msg *MetadataAuthorityMsg) GetMetadataAuthorityMetadataId() string {
 	return msg.Auth.GetMetadataId()
@@ -524,30 +569,63 @@ func (msg *MetadataAuthorityMsg) GenMetadataAuthId() string {
 	msg.MetadataAuthId = PREFIX_METADATA_AUTH_ID + msg.HashByCreateTime().Hex()
 	return msg.GetMetadataAuthId()
 }
+
 func (msg *MetadataAuthorityMsg) Hash() common.Hash {
 	if hash := msg.hash.Load(); hash != nil {
 		return hash.(common.Hash)
 	}
-
-	b, _ := msg.GetMetadataAuthority().Marshal()
+	/**
+	MetadataId
+	User
+	UserType
+	NodeName
+	NodeId
+	IdentityId
+	ImageUrl
+	Details
+	UsageType
+	StartAt     `
+	EndAt          `
+	Times
+	 */
 	var buf bytes.Buffer
+
+	buf.Write([]byte(msg.GetMetadataAuthorityMetadataId()))
 	buf.Write([]byte(msg.GetUser()))
 	buf.Write([]byte(msg.GetUserType().String()))
-	buf.Write([]byte(msg.GetMetadataAuthorityMetadataId()))
-	buf.Write(b)
-	buf.Write(msg.GetSign())
-	buf.Write(bytesutil.Uint64ToBytes(msg.CreateAt))
+	buf.Write([]byte(msg.GetMetadataAuthorityOwnerNodeName()))
+	buf.Write([]byte(msg.GetMetadataAuthorityOwnerNodeId()))
+	buf.Write([]byte(msg.GetMetadataAuthorityOwnerIdentityId()))
+	buf.Write([]byte(msg.GetMetadataAuthorityOwnerImageUrl()))
+	buf.Write([]byte(msg.GetMetadataAuthorityOwnerDetails()))
+	buf.Write([]byte(msg.GetMetadataAuthorityUsageRule().GetUsageType().String()))
+	buf.Write(bytesutil.Uint64ToBytes(msg.GetMetadataAuthorityUsageRule().GetStartAt()))
+	buf.Write(bytesutil.Uint64ToBytes(msg.GetMetadataAuthorityUsageRule().GetEndAt()))
+	buf.Write(bytesutil.Uint32ToBytes(msg.GetMetadataAuthorityUsageRule().GetTimes()))
+
 	v := rlputil.RlpHash(buf.Bytes())
 	msg.hash.Store(v)
 	return v
 }
 
 func (msg *MetadataAuthorityMsg) HashByCreateTime() common.Hash {
+
 	var buf bytes.Buffer
+
 	buf.Write([]byte(msg.GetUser()))
 	buf.Write([]byte(msg.GetUserType().String()))
 	buf.Write([]byte(msg.GetMetadataAuthorityMetadataId()))
+	buf.Write([]byte(msg.GetMetadataAuthorityOwnerNodeName()))
+	buf.Write([]byte(msg.GetMetadataAuthorityOwnerNodeId()))
+	buf.Write([]byte(msg.GetMetadataAuthorityOwnerIdentityId()))
+	buf.Write([]byte(msg.GetMetadataAuthorityOwnerImageUrl()))
+	buf.Write([]byte(msg.GetMetadataAuthorityOwnerDetails()))
+	buf.Write([]byte(msg.GetMetadataAuthorityUsageRule().GetUsageType().String()))
+	buf.Write(bytesutil.Uint64ToBytes(msg.GetMetadataAuthorityUsageRule().GetStartAt()))
+	buf.Write(bytesutil.Uint64ToBytes(msg.GetMetadataAuthorityUsageRule().GetEndAt()))
+	buf.Write(bytesutil.Uint32ToBytes(msg.GetMetadataAuthorityUsageRule().GetTimes()))
 	buf.Write(bytesutil.Uint64ToBytes(timeutils.UnixMsecUint64()))
+
 	return rlputil.RlpHash(buf.Bytes())
 }
 
@@ -563,18 +641,20 @@ func (msg *MetadataAuthorityMsg) String() string {
 func (msg *MetadataAuthorityMsg) MsgType() string { return MSG_METADATAAUTHORITY }
 
 type MetadataAuthorityRevokeMsg struct {
+	MetadataAuthId string
 	User           string
 	UserType       libtypes.UserType
-	MetadataAuthId string
 	Sign           []byte
 	CreateAt       uint64
+	// caches
+	hash atomic.Value
 }
 
 func NewMetadataAuthorityRevokeMessageFromRequest(req *pb.RevokeMetadataAuthorityRequest) *MetadataAuthorityRevokeMsg {
 	return &MetadataAuthorityRevokeMsg{
+		MetadataAuthId: req.GetMetadataAuthId(),
 		User:           req.GetUser(),
 		UserType:       req.GetUserType(),
-		MetadataAuthId: req.GetMetadataAuthId(),
 		Sign:           req.GetSign(),
 		CreateAt:       timeutils.UnixMsecUint64(),
 	}
@@ -597,6 +677,27 @@ func (msg *MetadataAuthorityRevokeMsg) String() string {
 }
 func (msg *MetadataAuthorityRevokeMsg) MsgType() string { return MSG_METADATAAUTHORITYREVOKE }
 
+func (msg *MetadataAuthorityRevokeMsg) Hash() common.Hash {
+	if hash := msg.hash.Load(); hash != nil {
+		return hash.(common.Hash)
+	}
+	/**
+	MetadataAuthId
+	User
+	UserType
+	*/
+	var buf bytes.Buffer
+
+	buf.Write([]byte(msg.GetMetadataAuthId()))
+	buf.Write([]byte(msg.GetUser()))
+	buf.Write([]byte(msg.GetUserType().String()))
+
+	v := rlputil.RlpHash(buf.Bytes())
+	msg.hash.Store(v)
+	return v
+}
+
+
 type MetadataAuthorityMsgArr []*MetadataAuthorityMsg
 type MetadataAuthorityRevokeMsgArr []*MetadataAuthorityRevokeMsg
 
@@ -617,89 +718,6 @@ func (s MetadataAuthorityRevokeMsgArr) Less(i, j int) bool {
 }
 
 // ------------------- task -------------------
-
-type TaskBullet struct {
-	TaskId      string
-	Starve      bool
-	Term        uint32
-	Resched     uint32
-	InQueueFlag bool // true: in queue/starveQueue,  false: was pop ?
-}
-
-func NewTaskBullet(taskId string) *TaskBullet {
-	return &TaskBullet{
-		TaskId: taskId,
-	}
-}
-
-func (b *TaskBullet) GetTaskId() string    { return b.TaskId }
-func (b *TaskBullet) IsStarve() bool       { return b.Starve }
-func (b *TaskBullet) GetTerm() uint32      { return b.Term }
-func (b *TaskBullet) GetResched() uint32   { return b.Resched }
-func (b *TaskBullet) GetInQueueFlag() bool { return b.InQueueFlag }
-
-func (b *TaskBullet) IncreaseResched() { b.Resched++ }
-func (b *TaskBullet) DecreaseResched() {
-	if b.GetResched() > 0 {
-		b.Resched--
-	}
-}
-
-func (b *TaskBullet) IncreaseTerm() { b.Term++ }
-func (b *TaskBullet) DecreaseTerm() {
-	if b.GetTerm() > 0 {
-		b.Term--
-	}
-}
-func (b *TaskBullet) IsOverlowReschedThreshold(reschedMaxCount uint32) bool {
-	if b.GetResched() >= reschedMaxCount {
-		return true
-	}
-	return false
-}
-
-type TaskBullets []*TaskBullet
-
-func (h TaskBullets) Len() int           { return len(h) }
-func (h TaskBullets) Less(i, j int) bool { return h[i].GetTerm() > h[j].GetTerm() } // term:  a.3 > c.2 > b.1,  So order is: a c b
-func (h TaskBullets) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
-
-func (h *TaskBullets) Push(x interface{}) {
-	*h = append(*h, x.(*TaskBullet))
-}
-
-func (h *TaskBullets) Pop() interface{} {
-	old := *h
-	n := len(old)
-	x := old[n-1]
-	*h = old[0 : n-1]
-	return x
-}
-func (h *TaskBullets) IncreaseTerm() {
-	for i := range *h {
-		(*h)[i].IncreaseTerm()
-	}
-}
-func (h *TaskBullets) DecreaseTerm() {
-	for i := range *h {
-		(*h)[i].DecreaseTerm()
-	}
-}
-
-func (h *TaskBullets) IncreaseTermByCallbackFn(f func(b *TaskBullet)) {
-	for i := range *h {
-		b := (*h)[i]
-		b.IncreaseTerm()
-		f(b)
-	}
-}
-func (h *TaskBullets) DecreaseTermByCallbackFn(f func(b *TaskBullet)) {
-	for i := range *h {
-		b := (*h)[i]
-		b.DecreaseTerm()
-		f(b)
-	}
-}
 
 type TaskMsg struct {
 	Data *Task
@@ -826,26 +844,120 @@ func (msg *TaskMsg) Hash() common.Hash {
 	if hash := msg.hash.Load(); hash != nil {
 		return hash.(common.Hash)
 	}
-	v := rlputil.RlpHash(msg.GetTask().GetTaskData())
+
+	/**
+	User                     string
+	UserType                 UserType
+	TaskName                 string
+	Sender.NodeName
+	Sender.NodeId
+	Sender.IdentityId
+	Sender.PartyId
+	AlgoSupplier.NodeName
+	AlgoSupplier.NodeId
+	AlgoSupplier.IdentityId
+	AlgoSupplier.PartyId
+	len DataSuppliers            []*TaskOrganization
+	len PowerSuppliers           []*TaskOrganization
+	len Receivers                []*TaskOrganization
+	DataPolicyType           uint32
+	DataPolicyOption         string
+	PowerPolicyType          uint32
+	PowerPolicyOption        string
+	DataFlowPolicyType       uint32
+	DataFlowPolicyOption     string
+	OperationCost.Processor
+	OperationCost.Bandwidth
+	OperationCost.Memory
+	OperationCost.Duration
+	AlgorithmCode            string
+	MetaAlgorithmId          string
+	AlgorithmCodeExtraParams string
+	len PowerResourceOptions     []*TaskPowerResourceOption
+	State                    TaskState
+	Desc                     string
+	*/
+
+	var buf bytes.Buffer
+
+	buf.Write([]byte(msg.GetUser()))
+	buf.Write([]byte(msg.GetUserType().String()))
+	buf.Write([]byte(msg.GetTaskName()))
+	buf.Write([]byte(msg.GetSender().GetNodeName()))
+	buf.Write([]byte(msg.GetSender().GetNodeId()))
+	buf.Write([]byte(msg.GetSender().GetIdentityId()))
+	buf.Write([]byte(msg.GetSender().GetPartyId()))
+	buf.Write([]byte(msg.GetAlgoSupplier().GetNodeName()))
+	buf.Write([]byte(msg.GetAlgoSupplier().GetNodeId()))
+	buf.Write([]byte(msg.GetAlgoSupplier().GetIdentityId()))
+	buf.Write([]byte(msg.GetAlgoSupplier().GetPartyId()))
+	buf.Write(bytesutil.Uint16ToBytes(uint16(len(msg.GetDataSuppliers()))))
+	buf.Write(bytesutil.Uint16ToBytes(uint16(len(msg.GetPowerSuppliers()))))
+	buf.Write(bytesutil.Uint16ToBytes(uint16(len(msg.GetReceivers()))))
+	buf.Write(bytesutil.Uint32ToBytes(msg.GetDataPolicyType()))
+	buf.Write([]byte(msg.GetDataPolicyOption()))
+	buf.Write(bytesutil.Uint32ToBytes(msg.GetPowerPolicyType()))
+	buf.Write([]byte(msg.GetPowerPolicyOption()))
+	buf.Write(bytesutil.Uint32ToBytes(msg.GetDataFlowPolicyType()))
+	buf.Write([]byte(msg.GetDataFlowPolicyOption()))
+	buf.Write(bytesutil.Uint32ToBytes(msg.GetOperationCost().GetProcessor()))
+	buf.Write(bytesutil.Uint64ToBytes(msg.GetOperationCost().GetBandwidth()))
+	buf.Write(bytesutil.Uint64ToBytes(msg.GetOperationCost().GetMemory()))
+	buf.Write(bytesutil.Uint64ToBytes(msg.GetOperationCost().GetDuration()))
+	buf.Write([]byte(msg.GetAlgorithmCode()))
+	buf.Write([]byte(msg.GetMetaAlgorithmId()))
+	buf.Write([]byte(msg.GetAlgorithmCodeExtraParams()))
+	buf.Write(bytesutil.Uint16ToBytes(uint16(len(msg.GetPowerResourceOptions()))))
+	buf.Write([]byte(msg.GetState().String()))
+	buf.Write([]byte(msg.GetDesc()))
+
+	v := rlputil.RlpHash(buf.Bytes())
 	msg.hash.Store(v)
 	return v
 }
 
 func (msg *TaskMsg) HashByCreateTime() common.Hash {
 	var buf bytes.Buffer
-	buf.Write([]byte(msg.GetTask().GetTaskSender().GetIdentityId()))
-	buf.Write([]byte(msg.GetTask().GetTaskData().GetUserType().String()))
-	buf.Write([]byte(msg.GetTask().GetTaskData().GetUser()))
-	buf.Write([]byte(msg.GetTask().GetTaskSender().GetPartyId()))
-	buf.Write([]byte(msg.GetTask().GetTaskData().GetTaskName()))
+
+	buf.Write([]byte(msg.GetUser()))
+	buf.Write([]byte(msg.GetUserType().String()))
+	buf.Write([]byte(msg.GetTaskName()))
+	buf.Write([]byte(msg.GetSender().GetNodeName()))
+	buf.Write([]byte(msg.GetSender().GetNodeId()))
+	buf.Write([]byte(msg.GetSender().GetIdentityId()))
+	buf.Write([]byte(msg.GetSender().GetPartyId()))
+	buf.Write([]byte(msg.GetAlgoSupplier().GetNodeName()))
+	buf.Write([]byte(msg.GetAlgoSupplier().GetNodeId()))
+	buf.Write([]byte(msg.GetAlgoSupplier().GetIdentityId()))
+	buf.Write([]byte(msg.GetAlgoSupplier().GetPartyId()))
+	buf.Write(bytesutil.Uint16ToBytes(uint16(len(msg.GetDataSuppliers()))))
+	buf.Write(bytesutil.Uint16ToBytes(uint16(len(msg.GetPowerSuppliers()))))
+	buf.Write(bytesutil.Uint16ToBytes(uint16(len(msg.GetReceivers()))))
+	buf.Write(bytesutil.Uint32ToBytes(msg.GetDataPolicyType()))
+	buf.Write([]byte(msg.GetDataPolicyOption()))
+	buf.Write(bytesutil.Uint32ToBytes(msg.GetPowerPolicyType()))
+	buf.Write([]byte(msg.GetPowerPolicyOption()))
+	buf.Write(bytesutil.Uint32ToBytes(msg.GetDataFlowPolicyType()))
+	buf.Write([]byte(msg.GetDataFlowPolicyOption()))
+	buf.Write(bytesutil.Uint32ToBytes(msg.GetOperationCost().GetProcessor()))
+	buf.Write(bytesutil.Uint64ToBytes(msg.GetOperationCost().GetBandwidth()))
+	buf.Write(bytesutil.Uint64ToBytes(msg.GetOperationCost().GetMemory()))
+	buf.Write(bytesutil.Uint64ToBytes(msg.GetOperationCost().GetDuration()))
+	buf.Write([]byte(msg.GetAlgorithmCode()))
+	buf.Write([]byte(msg.GetMetaAlgorithmId()))
+	buf.Write([]byte(msg.GetAlgorithmCodeExtraParams()))
+	buf.Write(bytesutil.Uint16ToBytes(uint16(len(msg.GetPowerResourceOptions()))))
+	buf.Write([]byte(msg.GetState().String()))
+	buf.Write([]byte(msg.GetDesc()))
 	buf.Write(bytesutil.Uint64ToBytes(timeutils.UnixMsecUint64()))
+
 	return rlputil.RlpHash(buf.Bytes())
 }
 
 type TaskTerminateMsg struct {
-	UserType libtypes.UserType `json:"userType"`
-	User     string            `json:"user"`
 	TaskId   string            `json:"taskId"`
+	User     string            `json:"user"`
+	UserType libtypes.UserType `json:"userType"`
 	Sign     []byte            `json:"sign"`
 	CreateAt uint64            `json:"createAt"`
 	// caches
@@ -879,11 +991,11 @@ func (msg *TaskTerminateMsg) Hash() common.Hash {
 		return hash.(common.Hash)
 	}
 	var buf bytes.Buffer
+
+	buf.Write([]byte(msg.GetTaskId()))
 	buf.Write([]byte(msg.GetUserType().String()))
 	buf.Write([]byte(msg.GetUser()))
-	buf.Write([]byte(msg.GetTaskId()))
-	buf.Write(msg.GetSign())
-	buf.Write(bytesutil.Uint64ToBytes(msg.GetCreateAt()))
+
 	v := rlputil.RlpHash(buf.Bytes())
 	msg.hash.Store(v)
 	return v
@@ -891,10 +1003,11 @@ func (msg *TaskTerminateMsg) Hash() common.Hash {
 
 func (msg *TaskTerminateMsg) HashByCreateTime() common.Hash {
 	var buf bytes.Buffer
+	buf.Write([]byte(msg.GetTaskId()))
 	buf.Write([]byte(msg.GetUserType().String()))
 	buf.Write([]byte(msg.GetUser()))
-	buf.Write([]byte(msg.GetTaskId()))
 	buf.Write(bytesutil.Uint64ToBytes(timeutils.UnixMsecUint64()))
+
 	return rlputil.RlpHash(buf.Bytes())
 }
 
@@ -934,6 +1047,92 @@ func (s TaskTerminateMsgArr) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
 func (s TaskTerminateMsgArr) Less(i, j int) bool {
 	return s[i].GetCreateAt() < s[j].GetCreateAt()
 }
+
+
+type TaskBullet struct {
+	TaskId      string
+	Starve      bool
+	Term        uint32
+	Resched     uint32
+	InQueueFlag bool // true: in queue/starveQueue,  false: was pop ?
+}
+
+func NewTaskBullet(taskId string) *TaskBullet {
+	return &TaskBullet{
+		TaskId: taskId,
+	}
+}
+
+func (b *TaskBullet) GetTaskId() string    { return b.TaskId }
+func (b *TaskBullet) IsStarve() bool       { return b.Starve }
+func (b *TaskBullet) GetTerm() uint32      { return b.Term }
+func (b *TaskBullet) GetResched() uint32   { return b.Resched }
+func (b *TaskBullet) GetInQueueFlag() bool { return b.InQueueFlag }
+
+func (b *TaskBullet) IncreaseResched() { b.Resched++ }
+func (b *TaskBullet) DecreaseResched() {
+	if b.GetResched() > 0 {
+		b.Resched--
+	}
+}
+
+func (b *TaskBullet) IncreaseTerm() { b.Term++ }
+func (b *TaskBullet) DecreaseTerm() {
+	if b.GetTerm() > 0 {
+		b.Term--
+	}
+}
+func (b *TaskBullet) IsOverlowReschedThreshold(reschedMaxCount uint32) bool {
+	if b.GetResched() >= reschedMaxCount {
+		return true
+	}
+	return false
+}
+
+type TaskBullets []*TaskBullet
+
+func (h TaskBullets) Len() int           { return len(h) }
+func (h TaskBullets) Less(i, j int) bool { return h[i].GetTerm() > h[j].GetTerm() } // term:  a.3 > c.2 > b.1,  So order is: a c b
+func (h TaskBullets) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+
+func (h *TaskBullets) Push(x interface{}) {
+	*h = append(*h, x.(*TaskBullet))
+}
+
+func (h *TaskBullets) Pop() interface{} {
+	old := *h
+	n := len(old)
+	x := old[n-1]
+	*h = old[0 : n-1]
+	return x
+}
+func (h *TaskBullets) IncreaseTerm() {
+	for i := range *h {
+		(*h)[i].IncreaseTerm()
+	}
+}
+func (h *TaskBullets) DecreaseTerm() {
+	for i := range *h {
+		(*h)[i].DecreaseTerm()
+	}
+}
+
+func (h *TaskBullets) IncreaseTermByCallbackFn(f func(b *TaskBullet)) {
+	for i := range *h {
+		b := (*h)[i]
+		b.IncreaseTerm()
+		f(b)
+	}
+}
+func (h *TaskBullets) DecreaseTermByCallbackFn(f func(b *TaskBullet)) {
+	for i := range *h {
+		b := (*h)[i]
+		b.DecreaseTerm()
+		f(b)
+	}
+}
+
+
 
 /**
 Example:
