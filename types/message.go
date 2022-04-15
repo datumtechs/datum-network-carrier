@@ -265,7 +265,6 @@ func (s PowerRevokeMsgArr) Less(i, j int) bool { return s[i].GetCreateAt() < s[j
 // ------------------- metaData -------------------
 
 type MetadataMsg struct {
-	MetadataId      string                    `json:"metadataId"`
 	MetadataSummary *libtypes.MetadataSummary `json:"metadataSummary"`
 	CreateAt        uint64                    `json:"createAt"`
 	// caches
@@ -336,8 +335,11 @@ func (msg *MetadataMsg) GetMetadataName() string { return msg.GetMetadataSummary
 func (msg *MetadataMsg) GetMetadataType() libtypes.MetadataType { return msg.GetMetadataSummary().MetadataType }
 func (msg *MetadataMsg) GetDataHash() string     { return msg.GetMetadataSummary().DataHash }
 func (msg *MetadataMsg) GetDesc() string         { return msg.GetMetadataSummary().Desc }
-func (msg *MetadataMsg) GetDataType() libtypes.OrigindataType {
+func (msg *MetadataMsg) GetType() libtypes.OrigindataType {
 	return msg.GetMetadataSummary().DataType
+}
+func (msg *MetadataMsg) GetLocationType() libtypes.DataLocationType {
+	return msg.GetMetadataSummary().LocationType
 }
 func (msg *MetadataMsg) GetNonce() uint64 { return msg.GetMetadataSummary().Nonce }
 func (msg *MetadataMsg) GetState() libtypes.MetadataState {
@@ -346,13 +348,13 @@ func (msg *MetadataMsg) GetState() libtypes.MetadataState {
 func (msg *MetadataMsg) GetIndustry() string       { return msg.GetMetadataSummary().Industry }
 func (msg *MetadataMsg) GetMetadataOption() string { return msg.GetMetadataSummary().MetadataOption }
 func (msg *MetadataMsg) GetCreateAt() uint64       { return msg.CreateAt }
-func (msg *MetadataMsg) GetMetadataId() string     { return msg.MetadataId }
+func (msg *MetadataMsg) GetMetadataId() string     { return msg.GetMetadataSummary().MetadataId }
 
 func (msg *MetadataMsg) GenMetadataId() string {
 	if "" != msg.GetMetadataId() {
 		return msg.GetMetadataId()
 	}
-	msg.MetadataId = PREFIX_METADATA_ID + msg.HashByCreateTime().Hex()
+	msg.GetMetadataSummary().MetadataId = PREFIX_METADATA_ID + msg.HashByCreateTime().Hex()
 	return msg.GetMetadataId()
 }
 func (msg *MetadataMsg) Hash() common.Hash {
@@ -360,12 +362,27 @@ func (msg *MetadataMsg) Hash() common.Hash {
 		return hash.(common.Hash)
 	}
 
+	/**
+	MetadataName         string
+	MetadataType         MetadataType
+	DataHash             string
+	Desc                 string
+	LocationType         DataLocationType
+	DataType             OrigindataType
+	Industry             string
+	State                MetadataState
+	PublishAt            uint64
+	UpdateAt             uint64
+	Nonce                uint64
+	MetadataOption       string
+	AllowExpose          bool
+	*/
 	var buf bytes.Buffer
-	buf.Write([]byte(msg.GetMetadataId()))
 	buf.Write([]byte(msg.GetMetadataName()))
 	buf.Write([]byte(msg.GetMetadataType().String()))
 	buf.Write([]byte(msg.GetDataHash()))
 	buf.Write([]byte(msg.GetDesc()))
+	buf.Write([]byte(msg.GetLocationType().String()))
 	buf.Write([]byte(msg.GetDataType().String()))
 	buf.Write([]byte(msg.GetIndustry()))
 	buf.Write([]byte(msg.GetState().String()))
@@ -378,9 +395,20 @@ func (msg *MetadataMsg) Hash() common.Hash {
 }
 
 func (msg *MetadataMsg) HashByCreateTime() common.Hash {
+
+
 	var buf bytes.Buffer
+	buf.Write([]byte(msg.GetMetadataName()))
+	buf.Write([]byte(msg.GetMetadataType().String()))
 	buf.Write([]byte(msg.GetDataHash()))
+	buf.Write([]byte(msg.GetDesc()))
+	buf.Write([]byte(msg.GetDataType().String()))
+	buf.Write([]byte(msg.GetIndustry()))
+	buf.Write([]byte(msg.GetState().String()))
+	buf.Write(bytesutil.Uint64ToBytes(msg.GetNonce()))
+	buf.Write([]byte(msg.GetMetadataOption()))
 	buf.Write(bytesutil.Uint64ToBytes(timeutils.UnixMsecUint64()))
+
 	return rlputil.RlpHash(buf.Bytes())
 }
 
