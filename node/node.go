@@ -82,7 +82,7 @@ func New(cliCtx *cli.Context) (*CarrierNode, error) {
 	}
 
 	// start db
-	err := node.startDB(cliCtx, &config.Carrier)
+	err := node.startDB(cliCtx, config.Carrier)
 	if err != nil {
 		log.WithError(err).Error("Failed to start DB")
 		return nil, err
@@ -94,7 +94,7 @@ func New(cliCtx *cli.Context) (*CarrierNode, error) {
 	}
 
 	// register backend service.
-	if err := node.registerBackendService(&config.Carrier, config.MockIdentityIdsFile,config.ConsensusStateFile); err != nil {
+	if err := node.registerBackendService(config.Carrier, config.MockIdentityIdsFile,config.ConsensusStateFile); err != nil {
 		return nil, err
 	}
 

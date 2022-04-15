@@ -144,6 +144,8 @@ func (m *Manager) driveTaskForExecute(task *types.NeedExecuteTask) error {
 	//return nil
 	////  ######
 
+	// 1、 call prepay datatoken
+
 	switch task.GetLocalTaskRole() {
 	case libtypes.TaskRole_TaskRole_DataSupplier, libtypes.TaskRole_TaskRole_Receiver:
 		return m.executeTaskOnDataNode(task)

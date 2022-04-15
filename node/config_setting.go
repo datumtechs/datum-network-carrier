@@ -13,7 +13,7 @@ const (
 )
 
 type carrierConfig struct {
-	Carrier carrier.Config
+	Carrier *carrier.Config
 	Node    Config
 	// more config modules
 	MockIdentityIdsFile string
@@ -23,7 +23,7 @@ type carrierConfig struct {
 func makeConfig(cliCtx *cli.Context) carrierConfig {
 	// Load defaults.
 	cfg := carrierConfig{
-		Carrier:             carrier.DefaultConfig,
+		Carrier:             &carrier.DefaultConfig,
 		Node:                defaultNodeConfig(),
 		MockIdentityIdsFile: cliCtx.String(flags.MockIdentityIdFile.Name),
 		ConsensusStateFile:  cliCtx.String(flags.ConsensusStateWalDir.Name),
@@ -33,7 +33,7 @@ func makeConfig(cliCtx *cli.Context) carrierConfig {
 
 	// Apply flags.
 	SetNodeConfig(cliCtx, &cfg.Node)
-	SetCarrierConfig(cliCtx, &cfg.Carrier)
+	SetCarrierConfig(cliCtx, cfg.Carrier)
 
 	return cfg
 }

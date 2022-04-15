@@ -18,6 +18,7 @@ import (
 	taskmngpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/taskmng"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
+	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/RosettaFlow/Carrier-Go/policy"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/gogo/protobuf/proto"
@@ -51,6 +52,8 @@ type Manager struct {
 	runningTaskCache         map[string]map[string]*types.NeedExecuteTask //  taskId -> {partyId -> task}
 	syncExecuteTaskMonitors  *types.SyncExecuteTaskMonitorQueue
 	runningTaskCacheLock     sync.RWMutex
+	// add by v 0.4.0
+	config *params.TaskManagerConfig
 }
 
 func NewTaskManager(
@@ -63,6 +66,7 @@ func NewTaskManager(
 	needReplayScheduleTaskCh chan *types.NeedReplayScheduleTask,
 	needExecuteTaskCh chan *types.NeedExecuteTask,
 	taskConsResultCh chan *types.TaskConsResult,
+	config *params.TaskManagerConfig,
 ) *Manager {
 
 	m := &Manager{
@@ -78,6 +82,7 @@ func NewTaskManager(
 		needReplayScheduleTaskCh: needReplayScheduleTaskCh,
 		needExecuteTaskCh:        needExecuteTaskCh,
 		taskConsResultCh:         taskConsResultCh,
+		config:                   config,
 		runningTaskCache:         make(map[string]map[string]*types.NeedExecuteTask, 0), // taskId -> partyId -> needExecuteTask
 		syncExecuteTaskMonitors:  types.NewSyncExecuteTaskMonitorQueue(0),
 		quit:                     make(chan struct{}),
@@ -563,7 +568,7 @@ func (m *Manager) HandleTaskMsgs(msgArr types.TaskMsgArr) error {
 	return nil
 }
 
-func (m *Manager) HandleTaskTerminateMsgs (msgArr types.TaskTerminateMsgArr) error {
+func (m *Manager) HandleTaskTerminateMsgs(msgArr types.TaskTerminateMsgArr) error {
 	for _, terminate := range msgArr {
 		go m.TerminateTask(terminate)
 	}

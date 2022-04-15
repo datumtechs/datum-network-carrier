@@ -3,6 +3,7 @@ package carrier
 import (
 	"github.com/RosettaFlow/Carrier-Go/core"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
+	"github.com/RosettaFlow/Carrier-Go/params"
 )
 
 // DefaultConfig contains default settings for use on the Carrier main.
@@ -15,9 +16,9 @@ var DefaultConfig = Config{
 type Config struct {
 	CarrierDB core.CarrierDB
 	P2P       p2p.P2P
-
 	// Database options
-	DatabaseHandles int
-	DatabaseCache   int
+	DatabaseHandles     int
+	DatabaseCache       int
 	DefaultConsensusWal string
+	TaskManagerConfig   *params.TaskManagerConfig
 }

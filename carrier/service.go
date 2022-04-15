@@ -66,11 +66,10 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 	pool := message.NewMempool(&message.MempoolConfig{NodeId: nodeIdStr})
 	eventEngine := evengine.NewEventEngine(config.CarrierDB)
 
-	// TODO The size of these ch is currently written dead ...
 	needReplayScheduleTaskCh, needExecuteTaskCh, taskConsResultCh :=
-		make(chan *types.NeedReplayScheduleTask, 600),
-		make(chan *types.NeedExecuteTask, 600),
-		make(chan *types.TaskConsResult, 600)
+		make(chan *types.NeedReplayScheduleTask, config.TaskManagerConfig.NeedReplayScheduleTaskChLen),
+		make(chan *types.NeedExecuteTask, config.TaskManagerConfig.NeedExecuteTaskChanLen),
+		make(chan *types.TaskConsResult, config.TaskManagerConfig.TaskConsResultChanLen)
 
 	resourceClientSet := grpclient.NewInternalResourceNodeSet()
 	resourceMng := resource.NewResourceManager(config.CarrierDB, resourceClientSet, mockIdentityIdsFile)
@@ -104,6 +103,7 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 		needReplayScheduleTaskCh,
 		needExecuteTaskCh,
 		taskConsResultCh,
+		config.TaskManagerConfig,
 	)
 
 	var metisPayManager *metispay.MetisPayManager
