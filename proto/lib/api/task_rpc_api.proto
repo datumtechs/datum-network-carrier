@@ -150,6 +150,7 @@ message EstimateTaskGasResponse {
   int32  status = 1;
   string msg = 2;
   uint64 gas_limit = 3;       // 需要消耗的gas数量
+  uint64 gas_price = 4;       // 建议的gas price
 }
 
 // ## 任务 相关接口
