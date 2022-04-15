@@ -220,7 +220,9 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 		log.Errorf("RPC-API:PublishTaskDeclare failed, check sign failed, sign is empty")
 		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require sign"}, nil
 	}
-	from, err := signsuite.Sender(req.GetUserType(), req.GetSign())
+
+	taskMsg := types.NewTaskMessageFromRequest(req)
+	from, err := signsuite.Sender(req.GetUserType(), taskMsg.Hash(), req.GetSign())
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:PublishTaskDeclare failed, cannot fetch sender from sign, userType: {%s}, user: {%s}",
 			req.GetUserType().String(), req.GetUser())
@@ -238,8 +240,6 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 	//	log.Errorf("RPC-API:PublishTaskDeclare failed, check Desc failed, Desc is empty")
 	//	return &pb.PublishTaskDeclareResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "require desc"}, nil
 	//}
-
-	taskMsg := types.NewTaskMessageFromRequest(req)
 
 	//checkPartyIdCache := make(map[string]struct{}, 0)
 	//checkPartyIdCache[req.GetSender().GetPartyId()] = struct{}{}
@@ -322,7 +322,9 @@ func (svr *Server) TerminateTask(ctx context.Context, req *pb.TerminateTaskReque
 	if len(req.GetSign()) == 0 {
 		return &libtypes.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require sign"}, nil
 	}
-	from, err := signsuite.Sender(req.GetUserType(), req.GetSign())
+
+	taskTerminateMsg := types.NewTaskTerminateMsg(req.GetUserType(), req.GetUser(), req.GetTaskId(), req.GetSign())
+	from, err := signsuite.Sender(req.GetUserType(), taskTerminateMsg.Hash(), req.GetSign())
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:TerminateTask failed, cannot fetch sender from sign, userType: {%s}, user: {%s}",
 			req.GetUserType().String(), req.GetUser())
@@ -348,9 +350,6 @@ func (svr *Server) TerminateTask(ctx context.Context, req *pb.TerminateTaskReque
 		return &libtypes.SimpleResponse{Status: backend.ErrTerminateTaskMsg.ErrCode(), Msg: fmt.Sprintf("terminate task user and publish task user must be same, taskId: {%s}",
 			task.GetTaskId())}, nil
 	}
-	// todo verify user sign with terminate task
-
-	taskTerminateMsg := types.NewTaskTerminateMsg(req.GetUserType(), req.GetUser(), req.GetTaskId(), req.GetSign())
 
 	if err = svr.B.SendMsg(taskTerminateMsg); nil != err {
 		log.WithError(err).Errorf("RPC-API:TerminateTask failed, send task terminate msg failed, taskId: {%s}",
