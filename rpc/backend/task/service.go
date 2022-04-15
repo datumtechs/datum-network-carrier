@@ -392,7 +392,7 @@ func (svr *Server) EstimateTaskGas(ctx context.Context, req *pb.EstimateTaskGasR
 		}
 		dataTokenList[idx] = common.BytesToAddress(bytes)
 	}
-	gasLimit, err := svr.B.EstimateTaskGas(req.GetDataTokenTransferItems())
+	gasLimit, gasPrice, err := svr.B.EstimateTaskGas(req.GetDataTokenTransferItems())
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:EstimateTaskGas failed")
 		return &pb.EstimateTaskGasResponse{Status: backend.ErrEstimateTaskGas.ErrCode(), Msg: backend.ErrEstimateTaskGas.Error()}, nil
@@ -402,5 +402,6 @@ func (svr *Server) EstimateTaskGas(ctx context.Context, req *pb.EstimateTaskGasR
 		Status:   0,
 		Msg:      backend.OK,
 		GasLimit: gasLimit,
+		GasPrice: gasPrice.Uint64(),
 	}, nil
 }

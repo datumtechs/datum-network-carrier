@@ -2,6 +2,7 @@ package rawdb
 
 import (
 	"bytes"
+	"encoding/hex"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
@@ -12,6 +13,7 @@ import (
 	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"gotest.tools/assert"
@@ -94,7 +96,7 @@ func NeedExecuteTask() (KeyValueStore, dbtype.TaskArrayPB) {
 			}
 			resources := &twopcpb.ConfirmTaskPeerInfo{}
 
-			_task := types.NewNeedExecuteTask(peer.ID(remotepid),1, 2, localTaskOrganization, remoteTaskOrganization, task.GetTaskId(),
+			_task := types.NewNeedExecuteTask(peer.ID(remotepid), 1, 2, localTaskOrganization, remoteTaskOrganization, task.GetTaskId(),
 				3, localResource, resources, nil)
 			if err := StoreNeedExecuteTask(database, _task); err != nil {
 				fmt.Printf("StoreNeedExecuteTask fail,taskId %s\n", taskId)
@@ -295,7 +297,6 @@ func TestDataResourceTable(t *testing.T) {
 func TestLocalTaskExecuteStatus(t *testing.T) {
 	v := []byte{}
 
-
 	val := bytesutil.BytesToUint32(v)
 	val |= OnConsensusExecuteTaskStatus.Uint32()
 
@@ -308,4 +309,35 @@ func TestLocalTaskExecuteStatus(t *testing.T) {
 
 	assert.Equal(t, OnConsensusExecuteTaskStatus.Uint32()|OnRunningExecuteStatus.Uint32(), val, "failed test")
 	assert.Equal(t, val&OnRunningExecuteStatus.Uint32(), OnRunningExecuteStatus.Uint32(), "failed test")
+}
+
+func TestOrgWallet(t *testing.T) {
+	database := db.NewMemoryDatabase()
+
+	key, _ := crypto.GenerateKey()
+	keyHex := hex.EncodeToString(crypto.FromECDSA(key))
+	addr := crypto.PubkeyToAddress(key.PublicKey)
+
+	/*if metisPay.Kms != nil {
+		if cipher, err := metisPay.Kms.Encrypt(keyHex); err != nil {
+			return "", errors.New("cannot encrypt organization wallet private key")
+		} else {
+			keyHex = cipher
+		}
+	}*/
+
+	wallet := new(types.OrgWallet)
+	wallet.PriKey = keyHex
+	wallet.Address = addr
+	t.Logf("store wallet: %s", addr.Hex())
+
+	if err := StoreOrgWallet(database, wallet); err != nil {
+		t.Fatal(err)
+	}
+
+	if w, err := QueryOrgWallet(database); err != nil {
+		t.Fatal(err)
+	} else {
+		t.Logf("load wallet: %s", w.Address.Hex())
+	}
 }

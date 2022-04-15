@@ -4,6 +4,7 @@ import (
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
+	"math/big"
 )
 
 type Backend interface {
@@ -96,5 +97,5 @@ type Backend interface {
 	QueryTaskResultFileSummaryList() (types.TaskResultFileSummaryArr, error)
 
 	// v 0.4.0
-	EstimateTaskGas(dataTokenTransferList []*pb.DataTokenTransferItem) (uint64, error)
+	EstimateTaskGas(dataTokenTransferList []*pb.DataTokenTransferItem) (gasLimit uint64, gasPrice *big.Int, err error)
 }

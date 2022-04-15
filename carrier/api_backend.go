@@ -18,6 +18,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/libp2p/go-libp2p-core/peer"
+	"math/big"
 	"strings"
 )
 
@@ -615,6 +616,7 @@ func (s *CarrierAPIBackend) GenerateObServerProxyWalletAddress() (string, error)
 			log.WithError(err).Error("Failed to call GenerateOrgWallet() on CarrierAPIBackend.GenerateObServerProxyWalletAddress()")
 			return "", err
 		} else {
+			log.Debugf("Success to generate organization wallet %s", addr)
 			return addr, nil
 		}
 	} else {
@@ -1618,13 +1620,19 @@ func (s *CarrierAPIBackend) QueryTaskResultFileSummaryList() (types.TaskResultFi
 	return arr, nil
 }
 
-func (s *CarrierAPIBackend) EstimateTaskGas(dataTokenTransferList []*pb.DataTokenTransferItem) (uint64, error) {
-	if gasLimit, err := s.carrier.metisPayManager.EstimateTaskGas(dataTokenTransferList); nil != err {
+func (s *CarrierAPIBackend) EstimateTaskGas(dataTokenTransferList []*pb.DataTokenTransferItem) (gasLimit uint64, gasPrice *big.Int, err error) {
+	gasLimit, gasPrice, err = s.carrier.metisPayManager.EstimateTaskGas(dataTokenTransferList);
+	if err != nil {
 		log.WithError(err).Error("Failed to call EstimateTaskGas() on CarrierAPIBackend.EstimateTaskGas()")
-		return 0, err
-	} else {
-		return gasLimit, nil
 	}
+	return
+
+	/*if gasLimit, gasPrice, err = s.carrier.metisPayManager.EstimateTaskGas(dataTokenTransferList); nil != err {
+		log.WithError(err).Error("Failed to call EstimateTaskGas() on CarrierAPIBackend.EstimateTaskGas()")
+		return 0, nil, err
+	} else {
+		return gasLimit, gasPrice, nil
+	}*/
 }
 
 // EstimateTaskGas
