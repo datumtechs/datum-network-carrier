@@ -145,6 +145,9 @@ func (m *Manager) driveTaskForExecute(task *types.NeedExecuteTask) error {
 	////  ######
 
 	// 1、 call prepay datatoken
+	if m.config.ConsumOption == 1 {
+
+	}
 
 	switch task.GetLocalTaskRole() {
 	case libtypes.TaskRole_TaskRole_DataSupplier, libtypes.TaskRole_TaskRole_Receiver:

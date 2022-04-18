@@ -301,7 +301,7 @@ func NewMetadataMessageFromRequest(req *pb.PublishMetadataRequest) *MetadataMsg 
 			State:          req.GetInformation().GetState(),
 			PublishAt:      req.GetInformation().GetPublishAt(),
 			UpdateAt:       req.GetInformation().GetUpdateAt(),
-			Nonce:          req.GetInformation().GetNonce(),
+			//Nonce:          req.GetInformation().GetNonce(),
 			MetadataOption: req.GetInformation().GetMetadataOption(),
 			AllowExpose:    req.GetInformation().GetAllowExpose(),
 			//TokenAddress:   req.GetInformation().GetTokenAddress(),
@@ -326,8 +326,7 @@ func (msg *MetadataMsg) ToDataCenter(identity *libtypes.Organization) *Metadata 
 		Desc:         msg.GetDesc(),
 		DataType:     msg.GetDataType(),
 		Industry:     msg.GetIndustry(),
-		// metaData status, eg: create/release/revoke
-		State:          libtypes.MetadataState_MetadataState_Released,
+		State:          libtypes.MetadataState_MetadataState_Released, // metaData status, eg: create/release/revoke
 		PublishAt:      timeutils.UnixMsecUint64(),
 		UpdateAt:       timeutils.UnixMsecUint64(),
 		Nonce:          msg.GetNonce(),
@@ -391,21 +390,20 @@ func (msg *MetadataMsg) Hash() common.Hash {
 	DataType             OrigindataType
 	Industry             string
 	State                MetadataState
-	Nonce                uint64
 	MetadataOption       string
 	AllowExpose          bool
 
 	*/
 	var buf bytes.Buffer
 	buf.Write([]byte(msg.GetMetadataName()))
-	buf.Write([]byte(msg.GetMetadataType().String()))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(msg.GetMetadataType())))
 	buf.Write([]byte(msg.GetDataHash()))
 	buf.Write([]byte(msg.GetDesc()))
-	buf.Write([]byte(msg.GetLocationType().String()))
-	buf.Write([]byte(msg.GetDataType().String()))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(msg.GetLocationType())))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(msg.GetDataType())))
 	buf.Write([]byte(msg.GetIndustry()))
 	buf.Write([]byte(msg.GetState().String()))
-	buf.Write(bytesutil.Uint64ToBytes(msg.GetNonce()))
+	//buf.Write(bytesutil.Uint64ToBytes(msg.GetNonce()))
 	buf.Write([]byte(msg.GetMetadataOption()))
 	buf.Write([]byte{bytesutil.FromBool(msg.GetAllowExpose())})
 
@@ -418,14 +416,14 @@ func (msg *MetadataMsg) HashByCreateTime() common.Hash {
 
 	var buf bytes.Buffer
 	buf.Write([]byte(msg.GetMetadataName()))
-	buf.Write([]byte(msg.GetMetadataType().String()))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(msg.GetMetadataType())))
 	buf.Write([]byte(msg.GetDataHash()))
 	buf.Write([]byte(msg.GetDesc()))
-	buf.Write([]byte(msg.GetLocationType().String()))
-	buf.Write([]byte(msg.GetDataType().String()))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(msg.GetLocationType())))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(msg.GetDataType())))
 	buf.Write([]byte(msg.GetIndustry()))
 	buf.Write([]byte(msg.GetState().String()))
-	buf.Write(bytesutil.Uint64ToBytes(msg.GetNonce()))
+	//buf.Write(bytesutil.Uint64ToBytes(msg.GetNonce()))
 	buf.Write([]byte(msg.GetMetadataOption()))
 	buf.Write([]byte{bytesutil.FromBool(msg.GetAllowExpose())})
 	buf.Write(bytesutil.Uint64ToBytes(timeutils.UnixMsecUint64()))
@@ -592,13 +590,13 @@ func (msg *MetadataAuthorityMsg) Hash() common.Hash {
 
 	buf.Write([]byte(msg.GetMetadataAuthorityMetadataId()))
 	buf.Write([]byte(msg.GetUser()))
-	buf.Write([]byte(msg.GetUserType().String()))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(msg.GetUserType())))
 	buf.Write([]byte(msg.GetMetadataAuthorityOwnerNodeName()))
 	buf.Write([]byte(msg.GetMetadataAuthorityOwnerNodeId()))
 	buf.Write([]byte(msg.GetMetadataAuthorityOwnerIdentityId()))
 	buf.Write([]byte(msg.GetMetadataAuthorityOwnerImageUrl()))
 	buf.Write([]byte(msg.GetMetadataAuthorityOwnerDetails()))
-	buf.Write([]byte(msg.GetMetadataAuthorityUsageRule().GetUsageType().String()))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(msg.GetMetadataAuthorityUsageRule().GetUsageType())))
 	buf.Write(bytesutil.Uint64ToBytes(msg.GetMetadataAuthorityUsageRule().GetStartAt()))
 	buf.Write(bytesutil.Uint64ToBytes(msg.GetMetadataAuthorityUsageRule().GetEndAt()))
 	buf.Write(bytesutil.Uint32ToBytes(msg.GetMetadataAuthorityUsageRule().GetTimes()))
@@ -612,15 +610,15 @@ func (msg *MetadataAuthorityMsg) HashByCreateTime() common.Hash {
 
 	var buf bytes.Buffer
 
-	buf.Write([]byte(msg.GetUser()))
-	buf.Write([]byte(msg.GetUserType().String()))
 	buf.Write([]byte(msg.GetMetadataAuthorityMetadataId()))
+	buf.Write([]byte(msg.GetUser()))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(msg.GetUserType())))
 	buf.Write([]byte(msg.GetMetadataAuthorityOwnerNodeName()))
 	buf.Write([]byte(msg.GetMetadataAuthorityOwnerNodeId()))
 	buf.Write([]byte(msg.GetMetadataAuthorityOwnerIdentityId()))
 	buf.Write([]byte(msg.GetMetadataAuthorityOwnerImageUrl()))
 	buf.Write([]byte(msg.GetMetadataAuthorityOwnerDetails()))
-	buf.Write([]byte(msg.GetMetadataAuthorityUsageRule().GetUsageType().String()))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(msg.GetMetadataAuthorityUsageRule().GetUsageType())))
 	buf.Write(bytesutil.Uint64ToBytes(msg.GetMetadataAuthorityUsageRule().GetStartAt()))
 	buf.Write(bytesutil.Uint64ToBytes(msg.GetMetadataAuthorityUsageRule().GetEndAt()))
 	buf.Write(bytesutil.Uint32ToBytes(msg.GetMetadataAuthorityUsageRule().GetTimes()))
@@ -690,7 +688,7 @@ func (msg *MetadataAuthorityRevokeMsg) Hash() common.Hash {
 
 	buf.Write([]byte(msg.GetMetadataAuthId()))
 	buf.Write([]byte(msg.GetUser()))
-	buf.Write([]byte(msg.GetUserType().String()))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(msg.GetUserType())))
 
 	v := rlputil.RlpHash(buf.Bytes())
 	msg.hash.Store(v)
@@ -881,7 +879,7 @@ func (msg *TaskMsg) Hash() common.Hash {
 	var buf bytes.Buffer
 
 	buf.Write([]byte(msg.GetUser()))
-	buf.Write([]byte(msg.GetUserType().String()))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(msg.GetUserType())))
 	buf.Write([]byte(msg.GetTaskName()))
 	buf.Write([]byte(msg.GetSender().GetNodeName()))
 	buf.Write([]byte(msg.GetSender().GetNodeId()))
@@ -908,7 +906,7 @@ func (msg *TaskMsg) Hash() common.Hash {
 	buf.Write([]byte(msg.GetMetaAlgorithmId()))
 	buf.Write([]byte(msg.GetAlgorithmCodeExtraParams()))
 	buf.Write(bytesutil.Uint16ToBytes(uint16(len(msg.GetPowerResourceOptions()))))
-	buf.Write([]byte(msg.GetState().String()))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(msg.GetState())))
 	buf.Write([]byte(msg.GetDesc()))
 
 	v := rlputil.RlpHash(buf.Bytes())
@@ -917,10 +915,11 @@ func (msg *TaskMsg) Hash() common.Hash {
 }
 
 func (msg *TaskMsg) HashByCreateTime() common.Hash {
+
 	var buf bytes.Buffer
 
 	buf.Write([]byte(msg.GetUser()))
-	buf.Write([]byte(msg.GetUserType().String()))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(msg.GetUserType())))
 	buf.Write([]byte(msg.GetTaskName()))
 	buf.Write([]byte(msg.GetSender().GetNodeName()))
 	buf.Write([]byte(msg.GetSender().GetNodeId()))
@@ -947,7 +946,7 @@ func (msg *TaskMsg) HashByCreateTime() common.Hash {
 	buf.Write([]byte(msg.GetMetaAlgorithmId()))
 	buf.Write([]byte(msg.GetAlgorithmCodeExtraParams()))
 	buf.Write(bytesutil.Uint16ToBytes(uint16(len(msg.GetPowerResourceOptions()))))
-	buf.Write([]byte(msg.GetState().String()))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(msg.GetState())))
 	buf.Write([]byte(msg.GetDesc()))
 	buf.Write(bytesutil.Uint64ToBytes(timeutils.UnixMsecUint64()))
 
@@ -990,11 +989,18 @@ func (msg *TaskTerminateMsg) Hash() common.Hash {
 	if hash := msg.hash.Load(); hash != nil {
 		return hash.(common.Hash)
 	}
+
+	/**
+	TaskId,
+	User,
+	UserType,
+	 */
+
 	var buf bytes.Buffer
 
 	buf.Write([]byte(msg.GetTaskId()))
-	buf.Write([]byte(msg.GetUserType().String()))
 	buf.Write([]byte(msg.GetUser()))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(msg.GetUserType())))
 
 	v := rlputil.RlpHash(buf.Bytes())
 	msg.hash.Store(v)
@@ -1004,8 +1010,8 @@ func (msg *TaskTerminateMsg) Hash() common.Hash {
 func (msg *TaskTerminateMsg) HashByCreateTime() common.Hash {
 	var buf bytes.Buffer
 	buf.Write([]byte(msg.GetTaskId()))
-	buf.Write([]byte(msg.GetUserType().String()))
 	buf.Write([]byte(msg.GetUser()))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(msg.GetUserType())))
 	buf.Write(bytesutil.Uint64ToBytes(timeutils.UnixMsecUint64()))
 
 	return rlputil.RlpHash(buf.Bytes())
