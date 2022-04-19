@@ -3,7 +3,8 @@ package task
 import (
 	"context"
 	"fmt"
-	auth2 "github.com/RosettaFlow/Carrier-Go/ach/auth"
+	"github.com/RosettaFlow/Carrier-Go/ach/auth"
+	"github.com/RosettaFlow/Carrier-Go/ach/metispay"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
@@ -39,7 +40,8 @@ type Manager struct {
 	consensusEngine consensus.Engine
 	eventEngine     *ev.EventEngine
 	resourceMng     *resource.Manager
-	authMng         *auth2.AuthorityManager
+	authMng         *auth.AuthorityManager
+	metisPayMng     *metispay.MetisPayManager
 	parser          *TaskParser
 	validator       *TaskValidator
 	eventCh         chan *libtypes.TaskEvent
@@ -62,7 +64,8 @@ func NewTaskManager(
 	consensusEngine consensus.Engine,
 	eventEngine *ev.EventEngine,
 	resourceMng *resource.Manager,
-	authMng *auth2.AuthorityManager,
+	authMng *auth.AuthorityManager,
+	metisPayMng *metispay.MetisPayManager,
 	needReplayScheduleTaskCh chan *types.NeedReplayScheduleTask,
 	needExecuteTaskCh chan *types.NeedExecuteTask,
 	taskConsResultCh chan *types.TaskConsResult,
@@ -76,6 +79,7 @@ func NewTaskManager(
 		eventEngine:              eventEngine,
 		resourceMng:              resourceMng,
 		authMng:                  authMng,
+		metisPayMng:              metisPayMng,
 		parser:                   newTaskParser(resourceMng),
 		validator:                newTaskValidator(resourceMng, authMng),
 		eventCh:                  make(chan *libtypes.TaskEvent, 800),

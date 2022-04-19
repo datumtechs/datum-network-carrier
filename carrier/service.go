@@ -93,18 +93,6 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 		needExecuteTaskCh,
 		taskConsResultCh,
 	)
-	taskManager := task.NewTaskManager(
-		config.P2P,
-		scheduler,
-		twopcEngine,
-		eventEngine,
-		resourceMng,
-		authManager,
-		needReplayScheduleTaskCh,
-		needExecuteTaskCh,
-		taskConsResultCh,
-		config.TaskManagerConfig,
-	)
 
 	var metisPayManager *metispay2.MetisPayManager
 
@@ -123,6 +111,20 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 		}
 		metisPayManager = metispay2.NewMetisPayManager(config.CarrierDB, metispayConfig, kmsConfig)
 	}
+
+	taskManager := task.NewTaskManager(
+		config.P2P,
+		scheduler,
+		twopcEngine,
+		eventEngine,
+		resourceMng,
+		authManager,
+		metisPayManager,
+		needReplayScheduleTaskCh,
+		needExecuteTaskCh,
+		taskConsResultCh,
+		config.TaskManagerConfig,
+	)
 
 	s := &Service{
 		ctx:             ctx,
