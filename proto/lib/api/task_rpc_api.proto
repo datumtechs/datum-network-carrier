@@ -137,7 +137,7 @@ message TerminateTaskRequest {
 
 message DataTokenTransferItem {
   string address = 1;       //data token合约地址
-  uint64 amount = 2;        //data token转账金额
+  string amount = 2;        //data token转账金额,18位精度
 }
 
 // 预估gas request
