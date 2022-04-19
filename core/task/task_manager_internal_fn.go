@@ -1247,15 +1247,15 @@ func (m *Manager) executeTaskEvent(logkeyword string, symbol types.NetworkMsgLoc
 			return err
 		}
 
-		if publish {
+		// 1、 handle last party
+		//   send this task result to remote target peer,
+		//   but they belong to same organization, call local msg.
+		if symbol == types.LocalNetworkMsg {
+			m.sendTaskResultMsgToTaskSender(localNeedtask)
+			m.removeNeedExecuteTaskCache(event.GetTaskId(), event.GetPartyId())
+		}
 
-			// 1、 handle last party
-			//   send this task result to remote target peer,
-			//   but they belong to same organization, call local msg.
-			if symbol == types.LocalNetworkMsg {
-				m.sendTaskResultMsgToTaskSender(localNeedtask)
-				m.removeNeedExecuteTaskCache(event.GetTaskId(), event.GetPartyId())
-			}
+		if publish {
 
 			// 2、 handle sender party
 			senderNeedTask, ok := m.queryNeedExecuteTaskCache(event.GetTaskId(), localTask.GetTaskSender().GetPartyId())
@@ -1265,12 +1265,6 @@ func (m *Manager) executeTaskEvent(logkeyword string, symbol types.NetworkMsgLoc
 				// handle this task result with current peer
 				m.publishFinishedTaskToDataCenter(senderNeedTask, localTask, true)
 				m.removeNeedExecuteTaskCache(event.GetTaskId(), localTask.GetTaskSender().GetPartyId())
-			}
-		} else {
-			if symbol == types.LocalNetworkMsg {
-				// send this task result to remote target peer
-				m.sendTaskResultMsgToTaskSender(localNeedtask)
-				m.removeNeedExecuteTaskCache(event.GetTaskId(), event.GetPartyId())
 			}
 		}
 	case ev.TaskExecuteFailedEOF.GetType():
@@ -1300,7 +1294,6 @@ func (m *Manager) executeTaskEvent(logkeyword string, symbol types.NetworkMsgLoc
 		if nil != err {
 			log.WithError(err).Errorf("Failed to query local task execute status has `running` with task sender %s, taskId: {%s}, partyId: {%s}",
 				logkeyword, localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
-			return err
 			return err
 		}
 		// (While task is consensus or running, can terminate.)
@@ -1826,6 +1819,7 @@ func (m *Manager) startTerminateWithNeedExecuteTask(needExecuteTask *types.NeedE
 func (m *Manager) checkNeedExecuteTaskMonitors(now int64) int64 {
 	return m.syncExecuteTaskMonitors.CheckMonitors(now)
 }
+
 func (m *Manager) needExecuteTaskMonitorTimer() *time.Timer {
 	return m.syncExecuteTaskMonitors.Timer()
 }
