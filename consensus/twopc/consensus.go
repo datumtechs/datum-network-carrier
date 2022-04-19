@@ -27,6 +27,10 @@ const (
 	defaultRefreshProposalStateInternal = 300 * time.Millisecond
 )
 
+type ConsensusStateInfo struct {
+	State *state
+}
+
 type Twopc struct {
 	config                   *Config
 	p2p                      p2p.P2P
@@ -64,7 +68,7 @@ func New(
 		Errs:                     make([]error, 0),
 	}
 }
-
+func (t *Twopc) GetConsensusStateInfo() *ConsensusStateInfo { return &ConsensusStateInfo{State: t.state} }
 func (t *Twopc) Start() error {
 	t.recoverCache()
 	go t.loop()
