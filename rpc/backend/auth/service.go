@@ -8,6 +8,7 @@ import (
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
+	"github.com/RosettaFlow/Carrier-Go/signsuite"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"strings"
@@ -182,6 +183,19 @@ func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *pb.ApplyMeta
 		return &pb.ApplyMetadataAuthorityResponse{ Status: backend.ErrApplyMetadataAuthority.ErrCode(), Msg: "the user signature is nil"}, nil
 	}
 
+	metadataAuthorityMsg := types.NewMetadataAuthorityMessageFromRequest(req)
+	from, err := signsuite.Sender(req.GetUserType(), metadataAuthorityMsg.Hash(), req.GetSign())
+	if nil != err {
+		log.WithError(err).Errorf("RPC-API:ApplyMetadataAuthority failed, cannot fetch sender from sign, userType: {%s}, user: {%s}",
+			req.GetUserType().String(), req.GetUser())
+		return &pb.ApplyMetadataAuthorityResponse{ Status: backend.ErrApplyMetadataAuthority.ErrCode(), Msg: "cannot fetch sender from sign"}, nil
+	}
+	if from != req.GetUser() {
+		log.WithError(err).Errorf("RPC-API:ApplyMetadataAuthority failed, sender from sign and user is not sameone, userType: {%s}, user: {%s}, sender of sign: {%s}",
+			req.GetUserType().String(), req.GetUser(), from)
+		return &pb.ApplyMetadataAuthorityResponse{ Status: backend.ErrApplyMetadataAuthority.ErrCode(), Msg: "the user sign is invalid"}, nil
+	}
+
 	now := timeutils.UnixMsecUint64()
 	switch req.GetAuth().GetUsageRule().GetUsageType() {
 	case libtypes.MetadataUsageType_Usage_Period:
@@ -265,7 +279,6 @@ func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *pb.ApplyMeta
 		return &pb.ApplyMetadataAuthorityResponse{ Status: backend.ErrApplyMetadataAuthority.ErrCode(), Msg: errMsg}, nil
 	}
 
-	metadataAuthorityMsg := types.NewMetadataAuthorityMessageFromRequest(req)
 	metadataAuthId := metadataAuthorityMsg.GetMetadataAuthId()
 
 	if err = svr.B.SendMsg(metadataAuthorityMsg); nil != err {
@@ -304,6 +317,20 @@ func (svr *Server) RevokeMetadataAuthority(ctx context.Context, req *pb.RevokeMe
 	if len(req.GetSign()) == 0 {
 		return &libtypes.SimpleResponse{ Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "the user signature is nil"}, nil
 	}
+
+	metadataAuthorityRevokeMsg := types.NewMetadataAuthorityRevokeMessageFromRequest(req)
+	from, err := signsuite.Sender(req.GetUserType(), metadataAuthorityRevokeMsg.Hash(), req.GetSign())
+	if nil != err {
+		log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, cannot fetch sender from sign, userType: {%s}, user: {%s}",
+			req.GetUserType().String(), req.GetUser())
+		return &libtypes.SimpleResponse{ Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "cannot fetch sender from sign"}, nil
+	}
+	if from != req.GetUser() {
+		log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, sender from sign and user is not sameone, userType: {%s}, user: {%s}, sender of sign: {%s}",
+			req.GetUserType().String(), req.GetUser(), from)
+		return &libtypes.SimpleResponse{ Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "the user sign is invalid"}, nil
+	}
+
 
 	authorityList, err := svr.B.GetLocalMetadataAuthorityList(timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
 	if nil != err {
@@ -346,7 +373,6 @@ func (svr *Server) RevokeMetadataAuthority(ctx context.Context, req *pb.RevokeMe
 		}
 	}
 
-	metadataAuthorityRevokeMsg := types.NewMetadataAuthorityRevokeMessageFromRequest(req)
 	metadataAuthId := metadataAuthorityRevokeMsg.GetMetadataAuthId()
 
 	if err := svr.B.SendMsg(metadataAuthorityRevokeMsg); nil != err {
@@ -468,11 +494,11 @@ func (svr *Server) GetGlobalMetadataAuthorityList(ctx context.Context, req *pb.G
 
 func verifyUserType(userType libtypes.UserType) bool {
 	switch userType {
-	case libtypes.UserType_User_1:
+	case libtypes.UserType_User_1: // PlatON
 		return true
-	case libtypes.UserType_User_2:
+	case libtypes.UserType_User_2: // Alaya
 		return true
-	case libtypes.UserType_User_3:
+	case libtypes.UserType_User_3: // Ethereum
 		return true
 	default:
 		return false

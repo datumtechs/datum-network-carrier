@@ -2,25 +2,24 @@ package core
 
 import (
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
 // StateProcessor implements Processor.
 type CenterProcessor struct {
-	config *params.CarrierChainConfig
+	config *types.CarrierChainConfig
 	bc     *DataCenter
 }
 
 // NewStateProcessor initialises a new StateProcessor.
-func NewCenterProcessor(config *params.CarrierChainConfig, bc *DataCenter) *CenterProcessor {
+func NewCenterProcessor(config *types.CarrierChainConfig, bc *DataCenter) *CenterProcessor {
 	return &CenterProcessor{
 		config: config,
 		bc:     bc,
 	}
 }
 
-func (p *CenterProcessor) Process(block *types.Block, config *params.CarrierChainConfig) error {
+func (p *CenterProcessor) Process(block *types.Block, config *types.CarrierChainConfig) error {
 	for _, metadata := range block.Metadatas() {
 		response, err := p.bc.client.SaveMetadata(p.bc.ctx, types.NewMetadataSaveRequest(metadata))
 		if err != nil {

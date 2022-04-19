@@ -9,7 +9,7 @@ import (
 	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
 	taskmngpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/taskmng"
 
-	rpcpb "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
+	rpcpb "github.com/RosettaFlow/Carrier-Go/lib/rpc/debug/v1"
 	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/peer"
 )

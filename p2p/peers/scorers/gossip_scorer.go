@@ -1,7 +1,7 @@
 package scorers
 
 import (
-	pbrpc "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
+	pbrpc "github.com/RosettaFlow/Carrier-Go/lib/rpc/debug/v1"
 	"github.com/RosettaFlow/Carrier-Go/p2p/peers/peerdata"
 	"github.com/libp2p/go-libp2p-core/peer"
 )

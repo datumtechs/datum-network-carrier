@@ -5,13 +5,13 @@ import (
 	"crypto/ecdsa"
 	"encoding/hex"
 	"errors"
+	"github.com/RosettaFlow/Carrier-Go/ach/metispay/contracts"
+	"github.com/RosettaFlow/Carrier-Go/ach/metispay/kms"
 	"github.com/RosettaFlow/Carrier-Go/common/hexutil"
 	"github.com/RosettaFlow/Carrier-Go/core"
-	"github.com/RosettaFlow/Carrier-Go/core/metispay/contracts"
-	"github.com/RosettaFlow/Carrier-Go/core/metispay/kms"
-	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
+	libapipb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	"github.com/RosettaFlow/Carrier-Go/types"
-	ethereum "github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
@@ -192,7 +192,9 @@ func (metisPay *MetisPayManager) buildTxOpts() (*bind.TransactOpts, error) {
 	return txOpts, nil
 }
 
-func convert(dataTokenTransferItemList []*pb.DataTokenTransferItem) ([]common.Address, []*big.Int, error) {
+
+func convert(dataTokenTransferItemList []*libapipb.DataTokenTransferItem) ([]common.Address, []*big.Int, error) {
+
 	tokenAddressList := make([]common.Address, len(dataTokenTransferItemList))
 	amountList := make([]*big.Int, len(dataTokenTransferItemList))
 	for idx, item := range dataTokenTransferItemList {
@@ -206,7 +208,7 @@ func convert(dataTokenTransferItemList []*pb.DataTokenTransferItem) ([]common.Ad
 	}
 	return tokenAddressList, amountList, nil
 }
-func (metisPay *MetisPayManager) EstimateTaskGas(dataTokenTransferItemList []*pb.DataTokenTransferItem) (uint64, *big.Int, error) {
+func (metisPay *MetisPayManager) EstimateTaskGas(dataTokenTransferItemList []*libapipb.DataTokenTransferItem) (uint64, *big.Int, error) {
 
 	tokenAddressList, amountList, err := convert(dataTokenTransferItemList)
 	if err != nil {
@@ -250,7 +252,9 @@ func (metisPay *MetisPayManager) estimateGas(method string, params ...interface{
 
 // ReadyToStart get funds clearing to start a task.
 // the caller should use a channel to receive the result.
-func (metisPay *MetisPayManager) ReadyToStart(taskID string, userAccount common.Address, dataTokenTransferItemList []*pb.DataTokenTransferItem) error {
+
+func (metisPay *MetisPayManager) ReadyToStart(taskID string, userAccount common.Address, dataTokenTransferItemList []*libapipb.DataTokenTransferItem) error {
+
 	if metisPay.getPrivateKey() == nil {
 		log.Errorf("organization private key is missing")
 		return errors.New("organization private key is missing")
@@ -327,7 +331,8 @@ func (metisPay *MetisPayManager) GenerateOrgWallet() (string, error) {
 	}
 }
 
-func (metisPay *MetisPayManager) Prepay(taskID *big.Int, userAccount common.Address, dataTokenTransferItemList []*pb.DataTokenTransferItem) (*PrepayResponse, error) {
+
+func (metisPay *MetisPayManager) Prepay(taskID *big.Int, userAccount common.Address, dataTokenTransferItemList []*libapipb.DataTokenTransferItem) (*PrepayResponse, error) {
 
 	if metisPay.getPrivateKey() == nil {
 		log.Errorf("cannot send Prepay transaction cause organization wallet missing")

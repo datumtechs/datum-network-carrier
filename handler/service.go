@@ -8,7 +8,7 @@ import (
 	statefeed "github.com/RosettaFlow/Carrier-Go/common/feed/state"
 	"github.com/RosettaFlow/Carrier-Go/common/runutil"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
-	libp2ppb "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
+	libp2ppb "github.com/RosettaFlow/Carrier-Go/lib/rpc/debug/v1"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/RosettaFlow/Carrier-Go/types"

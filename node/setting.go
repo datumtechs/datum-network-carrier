@@ -29,6 +29,21 @@ func SetCarrierConfig(ctx *cli.Context, cfg *carrier.Config) {
 	// Avoid conflicting network flags
 	//checkExclusive(ctx, DeveloperFlag, TestnetFlag)
 	cfg.DatabaseHandles = makeDatabaseHandles()
+	cfg.DiscoverServiceConfig = &params.DiscoverServiceConfig{
+		DiscoveryServerIP:                     ctx.String(flags.DiscoveryServerIP.Name),
+		DiscoveryServerPort:                   ctx.Int(flags.DiscoveryServerPort.Name),
+		DiscoveryServiceId:                    ctx.String(flags.DiscoveryServiceId.Name),
+		DiscoveryServiceName:                  ctx.String(flags.DiscoveryServiceName.Name),
+		DiscoveryServerTags:                   ctx.StringSlice(flags.DiscoveryServerTags.Name),
+		DiscoveryServiceHealthCheckInterval:   ctx.Int(flags.DiscoveryServiceHealthCheckInterval.Name),
+		DiscoveryServiceHealthCheckDeregister: ctx.Int(flags.DiscoveryServiceHealthCheckDeregister.Name),
+	}
+	cfg.TaskManagerConfig = &params.TaskManagerConfig{
+		MetadataConsumeOption:          ctx.Int(flags.TaskMetadataConsumeOption.Name),
+		NeedReplayScheduleTaskChanSize: ctx.Int(flags.TaskReplayScheduleChanSize.Name),
+		NeedExecuteTaskChanSize:        ctx.Int(flags.TaskNeedExecuteChanSize.Name),
+		TaskConsResultChanSize:         ctx.Int(flags.TaskConsResultChanSize.Name),
+	}
 
 	// override any default configs.
 	switch {

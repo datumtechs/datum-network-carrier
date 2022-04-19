@@ -3,7 +3,7 @@ package handler
 import (
 	"context"
 	"github.com/RosettaFlow/Carrier-Go/common/abool"
-	libp2ppb "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
+	libp2ppb "github.com/RosettaFlow/Carrier-Go/lib/rpc/debug/v1"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	p2ptest "github.com/RosettaFlow/Carrier-Go/p2p/testing"
 	"github.com/gogo/protobuf/proto"

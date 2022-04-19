@@ -2,17 +2,17 @@ package task
 
 import (
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/auth"
+	auth2 "github.com/RosettaFlow/Carrier-Go/ach/auth"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
 type  TaskValidator struct {
 	resourceMng     *resource.Manager
-	authMng         *auth.AuthorityManager
+	authMng         *auth2.AuthorityManager
 }
 
-func newTaskValidator (resourceMng *resource.Manager, authMng *auth.AuthorityManager) *TaskValidator {
+func newTaskValidator (resourceMng *resource.Manager, authMng *auth2.AuthorityManager) *TaskValidator {
 	return &TaskValidator{
 		resourceMng: resourceMng,
 		authMng: authMng,

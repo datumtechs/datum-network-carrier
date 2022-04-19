@@ -310,6 +310,8 @@ var (
 		Value: "",
 	}
 
+	// ================================= consensus Flags ===========================================
+
 	// consensus state
 	ConsensusStateWalDir = &cli.StringFlag{
 		Name:  "consensus-state-wal-dir",
@@ -317,35 +319,67 @@ var (
 		Value: "",
 	}
 
-	//lvxiaoyi
-	KMS_KeyId = &cli.StringFlag{
+	// ================================= Blockchain Flags ===========================================
+
+	// add by v0.4.0
+	BlockChain = &cli.StringFlag{
+		Name:  "blockchain.url",
+		Usage: "blockchain node endpoint.",
+		Value: "",
+	}
+
+	// ================================= KMS config Flags ===========================================
+
+	// add by v0.4.0
+	KMSKeyId = &cli.StringFlag{
 		Name:  "kms.key-id",
 		Usage: "KMS KeyId.",
 		Value: "",
 	}
 
-	KMS_RegionId = &cli.StringFlag{
+	KMSRegionId = &cli.StringFlag{
 		Name:  "kms.region-id",
 		Usage: "KMS RegionId.",
 		Value: "",
 	}
 
-	KMS_AccessKeyId = &cli.StringFlag{
+	KMSAccessKeyId = &cli.StringFlag{
 		Name:  "kms.access-key-id",
 		Usage: "KMS AccessKeyId.",
 		Value: "",
 	}
 
-	KMS_AccessKeySecret = &cli.StringFlag{
+	KMSAccessKeySecret = &cli.StringFlag{
 		Name:  "kms.access-key-secret",
 		Usage: "KMS AccessKeySecret.",
 		Value: "",
 	}
 
-	Chain = &cli.StringFlag{
-		Name:  "chain.url",
-		Usage: "chain node endpoint.",
-		Value: "",
+	// ================================= TaskManager Flags ===========================================
+
+	// add by v.04.0
+	TaskReplayScheduleChanSize = &cli.IntFlag{
+		Name:  "task.replay-schedule-chan-size",
+		Usage: "The buffer size for task participants to receive task information from the task sender [re-calculation operations are required] (default 600)",
+		Value: 600,
+	}
+
+	TaskNeedExecuteChanSize = &cli.IntFlag{
+		Name:  "task.need-execute-chan-size",
+		Usage: "The buffer size for the task manager to receive tasks that are about to perform subsequent operations [that have failed or succeeded in consensus] (default 600)",
+		Value: 600,
+	}
+
+	TaskConsResultChanSize = &cli.IntFlag{
+		Name:  "task.consensus-result-chan-size",
+		Usage: "The buffer size for task sender will handling has finished one epoch consensus [failed or successful] (default 600)",
+		Value: 600,
+	}
+
+	TaskMetadataConsumeOption = &cli.IntFlag{
+		Name:  "task.metadata-consume-option",
+		Usage: "Metadata consumption options for tasks (default 0, 0 mean nothing, 1 mean metadataAuth, 2 mean datatoken)",
+		Value: 0,
 	}
 )
 

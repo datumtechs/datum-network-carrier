@@ -1,11 +1,14 @@
 package params
 
 import (
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	"github.com/RosettaFlow/Carrier-Go/types"
+	"math/big"
 	"time"
 )
 
 // MainnetConfig returns the configuration to be used in the main network.
-func MainnetConfig() *CarrierChainConfig {
+func MainnetConfig() *types.CarrierChainConfig {
 	return mainnetCarrierConfig
 }
 
@@ -14,9 +17,12 @@ func UseMainnetConfig() {
 }
 
 // the default config for main network.
-var mainnetCarrierConfig = &CarrierChainConfig{
+var mainnetCarrierConfig = &types.CarrierChainConfig{
 	DiscoveryServiceName: "carrierService",
 	DiscoveryServiceTags: []string{"carrier"},
+	BlockChainIdCache: map[libtypes.UserType]*big.Int{
+		libtypes.UserType_User_1: new(big.Int).SetUint64(210309),  // TODO Maybe using command params to deside it.
+	},
 }
 
 var mainnetNetworkConfig = &NetworkConfig{

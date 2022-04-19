@@ -107,14 +107,21 @@ var (
 	}
 
 	kmsFlags = []cli.Flag{
-		flags.KMS_KeyId,
-		flags.KMS_RegionId,
-		flags.KMS_AccessKeyId,
-		flags.KMS_AccessKeySecret,
+		flags.KMSKeyId,
+		flags.KMSRegionId,
+		flags.KMSAccessKeyId,
+		flags.KMSAccessKeySecret,
 	}
 
 	chainFlags = []cli.Flag{
-		flags.Chain,
+		flags.BlockChain,
+	}
+
+	taskFlags = []cli.Flag{
+		flags.TaskReplayScheduleChanSize,
+		flags.TaskNeedExecuteChanSize,
+		flags.TaskConsResultChanSize,
+		flags.TaskMetadataConsumeOption,
 	}
 )
 
@@ -126,9 +133,10 @@ func init() {
 	debugFlags = cmd.WrapFlags(debugFlags)
 	mockFlags = cmd.WrapFlags(mockFlags)
 	consensusFlags = cmd.WrapFlags(consensusFlags)
-	//lvxiaoyi
+	// add by v0.4.0
 	kmsFlags = cmd.WrapFlags(kmsFlags)
 	chainFlags = cmd.WrapFlags(chainFlags)
+	taskFlags = cmd.WrapFlags(taskFlags)
 }
 
 func main() {
@@ -148,9 +156,10 @@ func main() {
 	app.Flags = append(app.Flags, debugFlags...)
 	app.Flags = append(app.Flags, mockFlags...)
 	app.Flags = append(app.Flags, consensusFlags...)
-	//lvxiaoyi
+	// add by v0.4.0
 	app.Flags = append(app.Flags, kmsFlags...)
 	app.Flags = append(app.Flags, chainFlags...)
+	app.Flags = append(app.Flags, taskFlags...)
 
 	app.Before = func(ctx *cli.Context) error {
 		// Load flags from config file, if specified.

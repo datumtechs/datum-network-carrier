@@ -2,7 +2,7 @@ package handler
 
 import (
 	"context"
-	libp2ppb "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
+	libp2ppb "github.com/RosettaFlow/Carrier-Go/lib/rpc/debug/v1"
 	p2ptypes "github.com/RosettaFlow/Carrier-Go/p2p/types"
 	libp2pcore "github.com/libp2p/go-libp2p-core"
 	"github.com/pkg/errors"

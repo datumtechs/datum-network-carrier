@@ -24,7 +24,7 @@ func IsRowAndColumnData(fileType libtypes.OrigindataType) bool {
     "dataPath": "/home/user1/data/data_root/bank_predict_partyA_20220218-090241.csv",
     "rows": 100,
     "columns": 27,
-    "size": "7711",
+    "size": 12,
     "hasTitle": true,
     "metadataColumns": [
         {

@@ -123,20 +123,30 @@ var appHelpFlagGroups = []flagGroup{
 			flags.LogFileName,
 		},
 	},
-	//lvxiaoyi
-	{
-		Name: "kms",
-		Flags: []cli.Flag{
-			flags.KMS_KeyId,
-			flags.KMS_RegionId,
-			flags.KMS_AccessKeyId,
-			flags.KMS_AccessKeySecret,
-		},
-	},
 	{
 		Name: "chain",
 		Flags: []cli.Flag{
-			flags.Chain,
+			flags.BlockChain,
+		},
+	},
+	// add by v0.4.0
+	{
+		Name: "kms",
+		Flags: []cli.Flag{
+			flags.KMSKeyId,
+			flags.KMSRegionId,
+			flags.KMSAccessKeyId,
+			flags.KMSAccessKeySecret,
+		},
+	},
+	// add by v0.4.0
+	{
+		Name: "task",
+		Flags: []cli.Flag{
+			flags.TaskReplayScheduleChanSize,
+			flags.TaskNeedExecuteChanSize,
+			flags.TaskConsResultChanSize,
+			flags.TaskMetadataConsumeOption,
 		},
 	},
 }

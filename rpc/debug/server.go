@@ -2,7 +2,8 @@ package debug
 
 import (
 	"context"
-	pbrpc "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
+	"github.com/RosettaFlow/Carrier-Go/consensus/twopc"
+	pbrpc "github.com/RosettaFlow/Carrier-Go/lib/rpc/debug/v1"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	gethlog "github.com/ethereum/go-ethereum/log"
 	"github.com/golang/protobuf/ptypes/empty"
@@ -19,6 +20,7 @@ import (
 type Server struct {
 	PeerManager        p2p.PeerManager
 	PeersFetcher       p2p.PeersProvider
+	ConsensusStateInfo *twopc.ConsensusStateInfo
 }
 
 // SetLoggingLevel of a beacon node according to a request type,

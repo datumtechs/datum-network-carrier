@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
-	rpcpb "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
+	rpcpb "github.com/RosettaFlow/Carrier-Go/lib/rpc/debug/v1"
 	rpcapipb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	gwruntime "github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/pkg/errors"

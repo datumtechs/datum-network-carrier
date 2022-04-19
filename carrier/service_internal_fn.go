@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/RosettaFlow/Carrier-Go/service/discovery"
+	"github.com/RosettaFlow/Carrier-Go/types"
 	"strconv"
 	"strings"
 	"time"
@@ -72,7 +72,7 @@ func (s *Service) initServicesWithDiscoveryCenter() error {
 		return fmt.Errorf("invalid datacenter Port from discovery center, %s", err)
 	}
 
-	if err := s.carrierDB.SetConfig(&params.CarrierChainConfig{
+	if err := s.carrierDB.SetConfig(&types.CarrierChainConfig{
 		GrpcUrl: datacenterIP,
 		Port:    uint64(datacenterPort),
 	}); nil != err {

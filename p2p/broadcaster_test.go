@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
-	libp2ppb "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
+	libp2ppb "github.com/RosettaFlow/Carrier-Go/lib/rpc/debug/v1"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	p2ptest "github.com/RosettaFlow/Carrier-Go/p2p/testing"
 	"github.com/gogo/protobuf/proto"

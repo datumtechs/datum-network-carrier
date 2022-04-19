@@ -3,7 +3,7 @@ package handler
 import (
 	"context"
 	"github.com/RosettaFlow/Carrier-Go/common/traceutil"
-	librpcpb "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
+	librpcpb "github.com/RosettaFlow/Carrier-Go/lib/rpc/debug/v1"
 	"github.com/libp2p/go-libp2p-core/peer"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	"go.opencensus.io/trace"

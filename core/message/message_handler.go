@@ -2,7 +2,7 @@ package message
 
 import (
 	"encoding/json"
-	"github.com/RosettaFlow/Carrier-Go/auth"
+	auth2 "github.com/RosettaFlow/Carrier-Go/ach/auth"
 	"github.com/RosettaFlow/Carrier-Go/common/feed"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
@@ -34,7 +34,7 @@ type MessageHandler struct {
 	resourceMng *resource.Manager
 	// Send taskMsg to taskManager
 	taskManager *task.Manager
-	authManager *auth.AuthorityManager
+	authManager *auth2.AuthorityManager
 	// internal resource node set (Fighter node grpc client set)
 	msgChannel chan *feed.Event
 	quit       chan struct{}
@@ -52,7 +52,7 @@ type MessageHandler struct {
 	lockTask         sync.Mutex
 }
 
-func NewHandler(pool *Mempool, resourceMng *resource.Manager, taskManager *task.Manager, authManager *auth.AuthorityManager) *MessageHandler {
+func NewHandler(pool *Mempool, resourceMng *resource.Manager, taskManager *task.Manager, authManager *auth2.AuthorityManager) *MessageHandler {
 	m := &MessageHandler{
 		pool:        pool,
 		resourceMng: resourceMng,
@@ -751,7 +751,7 @@ func (m *MessageHandler) BroadcastMetadataAuthMsgArr(metadataAuthMsgArr types.Me
 		}
 
 		// check the metadataId whether has valid metadataAuth with current userType and user.
-		has, err := m.authManager.HasValidMetadataAuth(msg.GetUserType(), msg.GetUser(), msg.GetMetadataAuthorityOwnerIdentity(), msg.GetMetadataAuthorityMetadataId())
+		has, err := m.authManager.HasValidMetadataAuth(msg.GetUserType(), msg.GetUser(), msg.GetMetadataAuthorityOwnerIdentityId(), msg.GetMetadataAuthorityMetadataId())
 		if nil != err {
 			log.WithError(err).Errorf("Failed to call HasValidLocalMetadataAuth on MessageHandler with broadcast metadataAuth, metadataAuthId: {%s}, metadataId: {%s}, userType: {%s}, user:{%s}",
 				msg.GetMetadataAuthId(), msg.GetMetadataAuthority().GetMetadataId(), msg.GetUserType(), msg.GetUser())

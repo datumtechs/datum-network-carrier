@@ -19,6 +19,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/rpc"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
+	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 	"os"
@@ -82,7 +83,7 @@ func New(cliCtx *cli.Context) (*CarrierNode, error) {
 	}
 
 	// start db
-	err := node.startDB(cliCtx, &config.Carrier)
+	err := node.startDB(cliCtx, config.Carrier)
 	if err != nil {
 		log.WithError(err).Error("Failed to start DB")
 		return nil, err
@@ -94,7 +95,7 @@ func New(cliCtx *cli.Context) (*CarrierNode, error) {
 	}
 
 	// register backend service.
-	if err := node.registerBackendService(&config.Carrier, config.MockIdentityIdsFile,config.ConsensusStateFile); err != nil {
+	if err := node.registerBackendService(config.Carrier, config.MockIdentityIdsFile,config.ConsensusStateFile); err != nil {
 		return nil, err
 	}
 
@@ -269,6 +270,7 @@ func (node *CarrierNode) registerHandlerService() error {
 
 func (node *CarrierNode) registerRPCService() error {
 	backend := node.fetchRPCBackend()
+	backendPlus := node.fetchBackend()
 	host := node.cliCtx.String(flags.RPCHost.Name)
 	port := node.cliCtx.String(flags.RPCPort.Name)
 	cert := node.cliCtx.String(flags.CertFlag.Name)
@@ -291,6 +293,7 @@ func (node *CarrierNode) registerRPCService() error {
 		MetadataProvider:        p2pService,
 		StateNotifier:           node,
 		BackendAPI:              backend,
+		TwoPcAPI:				 backendPlus.Engines[types.TwopcTyp],
 		MaxMsgSize:              maxMsgSize,
 		MaxSendMsgSize:          maxSendMsgSize,
 	})

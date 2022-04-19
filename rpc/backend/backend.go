@@ -8,6 +8,9 @@ import (
 )
 
 type Backend interface {
+	// add by v 0.4.0
+	GetCarrierChainConfig() *types.CarrierChainConfig
+
 	SendMsg(msg types.Msg) error
 
 	// system (the yarn node self info)

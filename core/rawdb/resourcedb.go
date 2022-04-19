@@ -1469,7 +1469,6 @@ func QueryMetadataMsgArr(db KeyValueStore) (types.MetadataMsgArr, error) {
 				continue
 			}
 			arr = append(arr, &types.MetadataMsg{
-				MetadataId:      res.GetMetadataId(),
 				MetadataSummary: res.GetMetadataSummary(),
 				CreateAt:        res.GetCreateAt(),
 			})

@@ -1,6 +1,8 @@
-package params
+package types
 
 import (
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	"github.com/mohae/deepcopy"
 	types "github.com/prysmaticlabs/eth2-types"
 	"math/big"
 )
@@ -12,7 +14,18 @@ type CarrierChainConfig struct {
 	Port           uint64     // Port is the port of the data service center.
 	SlotsPerEpoch  types.Slot // SlotsPerEpoch is the number of slots in an epoch.
 	SecondsPerSlot uint64     // SecondsPerSlot is how many seconds are in a single slot.
-
+	// add by v 0.3.0
 	DiscoveryServiceName string
 	DiscoveryServiceTags []string
+	// add by v 0.4.0
+	BlockChainIdCache     map[libtypes.UserType]*big.Int   // blockchain {userAddress -> chainId}
+}
+
+// Copy returns a copy of the config object.
+func (c *CarrierChainConfig) Copy() *CarrierChainConfig {
+	config, ok := deepcopy.Copy(*c).(CarrierChainConfig)
+	if !ok {
+		return nil
+	}
+	return &config
 }

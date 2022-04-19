@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/common"
+	carriercommon "github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/common/runutil"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/common/traceutil"
@@ -12,7 +12,9 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	"github.com/RosettaFlow/Carrier-Go/core/schedule"
-	"github.com/RosettaFlow/Carrier-Go/lib/api"
+	ethereumcommon "github.com/ethereum/go-ethereum/common"
+
+	libapipb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	fightercommon "github.com/RosettaFlow/Carrier-Go/lib/fighter/common"
 	msgcommonpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/common"
 	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
@@ -124,6 +126,81 @@ func (m *Manager) sendNeedExecuteTaskByAction(task *types.NeedExecuteTask) {
 	}(task)
 }
 
+func (m *Manager) consumeResource (task *types.NeedExecuteTask, localTask *types.Task) error {
+
+	switch m.config.MetadataConsumeOption {
+	case 1: // use metadataAuth
+		return m.consumeByMetadataAuth(task, localTask)
+	case 2: // use datatoken
+		return m.consumeByDataToken(task, localTask)
+	default: // use nothing
+		return nil
+	}
+}
+
+func (m *Manager) consumeByMetadataAuth (task *types.NeedExecuteTask, localTask *types.Task) error {
+
+	partyId := task.GetLocalTaskOrganization().GetPartyId()
+
+	if task.GetLocalTaskRole() == libtypes.TaskRole_TaskRole_DataSupplier {
+
+		for _, dataSupplier := range localTask.GetTaskData().GetDataSuppliers() {
+			if partyId == dataSupplier.GetPartyId() {
+
+				userType := localTask.GetTaskData().GetUserType()
+				user := localTask.GetTaskData().GetUser()
+
+				metadataId, err := policy.FetchMetedataIdByPartyId(partyId, localTask.GetTaskData().GetDataPolicyType(), localTask.GetTaskData().GetDataPolicyOption())
+				if nil != err {
+					return fmt.Errorf("not fetch metadataId from task dataPolicy when call consumeByMetadataAuth(), %s, taskId: {%s}, partyId: {%s}",
+						err, localTask.GetTaskId(), partyId)
+				}
+				// verify metadataAuth first
+				if err := m.authMng.VerifyMetadataAuth(userType, user, metadataId); nil != err {
+					return fmt.Errorf("verify user metadataAuth failed when call consumeByMetadataAuth(), %s, userType: {%s}, user: {%s}, taskId: {%s}, partyId: {%s}, metadataId: {%s}",
+						err, userType, user, localTask.GetTaskId(), partyId, metadataId)
+				}
+
+				internalMetadataFlag, err := m.resourceMng.GetDB().IsInternalMetadataById(metadataId)
+				if nil != err {
+					return fmt.Errorf("check metadata whether internal metadata failed %s when call consumeByMetadataAuth(), taskId: {%s}, partyId: {%s}, metadataId: {%s}",
+						err, localTask.GetTaskId(), partyId, metadataId)
+				}
+
+				// only consume metadata auth when metadata is not internal metadata.
+				if !internalMetadataFlag {
+					// query metadataAuthId by metadataId
+					metadataAuthId, err := m.authMng.QueryMetadataAuthIdByMetadataId(userType, user, metadataId)
+					if nil != err {
+						return fmt.Errorf("query metadataAuthId failed %s when call consumeByMetadataAuth(), metadataId: {%s}", err, metadataId)
+					}
+					// ConsumeMetadataAuthority
+					if err = m.authMng.ConsumeMetadataAuthority(metadataAuthId); nil != err {
+						return fmt.Errorf("consume metadataAuth failed %s when call consumeByMetadataAuth(), metadataAuthId: {%s}", err, metadataAuthId)
+					} else {
+						log.Debugf("Succeed consume metadataAuth when call consumeByMetadataAuth(), taskId: {%s}, metadataAuthId: {%s}", task.GetTaskId(), metadataAuthId)
+					}
+				}
+				break
+			}
+		}
+	}
+	return nil
+}
+
+func (m *Manager) consumeByDataToken (task *types.NeedExecuteTask, localTask *types.Task) error {
+
+	partyId := task.GetLocalTaskOrganization().GetPartyId()
+
+	var dataTokenTransferItemList []*libapipb.DataTokenTransferItem
+
+	if partyId == localTask.GetTaskSender().GetPartyId() {
+		m.metisPayMng.ReadyToStart(task.GetTaskId(), ethereumcommon.Address{}, dataTokenTransferItemList)
+	}
+
+	return nil
+}
+
 // To execute task
 func (m *Manager) driveTaskForExecute(task *types.NeedExecuteTask) error {
 
@@ -144,22 +221,34 @@ func (m *Manager) driveTaskForExecute(task *types.NeedExecuteTask) error {
 	//return nil
 	////  ######
 
+	// 1、 query local task info by taskId
+	localTask, err := m.resourceMng.GetDB().QueryLocalTask(task.GetTaskId())
+	if nil != err {
+		return fmt.Errorf("query local task info failed")
+	}
+
+	// 2、 consume the resource of task
+	if err := m.consumeResource (task, localTask); nil != err {
+		return err
+	}
+
+	// 3、 let's task execute
 	switch task.GetLocalTaskRole() {
 	case libtypes.TaskRole_TaskRole_DataSupplier, libtypes.TaskRole_TaskRole_Receiver:
-		return m.executeTaskOnDataNode(task)
+		return m.executeTaskOnDataNode(task, localTask)
 	case libtypes.TaskRole_TaskRole_PowerSupplier:
-		return m.executeTaskOnJobNode(task)
+		return m.executeTaskOnJobNode(task, localTask)
 	default:
 		log.Errorf("Faided to driveTaskForExecute(), Unknown task role, taskId: {%s}, taskRole: {%s}", task.GetTaskId(), task.GetLocalTaskRole().String())
 		return fmt.Errorf("Unknown fighter node type when ready to execute task")
 	}
 }
 
-func (m *Manager) executeTaskOnDataNode(task *types.NeedExecuteTask) error {
+func (m *Manager) executeTaskOnDataNode(task *types.NeedExecuteTask, localTask *types.Task) error {
 
 	// find dataNodeId with self vote
 	var dataNodeId string
-	dataNodes, err := m.resourceMng.GetDB().QueryRegisterNodeList(api.PrefixTypeDataNode)
+	dataNodes, err := m.resourceMng.GetDB().QueryRegisterNodeList(libapipb.PrefixTypeDataNode)
 	if nil != err {
 		log.Errorf("Failed to query internal dataNode arr on `taskManager.executeTaskOnDataNode()`, taskId: {%s}, role: {%s}, partyId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
@@ -193,7 +282,7 @@ func (m *Manager) executeTaskOnDataNode(task *types.NeedExecuteTask) error {
 		}
 	}
 
-	req, err := m.makeTaskReadyGoReq(task)
+	req, err := m.makeTaskReadyGoReq(task, localTask)
 	if nil != err {
 		log.WithError(err).Errorf("Falied to make TaskReadyGoReq on `taskManager.executeTaskOnDataNode()`, taskId: {%s}, role: {%s}, partyId: {%s}, dataNodeId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), dataNodeId)
@@ -217,11 +306,11 @@ func (m *Manager) executeTaskOnDataNode(task *types.NeedExecuteTask) error {
 	return nil
 }
 
-func (m *Manager) executeTaskOnJobNode(task *types.NeedExecuteTask) error {
+func (m *Manager) executeTaskOnJobNode(task *types.NeedExecuteTask, localTask *types.Task) error {
 
 	// find jobNodeId with self vote
 	var jobNodeId string
-	jobNodes, err := m.resourceMng.GetDB().QueryRegisterNodeList(api.PrefixTypeJobNode)
+	jobNodes, err := m.resourceMng.GetDB().QueryRegisterNodeList(libapipb.PrefixTypeJobNode)
 	if nil != err {
 		log.Errorf("Failed to query internal jobNode arr on `taskManager.executeTaskOnJobNode()`, taskId: {%s}, role: {%s}, partyId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
@@ -255,7 +344,7 @@ func (m *Manager) executeTaskOnJobNode(task *types.NeedExecuteTask) error {
 		}
 	}
 
-	req, err := m.makeTaskReadyGoReq(task)
+	req, err := m.makeTaskReadyGoReq(task, localTask)
 	if nil != err {
 		log.WithError(err).Errorf("Falied to make TaskReadyGoReq on `taskManager.executeTaskOnJobNode()`, taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), jobNodeId)
@@ -298,7 +387,7 @@ func (m *Manager) terminateTaskOnDataNode(task *types.NeedExecuteTask) error {
 
 	// find dataNodeId with self vote
 	var dataNodeId string
-	dataNodes, err := m.resourceMng.GetDB().QueryRegisterNodeList(api.PrefixTypeDataNode)
+	dataNodes, err := m.resourceMng.GetDB().QueryRegisterNodeList(libapipb.PrefixTypeDataNode)
 	if nil != err {
 		log.Errorf("Failed to query internal dataNode arr on `taskManager.terminateTaskOnDataNode()`, taskId: {%s}, role: {%s}, partyId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
@@ -360,7 +449,7 @@ func (m *Manager) terminateTaskOnJobNode(task *types.NeedExecuteTask) error {
 
 	// find jobNodeId with self vote
 	var jobNodeId string
-	jobNodes, err := m.resourceMng.GetDB().QueryRegisterNodeList(api.PrefixTypeJobNode)
+	jobNodes, err := m.resourceMng.GetDB().QueryRegisterNodeList(libapipb.PrefixTypeJobNode)
 	if nil != err {
 		log.Errorf("Failed to query internal jobNode arr on `taskManager.terminateTaskOnJobNode()`, taskId: {%s}, role: {%s}, partyId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
@@ -555,7 +644,7 @@ func (m *Manager) sendTaskTerminateMsg(task *types.Task) error {
 
 		terminateMsg := &taskmngpb.TaskTerminateMsg{
 			MsgOption: &msgcommonpb.MsgOption{
-				ProposalId:      common.Hash{}.Bytes(),
+				ProposalId:      carriercommon.Hash{}.Bytes(),
 				SenderRole:      uint64(senderRole),
 				SenderPartyId:   []byte(sender.GetPartyId()),
 				ReceiverRole:    uint64(receiverRole),
@@ -659,12 +748,7 @@ func (m *Manager) fillTaskEventAndFinishedState(task *types.Task, eventList []*l
 	return task
 }
 
-func (m *Manager) makeTaskReadyGoReq(task *types.NeedExecuteTask) (*fightercommon.TaskReadyGoReq, error) {
-
-	localTask, err := m.resourceMng.GetDB().QueryLocalTask(task.GetTaskId())
-	if nil != err {
-		return nil, fmt.Errorf("query local task info failed")
-	}
+func (m *Manager) makeTaskReadyGoReq(task *types.NeedExecuteTask, localTask *types.Task) (*fightercommon.TaskReadyGoReq, error) {
 
 	var dataPartyArr []string
 	var powerPartyArr []string
@@ -746,7 +830,7 @@ func (m *Manager) makeTaskReadyGoReq(task *types.NeedExecuteTask) (*fightercommo
 	return req, nil
 }
 
-func (m *Manager) makeContractParams(task *types.NeedExecuteTask, localTask *types.Task) (fightercommon.AlgorithmCfgType, string, error) {
+func (m *Manager) makeContractParams (task *types.NeedExecuteTask, localTask *types.Task) (fightercommon.AlgorithmCfgType, string, error) {
 
 	var (
 		typ    fightercommon.AlgorithmCfgType
@@ -766,7 +850,7 @@ func (m *Manager) makeContractParams(task *types.NeedExecuteTask, localTask *typ
 	return typ, params, err
 }
 
-func (m *Manager) metadataPolicyRowColumn(task *types.NeedExecuteTask, localTask *types.Task) (string, error) {
+func (m *Manager) metadataPolicyRowColumn (task *types.NeedExecuteTask, localTask *types.Task) (string, error) {
 
 	partyId := task.GetLocalTaskOrganization().GetPartyId()
 
@@ -799,20 +883,11 @@ func (m *Manager) metadataPolicyRowColumn(task *types.NeedExecuteTask, localTask
 		for _, dataSupplier := range localTask.GetTaskData().GetDataSuppliers() {
 			if partyId == dataSupplier.GetPartyId() {
 
-				userType := localTask.GetTaskData().GetUserType()
-				user := localTask.GetTaskData().GetUser()
-
 				metadataId, err := policy.FetchMetedataIdByPartyId(partyId, localTask.GetTaskData().GetDataPolicyType(), localTask.GetTaskData().GetDataPolicyOption())
 				if nil != err {
 					return "", fmt.Errorf("not fetch metadataId from task dataPolicy, %s, taskId: {%s}, partyId: {%s}",
 						err, localTask.GetTaskId(), partyId)
 				}
-				// verify metadataAuth first
-				if err := m.authMng.VerifyMetadataAuth(userType, user, metadataId); nil != err {
-					return "", fmt.Errorf("verify user metadataAuth failed, %s, userType: {%s}, user: {%s}, taskId: {%s}, partyId: {%s}, metadataId: {%s}",
-						err, userType, user, localTask.GetTaskId(), partyId, metadataId)
-				}
-
 				internalMetadataFlag, err := m.resourceMng.GetDB().IsInternalMetadataById(metadataId)
 				if nil != err {
 					return "", fmt.Errorf("check metadata whether internal metadata failed %s, taskId: {%s}, partyId: {%s}, metadataId: {%s}",
@@ -880,20 +955,6 @@ func (m *Manager) metadataPolicyRowColumn(task *types.NeedExecuteTask, localTask
 						localTask.GetTaskId(), partyId, metadataId)
 				}
 
-				// only consume metadata auth when metadata is not internal metadata.
-				if !internalMetadataFlag {
-					// query metadataAuthId by metadataId
-					metadataAuthId, err := m.authMng.QueryMetadataAuthIdByMetadataId(userType, user, metadataId)
-					if nil != err {
-						return "", fmt.Errorf("query metadataAuthId failed %s, metadataId: {%s}", err, metadataId)
-					}
-					// ConsumeMetadataAuthority
-					if err = m.authMng.ConsumeMetadataAuthority(metadataAuthId); nil != err {
-						return "", fmt.Errorf("consume metadataAuth failed %s, metadataAuthId: {%s}", err, metadataAuthId)
-					} else {
-						log.Debugf("Succeed consume metadataAuth, taskId: {%s}, metadataAuthId: {%s}", task.GetTaskId(), metadataAuthId)
-					}
-				}
 				break
 			}
 		}
@@ -1111,7 +1172,7 @@ func (m *Manager) makeTaskResultMsgWithEventList(task *types.NeedExecuteTask) *t
 
 	return &taskmngpb.TaskResultMsg{
 		MsgOption: &msgcommonpb.MsgOption{
-			ProposalId:      common.Hash{}.Bytes(),
+			ProposalId:      carriercommon.Hash{}.Bytes(),
 			SenderRole:      uint64(task.GetLocalTaskRole()),
 			SenderPartyId:   []byte(task.GetLocalTaskOrganization().GetPartyId()),
 			ReceiverRole:    uint64(task.GetRemoteTaskRole()),
@@ -1242,15 +1303,15 @@ func (m *Manager) executeTaskEvent(logkeyword string, symbol types.NetworkMsgLoc
 			return err
 		}
 
-		if publish {
+		// 1、 handle last party
+		//   send this task result to remote target peer,
+		//   but they belong to same organization, call local msg.
+		if symbol == types.LocalNetworkMsg {
+			m.sendTaskResultMsgToTaskSender(localNeedtask)
+			m.removeNeedExecuteTaskCache(event.GetTaskId(), event.GetPartyId())
+		}
 
-			// 1、 handle last party
-			//   send this task result to remote target peer,
-			//   but they belong to same organization, call local msg.
-			if symbol == types.LocalNetworkMsg {
-				m.sendTaskResultMsgToTaskSender(localNeedtask)
-				m.removeNeedExecuteTaskCache(event.GetTaskId(), event.GetPartyId())
-			}
+		if publish {
 
 			// 2、 handle sender party
 			senderNeedTask, ok := m.queryNeedExecuteTaskCache(event.GetTaskId(), localTask.GetTaskSender().GetPartyId())
@@ -1260,12 +1321,6 @@ func (m *Manager) executeTaskEvent(logkeyword string, symbol types.NetworkMsgLoc
 				// handle this task result with current peer
 				m.publishFinishedTaskToDataCenter(senderNeedTask, localTask, true)
 				m.removeNeedExecuteTaskCache(event.GetTaskId(), localTask.GetTaskSender().GetPartyId())
-			}
-		} else {
-			if symbol == types.LocalNetworkMsg {
-				// send this task result to remote target peer
-				m.sendTaskResultMsgToTaskSender(localNeedtask)
-				m.removeNeedExecuteTaskCache(event.GetTaskId(), event.GetPartyId())
 			}
 		}
 	case ev.TaskExecuteFailedEOF.GetType():
@@ -1295,7 +1350,6 @@ func (m *Manager) executeTaskEvent(logkeyword string, symbol types.NetworkMsgLoc
 		if nil != err {
 			log.WithError(err).Errorf("Failed to query local task execute status has `running` with task sender %s, taskId: {%s}, partyId: {%s}",
 				logkeyword, localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
-			return err
 			return err
 		}
 		// (While task is consensus or running, can terminate.)
@@ -1821,6 +1875,7 @@ func (m *Manager) startTerminateWithNeedExecuteTask(needExecuteTask *types.NeedE
 func (m *Manager) checkNeedExecuteTaskMonitors(now int64) int64 {
 	return m.syncExecuteTaskMonitors.CheckMonitors(now)
 }
+
 func (m *Manager) needExecuteTaskMonitorTimer() *time.Timer {
 	return m.syncExecuteTaskMonitors.Timer()
 }

@@ -3,8 +3,9 @@ package twopc
 import (
 	"github.com/RosettaFlow/Carrier-Go/common"
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
+	rpcpb "github.com/RosettaFlow/Carrier-Go/lib/rpc/debug/v1"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"sync"
 	"time"
@@ -850,4 +851,120 @@ func (s *state) Timer() *time.Timer {
 }
 func (s *state) MonitorsLen() int {
 	return s.syncProposalStateMonitors.Len()
+}
+func (s *state) Get2PcProposalStateByTaskId(taskId string) (*rpcpb.Get2PcProposalStateResponse, error) {
+	taskObj := s.proposalTaskCache[taskId]
+	var proposalId common.Hash
+	for partyId := range taskObj {
+		if obj, err := taskObj[partyId]; err {
+			proposalId = obj.ProposalId
+			break
+		}
+	}
+
+	currentTime := time.Now().UnixNano()
+	proposalStateInfo := make(map[string]*rpcpb.ProposalState, 0)
+	if proposalState, ok := s.proposalSet[proposalId]; ok {
+		for partyId,obj := range proposalState {
+			proposalStateInfo[partyId] = &rpcpb.ProposalState{
+				PeriodNum: uint32(obj.GetPeriodNum()),
+				TaskId: obj.GetTaskId(),
+				ConsumeTime: uint64(currentTime)-obj.GetStartAt(),
+				TaskSenderIdentityId: obj.GetTaskSender().IdentityId,
+			}
+		}
+	}
+
+	return &rpcpb.Get2PcProposalStateResponse{
+		ProposalId: proposalId.String(),
+		State: proposalStateInfo,
+
+	}, nil
+}
+func (s *state) Get2PcProposalStateByProposalId(proposalId string) (*rpcpb.Get2PcProposalStateResponse, error) {
+	currentTime := time.Now().UnixNano()
+	proposalStateInfo := make(map[string]*rpcpb.ProposalState, 0)
+	if proposalState, ok := s.proposalSet[common.HexToHash(proposalId)]; ok {
+		for partyId,obj := range proposalState {
+			proposalStateInfo[partyId] = &rpcpb.ProposalState{
+				PeriodNum: uint32(obj.GetPeriodNum()),
+				TaskId: obj.GetTaskId(),
+				ConsumeTime: uint64(currentTime)-obj.GetStartAt(),
+				TaskSenderIdentityId: obj.GetTaskSender().IdentityId,
+			}
+		}
+	}
+	return &rpcpb.Get2PcProposalStateResponse{
+		ProposalId: proposalId,
+		State: proposalStateInfo,
+
+	}, nil
+}
+func (s *state) Get2PcProposalPrepare(proposalId string) (*rpcpb.Get2PcProposalPrepareResponse, error) {
+	prepareVoteInfo, _ := s.prepareVotes[common.HexToHash(proposalId)]
+	votes := make(map[string]*libtypes.PrepareVote, 0)
+	for partyId, obj := range prepareVoteInfo.votes {
+		votes[partyId] = &libtypes.PrepareVote{
+			MsgOption: &libtypes.MsgOption{
+				ProposalId:      obj.MsgOption.ProposalId.String(),
+				SenderRole:      obj.MsgOption.SenderRole,
+				SenderPartyId:   obj.MsgOption.SenderPartyId,
+				ReceiverRole:    obj.MsgOption.ReceiverRole,
+				ReceiverPartyId: obj.MsgOption.ReceiverPartyId,
+				Owner:           obj.MsgOption.Owner,
+			},
+			VoteOption: uint32(obj.VoteOption),
+			CreateAt:   obj.CreateAt,
+			Sign:       obj.Sign,
+		}
+	}
+
+	yesVotes := make(map[string]uint32, 0)
+	for role, voteCount := range prepareVoteInfo.yesVotes {
+		yesVotes[role.String()] = voteCount
+	}
+
+	voteStatus := make(map[string]uint32, 0)
+	for role, voteCount := range prepareVoteInfo.voteStatus {
+		voteStatus[role.String()] = voteCount
+	}
+	return &rpcpb.Get2PcProposalPrepareResponse{
+		Votes:      votes,
+		YesVotes:   yesVotes,
+		VoteStatus: voteStatus,
+	}, nil
+}
+func (s *state) Get2PcProposalConfirm(proposalId string) (*rpcpb.Get2PcProposalConfirmResponse, error) {
+	confirmVoteInfo, _ := s.confirmVotes[common.HexToHash(proposalId)]
+	votes := make(map[string]*libtypes.ConfirmVote, 0)
+	for partyId, obj := range confirmVoteInfo.votes {
+		votes[partyId] = &libtypes.ConfirmVote{
+			MsgOption: &libtypes.MsgOption{
+				ProposalId:      obj.MsgOption.ProposalId.String(),
+				SenderRole:      obj.MsgOption.SenderRole,
+				SenderPartyId:   obj.MsgOption.SenderPartyId,
+				ReceiverRole:    obj.MsgOption.ReceiverRole,
+				ReceiverPartyId: obj.MsgOption.ReceiverPartyId,
+				Owner:           obj.MsgOption.Owner,
+			},
+			VoteOption: uint32(obj.VoteOption),
+			CreateAt:   obj.CreateAt,
+			Sign:       obj.Sign,
+		}
+	}
+
+	yesVotes := make(map[string]uint32, 0)
+	for role, voteCount := range confirmVoteInfo.yesVotes {
+		yesVotes[role.String()] = voteCount
+	}
+
+	voteStatus := make(map[string]uint32, 0)
+	for role, voteCount := range confirmVoteInfo.voteStatus {
+		voteStatus[role.String()] = voteCount
+	}
+	return &rpcpb.Get2PcProposalConfirmResponse{
+		Votes:      votes,
+		YesVotes:   yesVotes,
+		VoteStatus: voteStatus,
+	}, nil
 }

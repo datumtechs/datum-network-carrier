@@ -3,7 +3,7 @@ package p2p
 import (
 	"context"
 	"github.com/RosettaFlow/Carrier-Go/common/hashutil"
-	pbrpc "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
+	pbrpc "github.com/RosettaFlow/Carrier-Go/lib/rpc/debug/v1"
 	"github.com/RosettaFlow/Carrier-Go/p2p/encoder"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/libp2p/go-libp2p-core/peer"

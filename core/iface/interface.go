@@ -3,13 +3,12 @@ package iface
 import (
 	libapipb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
-	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
 type LocalStoreCarrierDB interface {
 	// about datacenter config
-	SetConfig(config *params.CarrierChainConfig) error
+	SetConfig(config *types.CarrierChainConfig) error
 	// about carrier
 	QueryYarnName() (string, error)
 	SetSeedNode(seed *libapipb.SeedPeer) error

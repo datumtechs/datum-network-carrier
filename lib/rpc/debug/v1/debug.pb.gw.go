@@ -178,9 +178,20 @@ func local_request_Debug_GetPeerCount_0(ctx context.Context, marshaler runtime.M
 
 }
 
+var (
+	filter_Debug_Get2PcProposalStateByTaskId_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
 func request_Debug_Get2PcProposalStateByTaskId_0(ctx context.Context, marshaler runtime.Marshaler, client DebugClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq Get2PcProposalStateByTaskIdRequest
 	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Debug_Get2PcProposalStateByTaskId_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
 
 	msg, err := client.Get2PcProposalStateByTaskId(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
@@ -191,14 +202,32 @@ func local_request_Debug_Get2PcProposalStateByTaskId_0(ctx context.Context, mars
 	var protoReq Get2PcProposalStateByTaskIdRequest
 	var metadata runtime.ServerMetadata
 
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Debug_Get2PcProposalStateByTaskId_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
 	msg, err := server.Get2PcProposalStateByTaskId(ctx, &protoReq)
 	return msg, metadata, err
 
 }
 
+var (
+	filter_Debug_Get2PcProposalStateByProposalId_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
 func request_Debug_Get2PcProposalStateByProposalId_0(ctx context.Context, marshaler runtime.Marshaler, client DebugClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq Get2PcProposalStateByProposalIdRequest
 	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Debug_Get2PcProposalStateByProposalId_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
 
 	msg, err := client.Get2PcProposalStateByProposalId(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
@@ -209,14 +238,32 @@ func local_request_Debug_Get2PcProposalStateByProposalId_0(ctx context.Context, 
 	var protoReq Get2PcProposalStateByProposalIdRequest
 	var metadata runtime.ServerMetadata
 
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Debug_Get2PcProposalStateByProposalId_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
 	msg, err := server.Get2PcProposalStateByProposalId(ctx, &protoReq)
 	return msg, metadata, err
 
 }
 
+var (
+	filter_Debug_Get2PcProposalPrepare_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
 func request_Debug_Get2PcProposalPrepare_0(ctx context.Context, marshaler runtime.Marshaler, client DebugClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq Get2PcProposalPrepareRequest
 	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Debug_Get2PcProposalPrepare_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
 
 	msg, err := client.Get2PcProposalPrepare(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
@@ -227,14 +274,32 @@ func local_request_Debug_Get2PcProposalPrepare_0(ctx context.Context, marshaler 
 	var protoReq Get2PcProposalPrepareRequest
 	var metadata runtime.ServerMetadata
 
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Debug_Get2PcProposalPrepare_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
 	msg, err := server.Get2PcProposalPrepare(ctx, &protoReq)
 	return msg, metadata, err
 
 }
 
+var (
+	filter_Debug_Get2PcProposalConfirm_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
 func request_Debug_Get2PcProposalConfirm_0(ctx context.Context, marshaler runtime.Marshaler, client DebugClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq Get2PcProposalConfirmRequest
 	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Debug_Get2PcProposalConfirm_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
 
 	msg, err := client.Get2PcProposalConfirm(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
@@ -244,6 +309,13 @@ func request_Debug_Get2PcProposalConfirm_0(ctx context.Context, marshaler runtim
 func local_request_Debug_Get2PcProposalConfirm_0(ctx context.Context, marshaler runtime.Marshaler, server DebugServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq Get2PcProposalConfirmRequest
 	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Debug_Get2PcProposalConfirm_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
 
 	msg, err := server.Get2PcProposalConfirm(ctx, &protoReq)
 	return msg, metadata, err
