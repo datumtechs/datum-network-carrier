@@ -2,7 +2,7 @@ package handler
 
 import (
 	"bytes"
-	libp2ppb "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
+	libp2ppb "github.com/RosettaFlow/Carrier-Go/lib/rpc/debug/v1"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	p2ptesting "github.com/RosettaFlow/Carrier-Go/p2p/testing"
 	"github.com/d4l3k/messagediff"

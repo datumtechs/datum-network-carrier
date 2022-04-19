@@ -8,7 +8,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common/traceutil"
 	"github.com/RosettaFlow/Carrier-Go/handler"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	pbrpc "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
+	pbrpc "github.com/RosettaFlow/Carrier-Go/lib/rpc/debug/v1"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend/auth"

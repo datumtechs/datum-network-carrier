@@ -3,7 +3,7 @@ package p2p
 import (
 	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
 	taskmngpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/taskmng"
-	librpcpb "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
+	librpcpb "github.com/RosettaFlow/Carrier-Go/lib/rpc/debug/v1"
 	"github.com/gogo/protobuf/proto"
 	"reflect"
 )

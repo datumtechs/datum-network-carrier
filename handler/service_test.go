@@ -5,7 +5,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common/abool"
 	"github.com/RosettaFlow/Carrier-Go/common/feed"
 	statefeed "github.com/RosettaFlow/Carrier-Go/common/feed/state"
-	libp2ppb "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
+	libp2ppb "github.com/RosettaFlow/Carrier-Go/lib/rpc/debug/v1"
 	p2ptest "github.com/RosettaFlow/Carrier-Go/p2p/testing"
 	"github.com/stretchr/testify/require"
 	"testing"

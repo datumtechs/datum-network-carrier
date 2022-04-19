@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/p2p/v1"
-	pbrpc "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
+	pbrpc "github.com/RosettaFlow/Carrier-Go/lib/rpc/debug/v1"
 	"github.com/ethereum/go-ethereum/p2p/enr"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"

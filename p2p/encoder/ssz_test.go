@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	librpcpb "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
+	librpcpb "github.com/RosettaFlow/Carrier-Go/lib/rpc/debug/v1"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/p2p/encoder"
 	"github.com/RosettaFlow/Carrier-Go/params"

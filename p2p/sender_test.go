@@ -2,7 +2,7 @@ package p2p
 
 import (
 	"context"
-	librpcpb "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
+	librpcpb "github.com/RosettaFlow/Carrier-Go/lib/rpc/debug/v1"
 	testp2p "github.com/RosettaFlow/Carrier-Go/p2p/testing"
 	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/network"
