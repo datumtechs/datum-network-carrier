@@ -4,7 +4,7 @@ import (
 	"container/heap"
 	"encoding/json"
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/auth"
+	auth2 "github.com/RosettaFlow/Carrier-Go/ach/auth"
 	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
@@ -35,7 +35,7 @@ var (
 type SchedulerStarveFIFO struct {
 	elector     *election.VrfElector
 	resourceMng *resource.Manager
-	authMng     *auth.AuthorityManager
+	authMng     *auth2.AuthorityManager
 	// the local task into this queue, first
 	queue *types.TaskBullets
 	// the very very starve local task by priority
@@ -54,7 +54,7 @@ func NewSchedulerStarveFIFO(
 	elector *election.VrfElector,
 	eventEngine *evengine.EventEngine,
 	resourceMng *resource.Manager,
-	authMng *auth.AuthorityManager,
+	authMng *auth2.AuthorityManager,
 ) *SchedulerStarveFIFO {
 
 	return &SchedulerStarveFIFO{

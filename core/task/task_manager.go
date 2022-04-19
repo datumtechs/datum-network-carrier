@@ -3,7 +3,7 @@ package task
 import (
 	"context"
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/auth"
+	auth2 "github.com/RosettaFlow/Carrier-Go/ach/auth"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
@@ -39,7 +39,7 @@ type Manager struct {
 	consensusEngine consensus.Engine
 	eventEngine     *ev.EventEngine
 	resourceMng     *resource.Manager
-	authMng         *auth.AuthorityManager
+	authMng         *auth2.AuthorityManager
 	parser          *TaskParser
 	validator       *TaskValidator
 	eventCh         chan *libtypes.TaskEvent
@@ -62,7 +62,7 @@ func NewTaskManager(
 	consensusEngine consensus.Engine,
 	eventEngine *ev.EventEngine,
 	resourceMng *resource.Manager,
-	authMng *auth.AuthorityManager,
+	authMng *auth2.AuthorityManager,
 	needReplayScheduleTaskCh chan *types.NeedReplayScheduleTask,
 	needExecuteTaskCh chan *types.NeedExecuteTask,
 	taskConsResultCh chan *types.TaskConsResult,

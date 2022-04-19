@@ -3,8 +3,8 @@ package main
 import (
 	"errors"
 	"fmt"
+	kms2 "github.com/RosettaFlow/Carrier-Go/ach/metispay/kms"
 	"github.com/RosettaFlow/Carrier-Go/common/flags"
-	"github.com/RosettaFlow/Carrier-Go/core/metispay/kms"
 	"github.com/urfave/cli/v2"
 	"github.com/urfave/cli/v2/altsrc"
 	"io/ioutil"
@@ -74,19 +74,19 @@ func main() {
 	}
 }
 
-func buildKMS(ctx *cli.Context) (kms.KmsService, error) {
+func buildKMS(ctx *cli.Context) (kms2.KmsService, error) {
 	if err := flags.LoadFlagsFromConfig(ctx, appFlags); err != nil {
 		return nil, err
 	}
 	if ctx.IsSet(flags.KMSKeyId.Name) && ctx.IsSet(flags.KMSRegionId.Name) && ctx.IsSet(flags.KMSAccessKeyId.Name) && ctx.IsSet(flags.KMSAccessKeySecret.Name) {
 
-		kmsConfig := &kms.Config{
+		kmsConfig := &kms2.Config{
 			KeyId:           ctx.String(flags.KMSKeyId.Name),
 			RegionId:        ctx.String(flags.KMSRegionId.Name),
 			AccessKeyId:     ctx.String(flags.KMSAccessKeyId.Name),
 			AccessKeySecret: ctx.String(flags.KMSAccessKeySecret.Name),
 		}
-		alikms := &kms.AliKms{Config: kmsConfig}
+		alikms := &kms2.AliKms{Config: kmsConfig}
 		return alikms, nil
 	}
 	return nil, errors.New("cannot load KMS configuration")

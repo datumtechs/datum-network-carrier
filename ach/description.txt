@@ -1,0 +1,5 @@
+What is the `ACH` ?
+
+It mean `Automatic Clearing House`!
+
+It is a collection of fee settlements for resources such as `metadata`, `algorithm`, `serving`, etc. in a certain way.

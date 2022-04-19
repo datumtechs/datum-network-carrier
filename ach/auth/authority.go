@@ -2,7 +2,7 @@ package auth
 
 import (
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/auth/metadata"
+	metadata2 "github.com/RosettaFlow/Carrier-Go/ach/auth/metadata"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/core"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
@@ -12,14 +12,14 @@ import (
 )
 
 type AuthorityManager struct {
-	metadataAuth     *metadata.MetadataAuthority
+	metadataAuth     *metadata2.MetadataAuthority
 	quit  chan struct{}
 }
 
 func NewAuthorityManager(dataCenter  core.CarrierDB) *AuthorityManager {
 	return &AuthorityManager{
-		metadataAuth: metadata.NewMetadataAuthority(dataCenter),
-		quit: make(chan struct{}),
+		metadataAuth: metadata2.NewMetadataAuthority(dataCenter),
+		quit:         make(chan struct{}),
 	}
 }
 
