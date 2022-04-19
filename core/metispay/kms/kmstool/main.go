@@ -26,11 +26,11 @@ var (
 	appFlags = []cli.Flag{
 		flags.ConfigFileFlag,
 
-		altsrc.NewStringFlag(flags.KMS_KeyId),
-		altsrc.NewStringFlag(flags.KMS_RegionId),
-		altsrc.NewStringFlag(flags.KMS_AccessKeyId),
-		altsrc.NewStringFlag(flags.KMS_AccessKeySecret),
-		altsrc.NewStringFlag(flags.Chain),
+		altsrc.NewStringFlag(flags.KMSKeyId),
+		altsrc.NewStringFlag(flags.KMSRegionId),
+		altsrc.NewStringFlag(flags.KMSAccessKeyId),
+		altsrc.NewStringFlag(flags.KMSAccessKeySecret),
+		altsrc.NewStringFlag(flags.BlockChain),
 
 		keystoreFlag,
 		inputFlag,
@@ -78,13 +78,13 @@ func buildKMS(ctx *cli.Context) (kms.KmsService, error) {
 	if err := flags.LoadFlagsFromConfig(ctx, appFlags); err != nil {
 		return nil, err
 	}
-	if ctx.IsSet(flags.KMS_KeyId.Name) && ctx.IsSet(flags.KMS_RegionId.Name) && ctx.IsSet(flags.KMS_AccessKeyId.Name) && ctx.IsSet(flags.KMS_AccessKeySecret.Name) {
+	if ctx.IsSet(flags.KMSKeyId.Name) && ctx.IsSet(flags.KMSRegionId.Name) && ctx.IsSet(flags.KMSAccessKeyId.Name) && ctx.IsSet(flags.KMSAccessKeySecret.Name) {
 
 		kmsConfig := &kms.Config{
-			KeyId:           ctx.String(flags.KMS_KeyId.Name),
-			RegionId:        ctx.String(flags.KMS_RegionId.Name),
-			AccessKeyId:     ctx.String(flags.KMS_AccessKeyId.Name),
-			AccessKeySecret: ctx.String(flags.KMS_AccessKeySecret.Name),
+			KeyId:           ctx.String(flags.KMSKeyId.Name),
+			RegionId:        ctx.String(flags.KMSRegionId.Name),
+			AccessKeyId:     ctx.String(flags.KMSAccessKeyId.Name),
+			AccessKeySecret: ctx.String(flags.KMSAccessKeySecret.Name),
 		}
 		alikms := &kms.AliKms{Config: kmsConfig}
 		return alikms, nil

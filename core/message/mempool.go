@@ -252,7 +252,7 @@ func (lookup *msgLookup) addMetadataMsg(msg *types.MetadataMsg) {
 	lookup.metaDataMsgLock.RLock()
 	defer lookup.metaDataMsgLock.RUnlock()
 
-	lookup.allMateDataMsg[msg.MetadataId] = msg
+	lookup.allMateDataMsg[msg.GetMetadataId()] = msg
 }
 
 // Add adds a powerMsg to the lookup.

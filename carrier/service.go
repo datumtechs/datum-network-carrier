@@ -67,9 +67,9 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 	eventEngine := evengine.NewEventEngine(config.CarrierDB)
 
 	needReplayScheduleTaskCh, needExecuteTaskCh, taskConsResultCh :=
-		make(chan *types.NeedReplayScheduleTask, config.TaskManagerConfig.NeedReplayScheduleTaskChLen),
-		make(chan *types.NeedExecuteTask, config.TaskManagerConfig.NeedExecuteTaskChanLen),
-		make(chan *types.TaskConsResult, config.TaskManagerConfig.TaskConsResultChanLen)
+		make(chan *types.NeedReplayScheduleTask, config.TaskManagerConfig.NeedReplayScheduleTaskChanSize),
+		make(chan *types.NeedExecuteTask, config.TaskManagerConfig.NeedExecuteTaskChanSize),
+		make(chan *types.TaskConsResult, config.TaskManagerConfig.TaskConsResultChanSize)
 
 	resourceClientSet := grpclient.NewInternalResourceNodeSet()
 	resourceMng := resource.NewResourceManager(config.CarrierDB, resourceClientSet, mockIdentityIdsFile)
@@ -108,17 +108,17 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 
 	var metisPayManager *metispay.MetisPayManager
 
-	if cliCtx.IsSet(flags.Chain.Name) {
+	if cliCtx.IsSet(flags.BlockChain.Name) {
 		var metispayConfig *metispay.Config
-		metispayConfig = &metispay.Config{URL: cliCtx.String(flags.Chain.Name)}
+		metispayConfig = &metispay.Config{URL: cliCtx.String(flags.BlockChain.Name)}
 
 		var kmsConfig *kms.Config
-		if cliCtx.IsSet(flags.KMS_KeyId.Name) && cliCtx.IsSet(flags.KMS_RegionId.Name) && cliCtx.IsSet(flags.KMS_AccessKeyId.Name) && cliCtx.IsSet(flags.KMS_AccessKeySecret.Name) {
+		if cliCtx.IsSet(flags.KMSKeyId.Name) && cliCtx.IsSet(flags.KMSRegionId.Name) && cliCtx.IsSet(flags.KMSAccessKeyId.Name) && cliCtx.IsSet(flags.KMSAccessKeySecret.Name) {
 			kmsConfig = &kms.Config{
-				KeyId:           cliCtx.String(flags.KMS_KeyId.Name),
-				RegionId:        cliCtx.String(flags.KMS_RegionId.Name),
-				AccessKeyId:     cliCtx.String(flags.KMS_AccessKeyId.Name),
-				AccessKeySecret: cliCtx.String(flags.KMS_AccessKeySecret.Name),
+				KeyId:           cliCtx.String(flags.KMSKeyId.Name),
+				RegionId:        cliCtx.String(flags.KMSRegionId.Name),
+				AccessKeyId:     cliCtx.String(flags.KMSAccessKeyId.Name),
+				AccessKeySecret: cliCtx.String(flags.KMSAccessKeySecret.Name),
 			}
 		}
 		metisPayManager = metispay.NewMetisPayManager(config.CarrierDB, metispayConfig, kmsConfig)
@@ -139,14 +139,14 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 		consulManager: discovery.NewConsulClient(&discovery.ConsulService{
 			ServiceIP:   p2p.IpAddr().String(),
 			ServicePort: strconv.Itoa(cliCtx.Int(flags.RPCPort.Name)),
-			Tags:        cliCtx.StringSlice(flags.DiscoveryServerTags.Name),
-			Name:        cliCtx.String(flags.DiscoveryServiceName.Name),
-			Id:          cliCtx.String(flags.DiscoveryServiceId.Name),
-			Interval:    cliCtx.Int(flags.DiscoveryServiceHealthCheckInterval.Name),
-			Deregister:  cliCtx.Int(flags.DiscoveryServiceHealthCheckDeregister.Name),
+			Tags:        config.DiscoverServiceConfig.DiscoveryServerTags,
+			Name:        config.DiscoverServiceConfig.DiscoveryServiceName,
+			Id:          config.DiscoverServiceConfig.DiscoveryServiceId,
+			Interval:    config.DiscoverServiceConfig.DiscoveryServiceHealthCheckInterval,
+			Deregister:  config.DiscoverServiceConfig.DiscoveryServiceHealthCheckDeregister,
 		},
-			cliCtx.String(flags.DiscoveryServerIP.Name),
-			cliCtx.Int(flags.DiscoveryServerPort.Name),
+			config.DiscoverServiceConfig.DiscoveryServerIP,
+			config.DiscoverServiceConfig.DiscoveryServerPort,
 		),
 		quit: make(chan struct{}),
 	}

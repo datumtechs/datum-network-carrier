@@ -145,7 +145,7 @@ func (m *Manager) driveTaskForExecute(task *types.NeedExecuteTask) error {
 	////  ######
 
 	// 1、 call prepay datatoken
-	if m.config.ConsumOption == 1 {
+	if m.config.MetadataConsumeOption == 1 {
 
 	}
 
