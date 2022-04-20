@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/consensus/twopc"
 	taskmngpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/taskmng"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -30,7 +29,6 @@ type Engine interface {
 	OnHandle(task *types.NeedConsensusTask) error
 	OnConsensusMsg(pid peer.ID, msg types.ConsensusMsg) error
 	OnError() error
-	GetConsensusStateInfo() *twopc.ConsensusStateInfo
 }
 
 type TaskManager interface {
