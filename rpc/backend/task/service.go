@@ -25,18 +25,11 @@ func (svr *Server) GetLocalTaskDetailList(ctx context.Context, req *pb.GetTaskDe
 		return &pb.GetTaskDetailListResponse{Status: backend.ErrQueryLocalTaskList.ErrCode(), Msg: backend.ErrQueryLocalTaskList.Error()}, nil
 	}
 
-	arr := make([]*pb.GetTaskDetail, len(tasks))
-	for i, task := range tasks {
-		t := &pb.GetTaskDetail{
-			Information: task,
-		}
-		arr[i] = t
-	}
-	log.Debugf("RPC-API:GetLocalTaskDetailList succeed, taskList len: {%d}", len(arr))
+	log.Debugf("RPC-API:GetLocalTaskDetailList succeed, taskList len: {%d}", len(tasks))
 	return &pb.GetTaskDetailListResponse{
 		Status: 0,
 		Msg:    backend.OK,
-		Tasks:  arr,
+		Tasks:  tasks,
 	}, nil
 }
 
@@ -51,18 +44,11 @@ func (svr *Server) GetGlobalTaskDetailList(ctx context.Context, req *pb.GetTaskD
 		return &pb.GetTaskDetailListResponse{Status: backend.ErrQueryGlobalTaskList.ErrCode(), Msg: backend.ErrQueryGlobalTaskList.Error()}, nil
 	}
 
-	arr := make([]*pb.GetTaskDetail, len(tasks))
-	for i, task := range tasks {
-		t := &pb.GetTaskDetail{
-			Information: task,
-		}
-		arr[i] = t
-	}
-	log.Debugf("RPC-API:GetGlobalTaskDetailList succeed, taskList len: {%d}", len(arr))
+	log.Debugf("RPC-API:GetGlobalTaskDetailList succeed, taskList len: {%d}", len(tasks))
 	return &pb.GetTaskDetailListResponse{
 		Status: 0,
 		Msg:    backend.OK,
-		Tasks:  arr,
+		Tasks:  tasks,
 	}, nil
 }
 
@@ -78,18 +64,11 @@ func (svr *Server) GetTaskDetailListByTaskIds(ctx context.Context, req *pb.GetTa
 		return &pb.GetTaskDetailListResponse{Status: backend.ErrQueryTaskListByIds.ErrCode(), Msg: backend.ErrQueryTaskListByIds.Error()}, nil
 	}
 
-	arr := make([]*pb.GetTaskDetail, len(tasks))
-	for i, task := range tasks {
-		t := &pb.GetTaskDetail{
-			Information: task,
-		}
-		arr[i] = t
-	}
-	log.Debugf("RPC-API:GetTaskDetailListByTaskIds succeed, taskIds len: {%d}, taskList len: {%d}", len(req.GetTaskIds()), len(arr))
+	log.Debugf("RPC-API:GetTaskDetailListByTaskIds succeed, taskIds len: {%d}, taskList len: {%d}", len(req.GetTaskIds()), len(tasks))
 	return &pb.GetTaskDetailListResponse{
 		Status: 0,
 		Msg:    backend.OK,
-		Tasks:  arr,
+		Tasks:  tasks,
 	}, nil
 }
 
@@ -343,12 +322,12 @@ func (svr *Server) TerminateTask(ctx context.Context, req *pb.TerminateTaskReque
 	}
 
 	// check user
-	if task.GetUser() != req.GetUser() ||
-		task.GetUserType() != req.GetUserType() {
+	if task.GetInformation().GetUser() != req.GetUser() ||
+		task.GetInformation().GetUserType() != req.GetUserType() {
 		log.WithError(err).Errorf("terminate task user and publish task user must be same, taskId: {%s}",
-			task.GetTaskId())
+			task.GetInformation().GetTaskId())
 		return &libtypes.SimpleResponse{Status: backend.ErrTerminateTaskMsg.ErrCode(), Msg: fmt.Sprintf("terminate task user and publish task user must be same, taskId: {%s}",
-			task.GetTaskId())}, nil
+			task.GetInformation().GetTaskId())}, nil
 	}
 
 	if err = svr.B.SendMsg(taskTerminateMsg); nil != err {

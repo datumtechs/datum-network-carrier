@@ -1056,7 +1056,7 @@ func (s *CarrierAPIBackend) HasValidMetadataAuth(userType libtypes.UserType, use
 }
 
 // task api
-func (s *CarrierAPIBackend) GetLocalTask(taskId string) (*pb.TaskDetailShow, error) {
+func (s *CarrierAPIBackend) GetLocalTask(taskId string) (*libtypes.TaskDetail, error) {
 	// the task is executing.
 	localTask, err := s.carrier.carrierDB.QueryLocalTask(taskId)
 	if nil != err {
@@ -1069,107 +1069,42 @@ func (s *CarrierAPIBackend) GetLocalTask(taskId string) (*pb.TaskDetailShow, err
 		return nil, fmt.Errorf("not found local task")
 	}
 
-	detailShow := &pb.TaskDetailShow{
-		TaskId:   localTask.GetTaskId(),
-		TaskName: localTask.GetTaskData().GetTaskName(),
-		UserType: localTask.GetTaskData().GetUserType(),
-		User:     localTask.GetTaskData().GetUser(),
-		Sender: &libtypes.TaskOrganization{
-			PartyId:    localTask.GetTaskSender().GetPartyId(),
-			NodeName:   localTask.GetTaskSender().GetNodeName(),
-			NodeId:     localTask.GetTaskSender().GetNodeId(),
-			IdentityId: localTask.GetTaskSender().GetIdentityId(),
+	return &libtypes.TaskDetail{
+		Information: &libtypes.TaskDetailSummary{
+			TaskId:                   localTask.GetTaskData().GetTaskId(),
+			TaskName:                 localTask.GetTaskData().GetTaskName(),
+			UserType:                 localTask.GetTaskData().GetUserType(),
+			User:                     localTask.GetTaskData().GetUser(),
+			Sender:                   localTask.GetTaskSender(),
+			AlgoSupplier:             localTask.GetTaskData().GetAlgoSupplier(),
+			DataSuppliers:            localTask.GetTaskData().GetDataSuppliers(),
+			PowerSuppliers:           localTask.GetTaskData().GetPowerSuppliers(),
+			Receivers:                localTask.GetTaskData().GetReceivers(),
+			DataPolicyType:           localTask.GetTaskData().GetDataPolicyType(),
+			DataPolicyOption:         localTask.GetTaskData().GetDataPolicyOption(),
+			PowerPolicyType:          localTask.GetTaskData().GetPowerPolicyType(),
+			PowerPolicyOption:        localTask.GetTaskData().GetPowerPolicyOption(),
+			DataFlowPolicyType:       localTask.GetTaskData().GetDataFlowPolicyType(),
+			DataFlowPolicyOption:     localTask.GetTaskData().GetDataFlowPolicyOption(),
+			OperationCost:            localTask.GetTaskData().GetOperationCost(),
+			AlgorithmCode:            localTask.GetTaskData().GetAlgorithmCode(),
+			MetaAlgorithmId:          localTask.GetTaskData().GetMetaAlgorithmId(),
+			AlgorithmCodeExtraParams: localTask.GetTaskData().GetAlgorithmCodeExtraParams(),
+			PowerResourceOptions:     localTask.GetTaskData().GetPowerResourceOptions(),
+			State:                    localTask.GetTaskData().GetState(),
+			Reason:                   localTask.GetTaskData().GetReason(),
+			Desc:                     localTask.GetTaskData().GetDesc(),
+			CreateAt:                 localTask.GetTaskData().GetCreateAt(),
+			StartAt:                  localTask.GetTaskData().GetStartAt(),
+			EndAt:                    localTask.GetTaskData().GetEndAt(),
+			Sign:                     localTask.GetTaskData().GetSign(),
+			Nonce:                    localTask.GetTaskData().GetNonce(),
+			UpdateAt:                 localTask.GetTaskData().GetEndAt(), // The endAt of the task is the updateAt in the data center database
 		},
-		//AlgoSupplier:
-		DataSuppliers:  make([]*pb.TaskDataSupplierShow, 0, len(localTask.GetTaskData().GetDataSuppliers())),
-		PowerSuppliers: make([]*pb.TaskPowerSupplierShow, 0, len(localTask.GetTaskData().GetPowerSuppliers())),
-		Receivers:      localTask.GetTaskData().GetReceivers(),
-		CreateAt:       localTask.GetTaskData().GetCreateAt(),
-		StartAt:        localTask.GetTaskData().GetStartAt(),
-		EndAt:          localTask.GetTaskData().GetEndAt(),
-		State:          localTask.GetTaskData().GetState(),
-		OperationCost: &libtypes.TaskResourceCostDeclare{
-			Processor: localTask.GetTaskData().GetOperationCost().GetProcessor(),
-			Memory:    localTask.GetTaskData().GetOperationCost().GetMemory(),
-			Bandwidth: localTask.GetTaskData().GetOperationCost().GetBandwidth(),
-			Duration:  localTask.GetTaskData().GetOperationCost().GetDuration(),
-		},
-	}
-
-	//
-	detailShow.AlgoSupplier = &pb.TaskAlgoSupplier{
-		Organization: &libtypes.TaskOrganization{
-			PartyId:    localTask.GetTaskData().GetAlgoSupplier().GetPartyId(),
-			NodeName:   localTask.GetTaskData().GetAlgoSupplier().GetNodeName(),
-			NodeId:     localTask.GetTaskData().GetAlgoSupplier().GetNodeId(),
-			IdentityId: localTask.GetTaskData().GetAlgoSupplier().GetIdentityId(),
-		},
-		//MetaAlgorithmId: "", todo
-		//MetaAlgorithmName: "", Organization
-	}
-
-	// DataSupplier
-	for _, dataSupplier := range localTask.GetTaskData().GetDataSuppliers() {
-
-		metadataId, err := policy.FetchMetedataIdByPartyId(dataSupplier.GetPartyId(), localTask.GetTaskData().GetDataPolicyType(), localTask.GetTaskData().GetDataPolicyOption())
-		if nil != err {
-			log.Errorf("not fetch metadataId of local task dataPolicy on `CarrierAPIBackend.GetLocalTask()`, taskId: {%s}, patyId: {%s}", taskId, dataSupplier.GetPartyId())
-			return nil, fmt.Errorf("not fetch metadataId")
-		}
-		metadataName, err := policy.FetchMetedataNameByPartyId(dataSupplier.GetPartyId(), localTask.GetTaskData().GetDataPolicyType(), localTask.GetTaskData().GetDataPolicyOption())
-		if nil != err {
-			log.Errorf("not fetch metadataName of local task dataPolicy on `CarrierAPIBackend.GetLocalTask()`, taskId: {%s}, patyId: {%s}", taskId, dataSupplier.GetPartyId())
-			return nil, fmt.Errorf("not fetch metadataName")
-		}
-
-		detailShow.DataSuppliers = append(detailShow.DataSuppliers, &pb.TaskDataSupplierShow{
-			Organization: &libtypes.TaskOrganization{
-				PartyId:    dataSupplier.GetPartyId(),
-				NodeName:   dataSupplier.GetNodeName(),
-				NodeId:     dataSupplier.GetNodeId(),
-				IdentityId: dataSupplier.GetIdentityId(),
-			},
-			MetadataId:   metadataId,
-			MetadataName: metadataName,
-		})
-	}
-	// powerSupplier
-	powerResourceCache := make(map[string]*libtypes.TaskPowerResourceOption, 0)
-	for _, option := range localTask.GetTaskData().GetPowerResourceOptions() {
-		powerResourceCache[option.GetPartyId()] = option
-	}
-	for _, data := range localTask.GetTaskData().GetPowerSuppliers() {
-
-		option, ok := powerResourceCache[data.GetPartyId()]
-		if !ok {
-			log.Errorf("not found power resource option of local task dataPolicy on `CarrierAPIBackend.GetLocalTask()`, taskId: {%s}, patyId: {%s}", taskId, data.GetPartyId())
-			return nil, fmt.Errorf("not found power resource option")
-		}
-
-		detailShow.PowerSuppliers = append(detailShow.PowerSuppliers, &pb.TaskPowerSupplierShow{
-			Organization: &libtypes.TaskOrganization{
-				PartyId:    data.GetPartyId(),
-				NodeName:   data.GetNodeName(),
-				NodeId:     data.GetNodeId(),
-				IdentityId: data.GetIdentityId(),
-			},
-			PowerInfo: &libtypes.ResourceUsageOverview{
-				TotalMem:       option.GetResourceUsedOverview().GetTotalMem(),
-				UsedMem:        option.GetResourceUsedOverview().GetUsedMem(),
-				TotalProcessor: option.GetResourceUsedOverview().GetTotalProcessor(),
-				UsedProcessor:  option.GetResourceUsedOverview().GetUsedProcessor(),
-				TotalBandwidth: option.GetResourceUsedOverview().GetTotalBandwidth(),
-				UsedBandwidth:  option.GetResourceUsedOverview().GetUsedBandwidth(),
-				TotalDisk:      option.GetResourceUsedOverview().GetTotalDisk(),
-				UsedDisk:       option.GetResourceUsedOverview().GetUsedDisk(),
-			},
-		})
-	}
-
-	return detailShow, nil
+	}, nil
 }
 
-func (s *CarrierAPIBackend) GetLocalTaskDetailList(lastUpdate, pageSize uint64) ([]*pb.TaskDetailShow, error) {
+func (s *CarrierAPIBackend) GetLocalTaskDetailList(lastUpdate, pageSize uint64) ([]*libtypes.TaskDetail, error) {
 
 	identity, err := s.carrier.carrierDB.QueryIdentity()
 	if nil != err {
@@ -1188,11 +1123,11 @@ func (s *CarrierAPIBackend) GetLocalTaskDetailList(lastUpdate, pageSize uint64) 
 		return nil, err
 	}
 
-	makeTaskViewFn := func(task *types.Task) *pb.TaskDetailShow {
+	makeTaskViewFn := func(task *types.Task) *libtypes.TaskDetail {
 		return policy.NewTaskDetailShowFromTaskData(task)
 	}
 
-	result := make([]*pb.TaskDetailShow, 0)
+	result := make([]*libtypes.TaskDetail, 0)
 
 next:
 	for _, task := range localTaskArray {
@@ -1229,7 +1164,7 @@ next:
 }
 
 // v0.4.0
-func (s *CarrierAPIBackend) GetGlobalTaskDetailList(lastUpdate, pageSize uint64) ([]*pb.TaskDetailShow, error) {
+func (s *CarrierAPIBackend) GetGlobalTaskDetailList(lastUpdate, pageSize uint64) ([]*libtypes.TaskDetail, error) {
 
 	// the task has been executed.
 	networkTaskList, err := s.carrier.carrierDB.QueryGlobalTaskList(lastUpdate, pageSize)
@@ -1237,10 +1172,10 @@ func (s *CarrierAPIBackend) GetGlobalTaskDetailList(lastUpdate, pageSize uint64)
 		return nil, err
 	}
 
-	makeTaskViewFn := func(task *types.Task) *pb.TaskDetailShow {
+	makeTaskViewFn := func(task *types.Task) *libtypes.TaskDetail {
 		return policy.NewTaskDetailShowFromTaskData(task)
 	}
-	result := make([]*pb.TaskDetailShow, 0)
+	result := make([]*libtypes.TaskDetail, 0)
 
 	for _, networkTask := range networkTaskList {
 		if taskView := makeTaskViewFn(networkTask); nil != taskView {
@@ -1251,7 +1186,7 @@ func (s *CarrierAPIBackend) GetGlobalTaskDetailList(lastUpdate, pageSize uint64)
 }
 
 // v0.3.0
-func (s *CarrierAPIBackend) GetTaskDetailListByTaskIds(taskIds []string) ([]*pb.TaskDetailShow, error) {
+func (s *CarrierAPIBackend) GetTaskDetailListByTaskIds(taskIds []string) ([]*libtypes.TaskDetail, error) {
 
 	identity, err := s.carrier.carrierDB.QueryIdentity()
 	if nil != err {
@@ -1290,11 +1225,11 @@ func (s *CarrierAPIBackend) GetTaskDetailListByTaskIds(taskIds []string) ([]*pb.
 		return nil, err
 	}
 
-	makeTaskViewFn := func(task *types.Task) *pb.TaskDetailShow {
+	makeTaskViewFn := func(task *types.Task) *libtypes.TaskDetail {
 		return policy.NewTaskDetailShowFromTaskData(task)
 	}
 
-	result := make([]*pb.TaskDetailShow, 0)
+	result := make([]*libtypes.TaskDetail, 0)
 
 next:
 	for _, task := range localTaskList {
@@ -1334,51 +1269,25 @@ next:
 	return result, err
 }
 
-func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*pb.TaskEventShow, error) {
-
-	identity, err := s.carrier.carrierDB.QueryIdentity()
-	if nil != err {
-		return nil, err
-	}
+func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*libtypes.TaskEvent, error) {
 
 	// 1、 If it is a local task, first find out the local eventList of the task
-	localEventList, err := s.carrier.carrierDB.QueryTaskEventList(taskId)
+	eventList, err := s.carrier.carrierDB.QueryTaskEventList(taskId)
 	if rawdb.IsNoDBNotFoundErr(err) {
 		return nil, err
 	}
-
-	evenList := make([]*pb.TaskEventShow, len(localEventList))
-	for i, e := range localEventList {
-		evenList[i] = &pb.TaskEventShow{
-			TaskId:   e.GetTaskId(),
-			Type:     e.GetType(),
-			CreateAt: e.GetCreateAt(),
-			Content:  e.GetContent(),
-			Owner: &libtypes.Organization{
-				NodeName:   identity.GetNodeName(),
-				NodeId:     identity.GetNodeId(),
-				IdentityId: identity.GetIdentityId(),
-			},
-			PartyId: e.GetPartyId(),
-		}
-	}
 	// 2、Then find out the eventList of the task in the data center
-	taskEvent, err := s.carrier.carrierDB.QueryTaskEventListByTaskId(taskId)
+	taskEvents, err := s.carrier.carrierDB.QueryTaskEventListByTaskId(taskId)
 	if nil != err {
 		return nil, err
 	}
-	evenList = append(evenList, policy.NewTaskEventFromAPIEvent(taskEvent)...)
-	return evenList, nil
+	eventList = append(eventList, taskEvents...)
+	return eventList, nil
 }
 
-func (s *CarrierAPIBackend) GetTaskEventListByTaskIds(taskIds []string) ([]*pb.TaskEventShow, error) {
+func (s *CarrierAPIBackend) GetTaskEventListByTaskIds(taskIds []string) ([]*libtypes.TaskEvent, error) {
 
-	identity, err := s.carrier.carrierDB.QueryIdentity()
-	if nil != err {
-		return nil, err
-	}
-
-	evenList := make([]*pb.TaskEventShow, 0)
+	evenList := make([]*libtypes.TaskEvent, 0)
 
 	// 1、 If it is a local task, first find out the local eventList of the task
 	for _, taskId := range taskIds {
@@ -1389,27 +1298,14 @@ func (s *CarrierAPIBackend) GetTaskEventListByTaskIds(taskIds []string) ([]*pb.T
 		if rawdb.IsDBNotFoundErr(err) {
 			continue
 		}
-		for _, e := range localEventList {
-			evenList = append(evenList, &pb.TaskEventShow{
-				TaskId:   e.GetTaskId(),
-				Type:     e.GetType(),
-				CreateAt: e.GetCreateAt(),
-				Content:  e.GetContent(),
-				Owner: &libtypes.Organization{
-					NodeName:   identity.GetNodeName(),
-					NodeId:     identity.GetNodeId(),
-					IdentityId: identity.GetIdentityId(),
-				},
-				PartyId: e.GetPartyId(),
-			})
-		}
+		evenList = append(evenList, localEventList...)
 	}
 	// 2、Then find out the eventList of the task in the data center
-	taskEvent, err := s.carrier.carrierDB.QueryTaskEventListByTaskIds(taskIds)
+	taskEvents, err := s.carrier.carrierDB.QueryTaskEventListByTaskIds(taskIds)
 	if nil != err {
 		return nil, err
 	}
-	evenList = append(evenList, policy.NewTaskEventFromAPIEvent(taskEvent)...)
+	evenList = append(evenList, taskEvents...)
 	return evenList, nil
 }
 
@@ -1621,7 +1517,7 @@ func (s *CarrierAPIBackend) QueryTaskResultFileSummaryList() (types.TaskResultFi
 }
 
 func (s *CarrierAPIBackend) EstimateTaskGas(dataTokenTransferList []*pb.DataTokenTransferItem) (gasLimit uint64, gasPrice *big.Int, err error) {
-	gasLimit, gasPrice, err = s.carrier.metisPayManager.EstimateTaskGas(dataTokenTransferList);
+	gasLimit, gasPrice, err = s.carrier.metisPayManager.EstimateTaskGas(dataTokenTransferList)
 	if err != nil {
 		log.WithError(err).Error("Failed to call EstimateTaskGas() on CarrierAPIBackend.EstimateTaskGas()")
 	}
