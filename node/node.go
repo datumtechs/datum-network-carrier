@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/carrier"
 	"github.com/RosettaFlow/Carrier-Go/common"
-	"github.com/RosettaFlow/Carrier-Go/common/debug"
+	commondebug "github.com/RosettaFlow/Carrier-Go/common/debug"
 	"github.com/RosettaFlow/Carrier-Go/common/feed"
 	statefeed "github.com/RosettaFlow/Carrier-Go/common/feed/state"
 	"github.com/RosettaFlow/Carrier-Go/common/flags"
@@ -19,7 +19,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/rpc"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
-	"github.com/RosettaFlow/Carrier-Go/types"
+	rpcdebug "github.com/RosettaFlow/Carrier-Go/rpc/debug"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 	"os"
@@ -174,7 +174,7 @@ func (node *CarrierNode) Start() {
 		defer signal.Stop(sigc)
 		<-sigc
 		log.Info("Got interrupt, shutting down...")
-		debug.Exit(node.cliCtx) // Ensure trace and CPU profile data are flushed.
+		commondebug.Exit(node.cliCtx) // Ensure trace and CPU profile data are flushed.
 		go node.Close()
 		for i := 10; i > 0; i-- {
 			<-sigc
@@ -270,7 +270,7 @@ func (node *CarrierNode) registerHandlerService() error {
 
 func (node *CarrierNode) registerRPCService() error {
 	backend := node.fetchRPCBackend()
-	backendPlus := node.fetchBackend()
+	debugBackend := node.fetchDebugRPCBackend()
 	host := node.cliCtx.String(flags.RPCHost.Name)
 	port := node.cliCtx.String(flags.RPCPort.Name)
 	cert := node.cliCtx.String(flags.CertFlag.Name)
@@ -293,7 +293,7 @@ func (node *CarrierNode) registerRPCService() error {
 		MetadataProvider:        p2pService,
 		StateNotifier:           node,
 		BackendAPI:              backend,
-		TwoPcAPI:				 backendPlus.Engines[types.TwopcTyp],
+		DebugAPI:				 debugBackend,
 		MaxMsgSize:              maxMsgSize,
 		MaxSendMsgSize:          maxSendMsgSize,
 	})
@@ -333,6 +333,14 @@ func (node *CarrierNode) fetchRPCBackend() backend.Backend {
 		panic(err)
 	}
 	return s.APIBackend
+}
+
+func (node *CarrierNode) fetchDebugRPCBackend() rpcdebug.DebugBackend {
+	var s *carrier.Service
+	if err := node.services.FetchService(&s); err != nil {
+		panic(err)
+	}
+	return s.DebugAPIBackend
 }
 
 func (node *CarrierNode) fetchBackend() *carrier.Service {
