@@ -30,7 +30,7 @@ const (
 	        "selectedColumns": [1, 2, 3]
 	    }
 	]
-	 */
+	*/
 	TASK_METADATA_POLICY_ROW_COLUMN = 1
 
 	// ==================================================================== power policy option ====================================================================
@@ -39,7 +39,7 @@ const (
 	*/
 	TASK_POWER_POLICY_ASSIGNMENT_SYMBOL_RANDOM_ELECTION_POWER = 1
 	/**
-	[{"p0", "identityId:0x...a"}, {"p1", "identityId:0x...b"}]
+	[{"partyId": "p0", "identityId": "identityId:0x...a"}, {"partyId": "p1", "identityId": "identityId:0x...b"}]
 	*/
 	TASK_POWER_POLICY_DATANODE_PROVIDE_POWER = 2
 
@@ -65,11 +65,11 @@ example:
 
 */
 type TaskMetadataPolicyRowAndColumn struct {
-	PartyId         string
-	MetadataId      string
-	MetadataName    string
-	KeyColumn       uint32
-	SelectedColumns []uint32
+	PartyId         string   `json:"partyId"`
+	MetadataId      string   `json:"metadataId"`
+	MetadataName    string   `json:"metadataName"`
+	KeyColumn       uint32   `json:"keyColumn"`
+	SelectedColumns []uint32 `json:"selectedColumns"`
 }
 
 func (p *TaskMetadataPolicyRowAndColumn) GetPartyId() string {
@@ -91,8 +91,8 @@ func (p *TaskMetadataPolicyRowAndColumn) QuerySelectedColumns() []uint32 {
 // ==================================================================== power policy option ====================================================================
 
 type AssignmentProvidePower struct {
-	IdentityId string
-	PartyId    string
+	IdentityId string `json:"identityId"`
+	PartyId    string `json:"partyId"`
 }
 
 func (p *AssignmentProvidePower) GetIdentityId() string {
