@@ -41,6 +41,7 @@ type Service struct {
 	// DB interfaces
 	dataDb     db.Database
 	APIBackend *CarrierAPIBackend
+	DebugAPIBackend *CarrierDebugAPIBackend
 
 	resourceManager *resource.Manager
 	messageManager  *message.MessageHandler
@@ -155,6 +156,7 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 
 	//s.APIBackend = &CarrierAPIBackend{carrier: s}
 	s.APIBackend = NewCarrierAPIBackend(s)
+	s.DebugAPIBackend = NewCarrierDebugAPIBackend(twopcEngine)
 	s.Engines = make(map[types.ConsensusEngineType]handler.Engine, 0)
 	s.Engines[types.TwopcTyp] = twopcEngine
 	s.Engines[types.ChainconsTyp] = chaincons.New()
