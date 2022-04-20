@@ -87,8 +87,8 @@ func mockTestData() *state {
 		common.HexToHash("0x3ff6fea93531aa400789b3f8ea0d28409790499fb16391f0814e033eef1a2ccf"),
 	}
 	proposalTaskCache := make(map[string]map[string]*ctypes.ProposalTask, 0)
-	cache := make(map[string]*ctypes.ProposalTask, 0)
 	for i := 0; i < 2; i++ {
+		cache := make(map[string]*ctypes.ProposalTask, 0)
 		taskId := fmt.Sprintf("%s,%d", "task_00", i)
 		for p := 0; p < 3; p++ {
 			partyId := fmt.Sprintf("%s,%d", "p", i)
@@ -97,8 +97,8 @@ func mockTestData() *state {
 				TaskId:     taskId,
 				CreateAt:   timeutils.UnixMsecUint64(),
 			}
-			proposalTaskCache[taskId] = cache
 		}
+		proposalTaskCache[taskId] = cache
 	}
 
 	proposalSet := make(map[common.Hash]map[string]*ctypes.OrgProposalState, 0)
