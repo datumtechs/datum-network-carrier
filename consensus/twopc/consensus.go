@@ -1109,6 +1109,8 @@ func (t *Twopc) onTerminateTaskConsensus(pid peer.ID, msg *types.TerminateConsen
 }
 
 func (t *Twopc) Get2PcProposalStateByTaskId(taskId string) (*rpcpb.Get2PcProposalStateResponse, error) {
+	t.state.proposalTaskLock.RLock()
+	defer t.state.proposalTaskLock.RUnlock()
 	taskObj := t.state.proposalTaskCache[taskId]
 	var proposalId common.Hash
 	for partyId := range taskObj {
@@ -1141,7 +1143,10 @@ func (t *Twopc) Get2PcProposalStateByTaskId(taskId string) (*rpcpb.Get2PcProposa
 func (t *Twopc) Get2PcProposalStateByProposalId(proposalId string) (*rpcpb.Get2PcProposalStateResponse, error) {
 	currentTime := time.Now().UnixNano()
 	proposalStateInfo := make(map[string]*rpcpb.ProposalState, 0)
-	if proposalState, ok := t.state.proposalSet[common.HexToHash(proposalId)]; ok {
+	t.state.proposalsLock.RLock()
+	defer t.state.proposalsLock.RUnlock()
+	proposalState, ok := t.state.proposalSet[common.HexToHash(proposalId)]
+	if ok {
 		for partyId, obj := range proposalState {
 			proposalStateInfo[partyId] = &rpcpb.ProposalState{
 				PeriodNum:            uint32(obj.GetPeriodNum()),
@@ -1159,6 +1164,8 @@ func (t *Twopc) Get2PcProposalStateByProposalId(proposalId string) (*rpcpb.Get2P
 	}, nil
 }
 func (t *Twopc) Get2PcProposalPrepare(proposalId string) (*rpcpb.Get2PcProposalPrepareResponse, error) {
+	t.state.prepareVotesLock.RLock()
+	defer t.state.prepareVotesLock.RUnlock()
 	prepareVoteInfo, ok := t.state.prepareVotes[common.HexToHash(proposalId)]
 	if !ok {
 		return &rpcpb.Get2PcProposalPrepareResponse{}, nil
@@ -1196,6 +1203,8 @@ func (t *Twopc) Get2PcProposalPrepare(proposalId string) (*rpcpb.Get2PcProposalP
 	}, nil
 }
 func (t *Twopc) Get2PcProposalConfirm(proposalId string) (*rpcpb.Get2PcProposalConfirmResponse, error) {
+	t.state.confirmVotesLock.RLock()
+	defer t.state.confirmVotesLock.RUnlock()
 	confirmVoteInfo, ok := t.state.confirmVotes[common.HexToHash(proposalId)]
 	if !ok {
 		return &rpcpb.Get2PcProposalConfirmResponse{}, nil
