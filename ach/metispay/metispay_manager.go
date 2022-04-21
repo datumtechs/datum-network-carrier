@@ -169,34 +169,6 @@ func NewMetisPayManager(db core.CarrierDB, config *Config, kmsConfig *kms.Config
 	return metisPay
 }
 
-func NewMetisPayManagerFaker(db core.CarrierDB, config *Config, kmsConfig *kms.Config, client *ethclient.Client, instance *contracts.MetisPay) *MetisPayManager {
-	log.Info("Init MetisPay manager faker...")
-	metisPay := new(MetisPayManager)
-	metisPay.dataCenter = db
-	metisPay.Config = config
-	if kmsConfig != nil {
-		metisPay.Kms = &kms.AliKms{Config: kmsConfig}
-	}
-	metisPay.client = client
-	chainID, err := client.ChainID(context.Background())
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	metisPay.chainID = chainID
-	//metisPay.chainID = big.NewInt(1337)
-
-	metisPay.contractMetisPayInstance = instance
-	metisPay.loadPrivateKey()
-
-	abiCode, err := abi.JSON(strings.NewReader(contracts.MetisPayABI))
-	if err != nil {
-		log.Fatal(err)
-	}
-	metisPay.abi = abiCode
-	return metisPay
-}
-
 func (metisPay *MetisPayManager) buildTxOpts() (*bind.TransactOpts, error) {
 	nonce, err := metisPay.client.PendingNonceAt(context.Background(), metisPay.Config.walletAddress)
 	if err != nil {
@@ -235,6 +207,8 @@ func convert(dataTokenTransferItemList []*libapipb.DataTokenTransferItem) ([]com
 	return tokenAddressList, amountList, nil
 }
 
+// EstimateTaskGas estimates gas fee for a task's sponsor.
+// EstimateTaskGas returns estimated gas and suggested gas price.
 func (metisPay *MetisPayManager) EstimateTaskGas(dataTokenTransferItemList []*libapipb.DataTokenTransferItem) (uint64, *big.Int, error) {
 	tokenAddressList, amountList, err := convert(dataTokenTransferItemList)
 	if err != nil {
@@ -262,6 +236,7 @@ func (metisPay *MetisPayManager) EstimateTaskGas(dataTokenTransferItemList []*li
 	return gasLimit1 + gasLimit2, gasPrice, nil
 }
 
+// estimateGas call EstimateGas() by RPC
 func (metisPay *MetisPayManager) estimateGas(method string, params ...interface{}) (uint64, error) {
 	input, err := metisPay.abi.Pack(method, params...)
 	if err != nil {
@@ -328,6 +303,7 @@ func (metisPay *MetisPayManager) ReadyToStart(taskID string, userAccount common.
 	return nil
 }
 
+// QueryOrgWallet returns the organization wallet address
 func (metisPay *MetisPayManager) QueryOrgWallet() (common.Address, error) {
 	wallet, err := metisPay.dataCenter.QueryOrgWallet()
 
@@ -343,6 +319,7 @@ func (metisPay *MetisPayManager) QueryOrgWallet() (common.Address, error) {
 	return common.Address{}, nil
 }
 
+// GenerateOrgWallet generates a new wallet if there's no wallet for current organization, if there is an organization wallet already, just reuse it.
 func (metisPay *MetisPayManager) GenerateOrgWallet() (common.Address, error) {
 	walletAddr, err := metisPay.QueryOrgWallet()
 	if err != nil {
@@ -457,6 +434,7 @@ type Receipt struct {
 	success bool   `json:"success"`
 }
 
+// GetReceipt returns the tx receipt. The caller goroutine will be blocked, and the caller could receive the receipt by channel.
 func (metisPay *MetisPayManager) GetReceipt(txHash common.Hash) *Receipt {
 	ch := make(chan *Receipt)
 	ticker := time.NewTicker(1 * time.Second)
@@ -493,6 +471,9 @@ func (metisPay *MetisPayManager) getReceipt(txHash common.Hash, ch chan *Receipt
 	ch <- receipt
 }
 
+// GetTaskState returns the task payment state.
+// -1 : task is not existing in PayMetis.
+// 1 : task has prepaid
 func (metisPay *MetisPayManager) GetTaskState(taskID *big.Int) (int, error) {
 	if state, err := metisPay.contractMetisPayInstance.TaskState(&bind.CallOpts{}, taskID); err != nil {
 		return -1, err
