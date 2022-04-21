@@ -3,8 +3,6 @@ package task
 import (
 	"context"
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/common"
-	"github.com/RosettaFlow/Carrier-Go/common/hexutil"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
@@ -360,17 +358,7 @@ func (svr *Server) GenerateObServerProxyWalletAddress(ctx context.Context, req *
 }
 
 func (svr *Server) EstimateTaskGas(ctx context.Context, req *pb.EstimateTaskGasRequest) (*pb.EstimateTaskGasResponse, error) {
-
-	dataTokenList := make([]common.Address, len(req.GetDataTokenTransferItems()))
-	for idx, item := range req.GetDataTokenTransferItems() {
-		bytes, err := hexutil.Decode(item.Address)
-		if err != nil {
-			log.WithError(err).Errorf("RPC-API:EstimateTaskGas failed, data token address error, err: %s", item.Address)
-			return &pb.EstimateTaskGasResponse{Status: backend.ErrEstimateTaskGas.ErrCode(), Msg: backend.ErrEstimateTaskGas.Error()}, nil
-		}
-		dataTokenList[idx] = common.BytesToAddress(bytes)
-	}
-	gasLimit, gasPrice, err := svr.B.EstimateTaskGas(req.GetDataTokenTransferItems())
+	gasLimit, gasPrice, err := svr.B.EstimateTaskGas(req.GetDataTokenAddresses())
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:EstimateTaskGas failed")
 		return &pb.EstimateTaskGasResponse{Status: backend.ErrEstimateTaskGas.ErrCode(), Msg: backend.ErrEstimateTaskGas.Error()}, nil
