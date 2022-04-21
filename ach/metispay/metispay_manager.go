@@ -245,59 +245,6 @@ func (metisPay *MetisPayManager) estimateGas(method string, params ...interface{
 	return estimatedGas, nil
 }
 
-// ReadyToStart get funds clearing to start a task.
-// the caller should receive the result by channel.
-// Deprecated:
-func (metisPay *MetisPayManager) ReadyToStart(taskID string, taskSponsorAccount string, dataTokenAddressList []string) error {
-	if metisPay.getPrivateKey() == nil {
-		log.Errorf("organization private key is missing")
-		return errors.New("organization private key is missing")
-	}
-
-	spliterIdx := 0
-	if idx := strings.Index(taskID, ":"); idx >= 0 {
-		spliterIdx = idx
-	}
-	taskIDBigInt, err := hexutil.DecodeBig(taskID[spliterIdx:])
-	if err != nil {
-		log.Errorf("cannot decode taskID to big.Int, %v", err)
-		return errors.New("task ID invalid")
-	}
-
-	//call prepay
-	txHash, estimateGas, err := metisPay.Prepay(taskIDBigInt, taskSponsorAccount, dataTokenAddressList)
-
-	if err != nil {
-		return err
-	}
-	receipt := metisPay.GetReceipt(txHash)
-	if receipt == nil {
-		return errors.New("cannot not retrieve transaction MetisPay.Prepay() receipt")
-	}
-
-	if !receipt.success {
-		return errors.New("tx MetisPay.Prepay() failure")
-	}
-
-	gasRefund := int64(estimateGas) - int64(receipt.gasUsed)
-
-	//call settle
-	txHash, _, err = metisPay.Settle(taskIDBigInt, gasRefund)
-	if err != nil {
-		return err
-	}
-	receipt = metisPay.GetReceipt(txHash)
-	if receipt == nil {
-		return errors.New("cannot not retrieve transaction MetisPay.Settle() receipt")
-	}
-
-	if !receipt.success {
-		return errors.New("tx MetisPay.Settle() failure")
-	}
-
-	return nil
-}
-
 // QueryOrgWallet returns the organization wallet address
 func (metisPay *MetisPayManager) QueryOrgWallet() (common.Address, error) {
 	wallet, err := metisPay.dataCenter.QueryOrgWallet()
