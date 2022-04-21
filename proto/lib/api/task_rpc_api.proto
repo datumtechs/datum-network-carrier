@@ -88,7 +88,7 @@ message DataTokenTransferItem {
 
 // 预估gas request
 message EstimateTaskGasRequest {
-  repeated string      data_token_addresses = 1;       // 当前任务用到的data token 合约地址//缺省转账金额是1
+  repeated string      data_token_addresses = 1;       // 当前任务用到的data token 合约地址0x开头//缺省转账金额是1
 }
 
 // 预估gas response
