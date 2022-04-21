@@ -235,11 +235,11 @@ func (m *Manager) preConsumeByDataToken (task *types.NeedExecuteTask, localTask 
 	if nil != err {
 		return fmt.Errorf("call QueryMetadataByIds() failed on preConsumeByDataToken(), %s", err)
 	}
-	dataTokenAaddresses := make([]string, len(metadataList))
+	dataTokenAaddresses := make([]ethereumcommon.Address, len(metadataList))
 	for i, metadata := range metadataList {
-		dataTokenAaddresses[i] = metadata.GetData().GetTokenAddress()
+		dataTokenAaddresses[i] = ethereumcommon.HexToAddress(metadata.GetData().GetTokenAddress())
 	}
-	m.metisPayMng.Prepay(taskId, address.Hex(), dataTokenAaddresses)
+	m.metisPayMng.Prepay(taskId, address, dataTokenAaddresses)
 	return nil
 }
 
