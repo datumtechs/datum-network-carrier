@@ -86,7 +86,7 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 	}
 
 	if addr, err := s.carrier.metisPayManager.QueryOrgWallet(); err == nil {
-		nodeInfo.ObserverProxyWalletAddress = addr
+		nodeInfo.ObserverProxyWalletAddress = addr.Hex()
 	} else {
 		log.WithError(err).Errorf("cannot load organization wallet of node info: %v", err)
 		return nil, err
@@ -617,7 +617,7 @@ func (s *CarrierAPIBackend) GenerateObServerProxyWalletAddress() (string, error)
 			return "", err
 		} else {
 			log.Debugf("Success to generate organization wallet %s", addr)
-			return addr, nil
+			return addr.Hex(), nil
 		}
 	} else {
 		return "", errors.New("MetisPay manager not initialized properly")
