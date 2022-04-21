@@ -79,14 +79,16 @@ message TerminateTaskRequest {
 }
 
 
+/*
 message DataTokenTransferItem {
   string address = 1;       //data token合约地址
   string amount = 2;        //data token转账金额,18位精度
 }
+*/
 
 // 预估gas request
 message EstimateTaskGasRequest {
-  repeated DataTokenTransferItem      data_token_transfer_items = 1;       // 当前任务用到的data token 合约地址和转账金额列表
+  repeated string      data_token_addresses = 1;       // 当前任务用到的data token 合约地址//缺省转账金额是1
 }
 
 // 预估gas response
