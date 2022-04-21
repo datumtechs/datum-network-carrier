@@ -5,11 +5,11 @@ import (
 	"crypto/ecdsa"
 	"encoding/hex"
 	"errors"
+
 	"github.com/Metisnetwork/Metis-Carrier/ach/metispay/contracts"
 	"github.com/Metisnetwork/Metis-Carrier/ach/metispay/kms"
 	"github.com/Metisnetwork/Metis-Carrier/common/hexutil"
 	"github.com/Metisnetwork/Metis-Carrier/core"
-	libapipb "github.com/Metisnetwork/Metis-Carrier/lib/api"
 	"github.com/Metisnetwork/Metis-Carrier/types"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -29,8 +29,10 @@ const keystoreFile = ".keystore"
 
 //"task:0x81050ea1c64ab0ed96e50b151c36bcef180eea18d3b3245e7c4a42aa08638c58"
 var (
-	contractMetisPayAddress = common.HexToAddress("0x3979cA71ea6B4c0A7CF23a8Bf216fD9FC37a4dF9")
-	mockTaskID, _           = hexutil.DecodeBig("0x81050ea1c64ab0ed96e50b151c36bcef180eea18d3b3245e7c4a42aa08638c58")
+	contractMetisPayAddress          = common.HexToAddress("0x3979cA71ea6B4c0A7CF23a8Bf216fD9FC37a4dF9")
+	defaultDataTokenPrepaymentAmount = big.NewInt(1)
+
+	mockTaskID, _ = hexutil.DecodeBig("0x81050ea1c64ab0ed96e50b151c36bcef180eea18d3b3245e7c4a42aa08638c58")
 )
 
 func LoadCarrierKey() (*ecdsa.PrivateKey, common.Address) {
@@ -193,30 +195,23 @@ func (metisPay *MetisPayManager) buildTxOpts() (*bind.TransactOpts, error) {
 	return txOpts, nil
 }
 
-func convert(dataTokenTransferItemList []*libapipb.DataTokenTransferItem) ([]common.Address, []*big.Int, error) {
-	tokenAddressList := make([]common.Address, len(dataTokenTransferItemList))
-	amountList := make([]*big.Int, len(dataTokenTransferItemList))
-	for idx, item := range dataTokenTransferItemList {
-		tokenAddressList[idx] = common.HexToAddress(item.Address)
-		if amount, ok := new(big.Int).SetString(item.Amount, 10); ok {
-			amountList[idx] = amount
-		} else {
-			return nil, nil, errors.New("transfer amount is not a number")
-		}
+func convert(dataTokenAddressList []string) ([]common.Address, []*big.Int) {
+
+	tokenAddressList := make([]common.Address, len(dataTokenAddressList))
+	dataTokenAmountList := make([]*big.Int, len(dataTokenAddressList))
+	for idx, addrHex := range dataTokenAddressList {
+		tokenAddressList[idx] = common.HexToAddress(addrHex)
+		dataTokenAmountList[idx] = defaultDataTokenPrepaymentAmount
 	}
-	return tokenAddressList, amountList, nil
+	return tokenAddressList, dataTokenAmountList
 }
 
 // EstimateTaskGas estimates gas fee for a task's sponsor.
 // EstimateTaskGas returns estimated gas and suggested gas price.
-func (metisPay *MetisPayManager) EstimateTaskGas(dataTokenTransferItemList []*libapipb.DataTokenTransferItem) (uint64, *big.Int, error) {
-	tokenAddressList, amountList, err := convert(dataTokenTransferItemList)
-	if err != nil {
-		log.Errorf("data token tranfer item error: %v", err)
-		return 0, nil, err
-	}
+func (metisPay *MetisPayManager) EstimateTaskGas(dataTokenAddressList []string) (uint64, *big.Int, error) {
+	tokenAddressList, tokenAmountList := convert(dataTokenAddressList)
 
-	gasLimit1, err := metisPay.estimateGas("prepay", mockTaskID, metisPay.Config.walletAddress, big.NewInt(1), tokenAddressList, amountList)
+	gasLimit1, err := metisPay.estimateGas("prepay", mockTaskID, metisPay.Config.walletAddress, big.NewInt(1), tokenAddressList, tokenAmountList)
 	if err != nil {
 		log.Errorf("call EstimateTaskGas error: %v", err)
 		return 0, nil, err
@@ -249,58 +244,6 @@ func (metisPay *MetisPayManager) estimateGas(method string, params ...interface{
 		return 0, err
 	}
 	return estimatedGas, nil
-}
-
-// ReadyToStart get funds clearing to start a task.
-// the caller should use a channel to receive the result.
-func (metisPay *MetisPayManager) ReadyToStart(taskID string, userAccount common.Address, dataTokenTransferItemList []*libapipb.DataTokenTransferItem) error {
-	if metisPay.getPrivateKey() == nil {
-		log.Errorf("organization private key is missing")
-		return errors.New("organization private key is missing")
-	}
-
-	spliterIdx := 0
-	if idx := strings.Index(taskID, ":"); idx >= 0 {
-		spliterIdx = idx
-	}
-	taskIDBigInt, err := hexutil.DecodeBig(taskID[spliterIdx:])
-	if err != nil {
-		log.Errorf("cannot decode taskID to big.Int, %v", err)
-		return errors.New("task ID invalid")
-	}
-
-	//call prepay
-	txHash, estimateGas, err := metisPay.Prepay(taskIDBigInt, userAccount, dataTokenTransferItemList)
-
-	if err != nil {
-		return err
-	}
-	receipt := metisPay.GetReceipt(txHash)
-	if receipt == nil {
-		return errors.New("cannot not retrieve transaction MetisPay.Prepay() receipt")
-	}
-
-	if !receipt.success {
-		return errors.New("tx MetisPay.Prepay() failure")
-	}
-
-	gasRefund := int64(estimateGas) - int64(receipt.gasUsed)
-
-	//call settle
-	txHash, _, err = metisPay.Settle(taskIDBigInt, gasRefund)
-	if err != nil {
-		return err
-	}
-	receipt = metisPay.GetReceipt(txHash)
-	if receipt == nil {
-		return errors.New("cannot not retrieve transaction MetisPay.Settle() receipt")
-	}
-
-	if !receipt.success {
-		return errors.New("tx MetisPay.Settle() failure")
-	}
-
-	return nil
 }
 
 // QueryOrgWallet returns the organization wallet address
@@ -358,19 +301,16 @@ func (metisPay *MetisPayManager) GenerateOrgWallet() (common.Address, error) {
 
 // Prepay transfers funds from task sponsor to MetisPay.
 // Prepay returns hx.Hash, estimate gas for calling Prepay() and error.
-func (metisPay *MetisPayManager) Prepay(taskID *big.Int, userAccount common.Address, dataTokenTransferItemList []*libapipb.DataTokenTransferItem) (common.Hash, uint64, error) {
+func (metisPay *MetisPayManager) Prepay(taskID *big.Int, taskSponsorAccount string, dataTokenAddressList []string) (common.Hash, uint64, error) {
 	if metisPay.getPrivateKey() == nil {
 		log.Errorf("cannot send Prepay transaction cause organization wallet missing")
 		return common.Hash{}, 0, errors.New("organization private key is missing")
 	}
 
-	tokenAddressList, amountList, err := convert(dataTokenTransferItemList)
-	if err != nil {
-		log.Errorf("data token tranfer item error: %v", err)
-		return common.Hash{}, 0, err
-	}
+	taskSponsor := common.HexToAddress(taskSponsorAccount)
 
-	gasLimit, err := metisPay.estimateGas("prepay", taskID, new(big.Int).SetUint64(1), tokenAddressList, amountList)
+	tokenAddressList, tokenAmountList := convert(dataTokenAddressList)
+	gasLimit, err := metisPay.estimateGas("prepay", taskID, new(big.Int).SetUint64(1), tokenAddressList, tokenAmountList)
 	if err != nil {
 		log.Errorf("failed to estimate gas for MetisPay.Prepay() error: %v", err)
 		return common.Hash{}, 0, errors.New("failed to estimate gas for MetisPay.Prepay()")
@@ -384,7 +324,7 @@ func (metisPay *MetisPayManager) Prepay(taskID *big.Int, userAccount common.Addr
 		log.Errorf("failed to build transact options to call MetisPay.Prepay(): %v", err)
 		return common.Hash{}, 0, errors.New("failed to build transact options to call MetisPay.Prepay()")
 	}
-	tx, err := metisPay.contractMetisPayInstance.Prepay(opts, taskID, userAccount, new(big.Int).SetUint64(gasLimit), tokenAddressList, amountList)
+	tx, err := metisPay.contractMetisPayInstance.Prepay(opts, taskID, taskSponsor, new(big.Int).SetUint64(gasLimit), tokenAddressList, tokenAmountList)
 	if err != nil {
 		log.Errorf("failed to call MetisPay.Prepay(): %v", err)
 		return common.Hash{}, 0, errors.New("failed to call MetisPay.Prepay()")

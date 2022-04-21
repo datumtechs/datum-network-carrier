@@ -235,15 +235,11 @@ func (m *Manager) preConsumeByDataToken (task *types.NeedExecuteTask, localTask 
 	if nil != err {
 		return fmt.Errorf("call QueryMetadataByIds() failed on preConsumeByDataToken(), %s", err)
 	}
-	dataTokenTransferItemList := make([]*libapipb.DataTokenTransferItem, len(metadataList))
+	dataTokenAaddresses := make([]string, len(metadataList))
 	for i, metadata := range metadataList {
-		dataTokenTransferItemList[i] = &libapipb.DataTokenTransferItem{
-			Address: metadata.GetData().GetTokenAddress(),
-			Amount: 1,
-		}
+		dataTokenAaddresses[i] = metadata.GetData().GetTokenAddress()
 	}
-	m.metisPayMng.Prepay(taskId, address, dataTokenTransferItemList)
-
+	m.metisPayMng.Prepay(taskId, address.Hex(), dataTokenAaddresses)
 	return nil
 }
 
