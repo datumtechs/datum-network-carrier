@@ -23,37 +23,6 @@ var (
 	timespan = 4
 )
 
-func TestPrepayReceipt(t *testing.T) {
-	ch := make(chan *Receipt)
-	ticker := time.NewTicker(1 * time.Second)
-	defer ticker.Stop()
-
-	var receipt *Receipt
-LOOP:
-	for {
-		select {
-		case receipt = <-ch:
-			t.Log("get the receipt")
-			break LOOP
-		case <-ticker.C:
-			t.Log("try to get the receipt")
-			go getPrepayReceipt(common.HexToHash("0x00"), ch)
-		}
-	}
-	t.Logf("receipt.success:%t", receipt.success)
-	t.Logf("receipt.gasUsed:%d", receipt.gasUsed)
-}
-
-func getPrepayReceipt(txHash common.Hash, ch chan *Receipt) {
-	if timespan > 0 {
-		timespan--
-		return
-	}
-	prepayReceipt := new(Receipt)
-	prepayReceipt.success = true
-	prepayReceipt.gasUsed = 100
-	ch <- prepayReceipt
-}
 
 var (
 	walletKey, _     = ethcrypto.HexToECDSA("b24285967575de7d5563e35213a806c60d69094faa509025f2ab5437017d343a")
@@ -155,8 +124,10 @@ func TestMetisPay_AddWhiteList(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to AddWhitelist : %v", err)
 	}
-
-	receipt := metisManager.GetReceipt(tx.Hash())
+	timeout := time.Duration(10) * time.Second
+	ctx, cancelFn := context.WithTimeout(context.Background(), timeout)
+	defer cancelFn()
+	receipt := metisManager.GetReceipt(ctx, tx.Hash(), time.Duration(1000) * time.Millisecond)
 	t.Logf("AddWhitelist receipt: %v", receipt)
 }
 

@@ -237,12 +237,20 @@ func (m *Manager) preConsumeByDataToken (task *types.NeedExecuteTask, localTask 
 			return fmt.Errorf("call metisPay to prepay datatoken failed on preConsumeByDataToken(), %s", err)
 		}
 		// make sure the tx into blockchain
-		ctx := context.Background()
-		var cancelFn context.CancelFunc
-		timeout := time.Duration(st.evm.GetVMConfig().VmTimeoutDuration) * time.Millisecond
-		ctx, cancelFn = context.WithTimeout(ctx, timeout)
+
+		timeout := time.Duration(localTask.GetTaskData().GetOperationCost().GetDuration()) * time.Millisecond
+		ctx, cancelFn := context.WithTimeout(context.Background(), timeout)
 		defer cancelFn()
-		receipt := m.metisPayMng.GetReceipt(txHash)
+
+		//go func(ctx context.Context) {
+		//	<-ctx.Done()
+		//	if err := ctx.Err(); err != nil && context.DeadlineExceeded == err {
+		//		// shutdown vm, change th vm.abort mark
+		//		in.evm.Cancel()
+		//	}
+		//
+		//}(in.evm.Ctx)
+		/*receipt :=*/ m.metisPayMng.GetReceipt(ctx, txHash, time.Duration(1)*time.Second)
 
 		return nil
 	case libtypes.TaskRole_TaskRole_DataSupplier:
