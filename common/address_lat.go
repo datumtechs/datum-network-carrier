@@ -17,32 +17,33 @@ import (
 )
 
 const (
-	DefaultAddressHRP = "lat"
+	DefaultPlatONAddressHRP = "lat"
 )
 
-var currentAddressHRP string
+
+var currentPlatONAddressHRP string
 
 func GetAddressHRP() string {
-	if currentAddressHRP == "" {
-		return DefaultAddressHRP
+	if currentPlatONAddressHRP == "" {
+		return DefaultPlatONAddressHRP
 	}
-	return currentAddressHRP
+	return currentPlatONAddressHRP
 }
 
 func SetAddressHRP(s string) error {
 	if s == "" {
-		s = DefaultAddressHRP
+		s = DefaultPlatONAddressHRP
 	}
 	if len(s) != 3 {
 		return errors.New("the length of addressHRP must be 3")
 	}
 	log.Info("the address hrp has been set", "hrp", s)
-	currentAddressHRP = s
+	currentPlatONAddressHRP = s
 	return nil
 }
 
 func CheckAddressHRP(s string) bool {
-	if currentAddressHRP != "" && s != currentAddressHRP {
+	if currentPlatONAddressHRP != "" && s != currentPlatONAddressHRP {
 		return false
 	}
 	return true
@@ -55,27 +56,27 @@ type PlatONAddress [AddressLength]byte
 
 // BytesToAddress returns PlatONAddress with value b.
 // If b is larger than len(h), b will be cropped from the left.
-func BytesToAddress(b []byte) Address {
-	var a Address
+func BytesToPlatONAddress(b []byte) PlatONAddress {
+	var a PlatONAddress
 	a.SetBytes(b)
 	return a
 }
 
 // BigToAddress returns Address with byte values of b.
 // If b is larger than len(h), b will be cropped from the left.
-func BigToAddress(b *big.Int) Address { return BytesToAddress(b.Bytes()) }
+func BigToPlatONAddress(b *big.Int) PlatONAddress { return BytesToPlatONAddress(b.Bytes()) }
 
 // Deprecated: address to string is use bech32 now
 // HexToAddress returns Address with byte values of s.
 // If s is larger than len(h), s will be cropped from the left.
-func HexToAddress(s string) Address { return BytesToAddress(FromHex(s)) }
+func HexToPlatONAddress(s string) PlatONAddress { return BytesToPlatONAddress(FromHex(s)) }
 
 // MustBech32ToAddress returns Address with byte values of s.
 // If s is Decode fail, it will return zero address.
-func MustBech32ToAddress(s string) Address {
-	add, err := Bech32ToAddress(s)
+func MustBech32ToPlatONAddress(s string) PlatONAddress {
+	add, err := Bech32ToPlatONAddress(s)
 	if err != nil {
-		log.Error("must Bech32ToAddress fail", "err", err)
+		log.Error("must Bech32ToPlatONAddress fail", "err", err)
 		panic(err)
 	}
 	return add
@@ -83,34 +84,34 @@ func MustBech32ToAddress(s string) Address {
 
 // MustBech32ToAddress returns Address with byte values of s.
 // If s is Decode fail, it will return zero address.
-func Bech32ToAddress(s string) (Address, error) {
+func Bech32ToPlatONAddress(s string) (PlatONAddress, error) {
 	hrpDecode, converted, err := bech32util.DecodeAndConvert(s)
 	if err != nil {
-		return Address{}, err
+		return PlatONAddress{}, err
 	}
 	if !CheckAddressHRP(hrpDecode) {
-		return Address{}, fmt.Errorf("the address hrp not compare right,input:%s", s)
+		return PlatONAddress{}, fmt.Errorf("the lat address hrp not compare right,input:%s", s)
 	}
 
-	if currentAddressHRP == "" {
-		log.Warn("the address hrp not set yet", "input", s)
-	} else if currentAddressHRP != hrpDecode {
-		log.Warn("the address not compare current net", "want", currentAddressHRP, "input", s)
+	if currentPlatONAddressHRP == "" {
+		log.Warn("the lat address hrp not set yet", "input", s)
+	} else if currentPlatONAddressHRP != hrpDecode {
+		log.Warn("the lat address not compare current net", "want", currentPlatONAddressHRP, "input", s)
 	}
-	var a Address
+	var a PlatONAddress
 	a.SetBytes(converted)
 	return a, nil
 }
 
-// Bech32ToAddressWithoutCheckHrp returns Address with byte values of s.
+// Bech32ToPlatONAddressWithoutCheckHrp returns Address with byte values of s.
 // If s is Decode fail, it will return zero address.
-func Bech32ToAddressWithoutCheckHrp(s string) Address {
+func Bech32ToPlatONAddressWithoutCheckHrp(s string) PlatONAddress {
 	_, converted, err := bech32util.DecodeAndConvert(s)
 	if err != nil {
-		log.Error(" hrp address decode  fail", "err", err)
+		log.Error(" hrp lat address decode  fail", "err", err)
 		panic(err)
 	}
-	var a Address
+	var a PlatONAddress
 	a.SetBytes(converted)
 	return a
 }
@@ -118,14 +119,14 @@ func Bech32ToAddressWithoutCheckHrp(s string) Address {
 // Deprecated: address to string is use bech32 now
 // IsHexAddress verifies whether a string can represent a valid hex-encoded
 // Ethereum address or not.
-func IsHexAddress(s string) bool {
-	if hasHexPrefix(s) {
+func IsHexPlatONAddress(s string) bool {
+	if has0xPrefix(s) {
 		s = s[2:]
 	}
 	return len(s) == 2*AddressLength && isHex(s)
 }
 
-func IsBech32Address(s string) bool {
+func IsBech32PlatONAddress(s string) bool {
 	hrp, _, err := bech32.Decode(s)
 	if err != nil {
 		return false
@@ -137,22 +138,22 @@ func IsBech32Address(s string) bool {
 }
 
 // Bytes gets the string representation of the underlying address.
-func (a Address) Bytes() []byte { return a[:] }
+func (a PlatONAddress) Bytes() []byte { return a[:] }
 
 // Big converts an address to a big integer.
-func (a Address) Big() *big.Int { return new(big.Int).SetBytes(a[:]) }
+func (a PlatONAddress) Big() *big.Int { return new(big.Int).SetBytes(a[:]) }
 
 // Hash converts an address to a hash by left-padding it with zeros.
-func (a Address) Hash() Hash { return BytesToHash(a[:]) }
+func (a PlatONAddress) Hash() Hash { return BytesToHash(a[:]) }
 
 // Deprecated: address to string is use bech32 now
 // Hex returns an EIP55-compliant hex string representation of the address.it's use for node address
-func (a Address) Hex() string {
+func (a PlatONAddress) Hex() string {
 	return "0x" + a.HexWithNoPrefix()
 }
 
 // Deprecated: address to string is use bech32 now
-func (a Address) HexWithNoPrefix() string {
+func (a PlatONAddress) HexWithNoPrefix() string {
 	unchecksummed := hex.EncodeToString(a[:])
 	sha := sha3.NewKeccak256()
 	sha.Write([]byte(unchecksummed))
@@ -174,17 +175,17 @@ func (a Address) HexWithNoPrefix() string {
 }
 
 // String implements fmt.Stringer.
-func (a Address) String() string {
+func (a PlatONAddress) String() string {
 	return a.Bech32()
 }
 
-func (a Address) Bech32() string {
+func (a PlatONAddress) Bech32() string {
 	return a.Bech32WithHRP(GetAddressHRP())
 }
 
-func (a Address) Bech32WithHRP(hrp string) string {
+func (a PlatONAddress) Bech32WithHRP(hrp string) string {
 	if v, err := bech32util.ConvertAndEncode(hrp, a.Bytes()); err != nil {
-		log.Error("address can't ConvertAndEncode to string", "err", err, "add", a.Bytes())
+		log.Error("lat address can't ConvertAndEncode to string", "err", err, "add", a.Bytes())
 		return ""
 	} else {
 		return v
@@ -193,7 +194,7 @@ func (a Address) Bech32WithHRP(hrp string) string {
 
 // Format implements fmt.Formatter, forcing the byte slice to be formatted as is,
 // without going through the stringer interface used for logging.
-func (a Address) Format(s fmt.State, c rune) {
+func (a PlatONAddress) Format(s fmt.State, c rune) {
 	switch string(c) {
 	case "s":
 		fmt.Fprintf(s, "%"+string(c), a.String())
@@ -204,7 +205,7 @@ func (a Address) Format(s fmt.State, c rune) {
 
 // SetBytes sets the address to the value of b.
 // If b is larger than len(a) it will panic.
-func (a *Address) SetBytes(b []byte) {
+func (a *PlatONAddress) SetBytes(b []byte) {
 	if len(b) > len(a) {
 		b = b[len(b)-AddressLength:]
 	}
@@ -212,7 +213,7 @@ func (a *Address) SetBytes(b []byte) {
 }
 
 // MarshalText returns the hex representation of a.
-func (a Address) MarshalText() ([]byte, error) {
+func (a PlatONAddress) MarshalText() ([]byte, error) {
 	v, err := bech32util.ConvertAndEncode(GetAddressHRP(), a.Bytes())
 	if err != nil {
 		return nil, err
@@ -221,7 +222,7 @@ func (a Address) MarshalText() ([]byte, error) {
 }
 
 // UnmarshalText parses a hash in hex syntax.
-func (a *Address) UnmarshalText(input []byte) error {
+func (a *PlatONAddress) UnmarshalText(input []byte) error {
 	hrpDecode, converted, err := bech32util.DecodeAndConvert(string(input))
 	if err != nil {
 		return err
@@ -234,8 +235,8 @@ func (a *Address) UnmarshalText(input []byte) error {
 }
 
 // UnmarshalJSON parses a hash in hex syntax.
-func (a *Address) UnmarshalJSON(input []byte) error {
-	if !isString(input) {
+func (a *PlatONAddress) UnmarshalJSON(input []byte) error {
+	if !isLatString(input) {
 		return &json.UnmarshalTypeError{Value: "non-string", Type: addressT}
 	}
 	hrpDecode, v, err := bech32util.DecodeAndConvert(string(input[1 : len(input)-1]))
@@ -249,12 +250,12 @@ func (a *Address) UnmarshalJSON(input []byte) error {
 	return nil
 }
 
-func isString(input []byte) bool {
+func isLatString(input []byte) bool {
 	return len(input) >= 2 && input[0] == '"' && input[len(input)-1] == '"'
 }
 
 // Scan implements Scanner for database/sql.
-func (a *Address) Scan(src interface{}) error {
+func (a *PlatONAddress) Scan(src interface{}) error {
 	srcB, ok := src.([]byte)
 	if !ok {
 		return fmt.Errorf("can't scan %T into Address", src)
@@ -267,46 +268,46 @@ func (a *Address) Scan(src interface{}) error {
 }
 
 // Value implements valuer for database/sql.
-func (a Address) Value() (driver.Value, error) {
+func (a PlatONAddress) Value() (driver.Value, error) {
 	return a[:], nil
 }
 
 // UnprefixedAddress allows marshaling an Address without 0x prefix.
-type UnprefixedAddress Address
+type UnprefixedPlatONAddress PlatONAddress
 
 // UnmarshalText decodes the address from hex. The 0x prefix is optional.
-func (a *UnprefixedAddress) UnmarshalText(input []byte) error {
+func (a *UnprefixedPlatONAddress) UnmarshalText(input []byte) error {
 	return hexutil.UnmarshalFixedUnprefixedText("UnprefixedAddress", input, a[:])
 }
 
 // MarshalText encodes the address as hex.
-func (a UnprefixedAddress) MarshalText() ([]byte, error) {
+func (a UnprefixedPlatONAddress) MarshalText() ([]byte, error) {
 	return []byte(hex.EncodeToString(a[:])), nil
 }
 
 // MixedcaseAddress retains the original string, which may or may not be
 // correctly checksummed
-type MixedcaseAddress struct {
-	addr     Address
+type MixedcasePlatONAddress struct {
+	addr     PlatONAddress
 	original string
 }
 
 // NewMixedcaseAddress constructor (mainly for testing)
-func NewMixedcaseAddress(addr Address) MixedcaseAddress {
-	return MixedcaseAddress{addr: addr, original: addr.Hex()}
+func NewMixedcasePlatONAddress(addr PlatONAddress) MixedcasePlatONAddress {
+	return MixedcasePlatONAddress{addr: addr, original: addr.Hex()}
 }
 
-// NewMixedcaseAddressFromString is mainly meant for unit-testing
-func NewMixedcaseAddressFromString(hexaddr string) (*MixedcaseAddress, error) {
+// NewMixedcasePlatONAddressFromString is mainly meant for unit-testing
+func NewMixedcasePlatONAddressFromString(hexaddr string) (*MixedcasePlatONAddress, error) {
 	if !IsHexAddress(hexaddr) {
 		return nil, fmt.Errorf("Invalid address")
 	}
 	a := FromHex(hexaddr)
-	return &MixedcaseAddress{addr: BytesToAddress(a), original: hexaddr}, nil
+	return &MixedcasePlatONAddress{addr: BytesToPlatONAddress(a), original: hexaddr}, nil
 }
 
-// UnmarshalJSON parses MixedcaseAddress
-func (ma *MixedcaseAddress) UnmarshalJSON(input []byte) error {
+// UnmarshalJSON parses MixedcasePlatONAddress
+func (ma *MixedcasePlatONAddress) UnmarshalJSON(input []byte) error {
 	if err := hexutil.UnmarshalFixedJSON(addressT, input, ma.addr[:]); err != nil {
 		return err
 	}
@@ -314,7 +315,7 @@ func (ma *MixedcaseAddress) UnmarshalJSON(input []byte) error {
 }
 
 // MarshalJSON marshals the original value
-func (ma *MixedcaseAddress) MarshalJSON() ([]byte, error) {
+func (ma *MixedcasePlatONAddress) MarshalJSON() ([]byte, error) {
 	if strings.HasPrefix(ma.original, "0x") || strings.HasPrefix(ma.original, "0X") {
 		return json.Marshal(fmt.Sprintf("0x%s", ma.original[2:]))
 	}
@@ -322,12 +323,12 @@ func (ma *MixedcaseAddress) MarshalJSON() ([]byte, error) {
 }
 
 // Address returns the address
-func (ma *MixedcaseAddress) Address() Address {
+func (ma *MixedcasePlatONAddress) Address() PlatONAddress {
 	return ma.addr
 }
 
 // String implements fmt.Stringer
-func (ma *MixedcaseAddress) String() string {
+func (ma *MixedcasePlatONAddress) String() string {
 	if ma.ValidChecksum() {
 		return fmt.Sprintf("%s [chksum ok]", ma.original)
 	}
@@ -335,40 +336,40 @@ func (ma *MixedcaseAddress) String() string {
 }
 
 // ValidChecksum returns true if the address has valid checksum
-func (ma *MixedcaseAddress) ValidChecksum() bool {
+func (ma *MixedcasePlatONAddress) ValidChecksum() bool {
 	return ma.original == ma.addr.Hex()
 }
 
 // Original returns the mixed-case input string
-func (ma *MixedcaseAddress) Original() string {
+func (ma *MixedcasePlatONAddress) Original() string {
 	return ma.original
 }
 
 // BytesToAddress returns Address with value b.
 // If b is larger than len(h), b will be cropped from the left.
-func BytesToNodeAddress(b []byte) NodeAddress {
-	var a NodeAddress
+func BytesToNodePlatONAddress(b []byte) NodePlatONAddress {
+	var a NodePlatONAddress
 	a.SetBytes(b)
 	return a
 }
 
 // HexToNodeAddress returns NodeAddress with byte values of s.
 // If s is larger than len(h), s will be cropped from the left.
-func HexToNodeAddress(s string) NodeAddress { return NodeAddress(BytesToAddress(FromHex(s))) }
+func HexToNodePlatONAddress(s string) NodePlatONAddress { return NodePlatONAddress(BytesToPlatONAddress(FromHex(s))) }
 
-type NodeAddress Address
+type NodePlatONAddress PlatONAddress
 
 // Bytes gets the string representation of the underlying address.
-func (a NodeAddress) Bytes() []byte { return a[:] }
+func (a NodePlatONAddress) Bytes() []byte { return a[:] }
 
 // Big converts an address to a big integer.
-func (a NodeAddress) Big() *big.Int { return new(big.Int).SetBytes(a[:]) }
+func (a NodePlatONAddress) Big() *big.Int { return new(big.Int).SetBytes(a[:]) }
 
 // Hash converts an address to a hash by left-padding it with zeros.
-func (a NodeAddress) Hash() Hash { return BytesToHash(a[:]) }
+func (a NodePlatONAddress) Hash() Hash { return BytesToHash(a[:]) }
 
 // Hex returns an EIP55-compliant hex string representation of the address.
-func (a NodeAddress) Hex() string {
+func (a NodePlatONAddress) Hex() string {
 	unchecksummed := hex.EncodeToString(a[:])
 	sha := sha3.NewKeccak256()
 	sha.Write([]byte(unchecksummed))
@@ -389,7 +390,7 @@ func (a NodeAddress) Hex() string {
 	return "0x" + string(result)
 }
 
-func (a NodeAddress) HexWithNoPrefix() string {
+func (a NodePlatONAddress) HexWithNoPrefix() string {
 	unchecksummed := hex.EncodeToString(a[:])
 	sha := sha3.NewKeccak256()
 	sha.Write([]byte(unchecksummed))
@@ -411,19 +412,19 @@ func (a NodeAddress) HexWithNoPrefix() string {
 }
 
 // String implements fmt.Stringer.
-func (a NodeAddress) String() string {
+func (a NodePlatONAddress) String() string {
 	return a.Hex()
 }
 
 // Format implements fmt.Formatter, forcing the byte slice to be formatted as is,
 // without going through the stringer interface used for logging.
-func (a NodeAddress) Format(s fmt.State, c rune) {
+func (a NodePlatONAddress) Format(s fmt.State, c rune) {
 	fmt.Fprintf(s, "%"+string(c), a[:])
 }
 
 // SetBytes sets the address to the value of b.
 // If b is larger than len(a) it will panic.
-func (a *NodeAddress) SetBytes(b []byte) {
+func (a *NodePlatONAddress) SetBytes(b []byte) {
 	if len(b) > len(a) {
 		b = b[len(b)-AddressLength:]
 	}
@@ -431,22 +432,22 @@ func (a *NodeAddress) SetBytes(b []byte) {
 }
 
 // MarshalText returns the hex representation of a.
-func (a NodeAddress) MarshalText() ([]byte, error) {
+func (a NodePlatONAddress) MarshalText() ([]byte, error) {
 	return hexutil.Bytes(a[:]).MarshalText()
 }
 
 // UnmarshalText parses a hash in hex syntax.
-func (a *NodeAddress) UnmarshalText(input []byte) error {
+func (a *NodePlatONAddress) UnmarshalText(input []byte) error {
 	return hexutil.UnmarshalFixedText("Address", input, a[:])
 }
 
 // UnmarshalJSON parses a hash in hex syntax.
-func (a *NodeAddress) UnmarshalJSON(input []byte) error {
+func (a *NodePlatONAddress) UnmarshalJSON(input []byte) error {
 	return hexutil.UnmarshalFixedJSON(addressT, input, a[:])
 }
 
 // Scan implements Scanner for database/sql.
-func (a *NodeAddress) Scan(src interface{}) error {
+func (a *NodePlatONAddress) Scan(src interface{}) error {
 	srcB, ok := src.([]byte)
 	if !ok {
 		return fmt.Errorf("can't scan %T into Address", src)
@@ -459,6 +460,6 @@ func (a *NodeAddress) Scan(src interface{}) error {
 }
 
 // Value implements valuer for database/sql.
-func (a NodeAddress) Value() (driver.Value, error) {
+func (a NodePlatONAddress) Value() (driver.Value, error) {
 	return a[:], nil
 }
