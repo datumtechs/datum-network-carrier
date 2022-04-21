@@ -1411,7 +1411,7 @@ func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, dataHas
 		DataId:       metadataId,
 		DataStatus:   libtypes.DataStatus_DataStatus_Valid,
 		MetadataName: fmt.Sprintf("task `%s` result file", taskId),
-		MetadataType: 2,  // It means this is a module.
+		MetadataType: libtypes.MetadataType_MetadataType_ModuleFile,  // It means this is a module.
 		DataHash:     "", // todo fill it.
 		Desc:         fmt.Sprintf("the task `%s` result file after executed", taskId),
 		DataType:     libtypes.OrigindataType_OrigindataType_Unknown,
