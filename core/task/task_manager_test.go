@@ -3,8 +3,8 @@ package task
 import (
 	"context"
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
-	"github.com/RosettaFlow/Carrier-Go/types"
+	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
+	"github.com/Metisnetwork/Metis-Carrier/types"
 	"gotest.tools/assert"
 	"math"
 	"sync/atomic"

@@ -3,7 +3,7 @@ package tracing
 
 import (
 	"errors"
-	"github.com/RosettaFlow/Carrier-Go/cmd/common"
+	"github.com/Metisnetwork/Metis-Carrier/cmd/common"
 
 	"contrib.go.opencensus.io/exporter/jaeger"
 	"github.com/sirupsen/logrus"

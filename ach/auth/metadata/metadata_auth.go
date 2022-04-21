@@ -2,12 +2,12 @@ package metadata
 
 import (
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
-	"github.com/RosettaFlow/Carrier-Go/core"
-	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
-	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
-	"github.com/RosettaFlow/Carrier-Go/types"
+	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
+	"github.com/Metisnetwork/Metis-Carrier/core"
+	"github.com/Metisnetwork/Metis-Carrier/core/rawdb"
+	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/Metisnetwork/Metis-Carrier/rpc/backend"
+	"github.com/Metisnetwork/Metis-Carrier/types"
 )
 
 type MetadataAuthority struct {

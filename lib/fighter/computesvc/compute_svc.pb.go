@@ -6,7 +6,7 @@ package computesvc
 import (
 	context "context"
 	fmt "fmt"
-	common "github.com/RosettaFlow/Carrier-Go/lib/fighter/common"
+	common "github.com/Metisnetwork/Metis-Carrier/lib/fighter/common"
 	proto "github.com/gogo/protobuf/proto"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"

@@ -2,10 +2,10 @@ package handler
 
 import (
 	"context"
-	"github.com/RosettaFlow/Carrier-Go/common/abool"
-	libp2ppb "github.com/RosettaFlow/Carrier-Go/lib/rpc/debug/v1"
-	"github.com/RosettaFlow/Carrier-Go/p2p"
-	p2ptest "github.com/RosettaFlow/Carrier-Go/p2p/testing"
+	"github.com/Metisnetwork/Metis-Carrier/common/abool"
+	libp2ppb "github.com/Metisnetwork/Metis-Carrier/lib/rpc/debug/v1"
+	"github.com/Metisnetwork/Metis-Carrier/p2p"
+	p2ptest "github.com/Metisnetwork/Metis-Carrier/p2p/testing"
 	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/stretchr/testify/require"

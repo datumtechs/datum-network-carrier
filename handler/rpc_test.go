@@ -2,10 +2,10 @@ package handler
 
 import (
 	"context"
-	libp2ppb "github.com/RosettaFlow/Carrier-Go/lib/rpc/debug/v1"
-	carrrierP2P "github.com/RosettaFlow/Carrier-Go/p2p"
-	"github.com/RosettaFlow/Carrier-Go/p2p/encoder"
-	p2ptest "github.com/RosettaFlow/Carrier-Go/p2p/testing"
+	libp2ppb "github.com/Metisnetwork/Metis-Carrier/lib/rpc/debug/v1"
+	carrrierP2P "github.com/Metisnetwork/Metis-Carrier/p2p"
+	"github.com/Metisnetwork/Metis-Carrier/p2p/encoder"
+	p2ptest "github.com/Metisnetwork/Metis-Carrier/p2p/testing"
 	libp2pcore "github.com/libp2p/go-libp2p-core"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/stretchr/testify/require"

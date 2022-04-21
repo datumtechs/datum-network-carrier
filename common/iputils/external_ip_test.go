@@ -1,7 +1,7 @@
 package iputils_test
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/common/iputils"
+	"github.com/Metisnetwork/Metis-Carrier/common/iputils"
 	"github.com/stretchr/testify/require"
 	"gotest.tools/assert"
 	"net"

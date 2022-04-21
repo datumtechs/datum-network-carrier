@@ -1,8 +1,8 @@
 package twopc
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/common"
-	"github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
+	"github.com/Metisnetwork/Metis-Carrier/common"
+	"github.com/Metisnetwork/Metis-Carrier/consensus/twopc/types"
 	lru "github.com/hashicorp/golang-lru"
 )
 

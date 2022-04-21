@@ -2,11 +2,11 @@ package scorers_test
 
 import (
 	"context"
-	pb "github.com/RosettaFlow/Carrier-Go/lib/p2p/v1"
-	"github.com/RosettaFlow/Carrier-Go/p2p/peers"
-	"github.com/RosettaFlow/Carrier-Go/p2p/peers/peerdata"
-	"github.com/RosettaFlow/Carrier-Go/p2p/peers/scorers"
-	p2ptypes "github.com/RosettaFlow/Carrier-Go/p2p/types"
+	pb "github.com/Metisnetwork/Metis-Carrier/lib/p2p/v1"
+	"github.com/Metisnetwork/Metis-Carrier/p2p/peers"
+	"github.com/Metisnetwork/Metis-Carrier/p2p/peers/peerdata"
+	"github.com/Metisnetwork/Metis-Carrier/p2p/peers/scorers"
+	p2ptypes "github.com/Metisnetwork/Metis-Carrier/p2p/types"
 	"github.com/libp2p/go-libp2p-core/peer"
 	types "github.com/prysmaticlabs/eth2-types"
 	"github.com/prysmaticlabs/prysm/shared/testutil/require"

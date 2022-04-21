@@ -3,9 +3,9 @@ package gateway
 import (
 	"context"
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/common"
-	rpcpb "github.com/RosettaFlow/Carrier-Go/lib/rpc/debug/v1"
-	rpcapipb "github.com/RosettaFlow/Carrier-Go/lib/api"
+	"github.com/Metisnetwork/Metis-Carrier/common"
+	rpcpb "github.com/Metisnetwork/Metis-Carrier/lib/rpc/debug/v1"
+	rpcapipb "github.com/Metisnetwork/Metis-Carrier/lib/api"
 	gwruntime "github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"

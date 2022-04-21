@@ -3,8 +3,8 @@ package policy
 import (
 	"encoding/json"
 	"fmt"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
-	"github.com/RosettaFlow/Carrier-Go/types"
+	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/Metisnetwork/Metis-Carrier/types"
 )
 
 func FetchOriginId (fileType libtypes.OrigindataType, metadataOption string) (string, error) {

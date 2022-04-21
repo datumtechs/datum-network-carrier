@@ -1,8 +1,8 @@
 package db
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/cmd"
-	"github.com/RosettaFlow/Carrier-Go/common/flags"
+	"github.com/Metisnetwork/Metis-Carrier/cmd"
+	"github.com/Metisnetwork/Metis-Carrier/common/flags"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 )

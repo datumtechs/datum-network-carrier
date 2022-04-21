@@ -2,9 +2,9 @@ package task
 
 import (
 	"fmt"
-	auth2 "github.com/RosettaFlow/Carrier-Go/ach/auth"
-	"github.com/RosettaFlow/Carrier-Go/core/resource"
-	"github.com/RosettaFlow/Carrier-Go/types"
+	auth2 "github.com/Metisnetwork/Metis-Carrier/ach/auth"
+	"github.com/Metisnetwork/Metis-Carrier/core/resource"
+	"github.com/Metisnetwork/Metis-Carrier/types"
 )
 
 type  TaskValidator struct {

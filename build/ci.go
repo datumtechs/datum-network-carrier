@@ -18,7 +18,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/common/build"
+	"github.com/Metisnetwork/Metis-Carrier/common/build"
 	"go/parser"
 	"go/token"
 	"io/ioutil"
@@ -113,7 +113,7 @@ func doInstall(cmdline []string) {
 		index := 0
 		packages2 := []string{}
 		for index < len(packages) {
-			if packages[index] == "github.com/RosettaFlow/Carrier-Go/cmd/carrier" || packages[index] == "./cmd/carrier" {
+			if packages[index] == "github.com/Metisnetwork/Metis-Carrier/cmd/carrier" || packages[index] == "./cmd/carrier" {
 				gocarrierinstall := goTool("install", buildFlags(env)...)
 				gocarrierinstall.Args = append(gocarrierinstall.Args, "-v")
 				if *gcflags == "on" {

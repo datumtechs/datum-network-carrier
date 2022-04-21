@@ -80,6 +80,10 @@ message FindMetadataByIdResponse {
   types.MetadataPB metadata = 1;
 }
 
+message FindMetadataByIdsRequest {
+  repeated string metadata_ids = 1;
+}
+
 service MetadataService {
 
   // 保存元数据
@@ -96,6 +100,9 @@ service MetadataService {
 
   // 新增，根据元数据ID查询元数据详情
   rpc FindMetadataById(FindMetadataByIdRequest) returns (FindMetadataByIdResponse);
+
+  // 新增，根据多个元数据ID查询多个元数据详情 v 0.4.0
+  rpc FindMetadataByIds(FindMetadataByIdsRequest) returns (ListMetadataResponse);
 
   // 撤销元数据 (从底层网络撤销)
   rpc RevokeMetadata (RevokeMetadataRequest) returns (types.SimpleResponse);

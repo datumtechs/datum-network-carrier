@@ -2,12 +2,12 @@ package peers
 
 import (
 	"context"
-	"github.com/RosettaFlow/Carrier-Go/common/rand"
-	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
-	pb "github.com/RosettaFlow/Carrier-Go/lib/p2p/v1"
-	"github.com/RosettaFlow/Carrier-Go/p2p/peers/peerdata"
-	"github.com/RosettaFlow/Carrier-Go/p2p/peers/scorers"
-	"github.com/RosettaFlow/Carrier-Go/params"
+	"github.com/Metisnetwork/Metis-Carrier/common/rand"
+	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
+	pb "github.com/Metisnetwork/Metis-Carrier/lib/p2p/v1"
+	"github.com/Metisnetwork/Metis-Carrier/p2p/peers/peerdata"
+	"github.com/Metisnetwork/Metis-Carrier/p2p/peers/scorers"
+	"github.com/Metisnetwork/Metis-Carrier/params"
 	"github.com/ethereum/go-ethereum/p2p/enr"
 	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/network"

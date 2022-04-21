@@ -2,8 +2,8 @@ package utils
 
 import (
 	"bytes"
-	"github.com/RosettaFlow/Carrier-Go/common"
-	"github.com/RosettaFlow/Carrier-Go/crypto/sha3"
+	"github.com/Metisnetwork/Metis-Carrier/common"
+	"github.com/Metisnetwork/Metis-Carrier/crypto/sha3"
 	"io"
 )
 

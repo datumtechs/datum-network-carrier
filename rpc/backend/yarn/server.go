@@ -1,7 +1,7 @@
 package yarn
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
+	"github.com/Metisnetwork/Metis-Carrier/rpc/backend"
 )
 
 type Server struct {

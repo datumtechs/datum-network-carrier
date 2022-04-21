@@ -2,10 +2,10 @@ package types
 
 import (
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/common"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
-	msgcommonpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/common"
-	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
+	"github.com/Metisnetwork/Metis-Carrier/common"
+	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	msgcommonpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/common"
+	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
 )
 
 type ConsensusEngineType string

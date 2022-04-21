@@ -2,7 +2,7 @@ package message
 
 import (
 	"container/heap"
-	"github.com/RosettaFlow/Carrier-Go/types"
+	"github.com/Metisnetwork/Metis-Carrier/types"
 	"sort"
 )
 

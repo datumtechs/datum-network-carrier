@@ -29,7 +29,7 @@ import (
 	"math/rand"
 	"strings"
 
-	"github.com/RosettaFlow/Carrier-Go/common"
+	"github.com/Metisnetwork/Metis-Carrier/common"
 )
 
 const nodeIDBits = 512

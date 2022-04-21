@@ -5,17 +5,17 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
-	"github.com/RosettaFlow/Carrier-Go/common/rlputil"
-	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
-	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
-	"github.com/RosettaFlow/Carrier-Go/grpclient"
-	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	"github.com/RosettaFlow/Carrier-Go/lib/fighter/computesvc"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
-	"github.com/RosettaFlow/Carrier-Go/params"
-	"github.com/RosettaFlow/Carrier-Go/policy"
-	"github.com/RosettaFlow/Carrier-Go/types"
+	"github.com/Metisnetwork/Metis-Carrier/common/bytesutil"
+	"github.com/Metisnetwork/Metis-Carrier/common/rlputil"
+	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
+	"github.com/Metisnetwork/Metis-Carrier/core/rawdb"
+	"github.com/Metisnetwork/Metis-Carrier/grpclient"
+	pb "github.com/Metisnetwork/Metis-Carrier/lib/api"
+	"github.com/Metisnetwork/Metis-Carrier/lib/fighter/computesvc"
+	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/Metisnetwork/Metis-Carrier/params"
+	"github.com/Metisnetwork/Metis-Carrier/policy"
+	"github.com/Metisnetwork/Metis-Carrier/types"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"math/big"
@@ -1411,7 +1411,7 @@ func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, dataHas
 		DataId:       metadataId,
 		DataStatus:   libtypes.DataStatus_DataStatus_Valid,
 		MetadataName: fmt.Sprintf("task `%s` result file", taskId),
-		MetadataType: 2,  // It means this is a module.
+		MetadataType: libtypes.MetadataType_MetadataType_ModuleFile,  // It means this is a module.
 		DataHash:     "", // todo fill it.
 		Desc:         fmt.Sprintf("the task `%s` result file after executed", taskId),
 		DataType:     libtypes.OrigindataType_OrigindataType_Unknown,

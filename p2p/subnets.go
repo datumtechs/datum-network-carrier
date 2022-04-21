@@ -2,8 +2,8 @@ package p2p
 
 import (
 	"context"
-	pb "github.com/RosettaFlow/Carrier-Go/lib/p2p/v1"
-	"github.com/RosettaFlow/Carrier-Go/params"
+	pb "github.com/Metisnetwork/Metis-Carrier/lib/p2p/v1"
+	"github.com/Metisnetwork/Metis-Carrier/params"
 	"github.com/ethereum/go-ethereum/p2p/enode"
 	"github.com/ethereum/go-ethereum/p2p/enr"
 	"github.com/prysmaticlabs/go-bitfield"

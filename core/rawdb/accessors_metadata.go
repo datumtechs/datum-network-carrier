@@ -3,8 +3,8 @@
 package rawdb
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/common"
-	"github.com/RosettaFlow/Carrier-Go/db"
+	"github.com/Metisnetwork/Metis-Carrier/common"
+	"github.com/Metisnetwork/Metis-Carrier/db"
 )
 
 // ReadAllMetadataHashes retrieves all the hashes of metadata.

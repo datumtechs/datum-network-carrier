@@ -4,12 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/common"
-	"github.com/RosettaFlow/Carrier-Go/common/hashutil"
-	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
-	taskmngpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/taskmng"
+	"github.com/Metisnetwork/Metis-Carrier/common"
+	"github.com/Metisnetwork/Metis-Carrier/common/hashutil"
+	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
+	taskmngpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/taskmng"
 
-	rpcpb "github.com/RosettaFlow/Carrier-Go/lib/rpc/debug/v1"
+	rpcpb "github.com/Metisnetwork/Metis-Carrier/lib/rpc/debug/v1"
 	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/peer"
 )

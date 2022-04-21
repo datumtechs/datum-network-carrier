@@ -1,8 +1,8 @@
 package bytesutil_test
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
-	"github.com/RosettaFlow/Carrier-Go/common/hexutil"
+	"github.com/Metisnetwork/Metis-Carrier/common/bytesutil"
+	"github.com/Metisnetwork/Metis-Carrier/common/hexutil"
 	"github.com/stretchr/testify/require"
 	"gotest.tools/assert"
 	"testing"

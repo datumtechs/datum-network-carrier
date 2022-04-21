@@ -1,7 +1,7 @@
 package p2p
 
 import (
-	libp2ppb "github.com/RosettaFlow/Carrier-Go/lib/p2p/v1"
+	libp2ppb "github.com/Metisnetwork/Metis-Carrier/lib/p2p/v1"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
