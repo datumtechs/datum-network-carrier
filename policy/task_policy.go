@@ -45,15 +45,11 @@ func FetchPowerPartyIds(policyType uint32, policyOption string) ([]string, error
 		}
 		return policys, nil
 	case types.TASK_POWER_POLICY_DATANODE_PROVIDE_POWER:
-		var policys []*types.AssignmentProvidePower
+		var policys []string
 		if err := json.Unmarshal([]byte(policyOption), &policys); nil != err {
 			return nil, err
 		}
-		partyIds := make([]string, 0)
-		for _, p := range policys {
-			partyIds = append(partyIds, p.GetPartyId())
-		}
-		return partyIds, nil
+		return policys, nil
 	default:
 		return nil, types.NotFoundPowerPolicy
 	}

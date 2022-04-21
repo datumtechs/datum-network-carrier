@@ -39,7 +39,7 @@ const (
 	*/
 	TASK_POWER_POLICY_ASSIGNMENT_SYMBOL_RANDOM_ELECTION_POWER = 1
 	/**
-	[{"partyId": "p0", "identityId": "identityId:0x...a"}, {"partyId": "p1", "identityId": "identityId:0x...b"}]
+	["p0", "p1"]
 	*/
 	TASK_POWER_POLICY_DATANODE_PROVIDE_POWER = 2
 
@@ -90,16 +90,16 @@ func (p *TaskMetadataPolicyRowAndColumn) QuerySelectedColumns() []uint32 {
 
 // ==================================================================== power policy option ====================================================================
 
-type AssignmentProvidePower struct {
-	IdentityId string `json:"identityId"`
-	PartyId    string `json:"partyId"`
-}
-
-func (p *AssignmentProvidePower) GetIdentityId() string {
-	return p.IdentityId
-}
-func (p *AssignmentProvidePower) GetPartyId() string {
-	return p.PartyId
-}
+//type AssignmentProvidePower struct {
+//	IdentityId string `json:"identityId"`
+//	PartyId    string `json:"partyId"`
+//}
+//
+//func (p *AssignmentProvidePower) GetIdentityId() string {
+//	return p.IdentityId
+//}
+//func (p *AssignmentProvidePower) GetPartyId() string {
+//	return p.PartyId
+//}
 
 // ==================================================================== dataFlow policy option ====================================================================
