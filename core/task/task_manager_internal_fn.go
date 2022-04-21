@@ -207,25 +207,7 @@ func (m *Manager) preConsumeByDataToken (task *types.NeedExecuteTask, localTask 
 	  User_2 = 2;    // Alaya
 	  User_3 = 3;    // Ethereum
 	 */
-	var address ethereumcommon.Address
-	switch localTask.GetTaskData().GetUserType() {
-	case libtypes.UserType_User_1:  // PlatON
-		latAddr, err := carriercommon.Bech32ToPlatONAddress(localTask.GetTaskData().GetUser())
-		if nil != err {
-			return fmt.Errorf("convert lat address from hex failed, %s", err)
-		}
-		address = ethereumcommon.Address(latAddr)
-	case libtypes.UserType_User_2:  // Alaya
-		atpAddr, err := carriercommon.Bech32ToAlayaAddress(localTask.GetTaskData().GetUser())
-		if nil != err {
-			return fmt.Errorf("convert atp address from hex failed, %s", err)
-		}
-		address = ethereumcommon.Address(atpAddr)
-	case libtypes.UserType_User_3:  // Ethereum
-		address = ethereumcommon.HexToAddress(localTask.GetTaskData().GetUser())
-	default:
-		return fmt.Errorf("unknown user type, when conver address from hex")
-	}
+
 	// fetch all datatoken contract adresses of metadata of task
 	metadataIds, err := policy.FetchAllMetedataIds(localTask.GetTaskData().GetDataPolicyType(), localTask.GetTaskData().GetDataPolicyOption())
 	if nil != err {
@@ -239,7 +221,7 @@ func (m *Manager) preConsumeByDataToken (task *types.NeedExecuteTask, localTask 
 	for i, metadata := range metadataList {
 		dataTokenAaddresses[i] = ethereumcommon.HexToAddress(metadata.GetData().GetTokenAddress())
 	}
-	m.metisPayMng.Prepay(taskId, address, dataTokenAaddresses)
+	m.metisPayMng.Prepay(taskId, ethereumcommon.HexToAddress(localTask.GetTaskData().GetUser()), dataTokenAaddresses)
 	return nil
 }
 
