@@ -3,7 +3,7 @@ package db_test
 import (
 	"bytes"
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/db"
+	"github.com/Metisnetwork/Metis-Carrier/db"
 	"io/ioutil"
 	"os"
 	"strconv"

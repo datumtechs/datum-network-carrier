@@ -1,9 +1,9 @@
 package core
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/common/traceutil"
-	"github.com/RosettaFlow/Carrier-Go/lib/netmsg/common"
-	taskmngpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/taskmng"
+	"github.com/Metisnetwork/Metis-Carrier/common/traceutil"
+	"github.com/Metisnetwork/Metis-Carrier/lib/netmsg/common"
+	taskmngpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/taskmng"
 	"testing"
 )
 

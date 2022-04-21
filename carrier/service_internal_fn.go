@@ -2,10 +2,10 @@ package carrier
 
 import (
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
-	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	"github.com/RosettaFlow/Carrier-Go/service/discovery"
-	"github.com/RosettaFlow/Carrier-Go/types"
+	"github.com/Metisnetwork/Metis-Carrier/core/rawdb"
+	pb "github.com/Metisnetwork/Metis-Carrier/lib/api"
+	"github.com/Metisnetwork/Metis-Carrier/service/discovery"
+	"github.com/Metisnetwork/Metis-Carrier/types"
 	"strconv"
 	"strings"
 	"time"

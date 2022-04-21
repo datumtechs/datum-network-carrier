@@ -3,7 +3,7 @@ package signsuite
 import (
 	"errors"
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/common"
+	"github.com/Metisnetwork/Metis-Carrier/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"math/big"
 )

@@ -2,7 +2,7 @@ package rawdb
 
 import (
 	"encoding/binary"
-	"github.com/RosettaFlow/Carrier-Go/common"
+	"github.com/Metisnetwork/Metis-Carrier/common"
 )
 
 // The fields below define the low level database schema prefixing.

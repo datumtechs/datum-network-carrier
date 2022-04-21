@@ -2,7 +2,7 @@ package core
 
 import (
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/types"
+	"github.com/Metisnetwork/Metis-Carrier/types"
 )
 
 // StateProcessor implements Processor.

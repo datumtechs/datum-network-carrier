@@ -1,8 +1,8 @@
 package flags
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/common/fileutil"
-	"github.com/RosettaFlow/Carrier-Go/params"
+	"github.com/Metisnetwork/Metis-Carrier/common/fileutil"
+	"github.com/Metisnetwork/Metis-Carrier/params"
 	"github.com/urfave/cli/v2"
 	"github.com/urfave/cli/v2/altsrc"
 	"path/filepath"

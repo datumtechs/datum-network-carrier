@@ -2,7 +2,7 @@ package policy
 
 import (
 	"encoding/json"
-	"github.com/RosettaFlow/Carrier-Go/types"
+	"github.com/Metisnetwork/Metis-Carrier/types"
 )
 
 func FetchMetedataIdByPartyId (partyId string, policyType uint32, policyOption string) (string, error) {
@@ -20,6 +20,23 @@ func FetchMetedataIdByPartyId (partyId string, policyType uint32, policyOption s
 	}
 	return "", types.NotFoundMetadataPolicy
 }
+func FetchAllMetedataIds (policyType uint32, policyOption string) ([]string, error) {
+	switch policyType {
+	case types.TASK_METADATA_POLICY_ROW_COLUMN:
+		var policys []*types.TaskMetadataPolicyRowAndColumn
+		if err := json.Unmarshal([]byte(policyOption), &policys); nil != err {
+			return nil, err
+		}
+
+		metadataIds := make([]string, len(policys))
+		for i, policy := range policys {
+			metadataIds[i] = policy.GetMetadataId()
+		}
+		return metadataIds, nil
+	}
+	return nil, types.NotFoundMetadataPolicy
+}
+
 func FetchMetedataNameByPartyId (partyId string, policyType uint32, policyOption string) (string, error) {
 	switch policyType {
 	case types.TASK_METADATA_POLICY_ROW_COLUMN:

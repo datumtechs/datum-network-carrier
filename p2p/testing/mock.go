@@ -2,11 +2,11 @@ package testing
 
 import (
 	"errors"
-	"github.com/RosettaFlow/Carrier-Go/common/feed"
-	"github.com/RosettaFlow/Carrier-Go/event"
-	taskmngpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/taskmng"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
-	"github.com/RosettaFlow/Carrier-Go/types"
+	"github.com/Metisnetwork/Metis-Carrier/common/feed"
+	"github.com/Metisnetwork/Metis-Carrier/event"
+	taskmngpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/taskmng"
+	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/Metisnetwork/Metis-Carrier/types"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"sync"
 )

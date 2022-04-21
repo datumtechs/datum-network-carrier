@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/p2p"
-	p2ptypes "github.com/RosettaFlow/Carrier-Go/p2p/types"
+	"github.com/Metisnetwork/Metis-Carrier/p2p"
+	p2ptypes "github.com/Metisnetwork/Metis-Carrier/p2p/types"
 	"github.com/kevinms/leakybucket-go"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/pkg/errors"

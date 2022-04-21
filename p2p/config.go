@@ -1,6 +1,6 @@
 package p2p
 
-import statefeed "github.com/RosettaFlow/Carrier-Go/common/feed/state"
+import statefeed "github.com/Metisnetwork/Metis-Carrier/common/feed/state"
 
 // Config for the p2p service. These parameters are set from application
 // level flags to initialize the p2p service.

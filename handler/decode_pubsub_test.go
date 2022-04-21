@@ -2,9 +2,9 @@ package handler
 
 import (
 	"bytes"
-	libp2ppb "github.com/RosettaFlow/Carrier-Go/lib/rpc/debug/v1"
-	"github.com/RosettaFlow/Carrier-Go/p2p"
-	p2ptesting "github.com/RosettaFlow/Carrier-Go/p2p/testing"
+	libp2ppb "github.com/Metisnetwork/Metis-Carrier/lib/rpc/debug/v1"
+	"github.com/Metisnetwork/Metis-Carrier/p2p"
+	p2ptesting "github.com/Metisnetwork/Metis-Carrier/p2p/testing"
 	"github.com/d4l3k/messagediff"
 	"github.com/gogo/protobuf/proto"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"

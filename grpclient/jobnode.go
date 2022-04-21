@@ -2,10 +2,10 @@ package grpclient
 
 import (
 	"context"
-	"github.com/RosettaFlow/Carrier-Go/common/runutil"
-	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
-	"github.com/RosettaFlow/Carrier-Go/lib/fighter/common"
-	"github.com/RosettaFlow/Carrier-Go/lib/fighter/computesvc"
+	"github.com/Metisnetwork/Metis-Carrier/common/runutil"
+	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
+	"github.com/Metisnetwork/Metis-Carrier/lib/fighter/common"
+	"github.com/Metisnetwork/Metis-Carrier/lib/fighter/computesvc"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"

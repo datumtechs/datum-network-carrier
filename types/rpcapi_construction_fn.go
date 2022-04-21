@@ -1,8 +1,8 @@
 package types
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	"github.com/Metisnetwork/Metis-Carrier/lib/center/api"
+	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
 )
 
 // NewMetadataSaveRequest converts Metadata object to SaveMetadataRequest object.

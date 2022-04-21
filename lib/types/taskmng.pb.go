@@ -5,7 +5,7 @@ package types
 
 import (
 	fmt "fmt"
-	twopc "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
+	twopc "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
 	proto "github.com/gogo/protobuf/proto"
 	io "io"
 	math "math"

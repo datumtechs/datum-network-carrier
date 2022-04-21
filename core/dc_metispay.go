@@ -1,8 +1,8 @@
 package core
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
-	"github.com/RosettaFlow/Carrier-Go/types"
+	"github.com/Metisnetwork/Metis-Carrier/core/rawdb"
+	"github.com/Metisnetwork/Metis-Carrier/types"
 )
 
 func (dc *DataCenter) StoreOrgWallet(sysWallet *types.OrgWallet) error {

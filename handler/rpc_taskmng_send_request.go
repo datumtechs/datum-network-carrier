@@ -3,8 +3,8 @@ package handler
 import (
 	"context"
 	"errors"
-	taskmngpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/taskmng"
-	"github.com/RosettaFlow/Carrier-Go/p2p"
+	taskmngpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/taskmng"
+	"github.com/Metisnetwork/Metis-Carrier/p2p"
 	"github.com/libp2p/go-libp2p-core/peer"
 )
 

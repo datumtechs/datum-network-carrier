@@ -2,9 +2,9 @@ package types
 
 import (
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/common"
-	"github.com/RosettaFlow/Carrier-Go/crypto/sha3"
-	"github.com/RosettaFlow/Carrier-Go/lib/types"
+	"github.com/Metisnetwork/Metis-Carrier/common"
+	"github.com/Metisnetwork/Metis-Carrier/crypto/sha3"
+	"github.com/Metisnetwork/Metis-Carrier/lib/types"
 	"math/big"
 	"sort"
 	"sync/atomic"

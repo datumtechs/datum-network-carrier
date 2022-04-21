@@ -1,4 +1,4 @@
-module github.com/RosettaFlow/Carrier-Go
+module github.com/Metisnetwork/Metis-Carrier
 
 go 1.16
 

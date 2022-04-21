@@ -1,6 +1,6 @@
 package state
 
-import "github.com/RosettaFlow/Carrier-Go/event"
+import "github.com/Metisnetwork/Metis-Carrier/event"
 
 // Notifier interface defines the methods of the service that provides state updates to consumers.
 type Notifier interface {

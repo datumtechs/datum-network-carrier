@@ -4,25 +4,26 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	carriercommon "github.com/RosettaFlow/Carrier-Go/common"
-	"github.com/RosettaFlow/Carrier-Go/common/runutil"
-	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
-	"github.com/RosettaFlow/Carrier-Go/common/traceutil"
-	ev "github.com/RosettaFlow/Carrier-Go/core/evengine"
-	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
-	"github.com/RosettaFlow/Carrier-Go/core/resource"
-	"github.com/RosettaFlow/Carrier-Go/core/schedule"
+	carriercommon "github.com/Metisnetwork/Metis-Carrier/common"
+	"github.com/Metisnetwork/Metis-Carrier/common/hexutil"
+	"github.com/Metisnetwork/Metis-Carrier/common/runutil"
+	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
+	"github.com/Metisnetwork/Metis-Carrier/common/traceutil"
+	ev "github.com/Metisnetwork/Metis-Carrier/core/evengine"
+	"github.com/Metisnetwork/Metis-Carrier/core/rawdb"
+	"github.com/Metisnetwork/Metis-Carrier/core/resource"
+	"github.com/Metisnetwork/Metis-Carrier/core/schedule"
 	ethereumcommon "github.com/ethereum/go-ethereum/common"
 
-	libapipb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	fightercommon "github.com/RosettaFlow/Carrier-Go/lib/fighter/common"
-	msgcommonpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/common"
-	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
-	taskmngpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/taskmng"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
-	"github.com/RosettaFlow/Carrier-Go/p2p"
-	"github.com/RosettaFlow/Carrier-Go/policy"
-	"github.com/RosettaFlow/Carrier-Go/types"
+	libapipb "github.com/Metisnetwork/Metis-Carrier/lib/api"
+	fightercommon "github.com/Metisnetwork/Metis-Carrier/lib/fighter/common"
+	msgcommonpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/common"
+	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
+	taskmngpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/taskmng"
+	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/Metisnetwork/Metis-Carrier/p2p"
+	"github.com/Metisnetwork/Metis-Carrier/policy"
+	"github.com/Metisnetwork/Metis-Carrier/types"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"strconv"
 	"strings"
@@ -126,19 +127,19 @@ func (m *Manager) sendNeedExecuteTaskByAction(task *types.NeedExecuteTask) {
 	}(task)
 }
 
-func (m *Manager) consumeResource (task *types.NeedExecuteTask, localTask *types.Task) error {
+func (m *Manager) preConsumeMetadataOrPower(task *types.NeedExecuteTask, localTask *types.Task) error {
 
 	switch m.config.MetadataConsumeOption {
 	case 1: // use metadataAuth
-		return m.consumeByMetadataAuth(task, localTask)
+		return m.preConsumeByMetadataAuth(task, localTask)
 	case 2: // use datatoken
-		return m.consumeByDataToken(task, localTask)
+		return m.preConsumeByDataToken(task, localTask)
 	default: // use nothing
 		return nil
 	}
 }
 
-func (m *Manager) consumeByMetadataAuth (task *types.NeedExecuteTask, localTask *types.Task) error {
+func (m *Manager) preConsumeByMetadataAuth (task *types.NeedExecuteTask, localTask *types.Task) error {
 
 	partyId := task.GetLocalTaskOrganization().GetPartyId()
 
@@ -152,18 +153,18 @@ func (m *Manager) consumeByMetadataAuth (task *types.NeedExecuteTask, localTask 
 
 				metadataId, err := policy.FetchMetedataIdByPartyId(partyId, localTask.GetTaskData().GetDataPolicyType(), localTask.GetTaskData().GetDataPolicyOption())
 				if nil != err {
-					return fmt.Errorf("not fetch metadataId from task dataPolicy when call consumeByMetadataAuth(), %s, taskId: {%s}, partyId: {%s}",
+					return fmt.Errorf("not fetch metadataId from task dataPolicy when call preConsumeByMetadataAuth(), %s, taskId: {%s}, partyId: {%s}",
 						err, localTask.GetTaskId(), partyId)
 				}
 				// verify metadataAuth first
 				if err := m.authMng.VerifyMetadataAuth(userType, user, metadataId); nil != err {
-					return fmt.Errorf("verify user metadataAuth failed when call consumeByMetadataAuth(), %s, userType: {%s}, user: {%s}, taskId: {%s}, partyId: {%s}, metadataId: {%s}",
+					return fmt.Errorf("verify user metadataAuth failed when call preConsumeByMetadataAuth(), %s, userType: {%s}, user: {%s}, taskId: {%s}, partyId: {%s}, metadataId: {%s}",
 						err, userType, user, localTask.GetTaskId(), partyId, metadataId)
 				}
 
 				internalMetadataFlag, err := m.resourceMng.GetDB().IsInternalMetadataById(metadataId)
 				if nil != err {
-					return fmt.Errorf("check metadata whether internal metadata failed %s when call consumeByMetadataAuth(), taskId: {%s}, partyId: {%s}, metadataId: {%s}",
+					return fmt.Errorf("check metadata whether internal metadata failed %s when call preConsumeByMetadataAuth(), taskId: {%s}, partyId: {%s}, metadataId: {%s}",
 						err, localTask.GetTaskId(), partyId, metadataId)
 				}
 
@@ -172,13 +173,13 @@ func (m *Manager) consumeByMetadataAuth (task *types.NeedExecuteTask, localTask 
 					// query metadataAuthId by metadataId
 					metadataAuthId, err := m.authMng.QueryMetadataAuthIdByMetadataId(userType, user, metadataId)
 					if nil != err {
-						return fmt.Errorf("query metadataAuthId failed %s when call consumeByMetadataAuth(), metadataId: {%s}", err, metadataId)
+						return fmt.Errorf("query metadataAuthId failed %s when call preConsumeByMetadataAuth(), metadataId: {%s}", err, metadataId)
 					}
 					// ConsumeMetadataAuthority
 					if err = m.authMng.ConsumeMetadataAuthority(metadataAuthId); nil != err {
-						return fmt.Errorf("consume metadataAuth failed %s when call consumeByMetadataAuth(), metadataAuthId: {%s}", err, metadataAuthId)
+						return fmt.Errorf("consume metadataAuth failed %s when call preConsumeByMetadataAuth(), metadataAuthId: {%s}", err, metadataAuthId)
 					} else {
-						log.Debugf("Succeed consume metadataAuth when call consumeByMetadataAuth(), taskId: {%s}, metadataAuthId: {%s}", task.GetTaskId(), metadataAuthId)
+						log.Debugf("Succeed consume metadataAuth when call preConsumeByMetadataAuth(), taskId: {%s}, metadataAuthId: {%s}", task.GetTaskId(), metadataAuthId)
 					}
 				}
 				break
@@ -188,15 +189,39 @@ func (m *Manager) consumeByMetadataAuth (task *types.NeedExecuteTask, localTask 
 	return nil
 }
 
-func (m *Manager) consumeByDataToken (task *types.NeedExecuteTask, localTask *types.Task) error {
+func (m *Manager) preConsumeByDataToken (task *types.NeedExecuteTask, localTask *types.Task) error {
 
 	partyId := task.GetLocalTaskOrganization().GetPartyId()
-
-	var dataTokenTransferItemList []*libapipb.DataTokenTransferItem
-
-	if partyId == localTask.GetTaskSender().GetPartyId() {
-		m.metisPayMng.ReadyToStart(task.GetTaskId(), ethereumcommon.Address{}, dataTokenTransferItemList)
+	if partyId != localTask.GetTaskSender().GetPartyId() || task.GetLocalTaskRole() != libtypes.TaskRole_TaskRole_Sender {
+		return nil
 	}
+
+	taskId, err := hexutil.DecodeBig(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID))
+	if nil != err {
+		return fmt.Errorf("cannot decode taskId to big.Int on preConsumeByDataToken(), %s", err)
+	}
+
+	// verify user
+	if localTask.GetTaskData().GetUserType() != libtypes.UserType_User_1
+
+	// fetch all datatoken contract adresses of metadata of task
+	metadataIds, err := policy.FetchAllMetedataIds(localTask.GetTaskData().GetDataPolicyType(), localTask.GetTaskData().GetDataPolicyOption())
+	if nil != err {
+		return fmt.Errorf("cannot fetch all metadataIds of dataPolicyOption on preConsumeByDataToken(), %s", err)
+	}
+	metadataList, err := m.resourceMng.GetDB().QueryMetadataByIds(metadataIds)
+	if nil != err {
+		return fmt.Errorf("call QueryMetadataByIds() failed on preConsumeByDataToken(), %s", err)
+	}
+	dataTokenTransferItemList := make([]*libapipb.DataTokenTransferItem, len(metadataList))
+	for i, metadata := range metadataList {
+		dataTokenTransferItemList[i] = &libapipb.DataTokenTransferItem{
+			Address: metadata.GetData().GetTokenAddress(),
+			Amount: 1,
+		}
+	}
+
+	m.metisPayMng.Prepay(taskId, ethereumcommon.Address{}, dataTokenTransferItemList)
 
 	return nil
 }
@@ -228,7 +253,7 @@ func (m *Manager) driveTaskForExecute(task *types.NeedExecuteTask) error {
 	}
 
 	// 2、 consume the resource of task
-	if err := m.consumeResource (task, localTask); nil != err {
+	if err := m.preConsumeMetadataOrPower(task, localTask); nil != err {
 		return err
 	}
 

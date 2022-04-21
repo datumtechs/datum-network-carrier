@@ -1,9 +1,9 @@
 package iface
 
 import (
-	libapipb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
-	"github.com/RosettaFlow/Carrier-Go/types"
+	libapipb "github.com/Metisnetwork/Metis-Carrier/lib/api"
+	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/Metisnetwork/Metis-Carrier/types"
 )
 
 type LocalStoreCarrierDB interface {
@@ -79,6 +79,7 @@ type MetadataCarrierDB interface {
 	InsertMetadata(metadata *types.Metadata) error
 	RevokeMetadata(metadata *types.Metadata) error
 	QueryMetadataById(metadataId string) (*types.Metadata, error)
+	QueryMetadataByIds(metadataIds []string) ([]*types.Metadata, error) // add by v 0.4.0
 	QueryMetadataList(lastUpdate, pageSize uint64) (types.MetadataArray, error)
 	QueryMetadataListByIdentity(identityId string, lastUpdate, pageSize uint64) (types.MetadataArray, error)
 	UpdateGlobalMetadata(metadata *types.Metadata) error // add by v 0.4.0

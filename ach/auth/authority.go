@@ -2,12 +2,12 @@ package auth
 
 import (
 	"fmt"
-	metadata2 "github.com/RosettaFlow/Carrier-Go/ach/auth/metadata"
-	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
-	"github.com/RosettaFlow/Carrier-Go/core"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
-	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
-	"github.com/RosettaFlow/Carrier-Go/types"
+	metadata2 "github.com/Metisnetwork/Metis-Carrier/ach/auth/metadata"
+	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
+	"github.com/Metisnetwork/Metis-Carrier/core"
+	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/Metisnetwork/Metis-Carrier/rpc/backend"
+	"github.com/Metisnetwork/Metis-Carrier/types"
 	"time"
 )
 

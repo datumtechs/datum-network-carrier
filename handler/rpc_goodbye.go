@@ -3,9 +3,9 @@ package handler
 import (
 	"context"
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/common/mputil"
-	"github.com/RosettaFlow/Carrier-Go/p2p"
-	p2ptypes "github.com/RosettaFlow/Carrier-Go/p2p/types"
+	"github.com/Metisnetwork/Metis-Carrier/common/mputil"
+	"github.com/Metisnetwork/Metis-Carrier/p2p"
+	p2ptypes "github.com/Metisnetwork/Metis-Carrier/p2p/types"
 	libp2pcore "github.com/libp2p/go-libp2p-core"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"

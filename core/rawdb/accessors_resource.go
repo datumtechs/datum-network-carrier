@@ -3,7 +3,7 @@
 package rawdb
 
 
-import "github.com/RosettaFlow/Carrier-Go/common"
+import "github.com/Metisnetwork/Metis-Carrier/common"
 
 // ReadResourceHash retrieves the hash assigned to a canonical number and index.
 func ReadResourceHash(db DatabaseReader, number uint64, index uint64) common.Hash {

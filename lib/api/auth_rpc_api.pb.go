@@ -6,7 +6,7 @@ package api
 import (
 	context "context"
 	fmt "fmt"
-	types "github.com/RosettaFlow/Carrier-Go/lib/types"
+	types "github.com/Metisnetwork/Metis-Carrier/lib/types"
 	proto "github.com/gogo/protobuf/proto"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"

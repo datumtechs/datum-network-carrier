@@ -2,12 +2,12 @@ package handler
 
 import (
 	"context"
-	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
-	"github.com/RosettaFlow/Carrier-Go/lib/netmsg/common"
-	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
-	"github.com/RosettaFlow/Carrier-Go/p2p"
-	p2ptest "github.com/RosettaFlow/Carrier-Go/p2p/testing"
-	twopctypes "github.com/RosettaFlow/Carrier-Go/types"
+	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
+	"github.com/Metisnetwork/Metis-Carrier/lib/netmsg/common"
+	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
+	"github.com/Metisnetwork/Metis-Carrier/p2p"
+	p2ptest "github.com/Metisnetwork/Metis-Carrier/p2p/testing"
+	twopctypes "github.com/Metisnetwork/Metis-Carrier/types"
 	"github.com/kevinms/leakybucket-go"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/protocol"

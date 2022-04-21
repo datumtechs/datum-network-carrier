@@ -3,11 +3,11 @@ package twopc
 import (
 	"bytes"
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/common"
-	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
-	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
-	"github.com/RosettaFlow/Carrier-Go/types"
+	"github.com/Metisnetwork/Metis-Carrier/common"
+	ctypes "github.com/Metisnetwork/Metis-Carrier/consensus/twopc/types"
+	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
+	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/Metisnetwork/Metis-Carrier/types"
 )
 
 func makePrepareMsg(

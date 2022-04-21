@@ -2,9 +2,9 @@ package core
 
 import (
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
-	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
-	"github.com/RosettaFlow/Carrier-Go/types"
+	"github.com/Metisnetwork/Metis-Carrier/core/rawdb"
+	"github.com/Metisnetwork/Metis-Carrier/lib/center/api"
+	"github.com/Metisnetwork/Metis-Carrier/types"
 )
 
 // about power on local

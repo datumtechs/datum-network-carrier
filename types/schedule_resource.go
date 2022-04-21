@@ -2,7 +2,7 @@ package types
 
 import (
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/common/mathutil"
+	"github.com/Metisnetwork/Metis-Carrier/common/mathutil"
 )
 
 type Slot struct {

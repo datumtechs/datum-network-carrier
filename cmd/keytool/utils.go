@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/cmd/utils"
+	"github.com/Metisnetwork/Metis-Carrier/cmd/utils"
 	"github.com/ethereum/go-ethereum/crypto"
 )
 

@@ -1,6 +1,6 @@
 package debug
 
-import rpcpb "github.com/RosettaFlow/Carrier-Go/lib/rpc/debug/v1"
+import rpcpb "github.com/Metisnetwork/Metis-Carrier/lib/rpc/debug/v1"
 
 type TwopcBackend interface {
 	// 2pc consensus debug

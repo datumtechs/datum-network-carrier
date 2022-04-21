@@ -1,8 +1,8 @@
 package rlputil
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/common"
-	"github.com/RosettaFlow/Carrier-Go/crypto/sha3"
+	"github.com/Metisnetwork/Metis-Carrier/common"
+	"github.com/Metisnetwork/Metis-Carrier/crypto/sha3"
 	"github.com/ethereum/go-ethereum/rlp"
 )
 

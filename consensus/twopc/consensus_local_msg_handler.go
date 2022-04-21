@@ -1,8 +1,8 @@
 package twopc
 
 import (
-	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
-	"github.com/RosettaFlow/Carrier-Go/types"
+	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
+	"github.com/Metisnetwork/Metis-Carrier/types"
 	"github.com/libp2p/go-libp2p-core/peer"
 )
 

@@ -1,7 +1,7 @@
 package types
 
 import (
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
 	"strings"
 )
 

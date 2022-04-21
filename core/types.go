@@ -1,7 +1,7 @@
 package core
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/types"
+	"github.com/Metisnetwork/Metis-Carrier/types"
 )
 
 // Processor is an interface for processing blocks.
