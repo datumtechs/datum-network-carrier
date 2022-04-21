@@ -195,7 +195,6 @@ func (metisPay *MetisPayManager) buildTxOpts() (*bind.TransactOpts, error) {
 }
 
 func convert(dataTokenAddressList []string) ([]common.Address, []*big.Int) {
-
 	tokenAddressList := make([]common.Address, len(dataTokenAddressList))
 	dataTokenAmountList := make([]*big.Int, len(dataTokenAddressList))
 	for idx, addrHex := range dataTokenAddressList {
@@ -300,16 +299,17 @@ func (metisPay *MetisPayManager) GenerateOrgWallet() (common.Address, error) {
 
 // Prepay transfers funds from task sponsor to MetisPay.
 // Prepay returns hx.Hash, estimate gas for calling Prepay() and error.
-func (metisPay *MetisPayManager) Prepay(taskID *big.Int, taskSponsorAccount string, dataTokenAddressList []string) (common.Hash, uint64, error) {
+func (metisPay *MetisPayManager) Prepay(taskID *big.Int, taskSponsorAccount common.Address, dataTokenAddressList []common.Address) (common.Hash, uint64, error) {
 	if metisPay.getPrivateKey() == nil {
 		log.Errorf("cannot send Prepay transaction cause organization wallet missing")
 		return common.Hash{}, 0, errors.New("organization private key is missing")
 	}
 
-	taskSponsor := common.HexToAddress(taskSponsorAccount)
-
-	tokenAddressList, tokenAmountList := convert(dataTokenAddressList)
-	gasLimit, err := metisPay.estimateGas("prepay", taskID, new(big.Int).SetUint64(1), tokenAddressList, tokenAmountList)
+	dataTokenAmountList := make([]*big.Int, len(dataTokenAddressList))
+	for idx, _ := range dataTokenAddressList {
+		dataTokenAmountList[idx] = defaultDataTokenPrepaymentAmount
+	}
+	gasLimit, err := metisPay.estimateGas("prepay", taskID, new(big.Int).SetUint64(1), dataTokenAddressList, dataTokenAmountList)
 	if err != nil {
 		log.Errorf("failed to estimate gas for MetisPay.Prepay() error: %v", err)
 		return common.Hash{}, 0, errors.New("failed to estimate gas for MetisPay.Prepay()")
@@ -323,7 +323,7 @@ func (metisPay *MetisPayManager) Prepay(taskID *big.Int, taskSponsorAccount stri
 		log.Errorf("failed to build transact options to call MetisPay.Prepay(): %v", err)
 		return common.Hash{}, 0, errors.New("failed to build transact options to call MetisPay.Prepay()")
 	}
-	tx, err := metisPay.contractMetisPayInstance.Prepay(opts, taskID, taskSponsor, new(big.Int).SetUint64(gasLimit), tokenAddressList, tokenAmountList)
+	tx, err := metisPay.contractMetisPayInstance.Prepay(opts, taskID, taskSponsorAccount, new(big.Int).SetUint64(gasLimit), dataTokenAddressList, dataTokenAmountList)
 	if err != nil {
 		log.Errorf("failed to call MetisPay.Prepay(): %v", err)
 		return common.Hash{}, 0, errors.New("failed to call MetisPay.Prepay()")
