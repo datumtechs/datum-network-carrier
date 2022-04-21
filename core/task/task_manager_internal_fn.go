@@ -240,6 +240,7 @@ func (m *Manager) preConsumeByDataToken (task *types.NeedExecuteTask, localTask 
 
 		timeout := time.Duration(localTask.GetTaskData().GetOperationCost().GetDuration()) * time.Millisecond
 		ctx, cancelFn := context.WithTimeout(context.Background(), timeout)
+		//ctx, cancelFn := context.WithCancel(context.Background())
 		defer cancelFn()
 
 		//go func(ctx context.Context) {
