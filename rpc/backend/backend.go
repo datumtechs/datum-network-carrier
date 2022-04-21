@@ -63,12 +63,12 @@ type Backend interface {
 	GetIdentityList(lastUpdate, pageSize uint64) ([]*types.Identity, error)
 
 	// task api
-	GetLocalTask(taskId string) (*pb.TaskDetailShow, error)
-	GetLocalTaskDetailList(lastUpdate, pageSize uint64) ([]*pb.TaskDetailShow, error)
-	GetGlobalTaskDetailList(lastUpdate, pageSize uint64) ([]*pb.TaskDetailShow, error)
-	GetTaskDetailListByTaskIds(taskIds []string) ([]*pb.TaskDetailShow, error) // v3.0
-	GetTaskEventList(taskId string) ([]*pb.TaskEventShow, error)
-	GetTaskEventListByTaskIds(taskIds []string) ([]*pb.TaskEventShow, error)
+	GetLocalTask(taskId string) (*libtypes.TaskDetail, error)
+	GetLocalTaskDetailList(lastUpdate, pageSize uint64) ([]*libtypes.TaskDetail, error)
+	GetGlobalTaskDetailList(lastUpdate, pageSize uint64) ([]*libtypes.TaskDetail, error)
+	GetTaskDetailListByTaskIds(taskIds []string) ([]*libtypes.TaskDetail, error) // v3.0
+	GetTaskEventList(taskId string) ([]*libtypes.TaskEvent, error)
+	GetTaskEventListByTaskIds(taskIds []string) ([]*libtypes.TaskEvent, error)
 	HasLocalTask() (bool, error)
 
 	// about jobResource

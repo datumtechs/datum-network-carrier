@@ -101,11 +101,11 @@ type NeedReplayScheduleTask struct {
 
 func NewNeedReplayScheduleTask(role libtypes.TaskRole, partyId string, task *Task, evidence string) *NeedReplayScheduleTask {
 	return &NeedReplayScheduleTask{
-		taskRole:   role,
-		partyId:    partyId,
-		task:       task,
-		evidence:      evidence,
-		resultCh:   make(chan *ReplayScheduleResult),
+		taskRole: role,
+		partyId:  partyId,
+		task:     task,
+		evidence: evidence,
+		resultCh: make(chan *ReplayScheduleResult),
 	}
 }
 func (nrst *NeedReplayScheduleTask) SendFailedResult(taskId string, err error) {
@@ -121,7 +121,7 @@ func (nrst *NeedReplayScheduleTask) SendResult(result *ReplayScheduleResult) {
 func (nrst *NeedReplayScheduleTask) ReceiveResult() *ReplayScheduleResult {
 	return <-nrst.resultCh
 }
-func (nrst *NeedReplayScheduleTask) GetLocalTaskRole() libtypes.TaskRole  { return nrst.taskRole }
+func (nrst *NeedReplayScheduleTask) GetLocalTaskRole() libtypes.TaskRole     { return nrst.taskRole }
 func (nrst *NeedReplayScheduleTask) GetLocalPartyId() string                 { return nrst.partyId }
 func (nrst *NeedReplayScheduleTask) GetTask() *Task                          { return nrst.task }
 func (nrst *NeedReplayScheduleTask) GetEvidence() string                     { return nrst.evidence }
@@ -171,10 +171,12 @@ type NeedExecuteTask struct {
 	localTaskOrganization  *libtypes.TaskOrganization
 	remoteTaskRole         libtypes.TaskRole
 	remoteTaskOrganization *libtypes.TaskOrganization
-	consStatus             TaskActionStatus
+	status                 TaskActionStatus
 	localResource          *PrepareVoteResource
 	resources              *twopcpb.ConfirmTaskPeerInfo
 	taskId                 string
+	queryId                string     //	
+	consumed               uint32     //
 	err                    error
 }
 
@@ -183,7 +185,7 @@ func NewNeedExecuteTask(
 	localTaskRole, remoteTaskRole libtypes.TaskRole,
 	localTaskOrganization, remoteTaskOrganization *libtypes.TaskOrganization,
 	taskId string,
-	consStatus TaskActionStatus,
+	status TaskActionStatus,
 	localResource *PrepareVoteResource,
 	resources *twopcpb.ConfirmTaskPeerInfo,
 	err error,
@@ -195,15 +197,15 @@ func NewNeedExecuteTask(
 		remoteTaskRole:         remoteTaskRole,
 		remoteTaskOrganization: remoteTaskOrganization,
 		taskId:                 taskId,
-		consStatus:             consStatus,
+		status:                 status,
 		localResource:          localResource,
 		resources:              resources,
 		err:                    err,
 	}
 }
-func (net *NeedExecuteTask) HasRemotePID() bool                      { return strings.Trim(string(net.remotepid), "") != "" }
-func (net *NeedExecuteTask) HasEmptyRemotePID() bool                 { return !net.HasRemotePID() }
-func (net *NeedExecuteTask) GetRemotePID() peer.ID                   { return net.remotepid }
+func (net *NeedExecuteTask) HasRemotePID() bool                   { return strings.Trim(string(net.remotepid), "") != "" }
+func (net *NeedExecuteTask) HasEmptyRemotePID() bool              { return !net.HasRemotePID() }
+func (net *NeedExecuteTask) GetRemotePID() peer.ID                { return net.remotepid }
 func (net *NeedExecuteTask) GetLocalTaskRole() libtypes.TaskRole  { return net.localTaskRole }
 func (net *NeedExecuteTask) GetRemoteTaskRole() libtypes.TaskRole { return net.remoteTaskRole }
 func (net *NeedExecuteTask) GetLocalTaskOrganization() *libtypes.TaskOrganization {
@@ -213,7 +215,7 @@ func (net *NeedExecuteTask) GetRemoteTaskOrganization() *libtypes.TaskOrganizati
 	return net.remoteTaskOrganization
 }
 func (net *NeedExecuteTask) GetTaskId() string                          { return net.taskId }
-func (net *NeedExecuteTask) GetConsStatus() TaskActionStatus            { return net.consStatus }
+func (net *NeedExecuteTask) GetConsStatus() TaskActionStatus            { return net.status }
 func (net *NeedExecuteTask) GetLocalResource() *PrepareVoteResource     { return net.localResource }
 func (net *NeedExecuteTask) GetResources() *twopcpb.ConfirmTaskPeerInfo { return net.resources }
 func (net *NeedExecuteTask) GetErr() error                              { return net.err }
