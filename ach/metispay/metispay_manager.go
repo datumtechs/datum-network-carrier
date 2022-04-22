@@ -5,6 +5,7 @@ import (
 	"crypto/ecdsa"
 	"encoding/hex"
 	"errors"
+	"time"
 
 	"github.com/Metisnetwork/Metis-Carrier/ach/metispay/contracts"
 	"github.com/Metisnetwork/Metis-Carrier/ach/metispay/kms"
@@ -16,13 +17,13 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
+	ethereumtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"math/big"
 	"strings"
-	"time"
 )
 
 const keystoreFile = ".keystore"
@@ -374,56 +375,48 @@ func (metisPay *MetisPayManager) Settle(taskID *big.Int, gasRefundPrepayment int
 	return tx.Hash(), gasLimit, nil
 }
 
-type Receipt struct {
-	gasUsed uint64 `json:"gasUsed"`
-	success bool   `json:"success"`
-}
+
 
 // GetReceipt returns the tx receipt. The caller goroutine will be blocked, and the caller could receive the receipt by channel.
-func (metisPay *MetisPayManager) GetReceipt(txHash common.Hash) *Receipt {
-	ch := make(chan *Receipt)
-	ticker := time.NewTicker(1 * time.Second)
-	defer ticker.Stop()
-	var receipt *Receipt
-	for {
-		select {
-		case receipt = <-ch:
+func (metisPay *MetisPayManager) GetReceipt(ctx context.Context, txHash common.Hash, period time.Duration) *ethereumtypes.Receipt {
+
+	if period < 0 { // do once only
+		receipt, err := metisPay.client.TransactionReceipt(context.Background(), txHash)
+		if nil != err {
+			//including NotFound
+			log.Errorf("query prepay transaction receipt failed, %s", err)
+			return nil
+		} else {
 			return receipt
-			//break LOOP
-		case <-ticker.C:
-			go metisPay.getReceipt(txHash, ch)
+		}
+
+	} else {
+		ticker := time.NewTicker(period)
+
+		for {
+			select {
+			case <- ctx.Done():
+				return nil
+			case <-ticker.C:
+				receipt, err := metisPay.client.TransactionReceipt(context.Background(), txHash)
+				if nil != err {
+					//including NotFound
+					log.Errorf("query prepay transaction receipt failed, %s", err)
+				} else {
+					return receipt
+				}
+			}
 		}
 	}
-}
-
-func (metisPay *MetisPayManager) getReceipt(txHash common.Hash, ch chan *Receipt) {
-	txReceipt, err := metisPay.client.TransactionReceipt(context.Background(), txHash)
-	if err != nil {
-		//including NotFound
-		log.Errorf("get Prepay transaction receipt error: %v", err)
-		return
-	}
-	log.Debugf("get Prepay transaction receipt status: %d", txReceipt.Status)
-
-	receipt := new(Receipt)
-	if txReceipt.Status == 0 { //FAILURE
-		receipt.success = false
-		receipt.gasUsed = txReceipt.GasUsed
-	} else { //SUCCESS
-		receipt.success = true
-		receipt.gasUsed = txReceipt.GasUsed
-	}
-	ch <- receipt
 }
 
 // GetTaskState returns the task payment state.
 // -1 : task is not existing in PayMetis.
 // 1 : task has prepaid
-func (metisPay *MetisPayManager) GetTaskState(taskID *big.Int) (int, error) {
-	if state, err := metisPay.contractMetisPayInstance.TaskState(&bind.CallOpts{}, taskID); err != nil {
+func (metisPay *MetisPayManager) GetTaskState(taskId *big.Int) (int, error) {
+	if state, err := metisPay.contractMetisPayInstance.TaskState(&bind.CallOpts{}, taskId); err != nil {
 		return -1, err
 	} else {
 		return int(state), nil
 	}
-
 }

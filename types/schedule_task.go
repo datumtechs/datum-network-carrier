@@ -175,8 +175,8 @@ type NeedExecuteTask struct {
 	localResource          *PrepareVoteResource
 	resources              *twopcpb.ConfirmTaskPeerInfo
 	taskId                 string
-	queryId                string     //	
-	consumed               uint32     //
+	queryId                string     // The query Id used to query the consumption status of the task
+	consumed               string     // Consumption status or stage of the task  (json format)
 	err                    error
 }
 
