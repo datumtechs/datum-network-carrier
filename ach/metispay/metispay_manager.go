@@ -336,6 +336,11 @@ func (metisPay *MetisPayManager) Prepay(taskID *big.Int, taskSponsorAccount comm
 
 // Settle get funds clearing, transfers funds from MetisPay to DataToken owner.
 // Settle returns hx.Hash, estimate gas for calling Settle() and error.
+// The complete procedure consists of two calls to MetisPay, the first is Prepay, the second is Settle.
+// The first call - Prepay will estimate the gas for tx and transfer the gas from the task sponsor to MetisPay,
+// but the actual gas used for tx may not match the previous gas estimated, so the second call - Settle can make up for the previous deviation value.
+// gasRefundPrepayment = gasEstimated (for Prepay)   - gasUsed (of Prepay).
+// gasEstimated is returned by Prepay(); gasUsed is returned by GetReceipt() for tx Prepay.
 func (metisPay *MetisPayManager) Settle(taskID *big.Int, gasRefundPrepayment int64) (common.Hash, uint64, error) {
 	if metisPay.getPrivateKey() == nil {
 		log.Errorf("cannot send Settle transaction cause organization wallet missing")
