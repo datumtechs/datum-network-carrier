@@ -234,7 +234,6 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 			dataTokenAaddresses[i] = ethereumcommon.HexToAddress(metadata.GetData().GetTokenAddress())
 		}
 
-
 		// start prepay dataToken
 		txHash, gasLimit, err := m.metisPayMng.Prepay(taskId, ethereumcommon.HexToAddress(localTask.GetTaskData().GetUser()), dataTokenAaddresses)
 		if nil != err {
@@ -366,7 +365,6 @@ func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *
 	switch task.GetLocalTaskRole() {
 	case libtypes.TaskRole_TaskRole_Sender:
 
-
 		// query consumeSpec of task
 		var consumeSpec types.DatatokenPaySpec
 		if err := json.Unmarshal([]byte(task.GetConsumeSpec()), &consumeSpec); nil != err {
@@ -383,7 +381,7 @@ func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *
 		}
 
 		// start prepay dataToken
-		txHash, _, err := m.metisPayMng.Settle(taskId, int64(consumeSpec.GasEstimated) - int64(consumeSpec.GasUsed))
+		txHash, _, err := m.metisPayMng.Settle(taskId, int64(consumeSpec.GasEstimated)-int64(consumeSpec.GasUsed))
 		if nil != err {
 			return fmt.Errorf("call metisPay to settle datatoken failed on endConsumeByDataToken(), %s", err)
 		}
@@ -434,7 +432,6 @@ func (m *Manager) driveTaskForExecute(task *types.NeedExecuteTask, localTask *ty
 	}
 
 }
-
 func (m *Manager) executeTaskOnDataNode(task *types.NeedExecuteTask, localTask *types.Task) error {
 
 	// find dataNodeId with self vote
@@ -486,7 +483,7 @@ func (m *Manager) executeTaskOnDataNode(task *types.NeedExecuteTask, localTask *
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), dataNodeId)
 		return fmt.Errorf("call dataNode rpc api failed when ready to execute task")
 	}
-	if !resp.GetOk() {
+	if resp.GetStatus() != 0 {
 		log.Errorf("Falied to executing task from `data-Fighter` node to executing the resp code is not `ok`, taskId: {%s}, role: {%s}, partyId: {%s}, dataNodeId: {%s}, resp: %s",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), dataNodeId, resp.String())
 		return fmt.Errorf("dataNode rpc api wrong resp %s when ready to execute task", resp.GetMsg())
@@ -496,7 +493,6 @@ func (m *Manager) executeTaskOnDataNode(task *types.NeedExecuteTask, localTask *
 		task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), dataNodeId)
 	return nil
 }
-
 func (m *Manager) executeTaskOnJobNode(task *types.NeedExecuteTask, localTask *types.Task) error {
 
 	// find jobNodeId with self vote
@@ -548,7 +544,7 @@ func (m *Manager) executeTaskOnJobNode(task *types.NeedExecuteTask, localTask *t
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), jobNodeId)
 		return fmt.Errorf("call jobNode rpc api failed when ready to execute task")
 	}
-	if !resp.GetOk() {
+	if resp.GetStatus() != 0 {
 		log.Errorf("Falied to publish schedTask to `job-Fighter` node to executing the resp code is not `ok`, taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}, resp: %s",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), jobNodeId, resp.String())
 		return fmt.Errorf("jobNode rpc api wrong resp %s when ready to execute task", resp.GetMsg())
@@ -573,7 +569,6 @@ func (m *Manager) driveTaskForTerminate(task *types.NeedExecuteTask) error {
 		return fmt.Errorf("Unknown resource node type when ready to terminate task")
 	}
 }
-
 func (m *Manager) terminateTaskOnDataNode(task *types.NeedExecuteTask) error {
 
 	// find dataNodeId with self vote
@@ -625,7 +620,7 @@ func (m *Manager) terminateTaskOnDataNode(task *types.NeedExecuteTask) error {
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), dataNodeId)
 		return fmt.Errorf("call dataNode rpc api failed when ready to terminate task")
 	}
-	if !resp.GetOk() {
+	if resp.GetStatus() != 0 {
 		log.Errorf("Falied to executing task from `data-Fighter` node to terminating the resp code is not `ok`, taskId: {%s}, role: {%s}, partyId: {%s}, dataNodeId: {%s}, resp: %s",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), dataNodeId, resp.String())
 		return fmt.Errorf("dataNode rpc api wrong resp %s when ready to terminate task", resp.GetMsg())
@@ -635,7 +630,6 @@ func (m *Manager) terminateTaskOnDataNode(task *types.NeedExecuteTask) error {
 		task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), dataNodeId)
 	return nil
 }
-
 func (m *Manager) terminateTaskOnJobNode(task *types.NeedExecuteTask) error {
 
 	// find jobNodeId with self vote
@@ -687,7 +681,7 @@ func (m *Manager) terminateTaskOnJobNode(task *types.NeedExecuteTask) error {
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), jobNodeId)
 		return fmt.Errorf("call jobNode rpc api failed when ready to terminate task")
 	}
-	if !resp.GetOk() {
+	if resp.GetStatus() != 0 {
 		log.Errorf("Falied to publish schedTask to `job-Fighter` node to terminating the resp code is not `ok`,taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}, resp: %s",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), jobNodeId, resp.String())
 		return fmt.Errorf("jobNode rpc api wrong resp %s when ready to terminate task", resp.GetMsg())
@@ -1007,7 +1001,7 @@ func (m *Manager) makeTaskReadyGoReq(task *types.NeedExecuteTask, localTask *typ
 		receiverPartyArr = append(receiverPartyArr, string(receiver.GetPartyId()))
 	}
 
-	algorithmCfgType, contractExtraParams, err := m.makeContractParams(task, localTask)
+	contractExtraParams, err := m.makeContractParams(task, localTask)
 	if nil != err {
 		return nil, fmt.Errorf("make contractParams failed, %s", err)
 	}
@@ -1015,46 +1009,60 @@ func (m *Manager) makeTaskReadyGoReq(task *types.NeedExecuteTask, localTask *typ
 
 	req := &fightercommon.TaskReadyGoReq{
 
+		/**
+		TaskId                 string
+		PartyId                string
+		EnvId                  string
+		Parties                []*Party
+		AlgorithmCode          string
+		SelfCfgParams          string
+		AlgorithmDynamicParams string
+		DataPartyIds           []string
+		ComputationPartyIds    []string
+		ResultPartyIds         []string
+		Duration               uint64
+		Memory                 uint64
+		Processor              uint32
+		Bandwidth              uint64
+		ConnectPolicyFormat    ConnectPolicyFormat
+		ConnectPolicy          string
+		*/
 		TaskId:  task.GetTaskId(),
 		PartyId: task.GetLocalTaskOrganization().GetPartyId(),
-		//DataId: "",
 		//EnvId: "",
-		Parties:             peerList,
-		AlgorithmCode:       localTask.GetTaskData().GetAlgorithmCode(),
-		AlgorithmCfgType:    algorithmCfgType,
-		AlgorithmCfg:        contractExtraParams,
-		DataPartyIds:        dataPartyArr,
-		ComputationPartyIds: powerPartyArr,
-		ResultPartyIds:      receiverPartyArr,
-		Duration:            localTask.GetTaskData().GetOperationCost().GetDuration(),
-		Memory:              localTask.GetTaskData().GetOperationCost().GetMemory(),
-		Processor:           localTask.GetTaskData().GetOperationCost().GetProcessor(),
-		Bandwidth:           localTask.GetTaskData().GetOperationCost().GetBandwidth(),
-		ConnectPolicyFormat: fightercommon.ConnectPolicyFormat_ConnectPolicyFormat_Json,
-		ConnectPolicy:       "{}", // {} it mean that  all nodes are fully connected
+		Parties:                peerList,
+		AlgorithmCode:          localTask.GetTaskData().GetAlgorithmCode(),
+		SelfCfgParams:          contractExtraParams,
+		AlgorithmDynamicParams: "",
+		DataPartyIds:           dataPartyArr,
+		ComputationPartyIds:    powerPartyArr,
+		ResultPartyIds:         receiverPartyArr,
+		Duration:               localTask.GetTaskData().GetOperationCost().GetDuration(),
+		Memory:                 localTask.GetTaskData().GetOperationCost().GetMemory(),
+		Processor:              localTask.GetTaskData().GetOperationCost().GetProcessor(),
+		Bandwidth:              localTask.GetTaskData().GetOperationCost().GetBandwidth(),
+		ConnectPolicyFormat:    fightercommon.ConnectPolicyFormat_ConnectPolicyFormat_Json,
+		ConnectPolicy:          "{}", // {} it mean that  all nodes are fully connected
 	}
 
 	return req, nil
 }
 
-func (m *Manager) makeContractParams(task *types.NeedExecuteTask, localTask *types.Task) (fightercommon.AlgorithmCfgType, string, error) {
+func (m *Manager) makeContractParams(task *types.NeedExecuteTask, localTask *types.Task) (string, error) {
 
 	var (
-		typ    fightercommon.AlgorithmCfgType
 		params string
 		err    error
 	)
 
 	switch localTask.GetTaskData().GetDataPolicyType() {
 	case types.TASK_METADATA_POLICY_ROW_COLUMN:
-		typ = fightercommon.AlgorithmCfgType_AlgorithmCfgType_2DTable
 		params, err = m.metadataPolicyRowColumn(task, localTask)
 
 	default:
-		typ = fightercommon.AlgorithmCfgType_AlgorithmCfgType_Unknown
 		params, err = "", fmt.Errorf("unknown dataPolicy type, taskId: {%s}, dataPolicyType: {%d}", task.GetTaskId(), localTask.GetTaskData().GetDataPolicyType())
 	}
-	return typ, params, err
+	return params, err
 }
 
 func (m *Manager) metadataPolicyRowColumn(task *types.NeedExecuteTask, localTask *types.Task) (string, error) {
@@ -1206,7 +1214,7 @@ func (m *Manager) makeTerminateTaskReq(task *types.NeedExecuteTask) (*fightercom
 	}, nil
 }
 
-func (m *Manager) initConsumeSpecByConsumeOption (task *types.NeedExecuteTask) {
+func (m *Manager) initConsumeSpecByConsumeOption(task *types.NeedExecuteTask) {
 	// add consumeSpec
 	switch m.config.MetadataConsumeOption {
 	case 1: // use metadataAuth
@@ -1219,9 +1227,9 @@ func (m *Manager) initConsumeSpecByConsumeOption (task *types.NeedExecuteTask) {
 		}
 		// store consumeSpec into needExecuteTask
 		consumeSpec := &types.DatatokenPaySpec{
-			Consumed: int32(-1),
+			Consumed:     int32(-1),
 			GasEstimated: 0,
-			GasUsed: 0,
+			GasUsed:      0,
 		}
 
 		b, err := json.Marshal(consumeSpec)
@@ -1495,7 +1503,6 @@ func (m *Manager) handleNeedExecuteTask(task *types.NeedExecuteTask, localTask *
 				task.GetTaskId(), libtypes.TaskState_TaskState_Running.String())
 		}
 	}
-
 
 	// init consumeSpec of NeedExecuteTask first
 	m.initConsumeSpecByConsumeOption(task)
