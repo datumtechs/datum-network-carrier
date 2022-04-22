@@ -234,8 +234,9 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 			dataTokenAaddresses[i] = ethereumcommon.HexToAddress(metadata.GetData().GetTokenAddress())
 		}
 
+
 		// start prepay dataToken
-		txHash, _, err := m.metisPayMng.Prepay(taskId, ethereumcommon.HexToAddress(localTask.GetTaskData().GetUser()), dataTokenAaddresses)
+		txHash, gasLimit, err := m.metisPayMng.Prepay(taskId, ethereumcommon.HexToAddress(localTask.GetTaskData().GetUser()), dataTokenAaddresses)
 		if nil != err {
 			return fmt.Errorf("call metisPay to prepay datatoken failed on beginConsumeByDataToken(), %s", err)
 		}
@@ -258,6 +259,35 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		if nil == receipt {
 			return fmt.Errorf("prepay dataToken failed, the transaction had not receipt on beginConsumeByDataToken(), txHash: {%s}", txHash.String())
 		}
+		// contract tx execute failed.
+		if receipt.Status == 0 {
+			return fmt.Errorf("prepay dataToken failed, the transaction receipt status is %d on beginConsumeByDataToken(), txHash: {%s}", receipt.Status, txHash.String())
+		}
+
+		// query task state
+		state, err := m.metisPayMng.GetTaskState(taskId)
+		if nil != err {
+			//including NotFound
+			return fmt.Errorf("query task state of metisPay failed, %s on beginConsumeByDataToken()", err)
+		}
+		// -1 : task is not existing in PayMetis.
+		// 1 : task has prepaid
+		if state == -1 { //  We need to know if the task status value is 1.
+			return fmt.Errorf("task state is not existing in MetisPay contract on beginConsumeByDataToken()")
+		}
+		// update consumeSpec into needExecuteTask
+		var consumeSpec types.DatatokenPaySpec
+		if err := json.Unmarshal([]byte(task.GetConsumeSpec()), &consumeSpec); nil != err {
+			return fmt.Errorf("json unmarshal consumeSpec failed on endConsumeByDataToken()")
+		}
+		consumeSpec.Consumed = int32(state)
+		consumeSpec.GasEstimated = gasLimit
+		consumeSpec.GasUsed = receipt.GasUsed
+		b, err := json.Marshal(consumeSpec)
+		if nil != err {
+			return fmt.Errorf("json marshal task consumeSpec failed on beginConsumeByDataToken(), %s", err)
+		}
+		task.SetConsumeSpec(string(b))
 
 		return nil
 	case libtypes.TaskRole_TaskRole_DataSupplier:
@@ -273,12 +303,12 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		//ctx, cancelFn := context.WithCancel(context.Background())
 		defer cancelFn()
 
-		queryTaskState := func (ctx context.Context, taskId *big.Int, period time.Duration) (int, error) {
+		queryTaskState := func(ctx context.Context, taskId *big.Int, period time.Duration) (int, error) {
 			ticker := time.NewTicker(period)
 
 			for {
 				select {
-				case <- ctx.Done():
+				case <-ctx.Done():
 					return 0, fmt.Errorf("query task state of metisPay time out")
 				case <-ticker.C:
 					state, err := m.metisPayMng.GetTaskState(taskId)
@@ -289,6 +319,7 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 					// -1 : task is not existing in PayMetis.
 					// 1 : task has prepaid
 					if state == -1 { //  We need to know if the task status value is 1.
+						log.Warnf("query task state value is %d, taskId: {%s}, partyId: {%s}", state, task.GetTaskId(), partyId)
 						continue
 					}
 
@@ -335,41 +366,26 @@ func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *
 	switch task.GetLocalTaskRole() {
 	case libtypes.TaskRole_TaskRole_Sender:
 
-		// TODO 写到这了 ...
+
+		// query consumeSpec of task
+		var consumeSpec types.DatatokenPaySpec
+		if err := json.Unmarshal([]byte(task.GetConsumeSpec()), &consumeSpec); nil != err {
+			return fmt.Errorf("json unmarshal consumeSpec failed on endConsumeByDataToken()")
+		}
+
 		if partyId != localTask.GetTaskSender().GetPartyId() {
-			return fmt.Errorf("this partyId is not task sender on beginConsumeByDataToken()")
+			return fmt.Errorf("this partyId is not task sender on endConsumeByDataToken()")
 		}
 
 		taskId, err := hexutil.DecodeBig(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID))
 		if nil != err {
-			return fmt.Errorf("cannot decode taskId to big.Int on beginConsumeByDataToken(), %s", err)
-		}
-
-		// verify user
-		/**
-		  User_1 = 1;    // PlatON
-		  User_2 = 2;    // Alaya
-		  User_3 = 3;    // Ethereum
-		*/
-
-		// fetch all datatoken contract adresses of metadata of task
-		metadataIds, err := policy.FetchAllMetedataIds(localTask.GetTaskData().GetDataPolicyType(), localTask.GetTaskData().GetDataPolicyOption())
-		if nil != err {
-			return fmt.Errorf("cannot fetch all metadataIds of dataPolicyOption on beginConsumeByDataToken(), %s", err)
-		}
-		metadataList, err := m.resourceMng.GetDB().QueryMetadataByIds(metadataIds)
-		if nil != err {
-			return fmt.Errorf("call QueryMetadataByIds() failed on beginConsumeByDataToken(), %s", err)
-		}
-		dataTokenAaddresses := make([]ethereumcommon.Address, len(metadataList))
-		for i, metadata := range metadataList {
-			dataTokenAaddresses[i] = ethereumcommon.HexToAddress(metadata.GetData().GetTokenAddress())
+			return fmt.Errorf("cannot decode taskId to big.Int on endConsumeByDataToken(), %s", err)
 		}
 
 		// start prepay dataToken
-		txHash, _, err := m.metisPayMng.Prepay(taskId, ethereumcommon.HexToAddress(localTask.GetTaskData().GetUser()), dataTokenAaddresses)
+		txHash, _, err := m.metisPayMng.Settle(taskId, int64(consumeSpec.GasEstimated) - int64(consumeSpec.GasUsed))
 		if nil != err {
-			return fmt.Errorf("call metisPay to prepay datatoken failed on beginConsumeByDataToken(), %s", err)
+			return fmt.Errorf("call metisPay to settle datatoken failed on endConsumeByDataToken(), %s", err)
 		}
 
 		// make sure the `prepay` tx into blockchain
@@ -378,17 +394,9 @@ func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *
 		//ctx, cancelFn := context.WithCancel(context.Background())
 		defer cancelFn()
 
-		//go func(ctx context.Context) {
-		//	<-ctx.Done()
-		//	if err := ctx.Err(); err != nil && context.DeadlineExceeded == err {
-		//		// shutdown vm, change th vm.abort mark
-		//		in.evm.Cancel()
-		//	}
-		//
-		//}(in.evm.Ctx)
 		receipt := m.metisPayMng.GetReceipt(ctx, txHash, time.Duration(500)*time.Millisecond) // period 500 ms
 		if nil == receipt {
-			return fmt.Errorf("prepay dataToken failed, the transaction had not receipt on beginConsumeByDataToken(), txHash: {%s}", txHash.String())
+			return fmt.Errorf("settle dataToken failed, the transaction had not receipt on endConsumeByDataToken(), txHash: {%s}", txHash.String())
 		}
 
 		return nil
@@ -399,10 +407,9 @@ func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *
 	case libtypes.TaskRole_TaskRole_Receiver:
 		return nil // do nothing ...
 	default:
-		return fmt.Errorf("unknown task role on beginConsumeByDataToken()")
+		return fmt.Errorf("unknown task role on endConsumeByDataToken()")
 	}
 }
-
 
 // To execute task
 func (m *Manager) driveTaskForExecute(task *types.NeedExecuteTask, localTask *types.Task) error {
@@ -412,7 +419,11 @@ func (m *Manager) driveTaskForExecute(task *types.NeedExecuteTask, localTask *ty
 		return err
 	}
 
-	// 2、 let's task execute
+	// 2、 update needExecuteTask to disk
+	if err := m.resourceMng.GetDB().StoreNeedExecuteTask(task); nil != err {
+		log.WithError(err).Errorf("store needExecuteTask failed, taskId: {%s}, partyId: {%s}", task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
+	}
+	// 3、 let's task execute
 	switch task.GetLocalTaskRole() {
 	case libtypes.TaskRole_TaskRole_DataSupplier, libtypes.TaskRole_TaskRole_Receiver:
 		return m.executeTaskOnDataNode(task, localTask)
@@ -1026,7 +1037,7 @@ func (m *Manager) makeTaskReadyGoReq(task *types.NeedExecuteTask, localTask *typ
 	return req, nil
 }
 
-func (m *Manager) makeContractParams (task *types.NeedExecuteTask, localTask *types.Task) (fightercommon.AlgorithmCfgType, string, error) {
+func (m *Manager) makeContractParams(task *types.NeedExecuteTask, localTask *types.Task) (fightercommon.AlgorithmCfgType, string, error) {
 
 	var (
 		typ    fightercommon.AlgorithmCfgType
@@ -1046,7 +1057,7 @@ func (m *Manager) makeContractParams (task *types.NeedExecuteTask, localTask *ty
 	return typ, params, err
 }
 
-func (m *Manager) metadataPolicyRowColumn (task *types.NeedExecuteTask, localTask *types.Task) (string, error) {
+func (m *Manager) metadataPolicyRowColumn(task *types.NeedExecuteTask, localTask *types.Task) (string, error) {
 
 	partyId := task.GetLocalTaskOrganization().GetPartyId()
 
@@ -1193,6 +1204,35 @@ func (m *Manager) makeTerminateTaskReq(task *types.NeedExecuteTask) (*fightercom
 		TaskId:  task.GetTaskId(),
 		PartyId: task.GetLocalTaskOrganization().GetPartyId(),
 	}, nil
+}
+
+func (m *Manager) initConsumeSpecByConsumeOption (task *types.NeedExecuteTask) {
+	// add consumeSpec
+	switch m.config.MetadataConsumeOption {
+	case 1: // use metadataAuth
+		// pass
+	case 2: // use datatoken
+		taskId, err := hexutil.DecodeBig(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID))
+		if nil != err {
+			log.WithError(err).Errorf("cannot decode taskId to big.Int on initConsumeSpecByConsumeOption()")
+			return
+		}
+		// store consumeSpec into needExecuteTask
+		consumeSpec := &types.DatatokenPaySpec{
+			Consumed: int32(-1),
+			GasEstimated: 0,
+			GasUsed: 0,
+		}
+
+		b, err := json.Marshal(consumeSpec)
+		if nil != err {
+			log.WithError(err).Errorf("json marshal task consumeSpec failed on initConsumeSpecByConsumeOption()")
+		}
+		task.SetConsumeQueryId(taskId.String())
+		task.SetConsumeSpec(string(b))
+	default: // use nothing
+		// pass
+	}
 }
 
 func (m *Manager) addNeedExecuteTaskCache(task *types.NeedExecuteTask, when int64) {
@@ -1456,6 +1496,9 @@ func (m *Manager) handleNeedExecuteTask(task *types.NeedExecuteTask, localTask *
 		}
 	}
 
+
+	// init consumeSpec of NeedExecuteTask first
+	m.initConsumeSpecByConsumeOption(task)
 	// store local cache
 	m.addNeedExecuteTaskCache(task, int64(localTask.GetTaskData().GetStartAt()+localTask.GetTaskData().GetOperationCost().GetDuration()))
 

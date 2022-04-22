@@ -143,6 +143,10 @@ func (m *Manager) recoveryNeedExecuteTask() {
 				res.GetResources(),
 				taskErr,
 			)
+			// TODO 需要添加根据 consumeSpec 中的一些状态， 决定是否在重新启动时，是否继续做的某些事 ...
+			task.SetConsumeQueryId(res.GetConsumeQueryId())
+			task.SetConsumeSpec(res.GetConsumeSpec())
+
 			cache[partyId] = task
 			m.runningTaskCache[taskId] = cache
 

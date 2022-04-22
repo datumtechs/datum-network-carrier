@@ -201,7 +201,7 @@ type TaskCarrierDB interface {
 	StoreNeedExecuteTask(task *types.NeedExecuteTask) error
 	RemoveNeedExecuteTaskByPartyId(taskId, partyId string) error
 	RemoveNeedExecuteTask(taskId string) error
-	ForEachNeedExecuteTaskWwithPrefix(prifix []byte, f func(key, value []byte) error) error
+	ForEachNeedExecuteTaskWithPrefix(prifix []byte, f func(key, value []byte) error) error
 	ForEachNeedExecuteTask(f func(key, value []byte) error) error
 	// v 2.0 about taskbullet
 	StoreTaskBullet(bullet *types.TaskBullet) error

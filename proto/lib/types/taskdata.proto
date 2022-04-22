@@ -6,7 +6,7 @@ import "lib/types/base.proto";
 import "lib/types/resourcedata.proto";
 
 
-option go_package = "github.com/RosettaFlow/Carrier-Go/lib/types";
+option go_package = "github.com/Metisnetwork/Metis-Carrier/lib/types";
 
 message TaskPB {
   string                                      task_id = 1;                                // 任务Id

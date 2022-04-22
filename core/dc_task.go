@@ -522,7 +522,7 @@ func (dc *DataCenter) RemoveNeedExecuteTask(taskId string) error {
 	return rawdb.RemoveNeedExecuteTask(dc.db, taskId)
 }
 
-func (dc *DataCenter) ForEachNeedExecuteTaskWwithPrefix(prifix []byte, f func(key, value []byte) error) error {
+func (dc *DataCenter) ForEachNeedExecuteTaskWithPrefix(prifix []byte, f func(key, value []byte) error) error {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.ForEachNeedExecuteTaskWwithPrefix(dc.db, prifix, f)

@@ -5,7 +5,7 @@ package types;
 import "lib/types/base.proto";
 
 
-option go_package = "github.com/RosettaFlow/Carrier-Go/lib/types";
+option go_package = "github.com/Metisnetwork/Metis-Carrier/lib/types";
 
 // todo 定义 metadata_type 枚举
 // todo 是否支持 algo_metadata ?  待定

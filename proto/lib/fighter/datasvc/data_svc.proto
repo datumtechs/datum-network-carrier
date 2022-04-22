@@ -1,6 +1,6 @@
 syntax = "proto3";
 package datasvc;
-option go_package = "github.com/RosettaFlow/Carrier-Go/lib/fighter/datasvc";
+option go_package = "github.com/Metisnetwork/Metis-Carrier/lib/fighter/datasvc";
 
 import "google/protobuf/empty.proto";
 import "google/api/annotations.proto";

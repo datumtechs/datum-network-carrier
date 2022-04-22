@@ -650,8 +650,10 @@ func StoreNeedExecuteTask(db KeyValueStore, task *types.NeedExecuteTask) error {
 			Port:    task.GetLocalResource().GetPort(),
 			PartyId: task.GetLocalResource().GetPartyId(),
 		},
-		Resources: task.GetResources(),
-		ErrStr:    errStr,
+		Resources:      task.GetResources(),
+		ErrStr:         errStr,
+		ConsumeQueryId: task.GetConsumeQueryId(),
+		ConsumeSpec:    task.GetConsumeSpec(),
 	})
 	if nil != err {
 		return fmt.Errorf("marshal needExecuteTask failed, %s", err)

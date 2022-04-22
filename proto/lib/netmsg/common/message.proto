@@ -4,7 +4,7 @@ package common;
 
 import "repos/protobuf/gogoproto/gogo.proto";
 
-option go_package = "github.com/RosettaFlow/Carrier-Go/lib/netmsg/common";
+option go_package = "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/common";
 
 // 消息选项
 message MsgOption {

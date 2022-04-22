@@ -1,6 +1,6 @@
 syntax = "proto3";
 package common;
-option go_package = "github.com/RosettaFlow/Carrier-Go/lib/fighter/common";
+option go_package = "github.com/Metisnetwork/Metis-Carrier/lib/fighter/common";
 
 message Party {                // 各参与方信息
     string ip = 1;

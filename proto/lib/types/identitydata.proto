@@ -5,7 +5,7 @@ package types;
 import "lib/types/base.proto";
 //import "repos/protobuf/gogoproto/gogo.proto";
 
-option go_package = "github.com/RosettaFlow/Carrier-Go/lib/types";
+option go_package = "github.com/Metisnetwork/Metis-Carrier/lib/types";
 
 // IdentityData represents the stored data structure.
 message IdentityPB {
