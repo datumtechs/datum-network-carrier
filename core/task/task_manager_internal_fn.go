@@ -14,6 +14,7 @@ import (
 	"github.com/Metisnetwork/Metis-Carrier/core/resource"
 	"github.com/Metisnetwork/Metis-Carrier/core/schedule"
 	ethereumcommon "github.com/ethereum/go-ethereum/common"
+	"math/big"
 
 	libapipb "github.com/Metisnetwork/Metis-Carrier/lib/api"
 	fightercommon "github.com/Metisnetwork/Metis-Carrier/lib/fighter/common"
@@ -127,19 +128,18 @@ func (m *Manager) sendNeedExecuteTaskByAction(task *types.NeedExecuteTask) {
 	}(task)
 }
 
-func (m *Manager) preConsumeMetadataOrPower(task *types.NeedExecuteTask, localTask *types.Task) error {
+func (m *Manager) BeginConsumeMetadataOrPower(task *types.NeedExecuteTask, localTask *types.Task) error {
 
 	switch m.config.MetadataConsumeOption {
 	case 1: // use metadataAuth
-		return m.preConsumeByMetadataAuth(task, localTask)
+		return m.beginConsumeByMetadataAuth(task, localTask)
 	case 2: // use datatoken
-		return m.preConsumeByDataToken(task, localTask)
+		return m.beginConsumeByDataToken(task, localTask)
 	default: // use nothing
 		return nil
 	}
 }
-
-func (m *Manager) preConsumeByMetadataAuth (task *types.NeedExecuteTask, localTask *types.Task) error {
+func (m *Manager) beginConsumeByMetadataAuth(task *types.NeedExecuteTask, localTask *types.Task) error {
 
 	partyId := task.GetLocalTaskOrganization().GetPartyId()
 
@@ -155,18 +155,18 @@ func (m *Manager) preConsumeByMetadataAuth (task *types.NeedExecuteTask, localTa
 
 				metadataId, err := policy.FetchMetedataIdByPartyId(partyId, localTask.GetTaskData().GetDataPolicyType(), localTask.GetTaskData().GetDataPolicyOption())
 				if nil != err {
-					return fmt.Errorf("not fetch metadataId from task dataPolicy when call preConsumeByMetadataAuth(), %s, taskId: {%s}, partyId: {%s}",
+					return fmt.Errorf("not fetch metadataId from task dataPolicy when call beginConsumeByMetadataAuth(), %s, taskId: {%s}, partyId: {%s}",
 						err, localTask.GetTaskId(), partyId)
 				}
 				// verify metadataAuth first
 				if err := m.authMng.VerifyMetadataAuth(userType, user, metadataId); nil != err {
-					return fmt.Errorf("verify user metadataAuth failed when call preConsumeByMetadataAuth(), %s, userType: {%s}, user: {%s}, taskId: {%s}, partyId: {%s}, metadataId: {%s}",
+					return fmt.Errorf("verify user metadataAuth failed when call beginConsumeByMetadataAuth(), %s, userType: {%s}, user: {%s}, taskId: {%s}, partyId: {%s}, metadataId: {%s}",
 						err, userType, user, localTask.GetTaskId(), partyId, metadataId)
 				}
 
 				internalMetadataFlag, err := m.resourceMng.GetDB().IsInternalMetadataById(metadataId)
 				if nil != err {
-					return fmt.Errorf("check metadata whether internal metadata failed %s when call preConsumeByMetadataAuth(), taskId: {%s}, partyId: {%s}, metadataId: {%s}",
+					return fmt.Errorf("check metadata whether internal metadata failed %s when call beginConsumeByMetadataAuth(), taskId: {%s}, partyId: {%s}, metadataId: {%s}",
 						err, localTask.GetTaskId(), partyId, metadataId)
 				}
 
@@ -175,26 +175,29 @@ func (m *Manager) preConsumeByMetadataAuth (task *types.NeedExecuteTask, localTa
 					// query metadataAuthId by metadataId
 					metadataAuthId, err := m.authMng.QueryMetadataAuthIdByMetadataId(userType, user, metadataId)
 					if nil != err {
-						return fmt.Errorf("query metadataAuthId failed %s when call preConsumeByMetadataAuth(), metadataId: {%s}", err, metadataId)
+						return fmt.Errorf("query metadataAuthId failed %s when call beginConsumeByMetadataAuth(), metadataId: {%s}", err, metadataId)
 					}
 					// ConsumeMetadataAuthority
 					if err = m.authMng.ConsumeMetadataAuthority(metadataAuthId); nil != err {
-						return fmt.Errorf("consume metadataAuth failed %s when call preConsumeByMetadataAuth(), metadataAuthId: {%s}", err, metadataAuthId)
+						return fmt.Errorf("consume metadataAuth failed %s when call beginConsumeByMetadataAuth(), metadataAuthId: {%s}", err, metadataAuthId)
 					} else {
-						log.Debugf("Succeed consume metadataAuth when call preConsumeByMetadataAuth(), taskId: {%s}, metadataAuthId: {%s}", task.GetTaskId(), metadataAuthId)
+						log.Debugf("Succeed consume metadataAuth when call beginConsumeByMetadataAuth(), taskId: {%s}, metadataAuthId: {%s}", task.GetTaskId(), metadataAuthId)
 					}
 				}
 				break
 			}
 		}
 		return nil
+	case libtypes.TaskRole_TaskRole_PowerSupplier:
+		return nil // do nothing ...
+	case libtypes.TaskRole_TaskRole_Receiver:
+		return nil // do nothing ...
 	default:
-		return fmt.Errorf("unknown task role on preConsumeByMetadataAuth()")
+		return fmt.Errorf("unknown task role on beginConsumeByMetadataAuth()")
 
 	}
 }
-
-func (m *Manager) preConsumeByDataToken (task *types.NeedExecuteTask, localTask *types.Task) error {
+func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask *types.Task) error {
 
 	partyId := task.GetLocalTaskOrganization().GetPartyId()
 
@@ -202,12 +205,12 @@ func (m *Manager) preConsumeByDataToken (task *types.NeedExecuteTask, localTask 
 	case libtypes.TaskRole_TaskRole_Sender:
 
 		if partyId != localTask.GetTaskSender().GetPartyId() {
-			return fmt.Errorf("this partyId is not task sender on preConsumeByDataToken()")
+			return fmt.Errorf("this partyId is not task sender on beginConsumeByDataToken()")
 		}
 
 		taskId, err := hexutil.DecodeBig(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID))
 		if nil != err {
-			return fmt.Errorf("cannot decode taskId to big.Int on preConsumeByDataToken(), %s", err)
+			return fmt.Errorf("cannot decode taskId to big.Int on beginConsumeByDataToken(), %s", err)
 		}
 
 		// verify user
@@ -220,11 +223,11 @@ func (m *Manager) preConsumeByDataToken (task *types.NeedExecuteTask, localTask 
 		// fetch all datatoken contract adresses of metadata of task
 		metadataIds, err := policy.FetchAllMetedataIds(localTask.GetTaskData().GetDataPolicyType(), localTask.GetTaskData().GetDataPolicyOption())
 		if nil != err {
-			return fmt.Errorf("cannot fetch all metadataIds of dataPolicyOption on preConsumeByDataToken(), %s", err)
+			return fmt.Errorf("cannot fetch all metadataIds of dataPolicyOption on beginConsumeByDataToken(), %s", err)
 		}
 		metadataList, err := m.resourceMng.GetDB().QueryMetadataByIds(metadataIds)
 		if nil != err {
-			return fmt.Errorf("call QueryMetadataByIds() failed on preConsumeByDataToken(), %s", err)
+			return fmt.Errorf("call QueryMetadataByIds() failed on beginConsumeByDataToken(), %s", err)
 		}
 		dataTokenAaddresses := make([]ethereumcommon.Address, len(metadataList))
 		for i, metadata := range metadataList {
@@ -234,10 +237,10 @@ func (m *Manager) preConsumeByDataToken (task *types.NeedExecuteTask, localTask 
 		// start prepay dataToken
 		txHash, _, err := m.metisPayMng.Prepay(taskId, ethereumcommon.HexToAddress(localTask.GetTaskData().GetUser()), dataTokenAaddresses)
 		if nil != err {
-			return fmt.Errorf("call metisPay to prepay datatoken failed on preConsumeByDataToken(), %s", err)
+			return fmt.Errorf("call metisPay to prepay datatoken failed on beginConsumeByDataToken(), %s", err)
 		}
-		// make sure the tx into blockchain
 
+		// make sure the `prepay` tx into blockchain
 		timeout := time.Duration(localTask.GetTaskData().GetOperationCost().GetDuration()) * time.Millisecond
 		ctx, cancelFn := context.WithTimeout(context.Background(), timeout)
 		//ctx, cancelFn := context.WithCancel(context.Background())
@@ -251,31 +254,165 @@ func (m *Manager) preConsumeByDataToken (task *types.NeedExecuteTask, localTask 
 		//	}
 		//
 		//}(in.evm.Ctx)
-		/*receipt :=*/ m.metisPayMng.GetReceipt(ctx, txHash, time.Duration(1)*time.Second)
+		receipt := m.metisPayMng.GetReceipt(ctx, txHash, time.Duration(500)*time.Millisecond) // period 500 ms
+		if nil == receipt {
+			return fmt.Errorf("prepay dataToken failed, the transaction had not receipt on beginConsumeByDataToken(), txHash: {%s}", txHash.String())
+		}
 
 		return nil
 	case libtypes.TaskRole_TaskRole_DataSupplier:
+
+		taskId, err := hexutil.DecodeBig(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID))
+		if nil != err {
+			return fmt.Errorf("cannot decode taskId to big.Int on beginConsumeByDataToken(), %s", err)
+		}
+
+		// make sure the `prepay` tx of task sender into blockchain
+		timeout := time.Duration(localTask.GetTaskData().GetOperationCost().GetDuration()) * time.Millisecond
+		ctx, cancelFn := context.WithTimeout(context.Background(), timeout)
+		//ctx, cancelFn := context.WithCancel(context.Background())
+		defer cancelFn()
+
+		queryTaskState := func (ctx context.Context, taskId *big.Int, period time.Duration) (int, error) {
+			ticker := time.NewTicker(period)
+
+			for {
+				select {
+				case <- ctx.Done():
+					return 0, fmt.Errorf("query task state of metisPay time out")
+				case <-ticker.C:
+					state, err := m.metisPayMng.GetTaskState(taskId)
+					if nil != err {
+						//including NotFound
+						return 0, fmt.Errorf("query task state of metisPay failed, %s", err)
+					}
+					// -1 : task is not existing in PayMetis.
+					// 1 : task has prepaid
+					if state == -1 { //  We need to know if the task status value is 1.
+						continue
+					}
+
+					return state, nil
+				}
+			}
+		}
+
+		state, err := queryTaskState(ctx, taskId, time.Duration(500)*time.Millisecond) // period 500 ms
+		if nil != err {
+			return err
+		}
+		if state != 1 {
+			return fmt.Errorf("check task prepay state failed, task state is not in `prepay` on beginConsumeByDataToken()")
+		}
+
 		return nil
+	case libtypes.TaskRole_TaskRole_PowerSupplier:
+		return nil // do nothing ...
+	case libtypes.TaskRole_TaskRole_Receiver:
+		return nil // do nothing ...
 	default:
-		return fmt.Errorf("unknown task role on preConsumeByDataToken()")
+		return fmt.Errorf("unknown task role on beginConsumeByDataToken()")
 	}
 }
 
-// To execute task
-func (m *Manager) driveTaskForExecute(task *types.NeedExecuteTask) error {
-
-	// 1、 query local task info by taskId
-	localTask, err := m.resourceMng.GetDB().QueryLocalTask(task.GetTaskId())
-	if nil != err {
-		return fmt.Errorf("query local task info failed")
+func (m *Manager) EndConsumeMetadataOrPower(task *types.NeedExecuteTask, localTask *types.Task) error {
+	switch m.config.MetadataConsumeOption {
+	case 1: // use metadataAuth
+		return m.endConsumeByMetadataAuth(task, localTask)
+	case 2: // use datatoken
+		return m.endConsumeByDataToken(task, localTask)
+	default: // use nothing
+		return nil
 	}
+}
+func (m *Manager) endConsumeByMetadataAuth(task *types.NeedExecuteTask, localTask *types.Task) error {
+	return nil // do nothing.
+}
+func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *types.Task) error {
 
-	// 2、 consume the resource of task
-	if err := m.preConsumeMetadataOrPower(task, localTask); nil != err {
+	partyId := task.GetLocalTaskOrganization().GetPartyId()
+
+	switch task.GetLocalTaskRole() {
+	case libtypes.TaskRole_TaskRole_Sender:
+
+		// TODO 写到这了 ...
+		if partyId != localTask.GetTaskSender().GetPartyId() {
+			return fmt.Errorf("this partyId is not task sender on beginConsumeByDataToken()")
+		}
+
+		taskId, err := hexutil.DecodeBig(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID))
+		if nil != err {
+			return fmt.Errorf("cannot decode taskId to big.Int on beginConsumeByDataToken(), %s", err)
+		}
+
+		// verify user
+		/**
+		  User_1 = 1;    // PlatON
+		  User_2 = 2;    // Alaya
+		  User_3 = 3;    // Ethereum
+		*/
+
+		// fetch all datatoken contract adresses of metadata of task
+		metadataIds, err := policy.FetchAllMetedataIds(localTask.GetTaskData().GetDataPolicyType(), localTask.GetTaskData().GetDataPolicyOption())
+		if nil != err {
+			return fmt.Errorf("cannot fetch all metadataIds of dataPolicyOption on beginConsumeByDataToken(), %s", err)
+		}
+		metadataList, err := m.resourceMng.GetDB().QueryMetadataByIds(metadataIds)
+		if nil != err {
+			return fmt.Errorf("call QueryMetadataByIds() failed on beginConsumeByDataToken(), %s", err)
+		}
+		dataTokenAaddresses := make([]ethereumcommon.Address, len(metadataList))
+		for i, metadata := range metadataList {
+			dataTokenAaddresses[i] = ethereumcommon.HexToAddress(metadata.GetData().GetTokenAddress())
+		}
+
+		// start prepay dataToken
+		txHash, _, err := m.metisPayMng.Prepay(taskId, ethereumcommon.HexToAddress(localTask.GetTaskData().GetUser()), dataTokenAaddresses)
+		if nil != err {
+			return fmt.Errorf("call metisPay to prepay datatoken failed on beginConsumeByDataToken(), %s", err)
+		}
+
+		// make sure the `prepay` tx into blockchain
+		timeout := time.Duration(localTask.GetTaskData().GetOperationCost().GetDuration()) * time.Millisecond
+		ctx, cancelFn := context.WithTimeout(context.Background(), timeout)
+		//ctx, cancelFn := context.WithCancel(context.Background())
+		defer cancelFn()
+
+		//go func(ctx context.Context) {
+		//	<-ctx.Done()
+		//	if err := ctx.Err(); err != nil && context.DeadlineExceeded == err {
+		//		// shutdown vm, change th vm.abort mark
+		//		in.evm.Cancel()
+		//	}
+		//
+		//}(in.evm.Ctx)
+		receipt := m.metisPayMng.GetReceipt(ctx, txHash, time.Duration(500)*time.Millisecond) // period 500 ms
+		if nil == receipt {
+			return fmt.Errorf("prepay dataToken failed, the transaction had not receipt on beginConsumeByDataToken(), txHash: {%s}", txHash.String())
+		}
+
+		return nil
+	case libtypes.TaskRole_TaskRole_DataSupplier:
+		return nil // do nothing ...
+	case libtypes.TaskRole_TaskRole_PowerSupplier:
+		return nil // do nothing ...
+	case libtypes.TaskRole_TaskRole_Receiver:
+		return nil // do nothing ...
+	default:
+		return fmt.Errorf("unknown task role on beginConsumeByDataToken()")
+	}
+}
+
+
+// To execute task
+func (m *Manager) driveTaskForExecute(task *types.NeedExecuteTask, localTask *types.Task) error {
+
+	// 1、 consume the resource of task
+	if err := m.BeginConsumeMetadataOrPower(task, localTask); nil != err {
 		return err
 	}
 
-	// 3、 let's task execute
+	// 2、 let's task execute
 	switch task.GetLocalTaskRole() {
 	case libtypes.TaskRole_TaskRole_DataSupplier, libtypes.TaskRole_TaskRole_Receiver:
 		return m.executeTaskOnDataNode(task, localTask)
@@ -582,13 +719,21 @@ func (m *Manager) publishFinishedTaskToDataCenter(task *types.NeedExecuteTask, l
 			taskState = libtypes.TaskState_TaskState_Succeed
 		}
 
+		// 1、settle metadata or power usage.
+		if err := m.EndConsumeMetadataOrPower(task, localTask); nil != err {
+			log.WithError(err).Errorf("Failed to settle consume metadata or power on publishFinishedTaskToDataCenter, taskId: {%s}, taskState: {%s}", task.GetTaskId(), taskState.String())
+		}
+
 		log.Debugf("Start publishFinishedTaskToDataCenter, taskId: {%s}, taskState: {%s}", task.GetTaskId(), taskState.String())
 
+		// 2、fill task by events AND push task to datacenter
 		finalTask := m.fillTaskEventAndFinishedState(localTask, eventList, taskState)
 		if err := m.resourceMng.GetDB().InsertTask(finalTask); nil != err {
 			log.WithError(err).Errorf("Failed to save task to datacenter on publishFinishedTaskToDataCenter, taskId: {%s}, partyId: {%s}",
 				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
 		}
+
+		// 3、clear up all cache of task
 		if err := m.RemoveExecuteTaskStateAfterExecuteTask("on taskManager.publishFinishedTaskToDataCenter()", task.GetTaskId(),
 			task.GetLocalTaskOrganization().GetPartyId(), resource.SetAllReleaseResourceOption(), true); nil != err {
 			log.WithError(err).Errorf("Failed to call RemoveExecuteTaskStateAfterExecuteTask() on publishFinishedTaskToDataCenter(), taskId: {%s},  partyId: {%s}, remote pid: {%s}",
@@ -607,8 +752,14 @@ func (m *Manager) publishFinishedTaskToDataCenter(task *types.NeedExecuteTask, l
 		handleFn()
 	}
 }
-func (m *Manager) sendTaskResultMsgToTaskSender(task *types.NeedExecuteTask) {
+func (m *Manager) sendTaskResultMsgToTaskSender(task *types.NeedExecuteTask, localTask *types.Task) {
 
+	// 1、settle metadata or power usage.
+	if err := m.EndConsumeMetadataOrPower(task, localTask); nil != err {
+		log.WithError(err).Errorf("Failed to settle consume metadata or power on sendTaskResultMsgToTaskSender, taskId: {%s}", task.GetTaskId())
+	}
+
+	// 2、push all events of task to task sender.
 	log.Debugf("Start sendTaskResultMsgToTaskSender, taskId: {%s}, partyId: {%s}, remote pid: {%s}",
 		task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID())
 
@@ -632,6 +783,8 @@ func (m *Manager) sendTaskResultMsgToTaskSender(task *types.NeedExecuteTask) {
 			}
 		}
 	}
+
+	// 3、clear up all cache of task
 	if err := m.RemoveExecuteTaskStateAfterExecuteTask("on sendTaskResultMsgToTaskSender()", task.GetTaskId(),
 		task.GetLocalTaskOrganization().GetPartyId(), option, false); nil != err {
 		log.WithError(err).Errorf("Failed to call RemoveExecuteTaskStateAfterExecuteTask() on sendTaskResultMsgToTaskSender(), taskId: {%s}, partyId: {%s}, remote pid: {%s}",
@@ -1121,7 +1274,7 @@ func (m *Manager) addmonitor(task *types.NeedExecuteTask, when int64) {
 			default:
 				// 2、terminate fighter processor for this task with current party
 				m.driveTaskForTerminate(task)
-				m.sendTaskResultMsgToTaskSender(task)
+				m.sendTaskResultMsgToTaskSender(task, localTask)
 			}
 
 			// clean current party task cache
@@ -1308,7 +1461,7 @@ func (m *Manager) handleNeedExecuteTask(task *types.NeedExecuteTask, localTask *
 
 	// The task sender will not execute the task
 	// driving task to executing
-	if err := m.driveTaskForExecute(task); nil != err {
+	if err := m.driveTaskForExecute(task, localTask); nil != err {
 		log.WithError(err).Errorf("Failed to execute task on internal node on handleNeedExecuteTask(), taskId: {%s}, role: {%s}, partyId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
 
@@ -1347,7 +1500,7 @@ func (m *Manager) executeTaskEvent(logkeyword string, symbol types.NetworkMsgLoc
 		//   send this task result to remote target peer,
 		//   but they belong to same organization, call local msg.
 		if symbol == types.LocalNetworkMsg {
-			m.sendTaskResultMsgToTaskSender(localNeedtask)
+			m.sendTaskResultMsgToTaskSender(localNeedtask, localTask)
 			m.removeNeedExecuteTaskCache(event.GetTaskId(), event.GetPartyId())
 		}
 

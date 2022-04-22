@@ -408,8 +408,8 @@ func (metisPay *MetisPayManager) GetReceipt(ctx context.Context, txHash common.H
 // GetTaskState returns the task payment state.
 // -1 : task is not existing in PayMetis.
 // 1 : task has prepaid
-func (metisPay *MetisPayManager) GetTaskState(taskID *big.Int) (int, error) {
-	if state, err := metisPay.contractMetisPayInstance.TaskState(&bind.CallOpts{}, taskID); err != nil {
+func (metisPay *MetisPayManager) GetTaskState(taskId *big.Int) (int, error) {
+	if state, err := metisPay.contractMetisPayInstance.TaskState(&bind.CallOpts{}, taskId); err != nil {
 		return -1, err
 	} else {
 		return int(state), nil

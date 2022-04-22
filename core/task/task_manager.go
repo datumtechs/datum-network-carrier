@@ -349,7 +349,7 @@ func (m *Manager) loop() {
 				case libtypes.TaskRole_TaskRole_Sender:
 					m.publishFinishedTaskToDataCenter(task, localTask, true)
 				default:
-					m.sendTaskResultMsgToTaskSender(task)
+					m.sendTaskResultMsgToTaskSender(task, localTask)
 				}
 			}
 
