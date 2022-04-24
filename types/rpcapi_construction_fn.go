@@ -92,6 +92,24 @@ func NewResourceArrayFromPowerTotalSummaryListResponse(response *api.ListPowerSu
 	resourceArray := make(ResourceArray, 0, len(response.GetPowers()))
 	for _, v := range response.GetPowers() {
 		resource := NewResource(&libtypes.ResourcePB{
+			/**
+			Owner                *Organization
+			DataId               string
+			DataStatus           DataStatus
+			State                PowerState
+			TotalMem             uint64
+			UsedMem              uint64
+			TotalProcessor       uint32
+			UsedProcessor        uint32
+			TotalBandwidth       uint64
+			UsedBandwidth        uint64
+			TotalDisk            uint64
+			UsedDisk             uint64
+			PublishAt            uint64
+			UpdateAt             uint64
+			Nonce                uint64:wq
+:
+			*/
 			Owner: v.GetOwner(),
 			DataId:         "", // todo: to be determined
 			DataStatus:     libtypes.DataStatus_DataStatus_Valid,
