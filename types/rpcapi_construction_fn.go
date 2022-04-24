@@ -78,7 +78,6 @@ func NewSaveTaskRequest(task *Task) *api.SaveTaskRequest {
 	return request
 }
 
-
 func NewMetadataArrayFromDetailListResponse(response *api.ListMetadataResponse) MetadataArray {
 	var metadataArray MetadataArray
 	for _, v := range response.GetMetadata() {
@@ -107,10 +106,9 @@ func NewResourceArrayFromPowerTotalSummaryListResponse(response *api.ListPowerSu
 			UsedDisk             uint64
 			PublishAt            uint64
 			UpdateAt             uint64
-			Nonce                uint64:wq
-:
+			Nonce                uint64
 			*/
-			Owner: v.GetOwner(),
+			Owner:          v.GetOwner(),
 			DataId:         "", // todo: to be determined
 			DataStatus:     libtypes.DataStatus_DataStatus_Valid,
 			State:          v.GetPowerSummary().GetState(),
@@ -122,13 +120,12 @@ func NewResourceArrayFromPowerTotalSummaryListResponse(response *api.ListPowerSu
 			UsedProcessor:  v.GetPowerSummary().GetInformation().GetUsedProcessor(),
 			UsedBandwidth:  v.GetPowerSummary().GetInformation().GetUsedBandwidth(),
 			UsedDisk:       v.GetPowerSummary().GetInformation().GetUsedDisk(),
-			// todo Summary is aggregate information and does not require paging, so there are no `publishat` and `updateat`
+			// todo Summary is aggregate information and does not require paging, so there are no `publishat` and `updateat` and `nonce`
 		})
 		resourceArray = append(resourceArray, resource)
 	}
 	return resourceArray
 }
-
 
 func NewResourceArrayFromPowerDetailListResponse(response *api.ListPowerResponse) ResourceArray {
 	resourceArray := make(ResourceArray, 0, len(response.GetPowers()))
@@ -139,12 +136,29 @@ func NewResourceArrayFromPowerDetailListResponse(response *api.ListPowerResponse
 	return resourceArray
 }
 
-
-func NewResourceFromResponse(response *api.PowerSummaryResponse) ResourceArray {
+func NewResourceFromPowerSummaryResponse(response *api.PowerSummaryResponse) ResourceArray {
 	resourceArray := make(ResourceArray, 0)
 	resource := NewResource(&libtypes.ResourcePB{
-		Owner: response.GetOwner(),
-		DataId:         "", // todo: to be determined
+		/**
+		// todo summary 不需要加上 nonce 字段
+		Owner                *Organization
+		DataId               string
+		DataStatus           DataStatus
+		State                PowerState
+		TotalMem             uint64
+		UsedMem              uint64
+		TotalProcessor       uint32
+		UsedProcessor        uint32
+		TotalBandwidth       uint64
+		UsedBandwidth        uint64
+		TotalDisk            uint64
+		UsedDisk             uint64
+		PublishAt            uint64
+		UpdateAt             uint64
+		Nonce                uint64
+		*/
+		Owner:          response.GetOwner(),
+		DataId:         "",
 		DataStatus:     libtypes.DataStatus_DataStatus_Valid,
 		State:          response.GetPowerSummary().GetState(),
 		TotalMem:       response.GetPowerSummary().GetInformation().GetTotalMem(),
@@ -155,6 +169,9 @@ func NewResourceFromResponse(response *api.PowerSummaryResponse) ResourceArray {
 		UsedProcessor:  response.GetPowerSummary().GetInformation().GetUsedProcessor(),
 		UsedBandwidth:  response.GetPowerSummary().GetInformation().GetUsedBandwidth(),
 		UsedDisk:       response.GetPowerSummary().GetInformation().GetUsedDisk(),
+		//PublishAt:
+		//UpdateAt:
+		//Nonce:
 	})
 	resourceArray = append(resourceArray, resource)
 	return resourceArray
@@ -172,7 +189,7 @@ func NewMetadataFromResponse(response *api.FindMetadataByIdResponse) *Metadata {
 	if response == nil {
 		return nil
 	}
-	return NewMetadata(response.Metadata)
+	return NewMetadata(response.GetMetadata())
 }
 
 func NewIdentityArrayFromIdentityListResponse(response *api.ListIdentityResponse) IdentityArray {
@@ -182,16 +199,31 @@ func NewIdentityArrayFromIdentityListResponse(response *api.ListIdentityResponse
 	var result IdentityArray
 	for _, organization := range response.GetIdentities() {
 		result = append(result, NewIdentity(&libtypes.IdentityPB{
+
+			/**
+			IdentityId           string
+			NodeId               string
+			NodeName             string
+			DataId               string
+			DataStatus           DataStatus
+			Status               CommonStatus
+			Credential           string
+			UpdateAt             uint64
+			ImageUrl             string
+			Details              string
+			Nonce                uint64
+			*/
 			IdentityId: organization.GetIdentityId(),
 			NodeId:     organization.GetNodeId(),
 			NodeName:   organization.GetNodeName(),
+			DataId:     organization.GetIdentityId(),
+			DataStatus: organization.GetDataStatus(),
+			Status:     organization.GetStatus(),
+			Credential: organization.GetCredential(),
+			UpdateAt: organization.GetUpdateAt(),
 			ImageUrl:   organization.GetImageUrl(),
 			Details:    organization.GetDetails(),
-			DataId:     organization.GetIdentityId(),
-			DataStatus: organization.GetStatus(),
-			//Status:     organization.GetStatus(),
-			UpdateAt:   organization.GetUpdateAt(),
-			Credential: "",
+			Nonce:      organization.GetNonce(),
 		}))
 	}
 	return result

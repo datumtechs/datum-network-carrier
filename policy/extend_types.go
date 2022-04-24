@@ -59,6 +59,8 @@ func NewGlobalMetadataInfoFromMetadata(input *types.Metadata) *pb.GetGlobalMetad
 				UpdateAt:       input.GetData().GetUpdateAt(),
 				Nonce:          input.GetData().GetNonce(),
 				MetadataOption: input.GetData().GetMetadataOption(),
+				AllowExpose:    input.GetData().GetAllowExpose(),
+				TokenAddress:   input.GetData().GetTokenAddress(),
 			},
 		},
 	}
@@ -82,8 +84,10 @@ func NewLocalMetadataInfoFromMetadata(isInternal bool, input *types.Metadata) *p
 				UpdateAt:       input.GetData().GetUpdateAt(),
 				Nonce:          input.GetData().GetNonce(),
 				MetadataOption: input.GetData().GetMetadataOption(),
+				AllowExpose:    input.GetData().GetAllowExpose(),
+				TokenAddress:   input.GetData().GetTokenAddress(),
 			},
-			//TotalTaskCount: ,
+			TotalTaskCount: 0,
 		},
 		IsInternal: isInternal,
 	}

@@ -99,7 +99,7 @@ func (dc *DataCenter) GetResourceListByIdentityId(identityId string) (types.Reso
 	powerTotalSummaryResponse, err := dc.client.GetPowerSummaryByIdentityId(dc.ctx, &api.GetPowerSummaryByIdentityRequest{
 		IdentityId: identityId,
 	})
-	return types.NewResourceFromResponse(powerTotalSummaryResponse), err
+	return types.NewResourceFromPowerSummaryResponse(powerTotalSummaryResponse), err
 }
 
 func (dc *DataCenter) QueryGlobalResourceSummaryList() (types.ResourceArray, error) {

@@ -856,6 +856,7 @@ func (s *CarrierAPIBackend) GetGlobalPowerDetailList(lastUpdate uint64, pageSize
 				State:     resource.GetState(),
 				PublishAt: resource.GetPublishAt(),
 				UpdateAt:  resource.GetUpdateAt(),
+				Nonce:     resource.GetNonce(),
 			},
 		})
 	}
@@ -1008,7 +1009,7 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 				// local resource power need not they (publishAt and updateAt).
 				//PublishAt: ,
 				//UpdateAt: ,
-
+				Nonce: resource.GetNonce(),
 			},
 		}
 		nodePowerDetail.GetPower().Tasks = buildPowerTaskList(resource.GetJobNodeId())
@@ -1411,8 +1412,8 @@ func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, dataHas
 		DataId:       metadataId,
 		DataStatus:   libtypes.DataStatus_DataStatus_Valid,
 		MetadataName: fmt.Sprintf("task `%s` result file", taskId),
-		MetadataType: libtypes.MetadataType_MetadataType_ModuleFile,  // It means this is a module.
-		DataHash:     "", // todo fill it.
+		MetadataType: libtypes.MetadataType_MetadataType_ModuleFile, // It means this is a module.
+		DataHash:     "",                                            // todo fill it.
 		Desc:         fmt.Sprintf("the task `%s` result file after executed", taskId),
 		DataType:     libtypes.OrigindataType_OrigindataType_Unknown,
 		Industry:     "Unknown",

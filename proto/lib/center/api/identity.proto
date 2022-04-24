@@ -5,9 +5,9 @@ package api;
 option go_package = "github.com/Metisnetwork/Metis-Carrier/lib/center/api";
 
 import "lib/types/base.proto";
-//import "lib/types/identitydata.proto";
+import "lib/types/identitydata.proto";
 import "lib/types/metadata.proto";
-//import "google/protobuf/empty.proto";
+
 
 message SaveIdentityRequest {
   types.Organization member = 1;
@@ -26,7 +26,7 @@ message ListIdentityRequest {
 }
 
 message ListIdentityResponse {
-  repeated types.Organization identities = 1;
+  repeated types.IdentityPB identities = 1;
 }
 
 // 定义：元数据授权申请记录
@@ -49,7 +49,7 @@ message FindMetadataAuthorityRequest {
 }
 
 message FindMetadataAuthorityResponse {
-  types.MetadataAuthorityPB metadata_authority= 1;
+  types.MetadataAuthorityPB metadata_authority = 1;
 }
 
 // 身份信息服务

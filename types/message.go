@@ -261,7 +261,6 @@ func (msg *PowerRevokeMsg) Hash() common.Hash {
 	return v
 }
 
-
 type PowerMsgArr []*PowerMsg
 type PowerRevokeMsgArr []*PowerRevokeMsg
 
@@ -291,16 +290,16 @@ type MetadataMsg struct {
 func NewMetadataMessageFromRequest(req *pb.PublishMetadataRequest) *MetadataMsg {
 	metadataMsg := &MetadataMsg{
 		MetadataSummary: &libtypes.MetadataSummary{
-			MetadataId:     req.GetInformation().GetMetadataId(),
-			MetadataName:   req.GetInformation().GetMetadataName(),
-			MetadataType:   req.GetInformation().GetMetadataType(),
-			DataHash:       req.GetInformation().GetDataHash(),
-			Desc:           req.GetInformation().GetDesc(),
-			DataType:       req.GetInformation().GetDataType(),
-			Industry:       req.GetInformation().GetIndustry(),
-			State:          req.GetInformation().GetState(),
-			PublishAt:      req.GetInformation().GetPublishAt(),
-			UpdateAt:       req.GetInformation().GetUpdateAt(),
+			MetadataId:   req.GetInformation().GetMetadataId(),
+			MetadataName: req.GetInformation().GetMetadataName(),
+			MetadataType: req.GetInformation().GetMetadataType(),
+			DataHash:     req.GetInformation().GetDataHash(),
+			Desc:         req.GetInformation().GetDesc(),
+			DataType:     req.GetInformation().GetDataType(),
+			Industry:     req.GetInformation().GetIndustry(),
+			State:        req.GetInformation().GetState(),
+			PublishAt:    req.GetInformation().GetPublishAt(),
+			UpdateAt:     req.GetInformation().GetUpdateAt(),
 			//Nonce:          req.GetInformation().GetNonce(),
 			MetadataOption: req.GetInformation().GetMetadataOption(),
 			AllowExpose:    req.GetInformation().GetAllowExpose(),
@@ -316,21 +315,23 @@ func NewMetadataMessageFromRequest(req *pb.PublishMetadataRequest) *MetadataMsg 
 func (msg *MetadataMsg) ToDataCenter(identity *libtypes.Organization) *Metadata {
 	return NewMetadata(&libtypes.MetadataPB{
 
-		MetadataId:   msg.GetMetadataId(),
-		Owner:        identity,
-		DataId:       msg.GetMetadataId(),
-		DataStatus:   libtypes.DataStatus_DataStatus_Valid,
-		MetadataName: msg.GetMetadataName(),
-		MetadataType: msg.GetMetadataType(),
-		DataHash:     msg.GetDataHash(),
-		Desc:         msg.GetDesc(),
-		DataType:     msg.GetDataType(),
-		Industry:     msg.GetIndustry(),
+		MetadataId:     msg.GetMetadataId(),
+		Owner:          identity,
+		DataId:         msg.GetMetadataId(),
+		DataStatus:     libtypes.DataStatus_DataStatus_Valid,
+		MetadataName:   msg.GetMetadataName(),
+		MetadataType:   msg.GetMetadataType(),
+		DataHash:       msg.GetDataHash(),
+		Desc:           msg.GetDesc(),
+		DataType:       msg.GetDataType(),
+		Industry:       msg.GetIndustry(),
 		State:          libtypes.MetadataState_MetadataState_Released, // metaData status, eg: create/release/revoke
 		PublishAt:      timeutils.UnixMsecUint64(),
 		UpdateAt:       timeutils.UnixMsecUint64(),
 		Nonce:          msg.GetNonce(),
 		MetadataOption: msg.GetMetadataOption(),
+		AllowExpose:    msg.GetAllowExpose(),
+		TokenAddress:   msg.GetTokenAddress(),
 	})
 }
 func (msg *MetadataMsg) Marshal() ([]byte, error) { return nil, nil }
@@ -366,6 +367,7 @@ func (msg *MetadataMsg) GetState() libtypes.MetadataState {
 func (msg *MetadataMsg) GetIndustry() string       { return msg.GetMetadataSummary().Industry }
 func (msg *MetadataMsg) GetMetadataOption() string { return msg.GetMetadataSummary().MetadataOption }
 func (msg *MetadataMsg) GetAllowExpose() bool      { return msg.GetMetadataSummary().AllowExpose }
+func (msg *MetadataMsg) GetTokenAddress() string   { return msg.GetMetadataSummary().TokenAddress }
 func (msg *MetadataMsg) GetCreateAt() uint64       { return msg.CreateAt }
 func (msg *MetadataMsg) GetMetadataId() string     { return msg.GetMetadataSummary().MetadataId }
 
@@ -484,7 +486,6 @@ func (msg *MetadataRevokeMsg) Hash() common.Hash {
 	return v
 }
 
-
 type MetadataMsgArr []*MetadataMsg
 type MetadataRevokeMsgArr []*MetadataRevokeMsg
 
@@ -516,17 +517,13 @@ type MetadataAuthorityMsg struct {
 }
 
 func NewMetadataAuthorityMessageFromRequest(req *pb.ApplyMetadataAuthorityRequest) *MetadataAuthorityMsg {
-	metadataAuthorityMsg := &MetadataAuthorityMsg{
+	return &MetadataAuthorityMsg{
 		User:     req.GetUser(),
 		UserType: req.GetUserType(),
 		Auth:     req.GetAuth(),
 		Sign:     req.GetSign(),
 		CreateAt: timeutils.UnixMsecUint64(),
 	}
-
-	metadataAuthorityMsg.GenMetadataAuthId()
-
-	return metadataAuthorityMsg
 }
 
 func (msg *MetadataAuthorityMsg) GetMetadataAuthId() string                      { return msg.MetadataAuthId }
@@ -585,7 +582,7 @@ func (msg *MetadataAuthorityMsg) Hash() common.Hash {
 	StartAt     `
 	EndAt          `
 	Times
-	 */
+	*/
 	var buf bytes.Buffer
 
 	buf.Write([]byte(msg.GetMetadataAuthorityMetadataId()))
@@ -694,7 +691,6 @@ func (msg *MetadataAuthorityRevokeMsg) Hash() common.Hash {
 	msg.hash.Store(v)
 	return v
 }
-
 
 type MetadataAuthorityMsgArr []*MetadataAuthorityMsg
 type MetadataAuthorityRevokeMsgArr []*MetadataAuthorityRevokeMsg
@@ -994,7 +990,7 @@ func (msg *TaskTerminateMsg) Hash() common.Hash {
 	TaskId,
 	User,
 	UserType,
-	 */
+	*/
 
 	var buf bytes.Buffer
 
@@ -1053,7 +1049,6 @@ func (s TaskTerminateMsgArr) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
 func (s TaskTerminateMsgArr) Less(i, j int) bool {
 	return s[i].GetCreateAt() < s[j].GetCreateAt()
 }
-
 
 type TaskBullet struct {
 	TaskId      string
@@ -1137,8 +1132,6 @@ func (h *TaskBullets) DecreaseTermByCallbackFn(f func(b *TaskBullet)) {
 		f(b)
 	}
 }
-
-
 
 /**
 Example:

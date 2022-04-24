@@ -12,15 +12,17 @@ message Organization  {
   string node_id = 2;
   // the identity for org
   string identity_id = 3;
-  // the status for organization(1 means valid, 2 means invalid)
-  DataStatus status = 4;
+  // the status of data for local storage, 1 means valid, 2 means invalid
+  DataStatus data_status = 4;
+  // the status of data for datacenter, 1 means valid, 2 means invalid
+  CommonStatus status = 5;
   //v 3.0
   // the last_update time of corresponding datacenter (unit: UTC ms)
-  uint64 update_at = 5;
+  uint64 update_at = 6;
   // the link of face image (with a length limit)
-  string image_url = 6;
+  string image_url = 7;
   // description of the node (with a length limit)
-  string details = 7;
+  string details = 8;
 }
 
 // 任务下的组织信息

@@ -309,11 +309,14 @@ func (m *MessageHandler) loop() {
 func (m *MessageHandler) BroadcastIdentityMsg(msg *types.IdentityMsg) {
 
 	// add identity to local db
-	if err := m.resourceMng.GetDB().StoreIdentity(msg.GetOrganization()); nil != err {
+	identity := msg.GetOrganization()
+	identity.DataStatus = libtypes.DataStatus_DataStatus_Valid
+	identity.Status = libtypes.CommonStatus_CommonStatus_Valid
+	if err := m.resourceMng.GetDB().StoreIdentity(identity); nil != err {
 		log.WithError(err).Errorf("Failed to store local org identity on MessageHandler with broadcast identity, identityId: {%s}", msg.GetOwnerIdentityId())
 		return
 	}
-
+	// TODO 填充 nonce
 	// send identity to datacenter
 	if err := m.resourceMng.GetDB().InsertIdentity(msg.ToDataCenter()); nil != err {
 		log.WithError(err).Errorf("Failed to broadcast org org identity on MessageHandler with broadcast identity, identityId: {%s}, nodeId: {%s}, nodeName: {%s}",
@@ -444,13 +447,14 @@ func (m *MessageHandler) BroadcastPowerMsgArr(powerMsgArr types.PowerMsgArr) {
 			continue
 		}
 
+		// TODO 填充 nonce
 		// update local resource
 		if err := m.resourceMng.GetDB().StoreLocalResource(resource); nil != err {
 			log.WithError(err).Errorf("Failed to update local resource with powerId to local on MessageHandler with broadcast msg, powerId: {%s}, jobNodeId: {%s}",
 				msg.GetPowerId(), msg.GetJobNodeId())
 			continue
 		}
-
+		// TODO 填充 nonce
 		// publish to global
 		if err := m.resourceMng.GetDB().InsertResource(types.NewResource(&libtypes.ResourcePB{
 			Owner:  identity,
@@ -616,7 +620,7 @@ func (m *MessageHandler) BroadcastMetadataMsgArr(metadataMsgArr types.MetadataMs
 			}
 		}
 
-
+		// TODO 填充 nonce
 		// publish msg information
 		if err := m.resourceMng.GetDB().InsertMetadata(msg.ToDataCenter(identity)); nil != err {
 			log.WithError(err).Errorf("Failed to store msg to dataCenter on MessageHandler with broadcast msg, metadataId: {%s}",
@@ -763,7 +767,7 @@ func (m *MessageHandler) BroadcastMetadataAuthMsgArr(metadataAuthMsgArr types.Me
 				msg.GetUserType(), msg.GetUser(), msg.GetMetadataAuthority().GetMetadataId())
 			continue
 		}
-
+		// TODO 填充 nonce
 		// Store metadataAuthority
 		if err := m.authManager.ApplyMetadataAuthority(types.NewMetadataAuthority(&libtypes.MetadataAuthorityPB{
 			MetadataAuthId:  msg.GetMetadataAuthId(),
@@ -840,6 +844,7 @@ func (m *MessageHandler) BroadcastMetadataAuthRevokeMsgArr(metadataAuthRevokeMsg
 }
 
 func (m *MessageHandler) BroadcastTaskMsgArr(taskMsgArr types.TaskMsgArr) {
+	// TODO 填充 nonce
 	if err := m.taskManager.HandleTaskMsgs(taskMsgArr); nil != err {
 		log.WithError(err).Errorf("Failed to call `BroadcastTaskMsgArr` on MessageHandler")
 	}
