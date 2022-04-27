@@ -9,7 +9,7 @@ import (
 
 func FetchOriginId (fileType libtypes.OrigindataType, metadataOption string) (string, error) {
 	if fileType == libtypes.OrigindataType_OrigindataType_CSV {
-		var option *types.MetadataOptionRowAndColumn
+		var option *types.MetadataOptionCSV
 		if err := json.Unmarshal([]byte(metadataOption), &option); nil != err {
 			return "", fmt.Errorf("unmashal metadataOption failed, %s", err)
 		}
@@ -20,7 +20,7 @@ func FetchOriginId (fileType libtypes.OrigindataType, metadataOption string) (st
 
 func FetchFilePath (fileType libtypes.OrigindataType, metadataOption string) (string, error) {
 	if fileType == libtypes.OrigindataType_OrigindataType_CSV {
-		var option *types.MetadataOptionRowAndColumn
+		var option *types.MetadataOptionCSV
 		if err := json.Unmarshal([]byte(metadataOption), &option); nil != err {
 			return "", fmt.Errorf("unmashal metadataOption failed, %s", err)
 		}

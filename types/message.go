@@ -796,9 +796,13 @@ func (msg *TaskMsg) GetPowerSuppliers() []*libtypes.TaskOrganization {
 func (msg *TaskMsg) GetReceivers() []*libtypes.TaskOrganization {
 	return msg.Data.GetTaskData().GetReceivers()
 }
-func (msg *TaskMsg) GetDataPolicyTypes() []uint32   { return msg.Data.GetTaskData().GetDataPolicyTypes() }
-func (msg *TaskMsg) GetDataPolicyOptions() []string { return msg.Data.GetTaskData().GetDataPolicyOptions() }
-func (msg *TaskMsg) GetPowerPolicyTypes() []uint32  { return msg.Data.GetTaskData().GetPowerPolicyTypes() }
+func (msg *TaskMsg) GetDataPolicyTypes() []uint32 { return msg.Data.GetTaskData().GetDataPolicyTypes() }
+func (msg *TaskMsg) GetDataPolicyOptions() []string {
+	return msg.Data.GetTaskData().GetDataPolicyOptions()
+}
+func (msg *TaskMsg) GetPowerPolicyTypes() []uint32 {
+	return msg.Data.GetTaskData().GetPowerPolicyTypes()
+}
 func (msg *TaskMsg) GetPowerPolicyOptions() []string {
 	return msg.Data.GetTaskData().GetPowerPolicyOptions()
 }
@@ -1136,35 +1140,37 @@ func (h *TaskBullets) DecreaseTermByCallbackFn(f func(b *TaskBullet)) {
 /**
 Example:
 {
-  "party_id": "p0",
-  "data_party": {
-      "input_file": "../data/bank_predict_data.csv",
-       "key_column": "CLIENT_ID",
-       "selected_columns": ["col1", "col2"]
-    },
-  "dynamic_parameter": {
-    "model_restore_party": "p0",
-    "train_task_id": "task_id"
-  }
-}
-
-or:
-
-{
-  "party_id": "p0",
-  "data_party": {
-    "input_file": "../data/bank_train_data.csv",
-    "key_column": "CLIENT_ID",
-    "selected_columns": ["col1", "col2"]
+  "self_cfg_params": {
+      "party_id": "data1",    # 本方party_id
+      "input_data": [
+        {
+            "input_type": 1,     # 输入数据的类型. 0: unknown, 1: origin_data, 2: psi_output 3: model
+            "data_type": 1,      # 数据的格式. 0:unknown, 1:csv, 2:folder, 3:xls, 4:txt, 5:json, 6:mysql, 7:bin
+            "data_path": "path/to/data",  # 数据所在的本地路径
+            "key_column": "col1",  # ID列名
+            "selected_columns": ["col2", "col3"]  # 自变量(特征列名)
+        },
+        {
+            "input_type": 2,     # 输入数据的类型. 0: unknown, 1: origin_data, 2: psi_output 3: model
+            "data_type": 1,
+            "data_path": "path/to/data1/psi_result.csv",
+            "key_column": "",
+            "selected_columns": []
+        }
+      ]
   },
-  "dynamic_parameter": {
-    "label_owner": "p0",
-    "label_column_name": "Y",
-    "algorithm_parameter": {
-      "epochs": 10,
-      "batch_size": 256,
-      "learning_rate": 0.1
-    }
+  "algorithm_dynamic_params": {
+      "use_psi": true,           # 是否使用psi
+      "label_owner": "data1",       # 标签所在方的party_id
+      "label_column": "Y",       # 因变量(标签)
+      "hyperparams": {           # 逻辑回归的超参数
+          "epochs": 10,            # 训练轮次，大于0的整数
+          "batch_size": 256,       # 批量大小，大于0的整数
+          "learning_rate": 0.1,    # 学习率，，大于0的数
+          "use_validation_set": true,  # 是否使用验证集，true-用，false-不用
+          "validation_set_rate": 0.2,  # 验证集占输入数据集的比例，值域(0,1)
+          "predict_threshold": 0.5     # 验证集预测结果的分类阈值，值域[0,1]
+      }
   }
 }
 */
@@ -1176,4 +1182,59 @@ type FighterTaskReadyGoReqContractCfg struct {
 		SelectedColumns []string `json:"selected_columns"`
 	} `json:"data_party"`
 	DynamicParameter map[string]interface{} `json:"dynamic_parameter"`
+}
+
+type SelfCfgParams struct {
+	PartyId   string      `json:"party_id"`
+	InputData interface{} `json:"input_data""`
+}
+
+
+/**
+{
+    "input_type": 3,  # 输入数据的类型，(算法用标识数据使用方式). 0:unknown, 1:origin_data, 2:psi_output, 3:model
+    "access_type": 1, # 访问数据的方式，(fighter用决定是否预先加载数据). 0:unknown, 1:local, 2:url
+    "data_type": 0,   # 数据的格式，(算法用标识数据格式). 0:unknown, 1:csv, 2:dir, 3:binary, 4:xls, 5:xlsx, 6:txt, 7:json
+    "data_path": "/task_result/task:0xdeefff3434..556/"  # 数据所在的本地路径
+}
+*/
+type InputDataDIR struct {
+	InputType       uint32   `json:"input_type"`
+	AccessType      uint32   `json:"access_type"`  // 访问数据的方式，(fighter用决定是否预先加载数据). 0:unknown, 1:local <default>, 2:http, 3:https, 4:ftp
+	DataType        uint32   `json:"data_type"`
+	DataPath        string   `json:"data_path"`
+}
+
+/**
+{
+    "input_type": 3,  # 输入数据的类型，(算法用标识数据使用方式). 0:unknown, 1:origin_data, 2:psi_output, 3:model
+    "access_type": 1, # 访问数据的方式，(fighter用决定是否预先加载数据). 0:unknown, 1:local, 2:url
+    "data_type": 0,   # 数据的格式，(算法用标识数据格式). 0:unknown, 1:csv, 2:dir, 3:binary, 4:xls, 5:xlsx, 6:txt, 7:json
+    "data_path": "/task_result/task:0xdeefff3434..556/"  # 数据所在的本地路径
+}
+*/
+type InputDataBINARY struct {
+	InputType       uint32   `json:"input_type"`
+	AccessType      uint32   `json:"access_type"`  // 访问数据的方式，(fighter用决定是否预先加载数据). 0:unknown, 1:local <default>, 2:http, 3:https, 4:ftp
+	DataType        uint32   `json:"data_type"`
+	DataPath        string   `json:"data_path"`
+}
+
+/**
+{
+   "input_type": 1,  # 输入数据的类型，(算法用标识数据使用方式). 0:unknown, 1:origin_data, 2:psi_output, 3:model
+   "access_type": 1, # 访问数据的方式，(fighter用决定是否预先加载数据). 0:unknown, 1:local, 2:url
+   "data_type": 0,   # 数据的格式，(算法用标识数据格式). 0:unknown, 1:csv, 2:binary, 3:dir, 4:xls, 5:xlsx, 6:txt, 7:json
+   "data_path": "/metadata/20220427_预测银行数据.csv",  # 数据所在的本地路径
+   "key_column": "col1",  # ID列名
+   "selected_columns": ["col2", "col3"]  # 自变量(特征列名)
+}
+*/
+type InputDataCSV struct {
+	InputType       uint32   `json:"input_type"`
+	AccessType      uint32   `json:"access_type"`  // 访问数据的方式，(fighter用决定是否预先加载数据). 0:unknown, 1:local <default>, 2:http, 3:https, 4:ftp
+	DataType        uint32   `json:"data_type"`
+	DataPath        string   `json:"data_path"`
+	KeyColumn       string   `json:"key_column"`
+	SelectedColumns []string `json:"selected_columns"`
 }

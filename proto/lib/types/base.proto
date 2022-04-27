@@ -83,15 +83,15 @@ enum MetadataType {
 enum DataLocationType {
   DataLocationType_Unknown = 0;             // 未知
   DataLocationType_Local = 1;               // (存储在组织本地服务器上, 直接可以拿到该文件)
-  DataLocationType_Remote = 2;              // (存储在远端服务器上, 通过 url 等方式拿到该文件)
+  DataLocationType_URL = 2;                 // (存储在远端服务器上, 通过 url 等方式拿到该文件)
 }
 
 // 原始数据类型 (文件类型)
 enum OrigindataType {
   OrigindataType_Unknown = 0;             // 未知
   OrigindataType_CSV = 1;                 // csv
-  OrigindataType_BINARY = 2;              // binary  (普通的二进制数据, 没有明确说明后缀的二进制文件)
-  OrigindataType_DIR = 3;                 // dir     (目录)
+  OrigindataType_DIR = 2;                 // dir     (目录)
+  OrigindataType_BINARY = 3;              // binary  (普通的二进制数据, 没有明确说明后缀的二进制文件)
   OrigindataType_XLS = 4;                 // xls
   OrigindataType_XLSX = 5;                // xlsx
   OrigindataType_TXT = 6;                 // txt

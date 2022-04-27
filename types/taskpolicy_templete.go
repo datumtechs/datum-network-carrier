@@ -109,10 +109,44 @@ func (p *TaskMetadataPolicyCSV) QuerySelectedColumns() []uint32 {
 	return p.SelectedColumns
 }
 
+/**
+OrigindataType_DIR
+value: 2
+example:
+
+			{
+				"partyId": "p0",
+				"metadataId": "metadata:0x2843e8103c...6c537c7",
+				"metadataName": "bbb",
+				"inputType": 3 // 输入数据的类型，0:unknown, 1:origin_data, 2:psi_output, 3:model
+			}
+
+
+*/
+type TaskMetadataPolicyDIR struct {
+	PartyId      string `json:"partyId"`
+	MetadataId   string `json:"metadataId"`
+	MetadataName string `json:"metadataName"`
+	InputType    uint32 `json:"inputType"`
+}
+
+func (p *TaskMetadataPolicyDIR) GetPartyId() string {
+	return p.PartyId
+}
+func (p *TaskMetadataPolicyDIR) GetMetadataId() string {
+	return p.MetadataId
+}
+func (p *TaskMetadataPolicyDIR) GetMetadataName() string {
+	return p.MetadataName
+}
+func (p *TaskMetadataPolicyDIR) QueryInputType() uint32 {
+	return p.InputType
+}
+
 
 /**
 OrigindataType_BINARY
-value: 0
+value: 3
 example:
 
 			{

@@ -572,8 +572,8 @@ func (m *MessageHandler) BroadcastMetadataMsgArr(metadataMsgArr types.MetadataMs
 
 		m.resourceMng.GetDB().RemoveMetadataMsg(msg.GetMetadataId()) // remove from disk if msg been handle
 
-		if types.IsRowAndColumnData (msg.GetDataType()) {
-			var option *types.MetadataOptionRowAndColumn
+		if types.IsCSVdata(msg.GetDataType()) {
+			var option *types.MetadataOptionCSV
 			if err := json.Unmarshal([]byte(msg.GetMetadataOption()), &option); nil != err {
 				log.WithError(err).Errorf("Failed to unmashal metadataOption on MessageHandler with broadcast msg, metadataId: {%s}",
 					msg.GetMetadataId())
