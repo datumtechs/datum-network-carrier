@@ -151,30 +151,30 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 		log.Errorf("RPC-API:PublishTaskDeclare failed, check receivers failed, receivers is empty")
 		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require receivers"}, nil
 	}
-	if 0 == req.GetDataPolicyType() {
+	if len(req.GetDataPolicyTypes()) == 0 {
 		log.Errorf("RPC-API:PublishTaskDeclare failed, check DataPolicyType failed, DataPolicyType is zero value")
 		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown dataPolicyType"}, nil
 	}
-	if "" == strings.Trim(req.GetDataPolicyOption(), "") {
+	if len(req.GetDataPolicyOptions()) == 0 {
 		log.Errorf("RPC-API:PublishTaskDeclare failed, check DataPolicyOption failed, DataPolicyOption is empty")
 		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require dataPolicyOption"}, nil
 	}
-	if 0 == req.GetPowerPolicyType() {
+	if len(req.GetPowerPolicyTypes()) == 0 {
 		log.Errorf("RPC-API:PublishTaskDeclare failed, check PowerPolicyType failed, PowerPolicyType is zero value")
 		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown powerPolicyType"}, nil
 	}
-	if "" == strings.Trim(req.GetPowerPolicyOption(), "") {
+	if len(req.GetPowerPolicyOptions()) == 0 {
 		log.Errorf("RPC-API:PublishTaskDeclare failed, check PowerPolicyOption failed, PowerPolicyOption is empty")
 		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require powerPolicyOption"}, nil
 	}
-	if 0 == req.GetDataFlowPolicyType() {
+	if len(req.GetDataFlowPolicyTypes()) == 0  {
 		log.Errorf("RPC-API:PublishTaskDeclare failed, check DataFlowPolicyType failed, DataFlowPolicyType is zero value")
 		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown dataFlowPolicyType"}, nil
 	}
 	// Maybe the dataFlowPolicyOption is empty,
 	// Because dataFlowPolicyType can already represent the way the data flows.
 	//
-	//if "" == strings.Trim(req.GetDataFlowPolicyOption(), "") {
+	//if "" == strings.Trim(req.GetDataFlowPolicyOptions(), "") {
 	//	log.Errorf("RPC-API:PublishTaskDeclare failed, check DataFlowPolicyOption failed, DataFlowPolicyOption is empty")
 	//	return &pb.PublishTaskDeclareResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "require dataFlowPolicyOption"}, nil
 	//}
@@ -239,7 +239,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 	//}
 	//
 	//// check partyId of powerSuppliers
-	//powerPartyIds, err := policy.FetchPowerPartyIds(req.GetPowerPolicyType(), req.GetPowerPolicyOption())
+	//powerPartyIds, err := policy.FetchPowerPartyIds(req.GetPowerPolicyTypes(), req.GetPowerPolicyOptions())
 	//if nil != err {
 	//	log.WithError(err).Errorf("not fetch partyIds from task powerPolicy")
 	//	return &pb.PublishTaskDeclareResponse { Status: backend.ErrPublishTaskMsg.ErrCode(), Msg: "not fetch partyIds from task powerPolicy" }, nil

@@ -734,12 +734,12 @@ func NewTaskMessageFromRequest(req *pb.PublishTaskDeclareRequest) *TaskMsg {
 			DataSuppliers: req.GetDataSuppliers(),
 			// PowerSuppliers: ,
 			Receivers:                req.GetReceivers(),
-			DataPolicyType:           req.GetDataPolicyType(),
-			DataPolicyOption:         req.GetDataPolicyOption(),
-			PowerPolicyType:          req.GetPowerPolicyType(),
-			PowerPolicyOption:        req.GetPowerPolicyOption(),
-			DataFlowPolicyType:       req.GetDataFlowPolicyType(),
-			DataFlowPolicyOption:     req.GetDataFlowPolicyOption(),
+			DataPolicyTypes:          req.GetDataPolicyTypes(),
+			DataPolicyOptions:        req.GetDataPolicyOptions(),
+			PowerPolicyTypes:         req.GetPowerPolicyTypes(),
+			PowerPolicyOptions:       req.GetPowerPolicyOptions(),
+			DataFlowPolicyTypes:      req.GetDataFlowPolicyTypes(),
+			DataFlowPolicyOptions:    req.GetDataFlowPolicyOptions(),
 			OperationCost:            req.GetOperationCost(),
 			AlgorithmCode:            req.GetAlgorithmCode(),
 			MetaAlgorithmId:          req.GetMetaAlgorithmId(),
@@ -796,17 +796,17 @@ func (msg *TaskMsg) GetPowerSuppliers() []*libtypes.TaskOrganization {
 func (msg *TaskMsg) GetReceivers() []*libtypes.TaskOrganization {
 	return msg.Data.GetTaskData().GetReceivers()
 }
-func (msg *TaskMsg) GetDataPolicyType() uint32   { return msg.Data.GetTaskData().GetDataPolicyType() }
-func (msg *TaskMsg) GetDataPolicyOption() string { return msg.Data.GetTaskData().GetDataPolicyOption() }
-func (msg *TaskMsg) GetPowerPolicyType() uint32  { return msg.Data.GetTaskData().GetPowerPolicyType() }
-func (msg *TaskMsg) GetPowerPolicyOption() string {
-	return msg.Data.GetTaskData().GetPowerPolicyOption()
+func (msg *TaskMsg) GetDataPolicyTypes() []uint32   { return msg.Data.GetTaskData().GetDataPolicyTypes() }
+func (msg *TaskMsg) GetDataPolicyOptions() []string { return msg.Data.GetTaskData().GetDataPolicyOptions() }
+func (msg *TaskMsg) GetPowerPolicyTypes() []uint32  { return msg.Data.GetTaskData().GetPowerPolicyTypes() }
+func (msg *TaskMsg) GetPowerPolicyOptions() []string {
+	return msg.Data.GetTaskData().GetPowerPolicyOptions()
 }
-func (msg *TaskMsg) GetDataFlowPolicyType() uint32 {
-	return msg.Data.GetTaskData().GetDataFlowPolicyType()
+func (msg *TaskMsg) GetDataFlowPolicyTypes() []uint32 {
+	return msg.Data.GetTaskData().GetDataFlowPolicyTypes()
 }
-func (msg *TaskMsg) GetDataFlowPolicyOption() string {
-	return msg.Data.GetTaskData().GetDataFlowPolicyOption()
+func (msg *TaskMsg) GetDataFlowPolicyOptions() []string {
+	return msg.Data.GetTaskData().GetDataFlowPolicyOptions()
 }
 func (msg *TaskMsg) GetOperationCost() *libtypes.TaskResourceCostDeclare {
 	return msg.Data.GetTaskData().GetOperationCost()
@@ -888,12 +888,12 @@ func (msg *TaskMsg) Hash() common.Hash {
 	buf.Write(bytesutil.Uint16ToBytes(uint16(len(msg.GetDataSuppliers()))))
 	buf.Write(bytesutil.Uint16ToBytes(uint16(len(msg.GetPowerSuppliers()))))
 	buf.Write(bytesutil.Uint16ToBytes(uint16(len(msg.GetReceivers()))))
-	buf.Write(bytesutil.Uint32ToBytes(msg.GetDataPolicyType()))
-	buf.Write([]byte(msg.GetDataPolicyOption()))
-	buf.Write(bytesutil.Uint32ToBytes(msg.GetPowerPolicyType()))
-	buf.Write([]byte(msg.GetPowerPolicyOption()))
-	buf.Write(bytesutil.Uint32ToBytes(msg.GetDataFlowPolicyType()))
-	buf.Write([]byte(msg.GetDataFlowPolicyOption()))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(len(msg.GetDataPolicyTypes()))))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(len(msg.GetDataPolicyOptions()))))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(len(msg.GetPowerPolicyTypes()))))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(len(msg.GetPowerPolicyOptions()))))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(len(msg.GetDataFlowPolicyTypes()))))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(len(msg.GetDataFlowPolicyOptions()))))
 	buf.Write(bytesutil.Uint32ToBytes(msg.GetOperationCost().GetProcessor()))
 	buf.Write(bytesutil.Uint64ToBytes(msg.GetOperationCost().GetBandwidth()))
 	buf.Write(bytesutil.Uint64ToBytes(msg.GetOperationCost().GetMemory()))
@@ -928,12 +928,12 @@ func (msg *TaskMsg) HashByCreateTime() common.Hash {
 	buf.Write(bytesutil.Uint16ToBytes(uint16(len(msg.GetDataSuppliers()))))
 	buf.Write(bytesutil.Uint16ToBytes(uint16(len(msg.GetPowerSuppliers()))))
 	buf.Write(bytesutil.Uint16ToBytes(uint16(len(msg.GetReceivers()))))
-	buf.Write(bytesutil.Uint32ToBytes(msg.GetDataPolicyType()))
-	buf.Write([]byte(msg.GetDataPolicyOption()))
-	buf.Write(bytesutil.Uint32ToBytes(msg.GetPowerPolicyType()))
-	buf.Write([]byte(msg.GetPowerPolicyOption()))
-	buf.Write(bytesutil.Uint32ToBytes(msg.GetDataFlowPolicyType()))
-	buf.Write([]byte(msg.GetDataFlowPolicyOption()))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(len(msg.GetDataPolicyTypes()))))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(len(msg.GetDataPolicyOptions()))))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(len(msg.GetPowerPolicyTypes()))))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(len(msg.GetPowerPolicyOptions()))))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(len(msg.GetDataFlowPolicyTypes()))))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(len(msg.GetDataFlowPolicyOptions()))))
 	buf.Write(bytesutil.Uint32ToBytes(msg.GetOperationCost().GetProcessor()))
 	buf.Write(bytesutil.Uint64ToBytes(msg.GetOperationCost().GetBandwidth()))
 	buf.Write(bytesutil.Uint64ToBytes(msg.GetOperationCost().GetMemory()))

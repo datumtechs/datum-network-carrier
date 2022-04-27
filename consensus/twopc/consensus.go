@@ -2,7 +2,6 @@ package twopc
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"github.com/Metisnetwork/Metis-Carrier/common"
 	"github.com/Metisnetwork/Metis-Carrier/common/bytesutil"
@@ -16,7 +15,6 @@ import (
 	rpcpb "github.com/Metisnetwork/Metis-Carrier/lib/rpc/debug/v1"
 	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
 	"github.com/Metisnetwork/Metis-Carrier/p2p"
-	"github.com/Metisnetwork/Metis-Carrier/policy"
 	"github.com/Metisnetwork/Metis-Carrier/types"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"strings"
@@ -164,18 +162,6 @@ func (t *Twopc) OnHandle(nonConsTask *types.NeedConsensusTask) error {
 	}
 
 	createAt := timeutils.UnixMsecUint64()
-	if task.GetTaskData().GetPowerPolicyType() == types.TASK_POWER_POLICY_ASSIGNMENT_SYMBOL_RANDOM_ELECTION_POWER {
-		var evidence *policy.VRFElectionEvidence
-		if err := json.Unmarshal([]byte(nonConsTask.GetEvidence()), &evidence); nil != err {
-			log.WithError(err).Errorf("can not decode evidence of powerSuppliers election on OnHandle, taskId: {%s}, partyId: {%s}",
-				task.GetTaskId(), task.GetTaskSender().GetPartyId())
-			t.stopTaskConsensus("can not decode evidence of powerSuppliers election", common.Hash{}, task.GetTaskId(),
-				libtypes.TaskRole_TaskRole_Sender, libtypes.TaskRole_TaskRole_Sender, task.GetTaskSender(), task.GetTaskSender(),
-				types.TaskConsensusInterrupt)
-			return err
-		}
-		createAt = evidence.GetElectionAt()
-	}
 
 	var buf bytes.Buffer
 	buf.Write(t.config.Option.NodeID.Bytes())

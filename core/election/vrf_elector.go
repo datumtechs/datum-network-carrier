@@ -79,80 +79,6 @@ func (s *VrfElector) ElectionNode(taskId string, mem, bandwidth, disk uint64, pr
 	return jobNode, nil
 }
 
-
-
-func (s *VrfElector) ElectionOrganization(
-	taskId string,
-	powerPartyIds []string,
-	skipIdentityIdCache map[string]struct{},
-	mem, bandwidth, disk uint64, processor uint32,
-	extra []byte,
-) ([]*libtypes.TaskOrganization, []*libtypes.TaskPowerResourceOption, []byte, [][]byte, error) {
-
-	calculateCount := len(powerPartyIds)
-
-
-	globalpowerSummarys, err := s.queryValidGlobalPowerList("ElectionOrganization()", taskId)
-	if nil != err {
-		return nil, nil, nil, nil, err
-	}
-
-	if len(globalpowerSummarys) < calculateCount {
-		return nil, nil, nil, nil, fmt.Errorf("query valid org's power resource count less calculate count")
-	}
-
-	nonce, err := s.vrfNonce(extra)
-	if nil != err {
-		return nil, nil, nil, nil, err
-	}
-	queue, weights := s.vrfElectionOrganizationResourceQueue(globalpowerSummarys, nonce, calculateCount)
-
-	orgs := make([]*libtypes.TaskOrganization, 0)
-	resources := make([]*libtypes.TaskPowerResourceOption, 0)
-
-	i := 0
-	for _, r := range queue {
-
-		if i == calculateCount {
-			break
-		}
-
-		// skip
-		if len(skipIdentityIdCache) != 0 {
-			if _, ok := skipIdentityIdCache[r.GetIdentityId()]; ok {
-				continue
-			}
-		}
-
-		// append one, if it enouph
-		orgs = append(orgs, &libtypes.TaskOrganization{
-			PartyId:    powerPartyIds[i],
-			NodeName:   r.GetNodeName(),
-			NodeId:     r.GetNodeId(),
-			IdentityId: r.GetIdentityId(),
-		})
-		resources = append(resources, &libtypes.TaskPowerResourceOption{
-			PartyId: powerPartyIds[i],
-			ResourceUsedOverview: &libtypes.ResourceUsageOverview{
-				TotalMem:       r.GetTotalMem(), // total resource value of org.
-				UsedMem:        0,               // used resource of this task (real time max used)
-				TotalBandwidth: r.GetTotalBandWidth(),
-				UsedBandwidth:  0, // used resource of this task (real time max used)
-				TotalDisk:      r.GetTotalDisk(),
-				UsedDisk:       0,
-				TotalProcessor: r.GetTotalProcessor(),
-				UsedProcessor:  0, // used resource of this task (real time max used)
-			},
-		})
-		i++
-	}
-	if len(orgs) < calculateCount {
-		return nil, nil, nil, nil, ErrEnoughResourceOrgCountLessCalculateCount
-	}
-	return orgs, resources, nonce, weights, nil
-}
-
-
 func (s *VrfElector) EnoughAvailableOrganization(taskId string, calculateCount int, mem, bandwidth, disk uint64, processor uint32) (bool, error) {
 
 	// Find valid global power resources
@@ -191,6 +117,77 @@ func (s *VrfElector) EnoughAvailableOrganization(taskId string, calculateCount i
 		return false, nil
 	}
 	return true, nil
+}
+
+func (s *VrfElector) ElectionOrganization(
+	taskId string,
+	partyIds []string,
+	skipIdentityIdCache map[string]struct{},
+	mem, bandwidth, disk uint64, processor uint32,
+	extra []byte,
+) ([]*libtypes.TaskOrganization, []*libtypes.TaskPowerResourceOption, []byte, [][]byte, error) {
+
+	calculateCount := len(partyIds)
+
+
+	globalpowerSummarys, err := s.queryValidGlobalPowerList("ElectionOrganization()", taskId)
+	if nil != err {
+		return nil, nil, nil, nil, err
+	}
+
+	if len(globalpowerSummarys) < calculateCount {
+		return nil, nil, nil, nil, fmt.Errorf("query valid org's power resource count less calculate count")
+	}
+
+	nonce, err := s.vrfNonce(extra)
+	if nil != err {
+		return nil, nil, nil, nil, err
+	}
+	queue, weights := s.vrfElectionOrganizationResourceQueue(globalpowerSummarys, nonce, calculateCount)
+
+	orgs := make([]*libtypes.TaskOrganization, 0)
+	resources := make([]*libtypes.TaskPowerResourceOption, 0)
+
+	i := 0
+	for _, r := range queue {
+
+		if i == calculateCount {
+			break
+		}
+
+		// skip
+		if len(skipIdentityIdCache) != 0 {
+			if _, ok := skipIdentityIdCache[r.GetIdentityId()]; ok {
+				continue
+			}
+		}
+
+		// append one, if it enouph
+		orgs = append(orgs, &libtypes.TaskOrganization{
+			PartyId:    partyIds[i],
+			NodeName:   r.GetNodeName(),
+			NodeId:     r.GetNodeId(),
+			IdentityId: r.GetIdentityId(),
+		})
+		resources = append(resources, &libtypes.TaskPowerResourceOption{
+			PartyId: partyIds[i],
+			ResourceUsedOverview: &libtypes.ResourceUsageOverview{
+				TotalMem:       r.GetTotalMem(), // total resource value of org.
+				UsedMem:        0,               // used resource of this task (real time max used)
+				TotalBandwidth: r.GetTotalBandWidth(),
+				UsedBandwidth:  0, // used resource of this task (real time max used)
+				TotalDisk:      r.GetTotalDisk(),
+				UsedDisk:       0,
+				TotalProcessor: r.GetTotalProcessor(),
+				UsedProcessor:  0, // used resource of this task (real time max used)
+			},
+		})
+		i++
+	}
+	if len(orgs) < calculateCount {
+		return nil, nil, nil, nil, ErrEnoughResourceOrgCountLessCalculateCount
+	}
+	return orgs, resources, nonce, weights, nil
 }
 
 func (s *VrfElector) VerifyElectionOrganization(taskId string, powerSuppliers []*libtypes.TaskOrganization, powerResources []*libtypes.TaskPowerResourceOption, nodeIdStr string, extra, nonce []byte, weights [][]byte) error {
