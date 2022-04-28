@@ -222,7 +222,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 	}
 
 	taskMsg := types.NewTaskMessageFromRequest(req)
-	from, err := signsuite.Sender(req.GetUserType(), taskMsg.Hash(), req.GetSign())
+	/*from, err := signsuite.Sender(req.GetUserType(), taskMsg.Hash(), req.GetSign())
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:PublishTaskDeclare failed, cannot fetch sender from sign, userType: {%s}, user: {%s}",
 			req.GetUserType().String(), req.GetUser())
@@ -232,7 +232,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 		log.WithError(err).Errorf("RPC-API:PublishTaskDeclare failed, sender from sign and user is not sameone, userType: {%s}, user: {%s}, sender of sign: {%s}",
 			req.GetUserType().String(), req.GetUser(), from)
 		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "the user sign is invalid"}, nil
-	}
+	}*/
 	// Maybe the desc is empty,
 	// Because desc is not necessary.
 	//
