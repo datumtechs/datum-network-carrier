@@ -1106,9 +1106,9 @@ func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types
 				}
 
 				if dataPolicy.GetPartyId() == partyId {
-					inputData, err := m.metadataInputDIR(task, localTask, dataPolicy)
+					inputData, err := m.metadataInputBINARY(task, localTask, dataPolicy)
 					if nil != err {
-						return "", fmt.Errorf("can not unmarshal metadataInputDIR, %s, taskId: {%s}, partyId: {%s}, metadataId: {%s}", err, localTask.GetTaskId(), partyId, dataPolicy.GetMetadataId())
+						return "", fmt.Errorf("can not unmarshal metadataInputBINARY, %s, taskId: {%s}, partyId: {%s}, metadataId: {%s}", err, localTask.GetTaskId(), partyId, dataPolicy.GetMetadataId())
 					}
 					inputDataArr = append(inputDataArr, inputData)
 				}
@@ -1201,9 +1201,6 @@ func (m *Manager) metadataInputCSV(task *types.NeedExecuteTask, localTask *types
 
 func (m *Manager) metadataInputDIR(task *types.NeedExecuteTask, localTask *types.Task, dataPolicy *types.TaskMetadataPolicyDIR) (*types.InputDataDIR, error) {
 
-	var (
-		dataPath        string
-	)
 
 	metadataId := dataPolicy.GetMetadataId()
 	internalMetadataFlag, err := m.resourceMng.GetDB().IsInternalMetadataById(metadataId)
@@ -1228,55 +1225,29 @@ func (m *Manager) metadataInputDIR(task *types.NeedExecuteTask, localTask *types
 		}
 	}
 
-	if types.IsNotCSVdata(metadata.GetData().GetDataType()) {
+	if types.IsNotDIRdata(metadata.GetData().GetDataType()) {
 		return nil, fmt.Errorf("the metadataOption and dataPolicyOption of task is not match, %s", err)
 	}
 
-	var metadataOption *types.MetadataOptionCSV
+	var metadataOption *types.MetadataOptionDIR
 	if err := json.Unmarshal([]byte(metadata.GetData().GetMetadataOption()), &metadataOption); nil != err {
 		return nil, fmt.Errorf("can not unmarshal metadataOption, %s", err)
 	}
 
-	// collection all the column name cache
-	columnNameCache := make(map[uint32]string, 0)
-	for _, mdop := range metadataOption.GetMetadataColumns() {
-		columnNameCache[mdop.GetIndex()] = mdop.GetName()
-	}
-	// find key column name
-	if kname, ok := columnNameCache[dataPolicy.QueryKeyColumn()]; ok {
-		keyColumn = kname
-	} else {
-		return nil, fmt.Errorf("not found the keyColumn of task dataPolicy on metadataOption, columnIndex: {%d}", dataPolicy.QueryKeyColumn())
-	}
-
-	// find all select column names
-	selectedColumns = make([]string, len(dataPolicy.QuerySelectedColumns()))
-	for i, selectedColumnIndex := range dataPolicy.QuerySelectedColumns() {
-
-		if sname, ok := columnNameCache[selectedColumnIndex]; ok {
-			selectedColumns[i] = sname
-		} else {
-			return nil, fmt.Errorf("not found the selectColumn of task dataPolicy on metadataOption, columnIndex: {%d}", selectedColumnIndex)
-		}
-	}
-
-	dataPath = metadataOption.GetDataPath()
-	if strings.Trim(dataPath, "") == "" {
+	dirPath := metadataOption.GetDirPath()
+	if strings.Trim(dirPath, "") == "" {
 		return nil, fmt.Errorf("not found the dataPath of task dataPolicy on metadataOption")
 	}
 
 	return &types.InputDataDIR{
 		InputType:       dataPolicy.QueryInputType(),
 		DataType:        uint32(metadata.GetData().GetDataType()),
-		DataPath:        dataPath,
+		DataPath:        dirPath,
 	}, nil
 }
 
 func (m *Manager) metadataInputBINARY(task *types.NeedExecuteTask, localTask *types.Task, dataPolicy *types.TaskMetadataPolicyBINARY) (*types.InputDataBINARY, error) {
 
-	var (
-		dataPath        string
-	)
 
 	metadataId := dataPolicy.GetMetadataId()
 	internalMetadataFlag, err := m.resourceMng.GetDB().IsInternalMetadataById(metadataId)
@@ -1301,44 +1272,21 @@ func (m *Manager) metadataInputBINARY(task *types.NeedExecuteTask, localTask *ty
 		}
 	}
 
-	if types.IsNotCSVdata(metadata.GetData().GetDataType()) {
+	if types.IsNotBINARYdata(metadata.GetData().GetDataType()) {
 		return nil, fmt.Errorf("the metadataOption and dataPolicyOption of task is not match, %s", err)
 	}
 
-	var metadataOption *types.MetadataOptionCSV
+	var metadataOption *types.MetadataOptionBINARY
 	if err := json.Unmarshal([]byte(metadata.GetData().GetMetadataOption()), &metadataOption); nil != err {
 		return nil, fmt.Errorf("can not unmarshal metadataOption, %s", err)
 	}
 
-	// collection all the column name cache
-	columnNameCache := make(map[uint32]string, 0)
-	for _, mdop := range metadataOption.GetMetadataColumns() {
-		columnNameCache[mdop.GetIndex()] = mdop.GetName()
-	}
-	// find key column name
-	if kname, ok := columnNameCache[dataPolicy.QueryKeyColumn()]; ok {
-		keyColumn = kname
-	} else {
-		return nil, fmt.Errorf("not found the keyColumn of task dataPolicy on metadataOption, columnIndex: {%d}", dataPolicy.QueryKeyColumn())
-	}
-
-	// find all select column names
-	selectedColumns = make([]string, len(dataPolicy.QuerySelectedColumns()))
-	for i, selectedColumnIndex := range dataPolicy.QuerySelectedColumns() {
-
-		if sname, ok := columnNameCache[selectedColumnIndex]; ok {
-			selectedColumns[i] = sname
-		} else {
-			return nil, fmt.Errorf("not found the selectColumn of task dataPolicy on metadataOption, columnIndex: {%d}", selectedColumnIndex)
-		}
-	}
-
-	dataPath = metadataOption.GetDataPath()
+	dataPath := metadataOption.GetDataPath()
 	if strings.Trim(dataPath, "") == "" {
 		return nil, fmt.Errorf("not found the dataPath of task dataPolicy on metadataOption")
 	}
 
-	return &types.InputDataDIR{
+	return &types.InputDataBINARY{
 		InputType:       dataPolicy.QueryInputType(),
 		DataType:        uint32(metadata.GetData().GetDataType()),
 		DataPath:        dataPath,
