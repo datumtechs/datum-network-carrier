@@ -3,12 +3,12 @@ package types
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/RosettaFlow/Carrier-Go/common"
-	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
-	"github.com/RosettaFlow/Carrier-Go/common/rlputil"
-	"github.com/RosettaFlow/Carrier-Go/crypto/sha3"
-	commonpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/common"
-	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
+	"github.com/Metisnetwork/Metis-Carrier/common"
+	"github.com/Metisnetwork/Metis-Carrier/common/bytesutil"
+	"github.com/Metisnetwork/Metis-Carrier/common/rlputil"
+	"github.com/Metisnetwork/Metis-Carrier/crypto/sha3"
+	commonpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/common"
+	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
 	"github.com/ethereum/go-ethereum/rlp"
 	"sync/atomic"
 )

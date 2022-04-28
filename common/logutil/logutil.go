@@ -3,7 +3,7 @@
 package logutil
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/common/params"
+	"github.com/Metisnetwork/Metis-Carrier/common/params"
 	"github.com/sirupsen/logrus"
 	"io"
 	"os"

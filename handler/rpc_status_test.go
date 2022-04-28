@@ -2,11 +2,11 @@ package handler
 
 import (
 	"context"
-	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
-	pb "github.com/RosettaFlow/Carrier-Go/lib/p2p/v1"
-	"github.com/RosettaFlow/Carrier-Go/p2p/peers"
-	p2ptest "github.com/RosettaFlow/Carrier-Go/p2p/testing"
-	p2ptypes "github.com/RosettaFlow/Carrier-Go/p2p/types"
+	"github.com/Metisnetwork/Metis-Carrier/common/bytesutil"
+	pb "github.com/Metisnetwork/Metis-Carrier/lib/p2p/v1"
+	"github.com/Metisnetwork/Metis-Carrier/p2p/peers"
+	p2ptest "github.com/Metisnetwork/Metis-Carrier/p2p/testing"
+	p2ptypes "github.com/Metisnetwork/Metis-Carrier/p2p/types"
 	"github.com/ethereum/go-ethereum/p2p/enr"
 	"github.com/gogo/protobuf/proto"
 	"github.com/kevinms/leakybucket-go"

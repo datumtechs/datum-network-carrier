@@ -3,7 +3,7 @@
 package taskmng
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/lib/netmsg/common"
+	"github.com/Metisnetwork/Metis-Carrier/lib/netmsg/common"
 	ssz "github.com/ferranbt/fastssz"
 )
 

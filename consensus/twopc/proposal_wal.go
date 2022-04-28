@@ -1,14 +1,14 @@
 package twopc
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/common"
-	"github.com/RosettaFlow/Carrier-Go/common/fileutil"
-	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
-	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
-	"github.com/RosettaFlow/Carrier-Go/db"
-	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
-	"github.com/RosettaFlow/Carrier-Go/types"
+	"github.com/Metisnetwork/Metis-Carrier/common"
+	"github.com/Metisnetwork/Metis-Carrier/common/fileutil"
+	ctypes "github.com/Metisnetwork/Metis-Carrier/consensus/twopc/types"
+	"github.com/Metisnetwork/Metis-Carrier/core/rawdb"
+	"github.com/Metisnetwork/Metis-Carrier/db"
+	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
+	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/Metisnetwork/Metis-Carrier/types"
 	"github.com/gogo/protobuf/proto"
 	"os"
 	"path/filepath"

@@ -3,7 +3,7 @@ package p2p
 import (
 	"crypto/ecdsa"
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/cmd/common"
+	"github.com/Metisnetwork/Metis-Carrier/cmd/common"
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p-core/peer"
 	noise "github.com/libp2p/go-libp2p-noise"

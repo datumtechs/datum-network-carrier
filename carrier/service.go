@@ -3,26 +3,26 @@ package carrier
 import (
 	"context"
 	"fmt"
-	auth2 "github.com/RosettaFlow/Carrier-Go/ach/auth"
-	metispay2 "github.com/RosettaFlow/Carrier-Go/ach/metispay"
-	kms2 "github.com/RosettaFlow/Carrier-Go/ach/metispay/kms"
-	"github.com/RosettaFlow/Carrier-Go/common/flags"
-	"github.com/RosettaFlow/Carrier-Go/consensus/chaincons"
-	"github.com/RosettaFlow/Carrier-Go/consensus/twopc"
-	"github.com/RosettaFlow/Carrier-Go/core"
-	"github.com/RosettaFlow/Carrier-Go/core/election"
-	"github.com/RosettaFlow/Carrier-Go/core/evengine"
-	"github.com/RosettaFlow/Carrier-Go/core/message"
-	"github.com/RosettaFlow/Carrier-Go/core/resource"
-	"github.com/RosettaFlow/Carrier-Go/core/schedule"
-	"github.com/RosettaFlow/Carrier-Go/core/task"
-	"github.com/RosettaFlow/Carrier-Go/db"
-	"github.com/RosettaFlow/Carrier-Go/grpclient"
-	"github.com/RosettaFlow/Carrier-Go/handler"
-	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	"github.com/RosettaFlow/Carrier-Go/p2p"
-	"github.com/RosettaFlow/Carrier-Go/service/discovery"
-	"github.com/RosettaFlow/Carrier-Go/types"
+	auth2 "github.com/Metisnetwork/Metis-Carrier/ach/auth"
+	metispay2 "github.com/Metisnetwork/Metis-Carrier/ach/metispay"
+	kms2 "github.com/Metisnetwork/Metis-Carrier/ach/metispay/kms"
+	"github.com/Metisnetwork/Metis-Carrier/common/flags"
+	"github.com/Metisnetwork/Metis-Carrier/consensus/chaincons"
+	"github.com/Metisnetwork/Metis-Carrier/consensus/twopc"
+	"github.com/Metisnetwork/Metis-Carrier/core"
+	"github.com/Metisnetwork/Metis-Carrier/core/election"
+	"github.com/Metisnetwork/Metis-Carrier/core/evengine"
+	"github.com/Metisnetwork/Metis-Carrier/core/message"
+	"github.com/Metisnetwork/Metis-Carrier/core/resource"
+	"github.com/Metisnetwork/Metis-Carrier/core/schedule"
+	"github.com/Metisnetwork/Metis-Carrier/core/task"
+	"github.com/Metisnetwork/Metis-Carrier/db"
+	"github.com/Metisnetwork/Metis-Carrier/grpclient"
+	"github.com/Metisnetwork/Metis-Carrier/handler"
+	pb "github.com/Metisnetwork/Metis-Carrier/lib/api"
+	"github.com/Metisnetwork/Metis-Carrier/p2p"
+	"github.com/Metisnetwork/Metis-Carrier/service/discovery"
+	"github.com/Metisnetwork/Metis-Carrier/types"
 	"github.com/urfave/cli/v2"
 	"strconv"
 	"sync"
@@ -41,6 +41,7 @@ type Service struct {
 	// DB interfaces
 	dataDb     db.Database
 	APIBackend *CarrierAPIBackend
+	DebugAPIBackend *CarrierDebugAPIBackend
 
 	resourceManager *resource.Manager
 	messageManager  *message.MessageHandler
@@ -155,6 +156,7 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 
 	//s.APIBackend = &CarrierAPIBackend{carrier: s}
 	s.APIBackend = NewCarrierAPIBackend(s)
+	s.DebugAPIBackend = NewCarrierDebugAPIBackend(twopcEngine)
 	s.Engines = make(map[types.ConsensusEngineType]handler.Engine, 0)
 	s.Engines[types.TwopcTyp] = twopcEngine
 	s.Engines[types.ChainconsTyp] = chaincons.New()

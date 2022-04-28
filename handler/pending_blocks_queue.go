@@ -2,7 +2,7 @@ package handler
 
 import (
 	"context"
-	"github.com/RosettaFlow/Carrier-Go/common/runutil"
+	"github.com/Metisnetwork/Metis-Carrier/common/runutil"
 	"sync"
 )
 

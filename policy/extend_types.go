@@ -1,125 +1,45 @@
 package policy
 
 import (
-	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
-	"github.com/RosettaFlow/Carrier-Go/types"
+	pb "github.com/Metisnetwork/Metis-Carrier/lib/api"
+	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/Metisnetwork/Metis-Carrier/types"
 )
 
-func NewTaskDetailShowFromTaskData(input *types.Task) *pb.TaskDetailShow {
-	taskData := input.GetTaskData()
-	detailShow := &pb.TaskDetailShow{
-		TaskId:   taskData.GetTaskId(),
-		TaskName: taskData.GetTaskName(),
-		UserType: taskData.GetUserType(),
-		User:     taskData.GetUser(),
-		Sender: &libtypes.TaskOrganization{
-			PartyId:    input.GetTaskSender().GetPartyId(),
-			NodeName:   input.GetTaskSender().GetNodeName(),
-			NodeId:     input.GetTaskSender().GetNodeId(),
-			IdentityId: input.GetTaskSender().GetIdentityId(),
+func NewTaskDetailShowFromTaskData(input *types.Task) *libtypes.TaskDetail {
+	return &libtypes.TaskDetail{
+		Information: &libtypes.TaskDetailSummary{
+			TaskId:                   input.GetTaskData().GetTaskId(),
+			TaskName:                 input.GetTaskData().GetTaskName(),
+			UserType:                 input.GetTaskData().GetUserType(),
+			User:                     input.GetTaskData().GetUser(),
+			Sender:                   input.GetTaskSender(),
+			AlgoSupplier:             input.GetTaskData().GetAlgoSupplier(),
+			DataSuppliers:            input.GetTaskData().GetDataSuppliers(),
+			PowerSuppliers:           input.GetTaskData().GetPowerSuppliers(),
+			Receivers:                input.GetTaskData().GetReceivers(),
+			DataPolicyTypes:          input.GetTaskData().GetDataPolicyTypes(),
+			DataPolicyOptions:        input.GetTaskData().GetDataPolicyOptions(),
+			PowerPolicyTypes:         input.GetTaskData().GetPowerPolicyTypes(),
+			PowerPolicyOptions:       input.GetTaskData().GetPowerPolicyOptions(),
+			DataFlowPolicyTypes:      input.GetTaskData().GetDataFlowPolicyTypes(),
+			DataFlowPolicyOptions:    input.GetTaskData().GetDataFlowPolicyOptions(),
+			OperationCost:            input.GetTaskData().GetOperationCost(),
+			AlgorithmCode:            input.GetTaskData().GetAlgorithmCode(),
+			MetaAlgorithmId:          input.GetTaskData().GetMetaAlgorithmId(),
+			AlgorithmCodeExtraParams: input.GetTaskData().GetAlgorithmCodeExtraParams(),
+			PowerResourceOptions:     input.GetTaskData().GetPowerResourceOptions(),
+			State:                    input.GetTaskData().GetState(),
+			Reason:                   input.GetTaskData().GetReason(),
+			Desc:                     input.GetTaskData().GetDesc(),
+			CreateAt:                 input.GetTaskData().GetCreateAt(),
+			StartAt:                  input.GetTaskData().GetStartAt(),
+			EndAt:                    input.GetTaskData().GetEndAt(),
+			Sign:                     input.GetTaskData().GetSign(),
+			Nonce:                    input.GetTaskData().GetNonce(),
+			UpdateAt:                 input.GetTaskData().GetEndAt(), // The endAt of the task is the updateAt in the data center database
 		},
-		//AlgoSupplier: ,
-		DataSuppliers:  make([]*pb.TaskDataSupplierShow, 0, len(taskData.GetDataSuppliers())),
-		PowerSuppliers: make([]*pb.TaskPowerSupplierShow, 0, len(taskData.GetPowerSuppliers())),
-		Receivers:      taskData.GetReceivers(),
-		CreateAt:       taskData.GetCreateAt(),
-		StartAt:        taskData.GetStartAt(),
-		EndAt:          taskData.GetEndAt(),
-		State:          taskData.GetState(),
-		OperationCost: &libtypes.TaskResourceCostDeclare{
-			Processor: taskData.GetOperationCost().GetProcessor(),
-			Memory:    taskData.GetOperationCost().GetMemory(),
-			Bandwidth: taskData.GetOperationCost().GetBandwidth(),
-			Duration:  taskData.GetOperationCost().GetDuration(),
-		},
-		UpdateAt: taskData.GetEndAt(), // The endAt of the task is the updateAt in the data center database
 	}
-
-	// AlgoSupplier
-	detailShow.AlgoSupplier = &pb.TaskAlgoSupplier{
-		Organization: &libtypes.TaskOrganization{
-			PartyId:    input.GetTaskData().GetAlgoSupplier().GetPartyId(),
-			NodeName:   input.GetTaskData().GetAlgoSupplier().GetNodeName(),
-			NodeId:     input.GetTaskData().GetAlgoSupplier().GetNodeId(),
-			IdentityId: input.GetTaskData().GetAlgoSupplier().GetIdentityId(),
-		},
-		//MetaAlgorithmId: "",  todo
-		//MetaAlgorithmName: "", todo
-	}
-
-	// DataSupplier
-	for _, dataSupplier := range taskData.GetDataSuppliers() {
-		metadataId, err := FetchMetedataIdByPartyId(dataSupplier.GetPartyId(), taskData.GetDataPolicyType(), taskData.GetDataPolicyOption())
-		if nil != err {
-			log.WithError(err).Errorf("failed to fetch metadataId by partyId from DataPolicyOption, taskId: {%s}, partyId: {%s}",
-				taskData.GetTaskId(), dataSupplier.GetPartyId())
-		}
-		metadataName, err := FetchMetedataNameByPartyId(dataSupplier.GetPartyId(), taskData.GetDataPolicyType(), taskData.GetDataPolicyOption())
-		if nil != err {
-			log.WithError(err).Errorf("failed to fetch metadataName by partyId from DataPolicyOption, taskId: {%s}, partyId: {%s}",
-				taskData.GetTaskId(), dataSupplier.GetPartyId())
-		}
-		supplier := &pb.TaskDataSupplierShow{
-			Organization: &libtypes.TaskOrganization{
-				PartyId:    dataSupplier.GetPartyId(),
-				NodeName:   dataSupplier.GetNodeName(),
-				NodeId:     dataSupplier.GetNodeId(),
-				IdentityId: dataSupplier.GetIdentityId(),
-			},
-			MetadataId:   metadataId,
-			MetadataName: metadataName,
-		}
-		detailShow.DataSuppliers = append(detailShow.DataSuppliers, supplier)
-	}
-	// powerSupplier
-	for _, data := range taskData.GetPowerSuppliers() {
-
-		var option *libtypes.TaskPowerResourceOption
-		for _, op := range taskData.GetPowerResourceOptions() {
-			if data.GetPartyId() == op.GetPartyId() {
-				option = op
-				break
-			}
-		}
-		supplier := &pb.TaskPowerSupplierShow{
-			Organization: &libtypes.TaskOrganization{
-				PartyId:    data.GetPartyId(),
-				NodeName:   data.GetNodeName(),
-				NodeId:     data.GetNodeId(),
-				IdentityId: data.GetIdentityId(),
-			},
-			PowerInfo: &libtypes.ResourceUsageOverview{
-				TotalMem:       option.GetResourceUsedOverview().GetTotalMem(),
-				UsedMem:        option.GetResourceUsedOverview().GetUsedMem(),
-				TotalProcessor: option.GetResourceUsedOverview().GetTotalProcessor(),
-				UsedProcessor:  option.GetResourceUsedOverview().GetUsedProcessor(),
-				TotalBandwidth: option.GetResourceUsedOverview().GetTotalBandwidth(),
-				UsedBandwidth:  option.GetResourceUsedOverview().GetUsedBandwidth(),
-				TotalDisk:      option.GetResourceUsedOverview().GetTotalDisk(),
-				UsedDisk:       option.GetResourceUsedOverview().GetUsedDisk(),
-			},
-		}
-		detailShow.PowerSuppliers = append(detailShow.PowerSuppliers, supplier)
-	}
-	return detailShow
-}
-
-func NewTaskEventFromAPIEvent(input []*libtypes.TaskEvent) []*pb.TaskEventShow {
-	result := make([]*pb.TaskEventShow, 0, len(input))
-	for _, event := range input {
-		result = append(result, &pb.TaskEventShow{
-			TaskId:   event.GetTaskId(),
-			Type:     event.GetType(),
-			CreateAt: event.GetCreateAt(),
-			Content:  event.GetContent(),
-			Owner: &libtypes.Organization{
-				IdentityId: event.GetIdentityId(),
-			},
-			PartyId: event.GetPartyId(),
-		})
-	}
-	return result
 }
 
 func NewGlobalMetadataInfoFromMetadata(input *types.Metadata) *pb.GetGlobalMetadataDetail {
@@ -139,6 +59,8 @@ func NewGlobalMetadataInfoFromMetadata(input *types.Metadata) *pb.GetGlobalMetad
 				UpdateAt:       input.GetData().GetUpdateAt(),
 				Nonce:          input.GetData().GetNonce(),
 				MetadataOption: input.GetData().GetMetadataOption(),
+				AllowExpose:    input.GetData().GetAllowExpose(),
+				TokenAddress:   input.GetData().GetTokenAddress(),
 			},
 		},
 	}
@@ -162,8 +84,10 @@ func NewLocalMetadataInfoFromMetadata(isInternal bool, input *types.Metadata) *p
 				UpdateAt:       input.GetData().GetUpdateAt(),
 				Nonce:          input.GetData().GetNonce(),
 				MetadataOption: input.GetData().GetMetadataOption(),
+				AllowExpose:    input.GetData().GetAllowExpose(),
+				TokenAddress:   input.GetData().GetTokenAddress(),
 			},
-			//TotalTaskCount: ,
+			TotalTaskCount: 0,
 		},
 		IsInternal: isInternal,
 	}

@@ -3,8 +3,8 @@
 package rawdb
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/common"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	"github.com/Metisnetwork/Metis-Carrier/common"
+	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
 )
 
 // ReadDataLookupEntry retrieves the positional metadata associated with a metadata/resource/identity/task

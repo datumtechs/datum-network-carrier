@@ -3,13 +3,12 @@ package task
 import (
 	"context"
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/common"
-	"github.com/RosettaFlow/Carrier-Go/common/hexutil"
-	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
-	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
-	"github.com/RosettaFlow/Carrier-Go/signsuite"
-	"github.com/RosettaFlow/Carrier-Go/types"
+	pb "github.com/Metisnetwork/Metis-Carrier/lib/api"
+	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/Metisnetwork/Metis-Carrier/rpc/backend"
+	"github.com/Metisnetwork/Metis-Carrier/signsuite"
+	"github.com/Metisnetwork/Metis-Carrier/types"
+
 	"google.golang.org/protobuf/types/known/emptypb"
 	"strings"
 )
@@ -25,18 +24,11 @@ func (svr *Server) GetLocalTaskDetailList(ctx context.Context, req *pb.GetTaskDe
 		return &pb.GetTaskDetailListResponse{Status: backend.ErrQueryLocalTaskList.ErrCode(), Msg: backend.ErrQueryLocalTaskList.Error()}, nil
 	}
 
-	arr := make([]*pb.GetTaskDetail, len(tasks))
-	for i, task := range tasks {
-		t := &pb.GetTaskDetail{
-			Information: task,
-		}
-		arr[i] = t
-	}
-	log.Debugf("RPC-API:GetLocalTaskDetailList succeed, taskList len: {%d}", len(arr))
+	log.Debugf("RPC-API:GetLocalTaskDetailList succeed, taskList len: {%d}", len(tasks))
 	return &pb.GetTaskDetailListResponse{
 		Status: 0,
 		Msg:    backend.OK,
-		Tasks:  arr,
+		Tasks:  tasks,
 	}, nil
 }
 
@@ -51,18 +43,11 @@ func (svr *Server) GetGlobalTaskDetailList(ctx context.Context, req *pb.GetTaskD
 		return &pb.GetTaskDetailListResponse{Status: backend.ErrQueryGlobalTaskList.ErrCode(), Msg: backend.ErrQueryGlobalTaskList.Error()}, nil
 	}
 
-	arr := make([]*pb.GetTaskDetail, len(tasks))
-	for i, task := range tasks {
-		t := &pb.GetTaskDetail{
-			Information: task,
-		}
-		arr[i] = t
-	}
-	log.Debugf("RPC-API:GetGlobalTaskDetailList succeed, taskList len: {%d}", len(arr))
+	log.Debugf("RPC-API:GetGlobalTaskDetailList succeed, taskList len: {%d}", len(tasks))
 	return &pb.GetTaskDetailListResponse{
 		Status: 0,
 		Msg:    backend.OK,
-		Tasks:  arr,
+		Tasks:  tasks,
 	}, nil
 }
 
@@ -78,18 +63,11 @@ func (svr *Server) GetTaskDetailListByTaskIds(ctx context.Context, req *pb.GetTa
 		return &pb.GetTaskDetailListResponse{Status: backend.ErrQueryTaskListByIds.ErrCode(), Msg: backend.ErrQueryTaskListByIds.Error()}, nil
 	}
 
-	arr := make([]*pb.GetTaskDetail, len(tasks))
-	for i, task := range tasks {
-		t := &pb.GetTaskDetail{
-			Information: task,
-		}
-		arr[i] = t
-	}
-	log.Debugf("RPC-API:GetTaskDetailListByTaskIds succeed, taskIds len: {%d}, taskList len: {%d}", len(req.GetTaskIds()), len(arr))
+	log.Debugf("RPC-API:GetTaskDetailListByTaskIds succeed, taskIds len: {%d}, taskList len: {%d}", len(req.GetTaskIds()), len(tasks))
 	return &pb.GetTaskDetailListResponse{
 		Status: 0,
 		Msg:    backend.OK,
-		Tasks:  arr,
+		Tasks:  tasks,
 	}, nil
 }
 
@@ -173,30 +151,30 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 		log.Errorf("RPC-API:PublishTaskDeclare failed, check receivers failed, receivers is empty")
 		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require receivers"}, nil
 	}
-	if 0 == req.GetDataPolicyType() {
+	if len(req.GetDataPolicyTypes()) == 0 {
 		log.Errorf("RPC-API:PublishTaskDeclare failed, check DataPolicyType failed, DataPolicyType is zero value")
 		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown dataPolicyType"}, nil
 	}
-	if "" == strings.Trim(req.GetDataPolicyOption(), "") {
+	if len(req.GetDataPolicyOptions()) == 0 {
 		log.Errorf("RPC-API:PublishTaskDeclare failed, check DataPolicyOption failed, DataPolicyOption is empty")
 		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require dataPolicyOption"}, nil
 	}
-	if 0 == req.GetPowerPolicyType() {
+	if len(req.GetPowerPolicyTypes()) == 0 {
 		log.Errorf("RPC-API:PublishTaskDeclare failed, check PowerPolicyType failed, PowerPolicyType is zero value")
 		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown powerPolicyType"}, nil
 	}
-	if "" == strings.Trim(req.GetPowerPolicyOption(), "") {
+	if len(req.GetPowerPolicyOptions()) == 0 {
 		log.Errorf("RPC-API:PublishTaskDeclare failed, check PowerPolicyOption failed, PowerPolicyOption is empty")
 		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require powerPolicyOption"}, nil
 	}
-	if 0 == req.GetDataFlowPolicyType() {
+	if len(req.GetDataFlowPolicyTypes()) == 0  {
 		log.Errorf("RPC-API:PublishTaskDeclare failed, check DataFlowPolicyType failed, DataFlowPolicyType is zero value")
 		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown dataFlowPolicyType"}, nil
 	}
 	// Maybe the dataFlowPolicyOption is empty,
 	// Because dataFlowPolicyType can already represent the way the data flows.
 	//
-	//if "" == strings.Trim(req.GetDataFlowPolicyOption(), "") {
+	//if "" == strings.Trim(req.GetDataFlowPolicyOptions(), "") {
 	//	log.Errorf("RPC-API:PublishTaskDeclare failed, check DataFlowPolicyOption failed, DataFlowPolicyOption is empty")
 	//	return &pb.PublishTaskDeclareResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "require dataFlowPolicyOption"}, nil
 	//}
@@ -261,7 +239,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 	//}
 	//
 	//// check partyId of powerSuppliers
-	//powerPartyIds, err := policy.FetchPowerPartyIds(req.GetPowerPolicyType(), req.GetPowerPolicyOption())
+	//powerPartyIds, err := policy.FetchPowerPartyIds(req.GetPowerPolicyTypes(), req.GetPowerPolicyOptions())
 	//if nil != err {
 	//	log.WithError(err).Errorf("not fetch partyIds from task powerPolicy")
 	//	return &pb.PublishTaskDeclareResponse { Status: backend.ErrPublishTaskMsg.ErrCode(), Msg: "not fetch partyIds from task powerPolicy" }, nil
@@ -343,12 +321,12 @@ func (svr *Server) TerminateTask(ctx context.Context, req *pb.TerminateTaskReque
 	}
 
 	// check user
-	if task.GetUser() != req.GetUser() ||
-		task.GetUserType() != req.GetUserType() {
+	if task.GetInformation().GetUser() != req.GetUser() ||
+		task.GetInformation().GetUserType() != req.GetUserType() {
 		log.WithError(err).Errorf("terminate task user and publish task user must be same, taskId: {%s}",
-			task.GetTaskId())
+			task.GetInformation().GetTaskId())
 		return &libtypes.SimpleResponse{Status: backend.ErrTerminateTaskMsg.ErrCode(), Msg: fmt.Sprintf("terminate task user and publish task user must be same, taskId: {%s}",
-			task.GetTaskId())}, nil
+			task.GetInformation().GetTaskId())}, nil
 	}
 
 	if err = svr.B.SendMsg(taskTerminateMsg); nil != err {
@@ -381,17 +359,7 @@ func (svr *Server) GenerateObServerProxyWalletAddress(ctx context.Context, req *
 }
 
 func (svr *Server) EstimateTaskGas(ctx context.Context, req *pb.EstimateTaskGasRequest) (*pb.EstimateTaskGasResponse, error) {
-
-	dataTokenList := make([]common.Address, len(req.GetDataTokenTransferItems()))
-	for idx, item := range req.GetDataTokenTransferItems() {
-		bytes, err := hexutil.Decode(item.Address)
-		if err != nil {
-			log.WithError(err).Errorf("RPC-API:EstimateTaskGas failed, data token address error, err: %s", item.Address)
-			return &pb.EstimateTaskGasResponse{Status: backend.ErrEstimateTaskGas.ErrCode(), Msg: backend.ErrEstimateTaskGas.Error()}, nil
-		}
-		dataTokenList[idx] = common.BytesToAddress(bytes)
-	}
-	gasLimit, gasPrice, err := svr.B.EstimateTaskGas(req.GetDataTokenTransferItems())
+	gasLimit, gasPrice, err := svr.B.EstimateTaskGas(req.GetDataTokenAddresses())
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:EstimateTaskGas failed")
 		return &pb.EstimateTaskGasResponse{Status: backend.ErrEstimateTaskGas.ErrCode(), Msg: backend.ErrEstimateTaskGas.Error()}, nil

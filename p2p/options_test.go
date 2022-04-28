@@ -3,7 +3,7 @@ package p2p
 import (
 	"crypto/rand"
 	"encoding/hex"
-	"github.com/RosettaFlow/Carrier-Go/common/params"
+	"github.com/Metisnetwork/Metis-Carrier/common/params"
 	gethCrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/p2p/enode"
 	"github.com/ethereum/go-ethereum/p2p/enr"

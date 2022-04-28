@@ -1,9 +1,9 @@
 package backend
 
 import (
-	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
-	"github.com/RosettaFlow/Carrier-Go/types"
+	pb "github.com/Metisnetwork/Metis-Carrier/lib/api"
+	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/Metisnetwork/Metis-Carrier/types"
 	"math/big"
 )
 
@@ -63,12 +63,12 @@ type Backend interface {
 	GetIdentityList(lastUpdate, pageSize uint64) ([]*types.Identity, error)
 
 	// task api
-	GetLocalTask(taskId string) (*pb.TaskDetailShow, error)
-	GetLocalTaskDetailList(lastUpdate, pageSize uint64) ([]*pb.TaskDetailShow, error)
-	GetGlobalTaskDetailList(lastUpdate, pageSize uint64) ([]*pb.TaskDetailShow, error)
-	GetTaskDetailListByTaskIds(taskIds []string) ([]*pb.TaskDetailShow, error) // v3.0
-	GetTaskEventList(taskId string) ([]*pb.TaskEventShow, error)
-	GetTaskEventListByTaskIds(taskIds []string) ([]*pb.TaskEventShow, error)
+	GetLocalTask(taskId string) (*libtypes.TaskDetail, error)
+	GetLocalTaskDetailList(lastUpdate, pageSize uint64) ([]*libtypes.TaskDetail, error)
+	GetGlobalTaskDetailList(lastUpdate, pageSize uint64) ([]*libtypes.TaskDetail, error)
+	GetTaskDetailListByTaskIds(taskIds []string) ([]*libtypes.TaskDetail, error) // v3.0
+	GetTaskEventList(taskId string) ([]*libtypes.TaskEvent, error)
+	GetTaskEventListByTaskIds(taskIds []string) ([]*libtypes.TaskEvent, error)
 	HasLocalTask() (bool, error)
 
 	// about jobResource
@@ -89,13 +89,10 @@ type Backend interface {
 	QueryDataResourceFileUploads() ([]*types.DataResourceFileUpload, error)
 
 	// about task result file
-	StoreTaskUpResultFile(turf *types.TaskUpResultFile) error
-	QueryTaskUpResultFile(taskId string) (*types.TaskUpResultFile, error)
-	RemoveTaskUpResultFile(taskId string) error
-	StoreTaskResultFileSummary(taskId, originId, dataHash, filePath, dataNodeId, extra string) error
+	StoreTaskResultFileSummary(taskId, originId, dataHash, metadataOption, dataNodeId, extra string, dataType uint32) error
 	QueryTaskResultFileSummary(taskId string) (*types.TaskResultFileSummary, error)
 	QueryTaskResultFileSummaryList() (types.TaskResultFileSummaryArr, error)
 
 	// v 0.4.0
-	EstimateTaskGas(dataTokenTransferList []*pb.DataTokenTransferItem) (gasLimit uint64, gasPrice *big.Int, err error)
+	EstimateTaskGas(dataTokenTransferList []string) (gasLimit uint64, gasPrice *big.Int, err error)
 }

@@ -1,9 +1,9 @@
 package p2p
 
 import (
-	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
-	taskmngpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/taskmng"
-	librpcpb "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
+	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
+	taskmngpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/taskmng"
+	librpcpb "github.com/Metisnetwork/Metis-Carrier/lib/rpc/debug/v1"
 	"github.com/gogo/protobuf/proto"
 	"reflect"
 )

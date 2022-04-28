@@ -5,7 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/common/params"
+	"github.com/Metisnetwork/Metis-Carrier/common/params"
 	"github.com/pkg/errors"
 	"io"
 	"io/ioutil"

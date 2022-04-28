@@ -2,8 +2,8 @@ package types
 
 import (
 	"fmt"
-	taskmngpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/taskmng"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	taskmngpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/taskmng"
+	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
 )
 
 type TaskResultMsg struct {

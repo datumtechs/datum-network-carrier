@@ -3,8 +3,8 @@ package grpclient
 import (
 	"context"
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	"github.com/Metisnetwork/Metis-Carrier/lib/center/api"
+	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"time"
@@ -105,6 +105,15 @@ func (gc *GrpcClient) GetMetadataById(ctx context.Context, request *api.FindMeta
 	ctx, cancel := context.WithTimeout(ctx, TweentySecondGrpcRequestTimeout)
 	defer cancel()
 	return gc.metadataService.FindMetadataById(ctx, request)
+}
+
+func (gc *GrpcClient) GetMetadataByIds(ctx context.Context, request *api.FindMetadataByIdsRequest) (*api.ListMetadataResponse, error) {
+	if nil == gc {
+		return nil, fmt.Errorf("datacenter rpc client is nil")
+	}
+	ctx, cancel := context.WithTimeout(ctx, TweentySecondGrpcRequestTimeout)
+	defer cancel()
+	return gc.metadataService.FindMetadataByIds(ctx, request)
 }
 
 func (gc *GrpcClient) RevokeMetadata(ctx context.Context, request *api.RevokeMetadataRequest) (*libtypes.SimpleResponse, error) {

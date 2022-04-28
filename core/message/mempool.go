@@ -2,9 +2,9 @@ package message
 
 import (
 	"errors"
-	"github.com/RosettaFlow/Carrier-Go/common/feed"
-	"github.com/RosettaFlow/Carrier-Go/event"
-	"github.com/RosettaFlow/Carrier-Go/types"
+	"github.com/Metisnetwork/Metis-Carrier/common/feed"
+	"github.com/Metisnetwork/Metis-Carrier/event"
+	"github.com/Metisnetwork/Metis-Carrier/types"
 	"sync"
 )
 

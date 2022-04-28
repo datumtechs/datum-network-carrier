@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/common/debug"
-	"github.com/RosettaFlow/Carrier-Go/common/flags"
+	"github.com/Metisnetwork/Metis-Carrier/common/debug"
+	"github.com/Metisnetwork/Metis-Carrier/common/flags"
 	"github.com/urfave/cli/v2"
 	"io"
 	"sort"

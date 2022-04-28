@@ -2,7 +2,7 @@
 
 package rawdb
 
-import "github.com/RosettaFlow/Carrier-Go/db"
+import "github.com/Metisnetwork/Metis-Carrier/db"
 
 type DatabaseReader interface {
 	Has(key []byte) (bool, error)

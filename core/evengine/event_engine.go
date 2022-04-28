@@ -1,9 +1,9 @@
 package evengine
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
-	"github.com/RosettaFlow/Carrier-Go/core/iface"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
+	"github.com/Metisnetwork/Metis-Carrier/core/iface"
+	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
 )
 
 type EventEngine struct {

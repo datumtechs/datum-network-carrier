@@ -2,9 +2,9 @@ package signsuite
 
 import (
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/common"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
-	"github.com/RosettaFlow/Carrier-Go/params"
+	"github.com/Metisnetwork/Metis-Carrier/common"
+	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/Metisnetwork/Metis-Carrier/params"
 )
 
 func Sender (userType libtypes.UserType, hash common.Hash, sig []byte) (string, error) {

@@ -2,10 +2,10 @@ package p2p
 
 import (
 	"context"
-	"github.com/RosettaFlow/Carrier-Go/common/hashutil"
-	pbrpc "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
-	"github.com/RosettaFlow/Carrier-Go/p2p/encoder"
-	"github.com/RosettaFlow/Carrier-Go/params"
+	"github.com/Metisnetwork/Metis-Carrier/common/hashutil"
+	pbrpc "github.com/Metisnetwork/Metis-Carrier/lib/rpc/debug/v1"
+	"github.com/Metisnetwork/Metis-Carrier/p2p/encoder"
+	"github.com/Metisnetwork/Metis-Carrier/params"
 	"github.com/libp2p/go-libp2p-core/peer"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	pubsub_pb "github.com/libp2p/go-libp2p-pubsub/pb"

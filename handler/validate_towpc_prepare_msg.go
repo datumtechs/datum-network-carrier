@@ -2,8 +2,8 @@ package handler
 
 import (
 	"context"
-	"github.com/RosettaFlow/Carrier-Go/common/traceutil"
-	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
+	"github.com/Metisnetwork/Metis-Carrier/common/traceutil"
+	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
 	"github.com/libp2p/go-libp2p-core/peer"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	"go.opencensus.io/trace"

@@ -1,10 +1,11 @@
-module github.com/RosettaFlow/Carrier-Go
+module github.com/Metisnetwork/Metis-Carrier
 
 go 1.16
 
 require (
 	contrib.go.opencensus.io/exporter/jaeger v0.2.1
 	github.com/aliyun/alibaba-cloud-sdk-go v1.61.1545
+	github.com/btcsuite/btcutil v1.0.2
 	github.com/d4l3k/messagediff v1.2.1
 	github.com/ethereum/go-ethereum v1.10.3
 	github.com/ferranbt/fastssz v0.0.0-20210526181520-7df50c8568f8

@@ -2,17 +2,17 @@ package message
 
 import (
 	"encoding/json"
-	auth2 "github.com/RosettaFlow/Carrier-Go/ach/auth"
-	"github.com/RosettaFlow/Carrier-Go/common/feed"
-	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
-	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
-	"github.com/RosettaFlow/Carrier-Go/core/resource"
-	"github.com/RosettaFlow/Carrier-Go/core/task"
-	"github.com/RosettaFlow/Carrier-Go/event"
-	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
-	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
-	"github.com/RosettaFlow/Carrier-Go/types"
+	auth2 "github.com/Metisnetwork/Metis-Carrier/ach/auth"
+	"github.com/Metisnetwork/Metis-Carrier/common/feed"
+	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
+	"github.com/Metisnetwork/Metis-Carrier/core/rawdb"
+	"github.com/Metisnetwork/Metis-Carrier/core/resource"
+	"github.com/Metisnetwork/Metis-Carrier/core/task"
+	"github.com/Metisnetwork/Metis-Carrier/event"
+	pb "github.com/Metisnetwork/Metis-Carrier/lib/api"
+	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/Metisnetwork/Metis-Carrier/rpc/backend"
+	"github.com/Metisnetwork/Metis-Carrier/types"
 	"sync"
 	"time"
 )
@@ -309,11 +309,14 @@ func (m *MessageHandler) loop() {
 func (m *MessageHandler) BroadcastIdentityMsg(msg *types.IdentityMsg) {
 
 	// add identity to local db
-	if err := m.resourceMng.GetDB().StoreIdentity(msg.GetOrganization()); nil != err {
+	identity := msg.GetOrganization()
+	identity.DataStatus = libtypes.DataStatus_DataStatus_Valid
+	identity.Status = libtypes.CommonStatus_CommonStatus_Valid
+	if err := m.resourceMng.GetDB().StoreIdentity(identity); nil != err {
 		log.WithError(err).Errorf("Failed to store local org identity on MessageHandler with broadcast identity, identityId: {%s}", msg.GetOwnerIdentityId())
 		return
 	}
-
+	// TODO 填充 nonce
 	// send identity to datacenter
 	if err := m.resourceMng.GetDB().InsertIdentity(msg.ToDataCenter()); nil != err {
 		log.WithError(err).Errorf("Failed to broadcast org org identity on MessageHandler with broadcast identity, identityId: {%s}, nodeId: {%s}, nodeName: {%s}",
@@ -444,13 +447,14 @@ func (m *MessageHandler) BroadcastPowerMsgArr(powerMsgArr types.PowerMsgArr) {
 			continue
 		}
 
+		// TODO 填充 nonce
 		// update local resource
 		if err := m.resourceMng.GetDB().StoreLocalResource(resource); nil != err {
 			log.WithError(err).Errorf("Failed to update local resource with powerId to local on MessageHandler with broadcast msg, powerId: {%s}, jobNodeId: {%s}",
 				msg.GetPowerId(), msg.GetJobNodeId())
 			continue
 		}
-
+		// TODO 填充 nonce
 		// publish to global
 		if err := m.resourceMng.GetDB().InsertResource(types.NewResource(&libtypes.ResourcePB{
 			Owner:  identity,
@@ -568,8 +572,8 @@ func (m *MessageHandler) BroadcastMetadataMsgArr(metadataMsgArr types.MetadataMs
 
 		m.resourceMng.GetDB().RemoveMetadataMsg(msg.GetMetadataId()) // remove from disk if msg been handle
 
-		if types.IsRowAndColumnData (msg.GetDataType()) {
-			var option *types.MetadataOptionRowAndColumn
+		if types.IsCSVdata(msg.GetDataType()) {
+			var option *types.MetadataOptionCSV
 			if err := json.Unmarshal([]byte(msg.GetMetadataOption()), &option); nil != err {
 				log.WithError(err).Errorf("Failed to unmashal metadataOption on MessageHandler with broadcast msg, metadataId: {%s}",
 					msg.GetMetadataId())
@@ -616,7 +620,7 @@ func (m *MessageHandler) BroadcastMetadataMsgArr(metadataMsgArr types.MetadataMs
 			}
 		}
 
-
+		// TODO 填充 nonce
 		// publish msg information
 		if err := m.resourceMng.GetDB().InsertMetadata(msg.ToDataCenter(identity)); nil != err {
 			log.WithError(err).Errorf("Failed to store msg to dataCenter on MessageHandler with broadcast msg, metadataId: {%s}",
@@ -763,7 +767,7 @@ func (m *MessageHandler) BroadcastMetadataAuthMsgArr(metadataAuthMsgArr types.Me
 				msg.GetUserType(), msg.GetUser(), msg.GetMetadataAuthority().GetMetadataId())
 			continue
 		}
-
+		// TODO 填充 nonce
 		// Store metadataAuthority
 		if err := m.authManager.ApplyMetadataAuthority(types.NewMetadataAuthority(&libtypes.MetadataAuthorityPB{
 			MetadataAuthId:  msg.GetMetadataAuthId(),
@@ -840,6 +844,7 @@ func (m *MessageHandler) BroadcastMetadataAuthRevokeMsgArr(metadataAuthRevokeMsg
 }
 
 func (m *MessageHandler) BroadcastTaskMsgArr(taskMsgArr types.TaskMsgArr) {
+	// TODO 填充 nonce
 	if err := m.taskManager.HandleTaskMsgs(taskMsgArr); nil != err {
 		log.WithError(err).Errorf("Failed to call `BroadcastTaskMsgArr` on MessageHandler")
 	}

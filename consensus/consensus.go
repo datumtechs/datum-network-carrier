@@ -1,7 +1,7 @@
 package consensus
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/types"
+	"github.com/Metisnetwork/Metis-Carrier/types"
 	"github.com/libp2p/go-libp2p-core/peer"
 )
 

@@ -3,10 +3,10 @@ package core
 import (
 	"errors"
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
-	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
-	"github.com/RosettaFlow/Carrier-Go/types"
+	"github.com/Metisnetwork/Metis-Carrier/core/rawdb"
+	"github.com/Metisnetwork/Metis-Carrier/lib/center/api"
+	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/Metisnetwork/Metis-Carrier/types"
 	"strings"
 )
 
@@ -522,7 +522,7 @@ func (dc *DataCenter) RemoveNeedExecuteTask(taskId string) error {
 	return rawdb.RemoveNeedExecuteTask(dc.db, taskId)
 }
 
-func (dc *DataCenter) ForEachNeedExecuteTaskWwithPrefix(prifix []byte, f func(key, value []byte) error) error {
+func (dc *DataCenter) ForEachNeedExecuteTaskWithPrefix(prifix []byte, f func(key, value []byte) error) error {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.ForEachNeedExecuteTaskWwithPrefix(dc.db, prifix, f)

@@ -2,10 +2,10 @@ package types
 
 import (
 	"bytes"
-	"github.com/RosettaFlow/Carrier-Go/common"
-	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
-	"github.com/RosettaFlow/Carrier-Go/lib/types"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	"github.com/Metisnetwork/Metis-Carrier/common"
+	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
+	"github.com/Metisnetwork/Metis-Carrier/lib/types"
+	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
 	"gotest.tools/assert"
 	"reflect"
 	"testing"

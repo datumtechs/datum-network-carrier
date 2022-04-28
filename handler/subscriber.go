@@ -3,9 +3,9 @@ package handler
 import (
 	"context"
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/common/messagehandler"
-	"github.com/RosettaFlow/Carrier-Go/p2p"
-	"github.com/RosettaFlow/Carrier-Go/params"
+	"github.com/Metisnetwork/Metis-Carrier/common/messagehandler"
+	"github.com/Metisnetwork/Metis-Carrier/p2p"
+	"github.com/Metisnetwork/Metis-Carrier/params"
 	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/peer"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"

@@ -3,8 +3,8 @@ package types
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/RosettaFlow/Carrier-Go/common"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	"github.com/Metisnetwork/Metis-Carrier/common"
+	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
 	"io"
 	"sync/atomic"
 )

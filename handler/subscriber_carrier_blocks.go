@@ -2,7 +2,7 @@ package handler
 
 import (
 	"context"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
 	"github.com/gogo/protobuf/proto"
 	"github.com/pkg/errors"
 )

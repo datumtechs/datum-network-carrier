@@ -29,6 +29,14 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "proposal_id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
         "tags": [
           "Debug"
         ]
@@ -52,6 +60,14 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "proposal_id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
         "tags": [
           "Debug"
         ]
@@ -75,6 +91,14 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "proposal_id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
         "tags": [
           "Debug"
         ]
@@ -98,6 +122,14 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
         "tags": [
           "Debug"
         ]
@@ -313,6 +345,123 @@
         }
       }
     },
+    "typesConfirmVote": {
+      "type": "object",
+      "properties": {
+        "msg_option": {
+          "$ref": "#/definitions/typesMsgOption"
+        },
+        "vote_option": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "create_at": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "sign": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "typesMsgOption": {
+      "type": "object",
+      "properties": {
+        "proposal_id": {
+          "type": "string"
+        },
+        "sender_role": {
+          "$ref": "#/definitions/typesTaskRole"
+        },
+        "sender_party_id": {
+          "type": "string"
+        },
+        "receiver_role": {
+          "$ref": "#/definitions/typesTaskRole"
+        },
+        "receiver_party_id": {
+          "type": "string"
+        },
+        "owner": {
+          "$ref": "#/definitions/typesTaskOrganization"
+        }
+      }
+    },
+    "typesPrepareVote": {
+      "type": "object",
+      "properties": {
+        "msg_option": {
+          "$ref": "#/definitions/typesMsgOption"
+        },
+        "vote_option": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "peer_info": {
+          "$ref": "#/definitions/typesPrepareVoteResource"
+        },
+        "create_at": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "sign": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "typesPrepareVoteResource": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "ip": {
+          "type": "string"
+        },
+        "port": {
+          "type": "string"
+        },
+        "party_id": {
+          "type": "string"
+        }
+      }
+    },
+    "typesTaskOrganization": {
+      "type": "object",
+      "properties": {
+        "party_id": {
+          "type": "string"
+        },
+        "node_name": {
+          "type": "string",
+          "title": "org name"
+        },
+        "node_id": {
+          "type": "string",
+          "title": "the node_id for org"
+        },
+        "identity_id": {
+          "type": "string",
+          "title": "the identity for org"
+        }
+      },
+      "title": "任务下的组织信息"
+    },
+    "typesTaskRole": {
+      "type": "string",
+      "enum": [
+        "TaskRole_Unknown",
+        "TaskRole_Sender",
+        "TaskRole_DataSupplier",
+        "TaskRole_PowerSupplier",
+        "TaskRole_Receiver",
+        "TaskRole_AlgoSupplier"
+      ],
+      "default": "TaskRole_Unknown",
+      "title": "本组织在task中的角色"
+    },
     "v1ConnectionState": {
       "type": "string",
       "enum": [
@@ -398,13 +547,68 @@
       }
     },
     "v1Get2pcProposalConfirmResponse": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "votes": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/typesConfirmVote"
+          }
+        },
+        "yesVotes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "voteStatus": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      }
     },
     "v1Get2pcProposalPrepareResponse": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "votes": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/typesPrepareVote"
+          }
+        },
+        "yesVotes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "voteStatus": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      }
     },
     "v1Get2pcProposalStateResponse": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "proposal_id": {
+          "type": "string"
+        },
+        "state": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/v1ProposalState"
+          }
+        }
+      }
     },
     "v1MetaData": {
       "type": "object",
@@ -429,6 +633,25 @@
       ],
       "default": "UNKNOWN",
       "description": "PeerDirection states the direction of the connection to a peer."
+    },
+    "v1ProposalState": {
+      "type": "object",
+      "properties": {
+        "period_num": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "consume_time": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "task_sender_identity_id": {
+          "type": "string"
+        }
+      }
     },
     "v1ScoreInfo": {
       "type": "object",

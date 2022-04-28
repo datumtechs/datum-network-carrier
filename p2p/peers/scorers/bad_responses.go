@@ -1,7 +1,7 @@
 package scorers
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/p2p/peers/peerdata"
+	"github.com/Metisnetwork/Metis-Carrier/p2p/peers/peerdata"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"time"
 )

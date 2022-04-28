@@ -1,6 +1,6 @@
 package auth
 
-import "github.com/RosettaFlow/Carrier-Go/rpc/backend"
+import "github.com/Metisnetwork/Metis-Carrier/rpc/backend"
 
 
 type Server struct {

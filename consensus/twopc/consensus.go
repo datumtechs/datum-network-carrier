@@ -2,21 +2,20 @@ package twopc
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/common"
-	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
-	"github.com/RosettaFlow/Carrier-Go/common/rlputil"
-	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
-	"github.com/RosettaFlow/Carrier-Go/common/traceutil"
-	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
-	ev "github.com/RosettaFlow/Carrier-Go/core/evengine"
-	"github.com/RosettaFlow/Carrier-Go/core/resource"
-	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
-	"github.com/RosettaFlow/Carrier-Go/p2p"
-	"github.com/RosettaFlow/Carrier-Go/policy"
-	"github.com/RosettaFlow/Carrier-Go/types"
+	"github.com/Metisnetwork/Metis-Carrier/common"
+	"github.com/Metisnetwork/Metis-Carrier/common/bytesutil"
+	"github.com/Metisnetwork/Metis-Carrier/common/rlputil"
+	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
+	"github.com/Metisnetwork/Metis-Carrier/common/traceutil"
+	ctypes "github.com/Metisnetwork/Metis-Carrier/consensus/twopc/types"
+	ev "github.com/Metisnetwork/Metis-Carrier/core/evengine"
+	"github.com/Metisnetwork/Metis-Carrier/core/resource"
+	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
+	rpcpb "github.com/Metisnetwork/Metis-Carrier/lib/rpc/debug/v1"
+	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/Metisnetwork/Metis-Carrier/p2p"
+	"github.com/Metisnetwork/Metis-Carrier/types"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"strings"
 	"time"
@@ -26,6 +25,10 @@ const (
 	//defaultCleanExpireProposalInterval  = 30 * time.Millisecond
 	defaultRefreshProposalStateInternal = 300 * time.Millisecond
 )
+
+type ConsensusStateInfo struct {
+	State *state
+}
 
 type Twopc struct {
 	config                   *Config
@@ -81,7 +84,10 @@ func (t *Twopc) loop() {
 	for {
 		select {
 
+		// Force serial execution of calls initiated by each goroutine,
+		//simplifying the error-proneness of concurrent logic
 		case fn := <-t.asyncCallCh:
+
 			fn()
 
 		case <-refreshProposalStateTimer.C:
@@ -156,18 +162,6 @@ func (t *Twopc) OnHandle(nonConsTask *types.NeedConsensusTask) error {
 	}
 
 	createAt := timeutils.UnixMsecUint64()
-	if task.GetTaskData().GetPowerPolicyType() == types.TASK_POWER_POLICY_ASSIGNMENT_SYMBOL_RANDOM_ELECTION_POWER {
-		var evidence *policy.VRFElectionEvidence
-		if err := json.Unmarshal([]byte(nonConsTask.GetEvidence()), &evidence); nil != err {
-			log.WithError(err).Errorf("can not decode evidence of powerSuppliers election on OnHandle, taskId: {%s}, partyId: {%s}",
-				task.GetTaskId(), task.GetTaskSender().GetPartyId())
-			t.stopTaskConsensus("can not decode evidence of powerSuppliers election", common.Hash{}, task.GetTaskId(),
-				libtypes.TaskRole_TaskRole_Sender, libtypes.TaskRole_TaskRole_Sender, task.GetTaskSender(), task.GetTaskSender(),
-				types.TaskConsensusInterrupt)
-			return err
-		}
-		createAt = evidence.GetElectionAt()
-	}
 
 	var buf bytes.Buffer
 	buf.Write(t.config.Option.NodeID.Bytes())
@@ -1098,4 +1092,138 @@ func (t *Twopc) onTerminateTaskConsensus(pid peer.ID, msg *types.TerminateConsen
 		return fmt.Errorf("unknown org proposalState priod, on the interrupt consensus")
 	}
 	return nil
+}
+
+func (t *Twopc) Get2PcProposalStateByTaskId(taskId string) (*rpcpb.Get2PcProposalStateResponse, error) {
+	t.state.proposalTaskLock.RLock()
+	defer t.state.proposalTaskLock.RUnlock()
+	taskObj := t.state.proposalTaskCache[taskId]
+	var proposalId common.Hash
+	for partyId := range taskObj {
+		if obj, err := taskObj[partyId]; err {
+			proposalId = obj.ProposalId
+			break
+		}
+	}
+
+	currentTime := time.Now().UnixNano()
+	proposalStateInfo := make(map[string]*rpcpb.ProposalState, 0)
+	if proposalState, ok := t.state.proposalSet[proposalId]; ok {
+		for partyId, obj := range proposalState {
+			proposalStateInfo[partyId] = &rpcpb.ProposalState{
+				PeriodNum:            uint32(obj.GetPeriodNum()),
+				TaskId:               obj.GetTaskId(),
+				ConsumeTime:          uint64(currentTime) - obj.GetStartAt(),
+				TaskSenderIdentityId: obj.GetTaskSender().IdentityId,
+			}
+		}
+	} else {
+		return &rpcpb.Get2PcProposalStateResponse{}, nil
+	}
+
+	return &rpcpb.Get2PcProposalStateResponse{
+		ProposalId: proposalId.String(),
+		State:      proposalStateInfo,
+	}, nil
+}
+func (t *Twopc) Get2PcProposalStateByProposalId(proposalId string) (*rpcpb.Get2PcProposalStateResponse, error) {
+	currentTime := time.Now().UnixNano()
+	proposalStateInfo := make(map[string]*rpcpb.ProposalState, 0)
+	t.state.proposalsLock.RLock()
+	defer t.state.proposalsLock.RUnlock()
+	proposalState, ok := t.state.proposalSet[common.HexToHash(proposalId)]
+	if ok {
+		for partyId, obj := range proposalState {
+			proposalStateInfo[partyId] = &rpcpb.ProposalState{
+				PeriodNum:            uint32(obj.GetPeriodNum()),
+				TaskId:               obj.GetTaskId(),
+				ConsumeTime:          uint64(currentTime) - obj.GetStartAt(),
+				TaskSenderIdentityId: obj.GetTaskSender().IdentityId,
+			}
+		}
+	} else {
+		return &rpcpb.Get2PcProposalStateResponse{}, nil
+	}
+	return &rpcpb.Get2PcProposalStateResponse{
+		ProposalId: proposalId,
+		State:      proposalStateInfo,
+	}, nil
+}
+func (t *Twopc) Get2PcProposalPrepare(proposalId string) (*rpcpb.Get2PcProposalPrepareResponse, error) {
+	t.state.prepareVotesLock.RLock()
+	defer t.state.prepareVotesLock.RUnlock()
+	prepareVoteInfo, ok := t.state.prepareVotes[common.HexToHash(proposalId)]
+	if !ok {
+		return &rpcpb.Get2PcProposalPrepareResponse{}, nil
+	}
+	votes := make(map[string]*libtypes.PrepareVote, 0)
+	for partyId, obj := range prepareVoteInfo.votes {
+		votes[partyId] = &libtypes.PrepareVote{
+			MsgOption: &libtypes.MsgOption{
+				ProposalId:      obj.MsgOption.ProposalId.String(),
+				SenderRole:      obj.MsgOption.SenderRole,
+				SenderPartyId:   obj.MsgOption.SenderPartyId,
+				ReceiverRole:    obj.MsgOption.ReceiverRole,
+				ReceiverPartyId: obj.MsgOption.ReceiverPartyId,
+				Owner:           obj.MsgOption.Owner,
+			},
+			VoteOption: uint32(obj.VoteOption),
+			CreateAt:   obj.CreateAt,
+			Sign:       obj.Sign,
+		}
+	}
+
+	yesVotes := make(map[string]uint32, 0)
+	for role, voteCount := range prepareVoteInfo.yesVotes {
+		yesVotes[role.String()] = voteCount
+	}
+
+	voteStatus := make(map[string]uint32, 0)
+	for role, voteCount := range prepareVoteInfo.voteStatus {
+		voteStatus[role.String()] = voteCount
+	}
+	return &rpcpb.Get2PcProposalPrepareResponse{
+		Votes:      votes,
+		YesVotes:   yesVotes,
+		VoteStatus: voteStatus,
+	}, nil
+}
+func (t *Twopc) Get2PcProposalConfirm(proposalId string) (*rpcpb.Get2PcProposalConfirmResponse, error) {
+	t.state.confirmVotesLock.RLock()
+	defer t.state.confirmVotesLock.RUnlock()
+	confirmVoteInfo, ok := t.state.confirmVotes[common.HexToHash(proposalId)]
+	if !ok {
+		return &rpcpb.Get2PcProposalConfirmResponse{}, nil
+	}
+	votes := make(map[string]*libtypes.ConfirmVote, 0)
+	for partyId, obj := range confirmVoteInfo.votes {
+		votes[partyId] = &libtypes.ConfirmVote{
+			MsgOption: &libtypes.MsgOption{
+				ProposalId:      obj.MsgOption.ProposalId.String(),
+				SenderRole:      obj.MsgOption.SenderRole,
+				SenderPartyId:   obj.MsgOption.SenderPartyId,
+				ReceiverRole:    obj.MsgOption.ReceiverRole,
+				ReceiverPartyId: obj.MsgOption.ReceiverPartyId,
+				Owner:           obj.MsgOption.Owner,
+			},
+			VoteOption: uint32(obj.VoteOption),
+			CreateAt:   obj.CreateAt,
+			Sign:       obj.Sign,
+		}
+	}
+
+	yesVotes := make(map[string]uint32, 0)
+	for role, voteCount := range confirmVoteInfo.yesVotes {
+		yesVotes[role.String()] = voteCount
+	}
+
+	voteStatus := make(map[string]uint32, 0)
+	for role, voteCount := range confirmVoteInfo.voteStatus {
+		voteStatus[role.String()] = voteCount
+	}
+	return &rpcpb.Get2PcProposalConfirmResponse{
+		Votes:      votes,
+		YesVotes:   yesVotes,
+		VoteStatus: voteStatus,
+	}, nil
 }

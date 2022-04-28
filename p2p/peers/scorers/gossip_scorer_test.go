@@ -2,9 +2,9 @@ package scorers_test
 
 import (
 	"context"
-	pbrpc "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
-	"github.com/RosettaFlow/Carrier-Go/p2p/peers"
-	"github.com/RosettaFlow/Carrier-Go/p2p/peers/scorers"
+	pbrpc "github.com/Metisnetwork/Metis-Carrier/lib/rpc/debug/v1"
+	"github.com/Metisnetwork/Metis-Carrier/p2p/peers"
+	"github.com/Metisnetwork/Metis-Carrier/p2p/peers/scorers"
 	"gotest.tools/assert"
 	"testing"
 )

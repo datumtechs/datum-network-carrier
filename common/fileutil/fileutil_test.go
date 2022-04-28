@@ -5,7 +5,7 @@ package fileutil
 import (
 	"bufio"
 	"bytes"
-	"github.com/RosettaFlow/Carrier-Go/common/params"
+	"github.com/Metisnetwork/Metis-Carrier/common/params"
 	"github.com/stretchr/testify/require"
 	"gotest.tools/assert"
 	"io/ioutil"

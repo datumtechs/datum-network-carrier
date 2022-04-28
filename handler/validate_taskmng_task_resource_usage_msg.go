@@ -2,10 +2,10 @@ package handler
 
 import (
 	"context"
-	"github.com/RosettaFlow/Carrier-Go/common"
-	"github.com/RosettaFlow/Carrier-Go/common/hashutil"
-	"github.com/RosettaFlow/Carrier-Go/common/traceutil"
-	taskmngcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/taskmng"
+	"github.com/Metisnetwork/Metis-Carrier/common"
+	"github.com/Metisnetwork/Metis-Carrier/common/hashutil"
+	"github.com/Metisnetwork/Metis-Carrier/common/traceutil"
+	taskmngcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/taskmng"
 	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/peer"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"

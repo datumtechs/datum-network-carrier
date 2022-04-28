@@ -4,8 +4,8 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/core"
-	"github.com/RosettaFlow/Carrier-Go/db"
+	"github.com/Metisnetwork/Metis-Carrier/core"
+	"github.com/Metisnetwork/Metis-Carrier/db"
 )
 
 func main() {

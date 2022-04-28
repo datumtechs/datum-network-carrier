@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package api;
 
-option go_package = "github.com/RosettaFlow/Carrier-Go/lib/center/api";
+option go_package = "github.com/Metisnetwork/Metis-Carrier/lib/center/api";
 
 import "lib/types/base.proto";
 import "lib/types/taskdata.proto";

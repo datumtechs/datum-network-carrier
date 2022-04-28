@@ -3,10 +3,10 @@ package types
 import (
 	"bytes"
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
-	msgcommonpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/common"
-	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
+	msgcommonpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/common"
+	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
+	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"math"
 	"strings"
@@ -101,11 +101,11 @@ type NeedReplayScheduleTask struct {
 
 func NewNeedReplayScheduleTask(role libtypes.TaskRole, partyId string, task *Task, evidence string) *NeedReplayScheduleTask {
 	return &NeedReplayScheduleTask{
-		taskRole:   role,
-		partyId:    partyId,
-		task:       task,
-		evidence:      evidence,
-		resultCh:   make(chan *ReplayScheduleResult),
+		taskRole: role,
+		partyId:  partyId,
+		task:     task,
+		evidence: evidence,
+		resultCh: make(chan *ReplayScheduleResult),
 	}
 }
 func (nrst *NeedReplayScheduleTask) SendFailedResult(taskId string, err error) {
@@ -121,7 +121,7 @@ func (nrst *NeedReplayScheduleTask) SendResult(result *ReplayScheduleResult) {
 func (nrst *NeedReplayScheduleTask) ReceiveResult() *ReplayScheduleResult {
 	return <-nrst.resultCh
 }
-func (nrst *NeedReplayScheduleTask) GetLocalTaskRole() libtypes.TaskRole  { return nrst.taskRole }
+func (nrst *NeedReplayScheduleTask) GetLocalTaskRole() libtypes.TaskRole     { return nrst.taskRole }
 func (nrst *NeedReplayScheduleTask) GetLocalPartyId() string                 { return nrst.partyId }
 func (nrst *NeedReplayScheduleTask) GetTask() *Task                          { return nrst.task }
 func (nrst *NeedReplayScheduleTask) GetEvidence() string                     { return nrst.evidence }
@@ -164,6 +164,13 @@ func (rsr *ReplayScheduleResult) String() string {
 		rsr.taskId, errStr, resourceStr)
 }
 
+// v 0.4.0
+type DatatokenPaySpec struct {
+	Consumed int32  `json:"consumed"`   // -1:
+	GasEstimated uint64 `json:"gasEstimated"` // prepay estimate gas total about task
+	GasUsed  uint64 `json:"gasUsed"`  // prepay gas used about task
+}
+
 // Tasks to be executed (local and remote, which have been completed by consensus and can be executed by issuing fighter)
 type NeedExecuteTask struct {
 	remotepid              peer.ID
@@ -171,10 +178,12 @@ type NeedExecuteTask struct {
 	localTaskOrganization  *libtypes.TaskOrganization
 	remoteTaskRole         libtypes.TaskRole
 	remoteTaskOrganization *libtypes.TaskOrganization
-	consStatus             TaskActionStatus
+	status                 TaskActionStatus
 	localResource          *PrepareVoteResource
 	resources              *twopcpb.ConfirmTaskPeerInfo
 	taskId                 string
+	consumeQueryId         string // The query Id used to query the consumption status of the task
+	consumeSpec            string // Consumption special of the task  (json format)
 	err                    error
 }
 
@@ -183,7 +192,7 @@ func NewNeedExecuteTask(
 	localTaskRole, remoteTaskRole libtypes.TaskRole,
 	localTaskOrganization, remoteTaskOrganization *libtypes.TaskOrganization,
 	taskId string,
-	consStatus TaskActionStatus,
+	status TaskActionStatus,
 	localResource *PrepareVoteResource,
 	resources *twopcpb.ConfirmTaskPeerInfo,
 	err error,
@@ -195,15 +204,15 @@ func NewNeedExecuteTask(
 		remoteTaskRole:         remoteTaskRole,
 		remoteTaskOrganization: remoteTaskOrganization,
 		taskId:                 taskId,
-		consStatus:             consStatus,
+		status:                 status,
 		localResource:          localResource,
 		resources:              resources,
 		err:                    err,
 	}
 }
-func (net *NeedExecuteTask) HasRemotePID() bool                      { return strings.Trim(string(net.remotepid), "") != "" }
-func (net *NeedExecuteTask) HasEmptyRemotePID() bool                 { return !net.HasRemotePID() }
-func (net *NeedExecuteTask) GetRemotePID() peer.ID                   { return net.remotepid }
+func (net *NeedExecuteTask) HasRemotePID() bool                   { return strings.Trim(string(net.remotepid), "") != "" }
+func (net *NeedExecuteTask) HasEmptyRemotePID() bool              { return !net.HasRemotePID() }
+func (net *NeedExecuteTask) GetRemotePID() peer.ID                { return net.remotepid }
 func (net *NeedExecuteTask) GetLocalTaskRole() libtypes.TaskRole  { return net.localTaskRole }
 func (net *NeedExecuteTask) GetRemoteTaskRole() libtypes.TaskRole { return net.remoteTaskRole }
 func (net *NeedExecuteTask) GetLocalTaskOrganization() *libtypes.TaskOrganization {
@@ -213,9 +222,11 @@ func (net *NeedExecuteTask) GetRemoteTaskOrganization() *libtypes.TaskOrganizati
 	return net.remoteTaskOrganization
 }
 func (net *NeedExecuteTask) GetTaskId() string                          { return net.taskId }
-func (net *NeedExecuteTask) GetConsStatus() TaskActionStatus            { return net.consStatus }
+func (net *NeedExecuteTask) GetConsStatus() TaskActionStatus            { return net.status }
 func (net *NeedExecuteTask) GetLocalResource() *PrepareVoteResource     { return net.localResource }
 func (net *NeedExecuteTask) GetResources() *twopcpb.ConfirmTaskPeerInfo { return net.resources }
+func (net *NeedExecuteTask) GetConsumeQueryId() string                  { return net.consumeQueryId }
+func (net *NeedExecuteTask) GetConsumeSpec() string                     { return net.consumeSpec }
 func (net *NeedExecuteTask) GetErr() error                              { return net.err }
 func (net *NeedExecuteTask) String() string {
 	localIdentityStr := "{}"
@@ -233,6 +244,11 @@ func (net *NeedExecuteTask) String() string {
 	return fmt.Sprintf(`{"remotepid": %s, "localTaskRole": %s, "localTaskOrganization": %s, "remoteTaskRole": %s, "remoteTaskOrganization": %s, "taskId": %s, "localResource": %s, "resources": %s, "err": %s}`,
 		net.GetRemotePID(), net.GetLocalTaskRole().String(), localIdentityStr, net.GetRemoteTaskRole().String(), remoteIdentityStr, net.GetTaskId(), localResourceStr, ConfirmTaskPeerInfoString(net.GetResources()), net.GetErr())
 }
+
+func (net *NeedExecuteTask) SetConsumeQueryId(consumeQueryId string) {
+	net.consumeQueryId = consumeQueryId
+}
+func (net *NeedExecuteTask) SetConsumeSpec(consumeSpec string) { net.consumeSpec = consumeSpec }
 
 type ExecuteTaskMonitor struct {
 	taskId  string

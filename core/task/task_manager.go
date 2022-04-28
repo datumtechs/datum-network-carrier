@@ -3,25 +3,25 @@ package task
 import (
 	"context"
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/ach/auth"
-	"github.com/RosettaFlow/Carrier-Go/ach/metispay"
-	"github.com/RosettaFlow/Carrier-Go/common"
-	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
-	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
-	"github.com/RosettaFlow/Carrier-Go/common/traceutil"
-	"github.com/RosettaFlow/Carrier-Go/consensus"
-	ev "github.com/RosettaFlow/Carrier-Go/core/evengine"
-	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
-	"github.com/RosettaFlow/Carrier-Go/core/resource"
-	"github.com/RosettaFlow/Carrier-Go/core/schedule"
-	msgcommonpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/common"
-	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
-	taskmngpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/taskmng"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
-	"github.com/RosettaFlow/Carrier-Go/p2p"
-	"github.com/RosettaFlow/Carrier-Go/params"
-	"github.com/RosettaFlow/Carrier-Go/policy"
-	"github.com/RosettaFlow/Carrier-Go/types"
+	"github.com/Metisnetwork/Metis-Carrier/ach/auth"
+	"github.com/Metisnetwork/Metis-Carrier/ach/metispay"
+	"github.com/Metisnetwork/Metis-Carrier/common"
+	"github.com/Metisnetwork/Metis-Carrier/common/bytesutil"
+	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
+	"github.com/Metisnetwork/Metis-Carrier/common/traceutil"
+	"github.com/Metisnetwork/Metis-Carrier/consensus"
+	ev "github.com/Metisnetwork/Metis-Carrier/core/evengine"
+	"github.com/Metisnetwork/Metis-Carrier/core/rawdb"
+	"github.com/Metisnetwork/Metis-Carrier/core/resource"
+	"github.com/Metisnetwork/Metis-Carrier/core/schedule"
+	msgcommonpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/common"
+	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
+	taskmngpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/taskmng"
+	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/Metisnetwork/Metis-Carrier/p2p"
+	"github.com/Metisnetwork/Metis-Carrier/params"
+	"github.com/Metisnetwork/Metis-Carrier/policy"
+	"github.com/Metisnetwork/Metis-Carrier/types"
 	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"strings"
@@ -143,6 +143,10 @@ func (m *Manager) recoveryNeedExecuteTask() {
 				res.GetResources(),
 				taskErr,
 			)
+			// TODO 需要添加根据 consumeSpec 中的一些状态， 决定是否在重新启动时，是否继续做的某些事 ...
+			task.SetConsumeQueryId(res.GetConsumeQueryId())
+			task.SetConsumeSpec(res.GetConsumeSpec())
+
 			cache[partyId] = task
 			m.runningTaskCache[taskId] = cache
 
@@ -349,7 +353,7 @@ func (m *Manager) loop() {
 				case libtypes.TaskRole_TaskRole_Sender:
 					m.publishFinishedTaskToDataCenter(task, localTask, true)
 				default:
-					m.sendTaskResultMsgToTaskSender(task)
+					m.sendTaskResultMsgToTaskSender(task, localTask)
 				}
 			}
 
@@ -678,7 +682,7 @@ func (m *Manager) HandleReportResourceUsage(usage *types.TaskResuorceUsage) erro
 func (m *Manager) storeTaskAllPartnerPartyIds(task *types.Task) error {
 
 	// partyId of powerSuppliers
-	partyIds, err := policy.FetchPowerPartyIds(task.GetTaskData().GetPowerPolicyType(), task.GetTaskData().GetPowerPolicyOption())
+	partyIds, err := policy.FetchPowerPartyIds(task.GetTaskData().GetPowerPolicyTypes(), task.GetTaskData().GetPowerPolicyOptions())
 	if nil != err {
 		log.WithError(err).Errorf("not fetch partyIds from task powerPolicy, taskId: {%s}", task.GetTaskId())
 		return err
