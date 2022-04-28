@@ -59,14 +59,7 @@ func NewSyncPowerRequest(resource *LocalResource) *api.SyncPowerRequest {
 
 func NewSaveIdentityRequest(identity *Identity) *api.SaveIdentityRequest {
 	request := &api.SaveIdentityRequest{
-		Member: &libtypes.Organization{
-			NodeName:   identity.GetName(),
-			NodeId:     identity.GetNodeId(),
-			IdentityId: identity.GetIdentityId(),
-			ImageUrl:   identity.GetImageUrl(),
-			Details:    identity.GetDetails(),
-		},
-		Credential: identity.GetCredential(),
+		Information: identity.data,
 	}
 	return request
 }

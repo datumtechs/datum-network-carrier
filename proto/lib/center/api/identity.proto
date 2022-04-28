@@ -10,9 +10,7 @@ import "lib/types/metadata.proto";
 
 
 message SaveIdentityRequest {
-  types.Organization member = 1;
-  // 节点的身份凭证（DID中的凭证信息）
-  string credential = 2;
+  types.IdentityPB information = 1;
 }
 
 message RevokeIdentityRequest {
