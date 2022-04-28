@@ -7,24 +7,54 @@ import (
 	"github.com/Metisnetwork/Metis-Carrier/types"
 )
 
-func FetchOriginId (fileType libtypes.OrigindataType, metadataOption string) (string, error) {
-	if fileType == libtypes.OrigindataType_OrigindataType_CSV {
+func FetchOriginId (dataType libtypes.OrigindataType, metadataOption string) (string, error) {
+
+	switch dataType {
+	case libtypes.OrigindataType_OrigindataType_CSV:
 		var option *types.MetadataOptionCSV
 		if err := json.Unmarshal([]byte(metadataOption), &option); nil != err {
-			return "", fmt.Errorf("unmashal metadataOption failed, %s", err)
+			return "", fmt.Errorf("unmashal metadataOption to csv failed, %s", err)
 		}
 		return option.GetOriginId(), nil
+	case libtypes.OrigindataType_OrigindataType_DIR:
+		var option *types.MetadataOptionDIR
+		if err := json.Unmarshal([]byte(metadataOption), &option); nil != err {
+			return "", fmt.Errorf("unmashal metadataOption to dir failed, %s", err)
+		}
+		return option.GetOriginId(), nil
+	case libtypes.OrigindataType_OrigindataType_BINARY:
+		var option *types.MetadataOptionBINARY
+		if err := json.Unmarshal([]byte(metadataOption), &option); nil != err {
+			return "", fmt.Errorf("unmashal metadataOption to binary failed, %s", err)
+		}
+		return option.GetOriginId(), nil
+	default:
+		return "", types.CannotMatchMetadataOption
 	}
-	return "", types.CannotMatchMetadataOption
 }
 
-func FetchFilePath (fileType libtypes.OrigindataType, metadataOption string) (string, error) {
-	if fileType == libtypes.OrigindataType_OrigindataType_CSV {
+func FetchDataPath (dataType libtypes.OrigindataType, metadataOption string) (string, error) {
+
+	switch dataType {
+	case libtypes.OrigindataType_OrigindataType_CSV:
 		var option *types.MetadataOptionCSV
 		if err := json.Unmarshal([]byte(metadataOption), &option); nil != err {
-			return "", fmt.Errorf("unmashal metadataOption failed, %s", err)
+			return "", fmt.Errorf("unmashal metadataOption to csv failed, %s", err)
 		}
 		return option.GetDataPath(), nil
+	case libtypes.OrigindataType_OrigindataType_DIR:
+		var option *types.MetadataOptionDIR
+		if err := json.Unmarshal([]byte(metadataOption), &option); nil != err {
+			return "", fmt.Errorf("unmashal metadataOption to dir failed, %s", err)
+		}
+		return option.GetDirPath(), nil
+	case libtypes.OrigindataType_OrigindataType_BINARY:
+		var option *types.MetadataOptionBINARY
+		if err := json.Unmarshal([]byte(metadataOption), &option); nil != err {
+			return "", fmt.Errorf("unmashal metadataOption to binary failed, %s", err)
+		}
+		return option.GetDataPath(), nil
+	default:
+		return "", types.CannotMatchMetadataOption
 	}
-	return "", types.CannotMatchMetadataOption
 }

@@ -92,20 +92,34 @@ func (mc *MetadataColumn) GetSize() uint64    { return mc.Size }
 /**
 {
     "originId": "d9b41e7138544c63f9fe25f6aa4983819793e5b46f14652a1ff1b51f99f71783",
-    "dirPath": "/home/user1/data/data_root/bank_predict_partyA_20220218-090241.csv",
-    "size": 12,
+    "dirPath": "/home/user1/data/data_root/",
+	"childs": [
+		{
+    		"originId": "eefff343533377...4433dfaa",
+    		"dirPath": "/home/user1/data/data_root/result_file/",
+			"childs": [],
+			"last": true,
+			"filePaths": ["/home/user1/data/data_root/result_file/task_20220218_result.csv"]
+		}
+	],
+	"last": false,
+	"filePaths": ["/home/user1/data/data_root/bank_predict_partyA_20220218-090241.csv"]
 }
 */
 // libtypes.OrigindataType_DIR |
 type MetadataOptionDIR struct {
-	OriginId string `json:"originId"`
-	DirPath  string `json:"dirPath"`
-	Size     uint64 `json:"size"`
+	OriginId  string               `json:"originId"`
+	DirPath   string               `json:"dirPath"`
+	Childs    []*MetadataOptionDIR `json:"childs"`
+	Last      bool                 `json:"last"`
+	FilePaths []string             `json:"filePaths"`
 }
 
-func (option *MetadataOptionDIR) GetOriginId() string { return option.OriginId }
-func (option *MetadataOptionDIR) GetDirPath() string  { return option.DirPath }
-func (option *MetadataOptionDIR) GetSize() uint64     { return option.Size }
+func (option *MetadataOptionDIR) GetOriginId() string             { return option.OriginId }
+func (option *MetadataOptionDIR) GetDirPath() string              { return option.DirPath }
+func (option *MetadataOptionDIR) GetChilds() []*MetadataOptionDIR { return option.Childs }
+func (option *MetadataOptionDIR) GetLast() bool                   { return option.Last }
+func (option *MetadataOptionDIR) GetFilePaths() []string          { return option.FilePaths }
 
 /**
 {

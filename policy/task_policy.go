@@ -28,16 +28,30 @@ func FetchMetedataIdByPartyId (partyId string, policyTypes []uint32, policyOptio
 }
 
 func FetchMetedataIdByPartyIdAndType (partyId string, policyType uint32, policyOption string) (string, error) {
-	switch policyType {
-	case uint32(libtypes.OrigindataType_OrigindataType_CSV):
-		var policys []*types.TaskMetadataPolicyCSV
-		if err := json.Unmarshal([]byte(policyOption), &policys); nil != err {
+	switch libtypes.OrigindataType(policyType) {
+	case libtypes.OrigindataType_OrigindataType_CSV:
+		var policy *types.TaskMetadataPolicyCSV
+		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
 			return "", err
 		}
-		for _, policy := range policys {
-			if policy.GetPartyId() == partyId {
-				return policy.GetMetadataId(), nil
-			}
+		if policy.GetPartyId() == partyId {
+			return policy.GetMetadataId(), nil
+		}
+	case libtypes.OrigindataType_OrigindataType_DIR:
+		var policy *types.TaskMetadataPolicyDIR
+		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
+			return "", err
+		}
+		if policy.GetPartyId() == partyId {
+			return policy.GetMetadataId(), nil
+		}
+	case libtypes.OrigindataType_OrigindataType_BINARY:
+		var policy *types.TaskMetadataPolicyBINARY
+		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
+			return "", err
+		}
+		if policy.GetPartyId() == partyId {
+			return policy.GetMetadataId(), nil
 		}
 	}
 	return "", types.NotFoundMetadataPolicy
@@ -64,9 +78,23 @@ func FetchAllMetedataIds (policyTypes []uint32, policyOptions []string) ([]strin
 }
 
 func FetchAllMetedataIdByType (policyType uint32, policyOption string) (string, error) {
-	switch policyType {
-	case uint32(libtypes.OrigindataType_OrigindataType_CSV):
+	switch libtypes.OrigindataType(policyType) {
+	case libtypes.OrigindataType_OrigindataType_CSV:
 		var policy *types.TaskMetadataPolicyCSV
+		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
+			return "", err
+		}
+
+		return policy.GetMetadataId(), nil
+	case libtypes.OrigindataType_OrigindataType_DIR:
+		var policy *types.TaskMetadataPolicyDIR
+		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
+			return "", err
+		}
+
+		return policy.GetMetadataId(), nil
+	case libtypes.OrigindataType_OrigindataType_BINARY:
+		var policy *types.TaskMetadataPolicyBINARY
 		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
 			return "", err
 		}
@@ -97,9 +125,25 @@ func FetchMetedataNameByPartyId (partyId string, policyTypes []uint32, policyOpt
 }
 
 func FetchMetedataNameByPartyIdAndType (partyId string, policyType uint32, policyOption string) (string, error) {
-	switch policyType {
-	case uint32(libtypes.OrigindataType_OrigindataType_CSV):
+	switch libtypes.OrigindataType(policyType) {
+	case libtypes.OrigindataType_OrigindataType_CSV:
 		var policy *types.TaskMetadataPolicyCSV
+		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
+			return "", err
+		}
+		if policy.GetPartyId() == partyId {
+			return policy.GetMetadataName(), nil
+		}
+	case libtypes.OrigindataType_OrigindataType_DIR:
+		var policy *types.TaskMetadataPolicyDIR
+		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
+			return "", err
+		}
+		if policy.GetPartyId() == partyId {
+			return policy.GetMetadataName(), nil
+		}
+	case libtypes.OrigindataType_OrigindataType_BINARY:
+		var policy *types.TaskMetadataPolicyBINARY
 		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
 			return "", err
 		}
