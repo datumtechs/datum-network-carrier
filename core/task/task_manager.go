@@ -682,7 +682,7 @@ func (m *Manager) HandleReportResourceUsage(usage *types.TaskResuorceUsage) erro
 func (m *Manager) storeTaskAllPartnerPartyIds(task *types.Task) error {
 
 	// partyId of powerSuppliers
-	partyIds, err := policy.FetchPowerPartyIds(task.GetTaskData().GetPowerPolicyTypes(), task.GetTaskData().GetPowerPolicyOptions())
+	partyIds, err := policy.FetchPowerPartyIdsFromPowerPolicy(task.GetTaskData().GetPowerPolicyTypes(), task.GetTaskData().GetPowerPolicyOptions())
 	if nil != err {
 		log.WithError(err).Errorf("not fetch partyIds from task powerPolicy, taskId: {%s}", task.GetTaskId())
 		return err

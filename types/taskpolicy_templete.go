@@ -15,14 +15,33 @@ const (
 	// ==================================================================== metadata policy option ====================================================================\
 
 	// ==================================================================== power policy option ====================================================================
+
+	TASK_POWER_POLICY_ASSIGNMENT_SYMBOL_RANDOM_ELECTION = 1
 	/**
 	"q0"
 	*/
-	TASK_POWER_POLICY_ASSIGNMENT_SYMBOL_RANDOM_ELECTION_POWER = 1
+
+	TASK_POWER_POLICY_DATANODE_PROVIDE = 2
 	/**
-	"p0"
+	"{
+		"providerPartyId": "p0",
+		"powerPartyId": "y0"
+	}"
 	*/
-	TASK_POWER_POLICY_DATANODE_PROVIDE_POWER = 2
+
+	// ==================================================================== receiver policy option ====================================================================
+	TASK_RECEIVER_POLICY_RANDOM_ELECTION = 1
+	/**
+	"q0"
+	 */
+
+	TASK_RECEIVER_POLICY_DATANODE_PROVIDE = 2
+	/**
+	{
+		"providerPartyId": "p0",
+		"receiverPartyId": "q0"
+	}
+	*/
 
 	// ==================================================================== dataFlow policy option ====================================================================
 
@@ -63,7 +82,6 @@ func (p *TaskMetadataPolicyUnknown) GetMetadataName() string {
 func (p *TaskMetadataPolicyUnknown) QueryInputType() uint32 {
 	return p.InputType
 }
-
 
 /**
 OrigindataType_CSV
@@ -143,7 +161,6 @@ func (p *TaskMetadataPolicyDIR) QueryInputType() uint32 {
 	return p.InputType
 }
 
-
 /**
 OrigindataType_BINARY
 value: 3
@@ -178,7 +195,30 @@ func (p *TaskMetadataPolicyBINARY) QueryInputType() uint32 {
 	return p.InputType
 }
 
-
 // ==================================================================== power policy option ====================================================================
+
+/**
+{
+	"providerPartyId": "p0",
+	"powerPartyId": "y0"
+}
+*/
+type TaskPowerPolicyDataNodeProvide struct {
+	ProviderPartyId string `json:"providerPartyId"`
+	PowerPartyId    string `json:"powerPartyId"`
+}
+
+// ==================================================================== receiver policy option ====================================================================
+
+/**
+{
+	"providerPartyId": "p0",
+	"receiverPartyId": "y0"
+}
+*/
+type TaskReceiverPolicyDataNodeProvide struct {
+	ProviderPartyId string `json:"providerPartyId"`
+	ReceiverPartyId string `json:"receiverPartyId"`
+}
 
 // ==================================================================== dataFlow policy option ====================================================================

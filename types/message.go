@@ -738,6 +738,8 @@ func NewTaskMessageFromRequest(req *pb.PublishTaskDeclareRequest) *TaskMsg {
 			DataPolicyOptions:        req.GetDataPolicyOptions(),
 			PowerPolicyTypes:         req.GetPowerPolicyTypes(),
 			PowerPolicyOptions:       req.GetPowerPolicyOptions(),
+			ReceiverPolicyTypes:      req.GetReceiverPolicyTypes(),
+			ReceiverPolicyOptions:    req.GetReceiverPolicyOptions(),
 			DataFlowPolicyTypes:      req.GetDataFlowPolicyTypes(),
 			DataFlowPolicyOptions:    req.GetDataFlowPolicyOptions(),
 			OperationCost:            req.GetOperationCost(),
@@ -1189,7 +1191,6 @@ type SelfCfgParams struct {
 	InputData interface{} `json:"input_data""`
 }
 
-
 /**
 {
     "input_type": 3,  # 输入数据的类型，(算法用标识数据使用方式). 0:unknown, 1:origin_data, 2:psi_output, 3:model
@@ -1199,10 +1200,10 @@ type SelfCfgParams struct {
 }
 */
 type InputDataDIR struct {
-	InputType       uint32   `json:"input_type"`
-	AccessType      uint32   `json:"access_type"`  // 访问数据的方式，(fighter用决定是否预先加载数据). 0:unknown, 1:local <default>, 2:http, 3:https, 4:ftp
-	DataType        uint32   `json:"data_type"`
-	DataPath        string   `json:"data_path"`
+	InputType  uint32 `json:"input_type"`
+	AccessType uint32 `json:"access_type"` // 访问数据的方式，(fighter用决定是否预先加载数据). 0:unknown, 1:local <default>, 2:http, 3:https, 4:ftp
+	DataType   uint32 `json:"data_type"`
+	DataPath   string `json:"data_path"`
 }
 
 /**
@@ -1214,10 +1215,10 @@ type InputDataDIR struct {
 }
 */
 type InputDataBINARY struct {
-	InputType       uint32   `json:"input_type"`
-	AccessType      uint32   `json:"access_type"`  // 访问数据的方式，(fighter用决定是否预先加载数据). 0:unknown, 1:local <default>, 2:http, 3:https, 4:ftp
-	DataType        uint32   `json:"data_type"`
-	DataPath        string   `json:"data_path"`
+	InputType  uint32 `json:"input_type"`
+	AccessType uint32 `json:"access_type"` // 访问数据的方式，(fighter用决定是否预先加载数据). 0:unknown, 1:local <default>, 2:http, 3:https, 4:ftp
+	DataType   uint32 `json:"data_type"`
+	DataPath   string `json:"data_path"`
 }
 
 /**
@@ -1232,7 +1233,7 @@ type InputDataBINARY struct {
 */
 type InputDataCSV struct {
 	InputType       uint32   `json:"input_type"`
-	AccessType      uint32   `json:"access_type"`  // 访问数据的方式，(fighter用决定是否预先加载数据). 0:unknown, 1:local <default>, 2:http, 3:https, 4:ftp
+	AccessType      uint32   `json:"access_type"` // 访问数据的方式，(fighter用决定是否预先加载数据). 0:unknown, 1:local <default>, 2:http, 3:https, 4:ftp
 	DataType        uint32   `json:"data_type"`
 	DataPath        string   `json:"data_path"`
 	KeyColumn       string   `json:"key_column"`

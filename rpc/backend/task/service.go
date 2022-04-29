@@ -152,31 +152,39 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require receivers"}, nil
 	}
 	if len(req.GetDataPolicyTypes()) == 0 {
-		log.Errorf("RPC-API:PublishTaskDeclare failed, check DataPolicyType failed, DataPolicyType is zero value")
-		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown dataPolicyType"}, nil
+		log.Errorf("RPC-API:PublishTaskDeclare failed, check DataPolicyType failed, dataPolicyTypes len is %d", len(req.GetDataPolicyTypes()))
+		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown dataPolicyTypes"}, nil
 	}
 	if len(req.GetDataPolicyOptions()) == 0 {
-		log.Errorf("RPC-API:PublishTaskDeclare failed, check DataPolicyOption failed, DataPolicyOption is empty")
-		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require dataPolicyOption"}, nil
+		log.Errorf("RPC-API:PublishTaskDeclare failed, check DataPolicyOption failed, dataPolicyOptions len is %d", len(req.GetDataPolicyOptions()))
+		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require dataPolicyOptions"}, nil
 	}
 	if len(req.GetPowerPolicyTypes()) == 0 {
-		log.Errorf("RPC-API:PublishTaskDeclare failed, check PowerPolicyType failed, PowerPolicyType is zero value")
-		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown powerPolicyType"}, nil
+		log.Errorf("RPC-API:PublishTaskDeclare failed, check PowerPolicyType failed, powerPolicyTypes len is %d", len(req.GetPowerPolicyTypes()))
+		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown powerPolicyTypes"}, nil
 	}
 	if len(req.GetPowerPolicyOptions()) == 0 {
-		log.Errorf("RPC-API:PublishTaskDeclare failed, check PowerPolicyOption failed, PowerPolicyOption is empty")
-		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require powerPolicyOption"}, nil
+		log.Errorf("RPC-API:PublishTaskDeclare failed, check PowerPolicyOption failed, powerPolicyOptions len is %d", len(req.GetPowerPolicyOptions()))
+		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require powerPolicyOptions"}, nil
 	}
-	if len(req.GetDataFlowPolicyTypes()) == 0  {
-		log.Errorf("RPC-API:PublishTaskDeclare failed, check DataFlowPolicyType failed, DataFlowPolicyType is zero value")
-		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown dataFlowPolicyType"}, nil
+	if len(req.GetReceiverPolicyTypes()) == 0 {
+		log.Errorf("RPC-API:PublishTaskDeclare failed, check PowerPolicyType failed, receiverPolicyTypes len is %d", len(req.GetReceiverPolicyTypes()))
+		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown receiverPolicyTypes"}, nil
+	}
+	if len(req.GetReceiverPolicyOptions()) == 0 {
+		log.Errorf("RPC-API:PublishTaskDeclare failed, check PowerPolicyOption failed, receiverPolicyOptions len is %d", len(req.GetReceiverPolicyOptions()))
+		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require receiverPolicyOptions"}, nil
 	}
 	// Maybe the dataFlowPolicyOption is empty,
 	// Because dataFlowPolicyType can already represent the way the data flows.
 	//
+	//if len(req.GetDataFlowPolicyTypes()) == 0  {
+	//	log.Errorf("RPC-API:PublishTaskDeclare failed, check DataFlowPolicyType failed, DataFlowPolicyTypes len is %d", len(req.GetDataFlowPolicyTypes()))
+	//	return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown dataFlowPolicyTypes"}, nil
+	//}
 	//if "" == strings.Trim(req.GetDataFlowPolicyOptions(), "") {
-	//	log.Errorf("RPC-API:PublishTaskDeclare failed, check DataFlowPolicyOption failed, DataFlowPolicyOption is empty")
-	//	return &pb.PublishTaskDeclareResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "require dataFlowPolicyOption"}, nil
+	//	log.Errorf("RPC-API:PublishTaskDeclare failed, check DataFlowPolicyOption failed, DataFlowPolicyOptions len is %d", len(req.GetDataFlowPolicyOptions()))
+	//	return &pb.PublishTaskDeclareResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "require dataFlowPolicyOptions"}, nil
 	//}
 	if req.GetOperationCost() == nil {
 		log.Errorf("RPC-API:PublishTaskDeclare failed, check OperationCost failed, OperationCost is empty")
