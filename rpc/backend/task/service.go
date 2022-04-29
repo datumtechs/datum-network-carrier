@@ -5,6 +5,7 @@ import (
 	"fmt"
 	pb "github.com/Metisnetwork/Metis-Carrier/lib/api"
 	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/Metisnetwork/Metis-Carrier/policy"
 	"github.com/Metisnetwork/Metis-Carrier/rpc/backend"
 	"github.com/Metisnetwork/Metis-Carrier/signsuite"
 	"github.com/Metisnetwork/Metis-Carrier/types"
@@ -151,6 +152,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 		log.Errorf("RPC-API:PublishTaskDeclare failed, check receivers failed, receivers is empty")
 		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require receivers"}, nil
 	}
+	// about dataPolicy
 	if len(req.GetDataPolicyTypes()) == 0 {
 		log.Errorf("RPC-API:PublishTaskDeclare failed, check DataPolicyType failed, dataPolicyTypes len is %d", len(req.GetDataPolicyTypes()))
 		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown dataPolicyTypes"}, nil
@@ -159,6 +161,11 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 		log.Errorf("RPC-API:PublishTaskDeclare failed, check DataPolicyOption failed, dataPolicyOptions len is %d", len(req.GetDataPolicyOptions()))
 		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require dataPolicyOptions"}, nil
 	}
+	if len(req.GetDataPolicyTypes()) != len(req.GetDataPolicyOptions()) || len(req.GetDataPolicyTypes()) != len(req.GetDataSuppliers()) {
+		log.Errorf("RPC-API:PublishTaskDeclare failed, invalid dataPolicys len")
+		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "invalid dataPolicys len"}, nil
+	}
+	// about powerPolicy
 	if len(req.GetPowerPolicyTypes()) == 0 {
 		log.Errorf("RPC-API:PublishTaskDeclare failed, check PowerPolicyType failed, powerPolicyTypes len is %d", len(req.GetPowerPolicyTypes()))
 		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown powerPolicyTypes"}, nil
@@ -167,6 +174,11 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 		log.Errorf("RPC-API:PublishTaskDeclare failed, check PowerPolicyOption failed, powerPolicyOptions len is %d", len(req.GetPowerPolicyOptions()))
 		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require powerPolicyOptions"}, nil
 	}
+	if len(req.GetPowerPolicyTypes()) != len(req.GetPowerPolicyOptions()) {
+		log.Errorf("RPC-API:PublishTaskDeclare failed, invalid powerPolicys len")
+		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "invalid powerPolicys len"}, nil
+	}
+	// about receiverPolicy
 	if len(req.GetReceiverPolicyTypes()) == 0 {
 		log.Errorf("RPC-API:PublishTaskDeclare failed, check PowerPolicyType failed, receiverPolicyTypes len is %d", len(req.GetReceiverPolicyTypes()))
 		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown receiverPolicyTypes"}, nil
@@ -174,6 +186,10 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 	if len(req.GetReceiverPolicyOptions()) == 0 {
 		log.Errorf("RPC-API:PublishTaskDeclare failed, check PowerPolicyOption failed, receiverPolicyOptions len is %d", len(req.GetReceiverPolicyOptions()))
 		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require receiverPolicyOptions"}, nil
+	}
+	if len(req.GetReceiverPolicyTypes()) != len(req.GetReceiverPolicyOptions()) || len(req.GetReceiverPolicyTypes()) != len(req.GetReceivers()) {
+		log.Errorf("RPC-API:PublishTaskDeclare failed, invalid receiverPolicys len")
+		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "invalid receiverPolicys len"}, nil
 	}
 	// Maybe the dataFlowPolicyOption is empty,
 	// Because dataFlowPolicyType can already represent the way the data flows.
@@ -185,6 +201,10 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 	//if "" == strings.Trim(req.GetDataFlowPolicyOptions(), "") {
 	//	log.Errorf("RPC-API:PublishTaskDeclare failed, check DataFlowPolicyOption failed, DataFlowPolicyOptions len is %d", len(req.GetDataFlowPolicyOptions()))
 	//	return &pb.PublishTaskDeclareResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "require dataFlowPolicyOptions"}, nil
+	//}
+	//if len(req.GetDataFlowPolicyTypes()) != len(req.GetDataFlowPolicyOptions()) {
+	//	log.Errorf("RPC-API:PublishTaskDeclare failed, invalid dataFlowPolicys len")
+	//	return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "invalid dataFlowPolicys len"}, nil
 	//}
 	if req.GetOperationCost() == nil {
 		log.Errorf("RPC-API:PublishTaskDeclare failed, check OperationCost failed, OperationCost is empty")
@@ -227,49 +247,69 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 	//	return &pb.PublishTaskDeclareResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "require desc"}, nil
 	//}
 
-	//checkPartyIdCache := make(map[string]struct{}, 0)
-	//checkPartyIdCache[req.GetSender().GetPartyId()] = struct{}{}
-	//
-	//if _, ok := checkPartyIdCache[req.GetAlgoSupplier().GetPartyId()]; ok {
-	//	log.Errorf("RPC-API:PublishTaskDeclare failed, check partyId of algoSupplier failed, this partyId has alreay exist, partyId: {%s}",
-	//		req.GetAlgoSupplier().GetPartyId())
-	//	return &pb.PublishTaskDeclareResponse { Status: backend.ErrPublishTaskMsg.ErrCode(), Msg: fmt.Sprintf("The partyId of the task participants cannot be repeated on algoSupplier, partyId: {%s}", req.GetAlgoSupplier().GetPartyId())}, nil
-	//}
-	//checkPartyIdCache[req.GetAlgoSupplier().GetPartyId()] = struct{}{}
-	//
-	//for _, v := range req.GetDataSuppliers() {
-	//	if _, ok := checkPartyIdCache[v.GetPartyId()]; ok {
-	//		log.Errorf("RPC-API:PublishTaskDeclare failed, check partyId of dataSuppliers failed, this partyId has alreay exist, partyId: {%s}",
-	//			v.GetPartyId())
-	//		return &pb.PublishTaskDeclareResponse { Status: backend.ErrPublishTaskMsg.ErrCode(), Msg: fmt.Sprintf("The partyId of the task participants cannot be repeated on dataSuppliers, partyId: {%s}", v.GetPartyId())}, nil
-	//	}
-	//	checkPartyIdCache[v.GetPartyId()] = struct{}{}
-	//}
-	//
-	//// check partyId of powerSuppliers
-	//powerPartyIds, err := policy.FetchPowerPartyIds(req.GetPowerPolicyTypes(), req.GetPowerPolicyOptions())
-	//if nil != err {
-	//	log.WithError(err).Errorf("not fetch partyIds from task powerPolicy")
-	//	return &pb.PublishTaskDeclareResponse { Status: backend.ErrPublishTaskMsg.ErrCode(), Msg: "not fetch partyIds from task powerPolicy" }, nil
-	//}
-	//for _, partyId := range powerPartyIds {
-	//	if _, ok := checkPartyIdCache[partyId]; ok {
-	//		log.Errorf("RPC-API:PublishTaskDeclare failed, check partyId of powerSuppliers failed, this partyId has alreay exist, partyId: {%s}",
-	//			partyId)
-	//		return &pb.PublishTaskDeclareResponse { Status: backend.ErrPublishTaskMsg.ErrCode(), Msg: fmt.Sprintf("The partyId of the task participants cannot be repeated on powerSuppliers, partyId: {%s}", partyId)}, nil
-	//	}
-	//	checkPartyIdCache[partyId] = struct{}{}
-	//}
-	//
-	//// check partyId of receivers
-	//for _, v := range req.GetReceivers() {
-	//	if _, ok := checkPartyIdCache[v.GetPartyId()]; ok {
-	//		log.Errorf("RPC-API:PublishTaskDeclare failed, check partyId of receiver failed, this partyId has alreay exist, partyId: {%s}",
-	//			v.GetPartyId())
-	//		return &pb.PublishTaskDeclareResponse { Status: backend.ErrPublishTaskMsg.ErrCode(), Msg: fmt.Sprintf("The partyId of the task participants cannot be repeated on receivers, partyId: {%s}", v.GetPartyId())}, nil
-	//	}
-	//	checkPartyIdCache[v.GetPartyId()] = struct{}{}
-	//}
+	checkPartyIdCache := make(map[string]struct{}, 0)
+	checkPartyIdCache[req.GetSender().GetPartyId()] = struct{}{}
+
+	if _, ok := checkPartyIdCache[req.GetAlgoSupplier().GetPartyId()]; ok {
+		log.Errorf("RPC-API:PublishTaskDeclare failed, check partyId of algoSupplier failed, this partyId has alreay exist, partyId: {%s}",
+			req.GetAlgoSupplier().GetPartyId())
+		return &pb.PublishTaskDeclareResponse { Status: backend.ErrPublishTaskMsg.ErrCode(), Msg: fmt.Sprintf("The partyId of the task participants cannot be repeated on algoSupplier, partyId: {%s}", req.GetAlgoSupplier().GetPartyId())}, nil
+	}
+	checkPartyIdCache[req.GetAlgoSupplier().GetPartyId()] = struct{}{}
+
+	for _, v := range req.GetDataSuppliers() {
+		if _, ok := checkPartyIdCache[v.GetPartyId()]; ok {
+			log.Errorf("RPC-API:PublishTaskDeclare failed, check partyId of dataSuppliers failed, this partyId has alreay exist, partyId: {%s}",
+				v.GetPartyId())
+			return &pb.PublishTaskDeclareResponse { Status: backend.ErrPublishTaskMsg.ErrCode(), Msg: fmt.Sprintf("The partyId of the task participants cannot be repeated on dataSuppliers, partyId: {%s}", v.GetPartyId())}, nil
+		}
+		checkPartyIdCache[v.GetPartyId()] = struct{}{}
+	}
+
+	// check partyId of powerSuppliers
+	powerPartyIds, err := policy.FetchPowerPartyIdsFromPowerPolicy(req.GetPowerPolicyTypes(), req.GetPowerPolicyOptions())
+	if nil != err {
+		log.WithError(err).Errorf("not fetch partyIds from task powerPolicy")
+		return &pb.PublishTaskDeclareResponse { Status: backend.ErrPublishTaskMsg.ErrCode(), Msg: "not fetch partyIds from task powerPolicy" }, nil
+	}
+	for _, partyId := range powerPartyIds {
+		if _, ok := checkPartyIdCache[partyId]; ok {
+			log.Errorf("RPC-API:PublishTaskDeclare failed, check partyId of powerSuppliers failed, this partyId has alreay exist, partyId: {%s}",
+				partyId)
+			return &pb.PublishTaskDeclareResponse { Status: backend.ErrPublishTaskMsg.ErrCode(), Msg: fmt.Sprintf("The partyId of the task participants cannot be repeated on powerSuppliers, partyId: {%s}", partyId)}, nil
+		}
+		checkPartyIdCache[partyId] = struct{}{}
+	}
+
+	// check partyId of receivers
+	for i, v := range req.GetReceivers() {
+
+		partyId, err := policy.FetchReceiverPartyIdByOptionFromReceiverPolicy(req.GetReceiverPolicyTypes()[i], req.GetReceiverPolicyOptions()[i])
+		if nil != err {
+			log.WithError(err).Errorf("RPC-API:PublishTaskDeclare failed, fetch partyId of receiverPolicy failed, index: {%d}, partyId of receiverPolicy: {%s}",
+				i, partyId)
+			return &pb.PublishTaskDeclareResponse { Status: backend.ErrPublishTaskMsg.ErrCode(),
+				Msg: fmt.Sprintf("fetch partyId of receiverPolicy failed, %s, index: {%d}, partyId: {%s}",
+					err, i, v.GetPartyId())}, nil
+		}
+
+		if partyId != v.GetPartyId() {
+			log.Errorf("RPC-API:PublishTaskDeclare failed, partyId of receiverPolicy and receiver is not same, index: {%d}, partyId of receiver: {%s}, partyId of receiverPolicy: {%s}",
+				i, v.GetPartyId(), partyId)
+			return &pb.PublishTaskDeclareResponse { Status: backend.ErrPublishTaskMsg.ErrCode(),
+				Msg: fmt.Sprintf("partyId of receiverPolicy and receiver is not same, index: {%d}, partyId of receiver: {%s}, partyId of receiverPolicy: {%s}",
+					i, v.GetPartyId(), partyId)}, nil
+		}
+
+		if _, ok := checkPartyIdCache[v.GetPartyId()]; ok {
+			log.Errorf("RPC-API:PublishTaskDeclare failed, check partyId of receiver failed, this partyId has alreay exist, partyId: {%s}",
+				v.GetPartyId())
+			return &pb.PublishTaskDeclareResponse { Status: backend.ErrPublishTaskMsg.ErrCode(),
+				Msg: fmt.Sprintf("The partyId of the task participants cannot be repeated on receivers, partyId: {%s}",
+					v.GetPartyId())}, nil
+		}
+		checkPartyIdCache[v.GetPartyId()] = struct{}{}
+	}
 
 	// generate and store taskId
 	taskId := taskMsg.GenTaskId()

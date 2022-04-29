@@ -154,6 +154,9 @@ func FetchMetedataNameByPartyIdAndOptionFromDataPolicy(partyId string, policyTyp
 	return "", types.NotFoundMetadataPolicy
 }
 
+
+// ==============================================================  power policy ==============================================================
+
 func FetchPowerPartyIdsFromPowerPolicy(policyTypes []uint32, policyOptions []string) ([]string, error) {
 
 	if len(policyTypes) != len(policyOptions) {
@@ -164,7 +167,7 @@ func FetchPowerPartyIdsFromPowerPolicy(policyTypes []uint32, policyOptions []str
 
 	for i, policyOption := range policyOptions {
 
-		partyId, err := FetchPowerPartyIdByOptionFromDataPolicy(policyTypes[i], policyOption)
+		partyId, err := FetchPowerPartyIdByOptionFromPowerPolicy(policyTypes[i], policyOption)
 		if nil != err {
 			return nil, err
 		}
@@ -174,12 +177,53 @@ func FetchPowerPartyIdsFromPowerPolicy(policyTypes []uint32, policyOptions []str
 	return partyIds, nil
 }
 
-func FetchPowerPartyIdByOptionFromDataPolicy(policyType uint32, policyOption string) (string, error) {
+func FetchPowerPartyIdByOptionFromPowerPolicy(policyType uint32, policyOption string) (string, error) {
 	switch policyType {
 	case types.TASK_POWER_POLICY_ASSIGNMENT_SYMBOL_RANDOM_ELECTION:
 		return policyOption, nil
 	case types.TASK_POWER_POLICY_DATANODE_PROVIDE:
+		var policy *types.TaskPowerPolicyDataNodeProvide
+		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
+			return "", err
+		}
+		return policy.PowerPartyId, nil
+	default:
+		return "", types.NotFoundPowerPolicy
+	}
+}
+
+
+// ==============================================================  receiver policy ==============================================================
+func FetchReceiverPartyIdsFromReceiverPolicy(policyTypes []uint32, policyOptions []string) ([]string, error) {
+
+	if len(policyTypes) != len(policyOptions) {
+		return nil, fmt.Errorf("type and option count is not same, types %d: policys: %d", len(policyTypes), len(policyOptions))
+	}
+
+	partyIds := make([]string, len(policyOptions))
+
+	for i, policyOption := range policyOptions {
+
+		partyId, err := FetchReceiverPartyIdByOptionFromReceiverPolicy(policyTypes[i], policyOption)
+		if nil != err {
+			return nil, err
+		}
+		partyIds[i] = partyId
+	}
+
+	return partyIds, nil
+}
+
+func FetchReceiverPartyIdByOptionFromReceiverPolicy(policyType uint32, policyOption string) (string, error) {
+	switch policyType {
+	case types.TASK_RECEIVER_POLICY_RANDOM_ELECTION:
 		return policyOption, nil
+	case types.TASK_RECEIVER_POLICY_DATANODE_PROVIDE:
+		var policy *types.TaskReceiverPolicyDataNodeProvide
+		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
+			return "", err
+		}
+		return policy.ReceiverPartyId, nil
 	default:
 		return "", types.NotFoundPowerPolicy
 	}

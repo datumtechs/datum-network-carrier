@@ -442,7 +442,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 			switch policyType {
 			case types.TASK_POWER_POLICY_ASSIGNMENT_SYMBOL_RANDOM_ELECTION:
 
-				if task.GetTaskData().GetPowerPolicyOptions()[i] == partyId {
+				if task.GetTaskData().GetPowerPolicyOptions()[i] == partyId && task.GetTaskData().GetPowerSuppliers()[i].GetPartyId() == partyId {
 
 					log.Debugf("Succeed CalculateSlotCount when role is powerSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, cost.mem: {%d}, cost.Bandwidth: {%d}, cost.Processor: {%d}",
 						task.GetTaskId(), taskRole.String(), partyId,
@@ -486,7 +486,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 					return types.NewReplayScheduleResult(task.GetTaskId(), fmt.Errorf("can not unmarshal powerPolicyType of task, %d", policyType), nil)
 				}
 
-				if powerPolicy.PowerPartyId == partyId {
+				if powerPolicy.PowerPartyId == partyId && task.GetTaskData().GetPowerSuppliers()[i].GetPartyId() == partyId {
 
 					for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
 
@@ -546,7 +546,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 			switch policyType {
 			case types.TASK_RECEIVER_POLICY_RANDOM_ELECTION:
 
-				if task.GetTaskData().GetReceiverPolicyOptions()[i] == partyId {
+				if task.GetTaskData().GetReceiverPolicyOptions()[i] == partyId && task.GetTaskData().GetReceivers()[i].GetPartyId() == partyId {
 
 					dataResourceTables, err := sche.resourceMng.GetDB().QueryDataResourceTables()
 					if nil != err {
@@ -577,7 +577,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 					return types.NewReplayScheduleResult(task.GetTaskId(), fmt.Errorf("can not unmarshal receiverPolicyType of task, %d", policyType), nil)
 				}
 
-				if receiverPolicy.ReceiverPartyId == partyId {
+				if receiverPolicy.ReceiverPartyId == partyId && task.GetTaskData().GetReceivers()[i].GetPartyId() == partyId {
 
 					for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
 
