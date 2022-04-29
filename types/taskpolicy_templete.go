@@ -213,7 +213,7 @@ type TaskPowerPolicyDataNodeProvide struct {
 /**
 {
 	"providerPartyId": "p0",
-	"receiverPartyId": "y0"
+	"receiverPartyId": "q0"
 }
 */
 type TaskReceiverPolicyDataNodeProvide struct {
