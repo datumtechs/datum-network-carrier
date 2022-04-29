@@ -5,6 +5,7 @@ option go_package = "github.com/Metisnetwork/Metis-Carrier/lib/fighter/datasvc";
 import "google/protobuf/empty.proto";
 import "google/api/annotations.proto";
 import "lib/fighter/common/common.proto";
+import "lib/types/base.proto";
 
 service DataProvider {
   rpc GetStatus(google.protobuf.Empty) returns (GetStatusReply) {
@@ -55,8 +56,8 @@ service DataProvider {
 }
 
 message DownloadRequest {
-  string file_path = 1;
-  map<string, string> options = 2;  // e.g.: compress: zip|tar.gz, file_root_dir: data|result
+  string data_path = 1;
+  map<string, string> options = 2;  // e.g.: compress: zip|tar.gz, data_root_dir: data|result
 }
 
 enum TaskStatus {
@@ -73,19 +74,10 @@ message DownloadReply {
   }
 }
 
-message FileInfo {
-  string file_name = 1;
-  string file_type = 2;
-  string description = 3;
-  repeated string columns = 4;
-  repeated string col_dtypes = 5;
-  repeated string keywords = 6;
-}
-
 message UploadRequest {
-  string file_name = 1;
+  string data_name = 1;
   bytes content = 2;
-  string file_type = 3;
+  types.OrigindataType data_type = 3;
   string description = 4;
   repeated string columns = 5;
   repeated string col_dtypes = 6;
@@ -96,7 +88,7 @@ message UploadReply {
   int32  status = 1;    // 响应码
   string msg = 2;       // 错误信息
   string data_id = 3;
-  string file_path = 4;
+  string data_path = 4;
   string data_hash = 5;
 }
 
@@ -104,7 +96,7 @@ message ListDataReply {
   message Row {
     string data_id = 1;
     string info = 2;
-    string file_name = 3;
+    string data_name = 3;
     int32 size = 4;
   }
   int32  status = 1;    // 响应码

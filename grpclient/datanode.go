@@ -143,7 +143,7 @@ func (c *DataNodeClient) ListData() (*datasvc.ListDataReply, error) {
 	return nil, errors.New("method ListData not implemented")
 }
 
-func (c *DataNodeClient) UploadData(content []byte, metadata *datasvc.FileInfo) (*datasvc.UploadReply, error) {
+func (c *DataNodeClient) UploadData(content []byte, metadata *datasvc.UploadRequest) (*datasvc.UploadReply, error) {
 	return nil, errors.New("method UploadData not implemented")
 }
 
