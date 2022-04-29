@@ -430,46 +430,116 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 	// or 'sendtaskresultmsgtotasksender' in taskmnager.
 	case libtypes.TaskRole_TaskRole_PowerSupplier:
 
-		// ## 1、choosing  jobNode only
+		// ## 1、choosing powerSupplier jobNode
 
-		log.Debugf("Succeed CalculateSlotCount when role is powerSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, cost.mem: {%d}, cost.Bandwidth: {%d}, cost.Processor: {%d}",
-			task.GetTaskId(), taskRole.String(), partyId,
-			task.GetTaskData().GetOperationCost().GetMemory(),
-			task.GetTaskData().GetOperationCost().GetBandwidth(),
-			task.GetTaskData().GetOperationCost().GetProcessor())
+		var (
+			node *libapipb.YarnRegisteredPeerDetail
+			err error
+		)
 
-		jobNode, err := sche.elector.ElectionNode(task.GetTaskId(),
-			task.GetTaskData().GetOperationCost().GetMemory(),
-			task.GetTaskData().GetOperationCost().GetBandwidth(), 0,
-			task.GetTaskData().GetOperationCost().GetProcessor(), "")
-		if nil != err {
-			log.WithError(err).Errorf("Failed to election internal power resource when role is powerSupplier on SchedulerStarveFIFO.ReplaySchedule(),taskId: {%s}, role: {%s}, partyId: {%s}",
-				task.GetTaskId(), taskRole.String(), partyId)
-			return types.NewReplayScheduleResult(task.GetTaskId(), fmt.Errorf("%s when election internal jobNode", err), nil)
+		for i, policyType := range task.GetTaskData().GetPowerPolicyTypes() {
+
+			switch policyType {
+			case types.TASK_POWER_POLICY_ASSIGNMENT_SYMBOL_RANDOM_ELECTION:
+
+				if task.GetTaskData().GetPowerPolicyOptions()[i] == partyId {
+
+					log.Debugf("Succeed CalculateSlotCount when role is powerSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, cost.mem: {%d}, cost.Bandwidth: {%d}, cost.Processor: {%d}",
+						task.GetTaskId(), taskRole.String(), partyId,
+						task.GetTaskData().GetOperationCost().GetMemory(),
+						task.GetTaskData().GetOperationCost().GetBandwidth(),
+						task.GetTaskData().GetOperationCost().GetProcessor())
+
+					// election jobNode machine
+					node, err = sche.elector.ElectionNode(task.GetTaskId(),
+						task.GetTaskData().GetOperationCost().GetMemory(),
+						task.GetTaskData().GetOperationCost().GetBandwidth(), 0,
+						task.GetTaskData().GetOperationCost().GetProcessor(), "")
+					if nil != err {
+						log.WithError(err).Errorf("Failed to election internal power resource when role is powerSupplier on SchedulerStarveFIFO.ReplaySchedule(),taskId: {%s}, role: {%s}, partyId: {%s}",
+							task.GetTaskId(), taskRole.String(), partyId)
+						return types.NewReplayScheduleResult(task.GetTaskId(), fmt.Errorf("%s when election internal jobNode", err), nil)
+					}
+
+					// Lock the jobNode resource
+					if err := sche.resourceMng.LockLocalResourceWithTask(
+						partyId,
+						node.GetId(),
+						task.GetTaskData().GetOperationCost().GetMemory(),
+						task.GetTaskData().GetOperationCost().GetBandwidth(),
+						0,
+						task.GetTaskData().GetOperationCost().GetProcessor(),
+						task); nil != err {
+						log.WithError(err).Errorf("Failed to Lock LocalResource when role is powerSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
+							task.GetTaskId(), taskRole.String(), partyId, node.GetId())
+						return types.NewReplayScheduleResult(task.GetTaskId(), fmt.Errorf("%s when lock internal jobNode resource", err), nil)
+					}
+
+					break // break the external loop
+				}
+
+			case types.TASK_POWER_POLICY_DATANODE_PROVIDE:
+
+				var powerPolicy *types.TaskPowerPolicyDataNodeProvide
+				if err := json.Unmarshal([]byte(task.GetTaskData().GetPowerPolicyOptions()[i]), &powerPolicy); nil != err {
+					log.WithError(err).Errorf("can not unmarshal powerPolicyType, on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}", task.GetTaskId())
+					return types.NewReplayScheduleResult(task.GetTaskId(), fmt.Errorf("can not unmarshal powerPolicyType of task, %d", policyType), nil)
+				}
+
+				if powerPolicy.PowerPartyId == partyId {
+
+					for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
+
+						// ### NOTE:
+						//		Only when the receiver and the dataSupplier belong to the same organization
+						//		that can the datasupplier's datanode be specified as the receiver's datanode
+						if powerPolicy.ProviderPartyId  == dataSupplier.GetPartyId() && identityId == dataSupplier.GetIdentityId() {
+
+							metadataId, err := policy.FetchMetedataIdByPartyIdFromDataPolicy(partyId, task.GetTaskData().GetDataPolicyTypes(), task.GetTaskData().GetDataPolicyOptions())
+							if nil != err {
+								log.WithError(err).Errorf("not fetch metadataId from task dataPolicy when election jobNode on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, userType: {%s}, user: {%s}",
+									task.GetTaskId(), taskRole.String(), partyId, task.GetTaskData().GetUserType(), task.GetTaskData().GetUser())
+								return types.NewReplayScheduleResult(task.GetTaskId(), fmt.Errorf("%s when fetch metadataId from task dataPolicy", err), nil)
+							}
+
+							// election dataNode machine to be jobNode
+							node, err = findDataNodeByMetadataIdFn(metadataId)
+							if nil != err {
+								return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)
+							}
+							break // break the internal loop
+						}
+					}
+
+					break // break the external loop
+				}
+
+			// NOTE: unknown powerPolicyType
+			default:
+				log.WithError(err).Errorf("unknown powerPolicyType of task on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}", task.GetTaskId())
+				return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)
+			}
 		}
 
-		log.Debugf("Succeed election internal power resource when role is powerSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, jobNode: %s",
-			task.GetTaskId(), taskRole.String(), partyId, jobNode.String())
-
-		if err := sche.resourceMng.LockLocalResourceWithTask(partyId, jobNode.Id,
-			task.GetTaskData().GetOperationCost().GetMemory(),
-			task.GetTaskData().GetOperationCost().GetBandwidth(), 0,
-			task.GetTaskData().GetOperationCost().GetProcessor(), task); nil != err {
-			log.WithError(err).Errorf("Failed to Lock LocalResource when role is powerSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
-				task.GetTaskId(), taskRole.String(), partyId, jobNode.Id)
-			return types.NewReplayScheduleResult(task.GetTaskId(), fmt.Errorf("%s when lock internal jobNode resource", err), nil)
+		if nil == node {
+			return types.NewReplayScheduleResult(task.GetTaskId(), fmt.Errorf("cannot found jobNode"), nil)
 		}
 
-		result = types.NewReplayScheduleResult(task.GetTaskId(), nil, types.NewPrepareVoteResource(jobNode.Id, jobNode.ExternalIp, jobNode.ExternalPort, partyId))
+		log.Debugf("Succeed election internal power resource when role is powerSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, node(jobNode|dataNode): %s",
+			task.GetTaskId(), taskRole.String(), partyId, node.String())
+
+		result = types.NewReplayScheduleResult(task.GetTaskId(), nil, types.NewPrepareVoteResource(node.Id, node.GetExternalIp(), node.GetExternalPort(), partyId))
 
 	// If the current participant is resultsupplier.
 	// just select their own available datanodes.
 	case libtypes.TaskRole_TaskRole_Receiver:
-		// TaskReceiverPolicyDataNodeProvide
 
-		// ## 1、elected receiver
+		// ## 1、choosing receiver dataNode
 
-		var dataNode *libapipb.YarnRegisteredPeerDetail
+		var (
+			dataNode *libapipb.YarnRegisteredPeerDetail
+			err error
+		)
 
 		for i, policyType := range task.GetTaskData().GetReceiverPolicyTypes() {
 
@@ -502,7 +572,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 			case types.TASK_RECEIVER_POLICY_DATANODE_PROVIDE:
 
 				var receiverPolicy *types.TaskReceiverPolicyDataNodeProvide
-				if err := json.Unmarshal([]byte(task.GetTaskData().GetReceiverPolicyOptions()[i]), &receiverPolicy); nil != err {
+				if err = json.Unmarshal([]byte(task.GetTaskData().GetReceiverPolicyOptions()[i]), &receiverPolicy); nil != err {
 					log.WithError(err).Errorf("can not unmarshal receiverPolicyType, on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}", task.GetTaskId())
 					return types.NewReplayScheduleResult(task.GetTaskId(), fmt.Errorf("can not unmarshal receiverPolicyType of task, %d", policyType), nil)
 				}
@@ -549,7 +619,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 		log.Debugf("Succeed election internal data resource when role is receiver on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, dataNode: %s",
 			task.GetTaskId(), taskRole.String(), partyId, dataNode.String())
 
-		result = types.NewReplayScheduleResult(task.GetTaskId(), nil, types.NewPrepareVoteResource(dataNode.Id, dataNode.ExternalIp, dataNode.ExternalPort, partyId))
+		result = types.NewReplayScheduleResult(task.GetTaskId(), nil, types.NewPrepareVoteResource(dataNode.Id, dataNode.GetExternalIp(), dataNode.GetExternalPort(), partyId))
 
 	default:
 		result = types.NewReplayScheduleResult(task.GetTaskId(), fmt.Errorf("task role: {%s} can not replay schedule task", taskRole.String()), nil)
