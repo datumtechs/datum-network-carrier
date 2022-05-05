@@ -34,7 +34,7 @@ func (s *Service) validateConfirmVotePubSub(ctx context.Context, pid peer.ID, ms
 		return pubsub.ValidationReject
 	}
 
-	if s.hasSeenConfirmVote(message.MsgOption.ProposalId, message.MsgOption.SenderPartyId, message.MsgOption.ReceiverPartyId) {
+	if s.hasSeenConfirmVote(message.GetMsgOption().GetProposalId(), message.GetMsgOption().GetSenderPartyId(), message.GetMsgOption().GetReceiverPartyId()) {
 		return pubsub.ValidationIgnore
 	}
 
@@ -64,5 +64,5 @@ func (s *Service) setConfirmVoteSeen(proposalId []byte, senderPartId []byte, rec
 	defer s.seenConfirmVoteLock.Unlock()
 	v := append(proposalId, senderPartId...)
 	v = append(v, receivePartId...)
-	s.seenConfirmVoteCache.Add(string(v), true)
+	s.seenConfirmVoteCache.Add(string(v), struct {}{})
 }

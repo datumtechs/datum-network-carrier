@@ -349,88 +349,52 @@ func (t *Twopc) sendPrepareMsg(proposalId common.Hash, nonConsTask *types.NeedCo
 	task := nonConsTask.GetTask()
 	sender := task.GetTaskSender()
 
-	sendTaskFn := func(wg *sync.WaitGroup, sender, receiver *libtypes.TaskOrganization, senderRole, receiverRole libtypes.TaskRole, errCh chan<- error) {
-
-		defer wg.Done()
-
-		var pid, err = p2p.HexPeerID(receiver.GetNodeId())
-		if nil != err {
-			errCh <- fmt.Errorf("failed to nodeId => peerId when send prepareMsg, proposalId: %s, taskId: %s, other peer taskRole: %s, other peer taskPartyId: %s, identityId: %s, pid: %s, err: %s",
-				proposalId.String(), task.GetTaskId(), receiverRole.String(), receiver.GetPartyId(), receiver.GetIdentityId(), pid, err)
-			return
+	needSendLocalMsgFn := func() bool {
+		for i := 0; i < len(task.GetTaskData().GetDataSuppliers()); i++ {
+			if sender.GetIdentityId() == task.GetTaskData().GetDataSuppliers()[i].GetIdentityId() {
+				return true
+			}
 		}
 
-		prepareMsg, err := makePrepareMsg(proposalId, senderRole, receiverRole, sender.GetPartyId(), receiver.GetPartyId(), nonConsTask, startTime)
-
-		if nil != err {
-			errCh <- fmt.Errorf("failed to make prepareMsg, proposalId: %s, taskId: %s, other peer taskRole: %s, other peer taskPartyId: %s, identityId: %s, pid: %s, err: %s",
-				proposalId.String(), task.GetTaskId(), receiverRole.String(), receiver.GetPartyId(), receiver.GetIdentityId(), pid, err)
-			return
+		for i := 0; i < len(task.GetTaskData().GetPowerSuppliers()); i++ {
+			if sender.GetIdentityId() == task.GetTaskData().GetPowerSuppliers()[i].GetIdentityId() {
+				return true
+			}
 		}
 
-		var sendErr error
-		var logdesc string
-		if types.IsSameTaskOrg(sender, receiver) {
-			sendErr = t.sendLocalPrepareMsg(pid, prepareMsg)
-			logdesc = "sendLocalPrepareMsg()"
-		} else {
-			//sendErr = handler.SendTwoPcPrepareMsg(context.TODO(), t.p2p, pid, prepareMsg)
-			sendErr = t.p2p.Broadcast(context.TODO(), prepareMsg)
-			logdesc = "Broadcast()"
+		for i := 0; i < len(task.GetTaskData().GetReceivers()); i++ {
+			if sender.GetIdentityId() == task.GetTaskData().GetReceivers()[i].GetIdentityId() {
+				return true
+			}
 		}
-
-		if nil != sendErr {
-			errCh <- fmt.Errorf("failed to call `sendPrepareMsg.%s` proposalId: %s, taskId: %s, other peer taskRole: %s, other peer taskPartyId: %s, identityId: %s, pid: %s, err: %s",
-				logdesc, proposalId.String(), task.GetTaskId(), receiverRole.String(), receiver.GetPartyId(), receiver.GetIdentityId(), pid, sendErr)
-			return
-		}
-
-		log.WithField("traceId", traceutil.GenerateTraceID(prepareMsg)).Debugf("Succeed to call `sendPrepareMsg.%s` proposalId: %s, taskId: %s, other peer taskRole: %s, other peer taskPartyId: %s, identityId: %s, pid: %s",
-			logdesc, proposalId.String(), task.GetTaskId(), receiverRole.String(), receiver.GetPartyId(), receiver.GetIdentityId(), pid)
+		return false
 	}
 
-	size := (len(task.GetTaskData().GetDataSuppliers())) + len(task.GetTaskData().GetPowerSuppliers()) + len(task.GetTaskData().GetReceivers())
-	errCh := make(chan error, size)
-	var wg sync.WaitGroup
-
-	for i := 0; i < len(task.GetTaskData().GetDataSuppliers()); i++ {
-
-		wg.Add(1)
-		dataSupplier := task.GetTaskData().GetDataSuppliers()[i]
-		receiver := dataSupplier
-		go sendTaskFn(&wg, sender, receiver, libtypes.TaskRole_TaskRole_Sender, libtypes.TaskRole_TaskRole_DataSupplier, errCh)
-
-	}
-	for i := 0; i < len(task.GetTaskData().GetPowerSuppliers()); i++ {
-
-		wg.Add(1)
-		powerSupplier := task.GetTaskData().GetPowerSuppliers()[i]
-		receiver := powerSupplier
-		go sendTaskFn(&wg, sender, receiver, libtypes.TaskRole_TaskRole_Sender, libtypes.TaskRole_TaskRole_PowerSupplier, errCh)
-
+	prepareMsg, err := makePrepareMsg(proposalId, libtypes.TaskRole_TaskRole_Sender, libtypes.TaskRole_TaskRole_Unknown,
+		sender.GetPartyId(), "", nonConsTask, startTime)
+	if nil != err {
+		return fmt.Errorf("failed to make prepareMsg, proposalId: %s, taskId: %s, err: %s",
+			proposalId.String(), task.GetTaskId(), err)
 	}
 
-	for i := 0; i < len(task.GetTaskData().GetReceivers()); i++ {
-
-		wg.Add(1)
-		receiver := task.GetTaskData().GetReceivers()[i]
-		go sendTaskFn(&wg, sender, receiver, libtypes.TaskRole_TaskRole_Sender, libtypes.TaskRole_TaskRole_Receiver, errCh)
+	errs := make([]string, 0)
+	if needSendLocalMsgFn() {
+		 if err := t.sendLocalPrepareMsg("", prepareMsg); nil != err {
+			 errs = append(errs, fmt.Sprintf("send prepareMsg to local peer, %s", err))
+		 }
 	}
 
-	wg.Wait()
-	close(errCh)
-
-	errStrs := make([]string, 0)
-
-	for err := range errCh {
-		if nil != err {
-			errStrs = append(errStrs, err.Error())
-		}
+	if err := t.p2p.Broadcast(context.TODO(), prepareMsg); nil != err {
+		errs = append(errs, fmt.Sprintf("send prepareMsg to remote peer, %s", err))
 	}
-	if len(errStrs) != 0 {
+
+	log.WithField("traceId", traceutil.GenerateTraceID(prepareMsg)).Debugf("Succeed to call `sendPrepareMsg` proposalId: %s, taskId: %s, startTime: %d ms",
+		proposalId.String(), task.GetTaskId(), startTime)
+
+	if len(errs) != 0 {
 		return fmt.Errorf(
 			"\n######################################################## \n%s\n########################################################\n",
-			strings.Join(errStrs, "\n"))
+			strings.Join(errs, "\n"))
 	}
 	return nil
 }
@@ -466,85 +430,49 @@ func (t *Twopc) sendConfirmMsg(proposalId common.Hash, task *types.Task, peers *
 
 	sender := task.GetTaskSender()
 
-	sendConfirmMsgFn := func(wg *sync.WaitGroup, sender, receiver *libtypes.TaskOrganization, senderRole, receiverRole libtypes.TaskRole, errCh chan<- error) {
-
-		defer wg.Done()
-
-		pid, err := p2p.HexPeerID(receiver.GetNodeId())
-		if nil != err {
-			errCh <- fmt.Errorf("failed to nodeId => peerId when send confirmMsg, proposalId: %s, taskId: %s, other peer's taskRole: %s, other peer's partyId: %s, other identityId: %s, pid: %s, err: %s",
-				proposalId.String(), task.GetTaskId(), receiverRole.String(), receiver.GetPartyId(), receiver.GetIdentityId(), pid, err)
-			return
+	needSendLocalMsgFn := func() bool {
+		for i := 0; i < len(task.GetTaskData().GetDataSuppliers()); i++ {
+			if sender.GetIdentityId() == task.GetTaskData().GetDataSuppliers()[i].GetIdentityId() {
+				return true
+			}
 		}
 
-		confirmMsg := makeConfirmMsg(proposalId, senderRole, receiverRole, sender.GetPartyId(), receiver.GetPartyId(), sender, peers, option, startTime)
-
-		var sendErr error
-		var logdesc string
-		if types.IsSameTaskOrg(sender, receiver) {
-			sendErr = t.sendLocalConfirmMsg(pid, confirmMsg)
-			logdesc = "sendLocalConfirmMsg()"
-		} else {
-			//sendErr = handler.SendTwoPcConfirmMsg(context.TODO(), t.p2p, pid, confirmMsg)
-			sendErr = t.p2p.Broadcast(context.TODO(), confirmMsg)
-			logdesc = "Broadcast()"
+		for i := 0; i < len(task.GetTaskData().GetPowerSuppliers()); i++ {
+			if sender.GetIdentityId() == task.GetTaskData().GetPowerSuppliers()[i].GetIdentityId() {
+				return true
+			}
 		}
 
-		// Send the ConfirmMsg to other peer
-		if nil != sendErr {
-			errCh <- fmt.Errorf("failed to call`sendConfirmMsg.%s` proposalId: %s, taskId: %s,other peer's taskRole: %s, other peer's partyId: %s, other identityId: %s, pid: %s, err: %s",
-				logdesc, proposalId.String(), task.GetTaskId(), receiverRole.String(), receiver.GetPartyId(), receiver.GetIdentityId(), pid, sendErr)
-			errCh <- err
-			return
+		for i := 0; i < len(task.GetTaskData().GetReceivers()); i++ {
+			if sender.GetIdentityId() == task.GetTaskData().GetReceivers()[i].GetIdentityId() {
+				return true
+			}
 		}
-
-		log.WithField("traceId", traceutil.GenerateTraceID(confirmMsg)).Debugf("Succeed to call`sendConfirmMsg.%s` proposalId: %s, taskId: %s,other peer's taskRole: %s, other peer's partyId: %s, other identityId: %s, pid: %s",
-			logdesc, proposalId.String(), task.GetTaskId(), receiverRole.String(), receiver.GetPartyId(), receiver.GetIdentityId(), pid)
-
+		return false
 	}
 
-	size := (len(task.GetTaskData().GetDataSuppliers())) + len(task.GetTaskData().GetPowerSuppliers()) + len(task.GetTaskData().GetReceivers())
-	errCh := make(chan error, size)
-	var wg sync.WaitGroup
+	confirmMsg := makeConfirmMsg(proposalId, libtypes.TaskRole_TaskRole_Sender, libtypes.TaskRole_TaskRole_Unknown,
+		sender.GetPartyId(), "", sender, peers, option, startTime)
 
-	for i := 0; i < len(task.GetTaskData().GetDataSuppliers()); i++ {
-
-		wg.Add(1)
-		dataSupplier := task.GetTaskData().GetDataSuppliers()[i]
-		receiver := dataSupplier
-		go sendConfirmMsgFn(&wg, sender, receiver, libtypes.TaskRole_TaskRole_Sender, libtypes.TaskRole_TaskRole_DataSupplier, errCh)
-
-	}
-	for i := 0; i < len(task.GetTaskData().GetPowerSuppliers()); i++ {
-
-		wg.Add(1)
-		powerSupplier := task.GetTaskData().GetPowerSuppliers()[i]
-		receiver := powerSupplier
-		go sendConfirmMsgFn(&wg, sender, receiver, libtypes.TaskRole_TaskRole_Sender, libtypes.TaskRole_TaskRole_PowerSupplier, errCh)
-
-	}
-
-	for i := 0; i < len(task.GetTaskData().GetReceivers()); i++ {
-
-		wg.Add(1)
-		receiver := task.GetTaskData().GetReceivers()[i]
-		go sendConfirmMsgFn(&wg, sender, receiver, libtypes.TaskRole_TaskRole_Sender, libtypes.TaskRole_TaskRole_Receiver, errCh)
-	}
-
-	wg.Wait()
-	close(errCh)
-
-	errStrs := make([]string, 0)
-
-	for err := range errCh {
-		if nil != err {
-			errStrs = append(errStrs, err.Error())
+	errs := make([]string, 0)
+	if needSendLocalMsgFn() {
+		if err := t.sendLocalConfirmMsg("", confirmMsg); nil != err {
+			errs = append(errs, fmt.Sprintf("send confirmMsg to local peer, %s", err))
 		}
 	}
-	if len(errStrs) != 0 {
+
+	if err := t.p2p.Broadcast(context.TODO(), confirmMsg); nil != err {
+		errs = append(errs, fmt.Sprintf("send confirmMsg to remote peer, %s", err))
+	}
+
+	log.WithField("traceId", traceutil.GenerateTraceID(confirmMsg)).Debugf("Succeed to call`sendConfirmMsg.%s` proposalId: %s, taskId: %s",
+		proposalId.String(), task.GetTaskId())
+
+
+	if len(errs) != 0 {
 		return fmt.Errorf(
 			"\n######################################################## \n%s\n########################################################\n",
-			strings.Join(errStrs, "\n"))
+			strings.Join(errs, "\n"))
 	}
 	return nil
 }

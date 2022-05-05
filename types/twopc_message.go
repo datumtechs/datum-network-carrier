@@ -66,6 +66,7 @@ func (msg *PrepareMsgWrap) _sealHash() (hash common.Hash) {
 	buf.Write(msg.GetMsgOption().GetMsgOwner().GetNodeId())
 	buf.Write(msg.GetMsgOption().GetMsgOwner().GetIdentityId())
 	buf.Write(msg.GetTaskInfo())
+	buf.Write(msg.GetEvidence())
 	buf.Write(bytesutil.Uint64ToBytes(msg.GetCreateAt()))
 	rlp.Encode(hasher, buf.Bytes())
 	hasher.Sum(hash[:0])

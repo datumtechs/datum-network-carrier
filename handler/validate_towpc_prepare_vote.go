@@ -34,7 +34,7 @@ func (s *Service) validatePrepareVotePubSub(ctx context.Context, pid peer.ID, ms
 		return pubsub.ValidationReject
 	}
 
-	if s.hasSeenPrepareVote(message.MsgOption.ProposalId, message.MsgOption.SenderPartyId, message.MsgOption.ReceiverPartyId) {
+	if s.hasSeenPrepareVote(message.GetMsgOption().GetProposalId(), message.GetMsgOption().GetSenderPartyId(), message.GetMsgOption().GetReceiverPartyId()) {
 		return pubsub.ValidationIgnore
 	}
 
@@ -65,5 +65,5 @@ func (s *Service) setPrepareVoteSeen(proposalId []byte, senderPartId []byte, rec
 	defer s.seenPrepareMsgLock.Unlock()
 	v := append(proposalId, senderPartId...)
 	v = append(v, receivePartId...)
-	s.seenPrepareVoteCache.Add(string(v), true)
+	s.seenPrepareVoteCache.Add(string(v), struct {}{})
 }

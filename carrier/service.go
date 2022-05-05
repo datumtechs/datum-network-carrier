@@ -76,7 +76,7 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 	resourceMng := resource.NewResourceManager(config.CarrierDB, resourceClientSet, mockIdentityIdsFile)
 	authManager := auth2.NewAuthorityManager(config.CarrierDB)
 	scheduler := schedule.NewSchedulerStarveFIFO(election.NewVrfElector(config.P2P.PirKey(), resourceMng), eventEngine, resourceMng, authManager)
-	twopcEngine := twopc.New(
+	twopcEngine, err := twopc.New(
 		&twopc.Config{
 			Option: &twopc.OptionConfig{
 				NodePriKey: config.P2P.PirKey(),
@@ -94,7 +94,9 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 		needExecuteTaskCh,
 		taskConsResultCh,
 	)
-
+	if nil != err {
+		return nil, err
+	}
 	var metisPayManager *metispay2.MetisPayManager
 
 	if cliCtx.IsSet(flags.BlockChain.Name) {

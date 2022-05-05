@@ -34,7 +34,7 @@ func (s *Service) validateCommitMessagePubSub(ctx context.Context, pid peer.ID, 
 		return pubsub.ValidationReject
 	}
 
-	if s.hasSeenCommitMsg(message.MsgOption.ProposalId, message.MsgOption.SenderPartyId, message.MsgOption.ReceiverPartyId) {
+	if s.hasSeenCommitMsg(message.GetMsgOption().GetProposalId(), message.GetMsgOption().GetSenderPartyId(), message.GetMsgOption().GetReceiverPartyId()) {
 		return pubsub.ValidationIgnore
 	}
 
@@ -65,5 +65,5 @@ func (s *Service) setCommitMsgSeen(proposalId []byte, senderPartId []byte, recei
 	defer s.seenCommitMsgLock.Unlock()
 	v := append(proposalId, senderPartId...)
 	v = append(v, receivePartId...)
-	s.seenCommitMsgCache.Add(string(v), true)
+	s.seenCommitMsgCache.Add(string(v), struct {}{})
 }

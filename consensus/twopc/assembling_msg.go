@@ -124,7 +124,7 @@ func fetchPrepareMsg(msg *types.PrepareMsgWrap) (*types.PrepareMsg, error) {
 	return &types.PrepareMsg{
 			MsgOption: types.FetchMsgOption(msg.GetMsgOption()),
 			TaskInfo:  task,
-			Evidence:     string(msg.GetEvidence()),
+			Evidence:  string(msg.GetEvidence()),
 			CreateAt:  msg.GetCreateAt(),
 			Sign:      msg.GetSign(),
 		},
