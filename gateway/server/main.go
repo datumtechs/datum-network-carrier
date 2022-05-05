@@ -4,7 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/gateway"
+	"github.com/Metisnetwork/Metis-Carrier/gateway"
 	joonix "github.com/joonix/log"
 	"github.com/sirupsen/logrus"
 	"net/http"

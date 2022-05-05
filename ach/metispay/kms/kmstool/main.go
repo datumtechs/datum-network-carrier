@@ -3,8 +3,8 @@ package main
 import (
 	"errors"
 	"fmt"
-	kms2 "github.com/RosettaFlow/Carrier-Go/ach/metispay/kms"
-	"github.com/RosettaFlow/Carrier-Go/common/flags"
+	kms2 "github.com/Metisnetwork/Metis-Carrier/ach/metispay/kms"
+	"github.com/Metisnetwork/Metis-Carrier/common/flags"
 	"github.com/urfave/cli/v2"
 	"github.com/urfave/cli/v2/altsrc"
 	"io/ioutil"

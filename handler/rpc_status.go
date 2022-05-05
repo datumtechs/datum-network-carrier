@@ -2,12 +2,12 @@ package handler
 
 import (
 	"context"
-	"github.com/RosettaFlow/Carrier-Go/common/runutil"
-	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
-	pb "github.com/RosettaFlow/Carrier-Go/lib/p2p/v1"
-	"github.com/RosettaFlow/Carrier-Go/p2p"
-	"github.com/RosettaFlow/Carrier-Go/p2p/peers"
-	p2ptypes "github.com/RosettaFlow/Carrier-Go/p2p/types"
+	"github.com/Metisnetwork/Metis-Carrier/common/runutil"
+	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
+	pb "github.com/Metisnetwork/Metis-Carrier/lib/p2p/v1"
+	"github.com/Metisnetwork/Metis-Carrier/p2p"
+	"github.com/Metisnetwork/Metis-Carrier/p2p/peers"
+	p2ptypes "github.com/Metisnetwork/Metis-Carrier/p2p/types"
 	libp2pcore "github.com/libp2p/go-libp2p-core"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"

@@ -3,10 +3,10 @@ package grpclient
 import (
 	"context"
 	"errors"
-	"github.com/RosettaFlow/Carrier-Go/common/runutil"
-	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
-	"github.com/RosettaFlow/Carrier-Go/lib/fighter/common"
-	"github.com/RosettaFlow/Carrier-Go/lib/fighter/datasvc"
+	"github.com/Metisnetwork/Metis-Carrier/common/runutil"
+	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
+	"github.com/Metisnetwork/Metis-Carrier/lib/fighter/common"
+	"github.com/Metisnetwork/Metis-Carrier/lib/fighter/datasvc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -143,7 +143,7 @@ func (c *DataNodeClient) ListData() (*datasvc.ListDataReply, error) {
 	return nil, errors.New("method ListData not implemented")
 }
 
-func (c *DataNodeClient) UploadData(content []byte, metadata *datasvc.FileInfo) (*datasvc.UploadReply, error) {
+func (c *DataNodeClient) UploadData(content []byte, metadata *datasvc.UploadRequest) (*datasvc.UploadReply, error) {
 	return nil, errors.New("method UploadData not implemented")
 }
 

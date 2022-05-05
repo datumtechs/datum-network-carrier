@@ -2,7 +2,7 @@ package p2p
 
 import (
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/p2p/encoder"
+	"github.com/Metisnetwork/Metis-Carrier/p2p/encoder"
 	"testing"
 	"time"
 )

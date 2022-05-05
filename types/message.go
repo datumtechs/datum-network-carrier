@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/common"
-	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
-	"github.com/RosettaFlow/Carrier-Go/common/rlputil"
-	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
-	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	"github.com/RosettaFlow/Carrier-Go/lib/types"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	"github.com/Metisnetwork/Metis-Carrier/common"
+	"github.com/Metisnetwork/Metis-Carrier/common/bytesutil"
+	"github.com/Metisnetwork/Metis-Carrier/common/rlputil"
+	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
+	pb "github.com/Metisnetwork/Metis-Carrier/lib/api"
+	"github.com/Metisnetwork/Metis-Carrier/lib/types"
+	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
 	"sync/atomic"
 )
 
@@ -261,7 +261,6 @@ func (msg *PowerRevokeMsg) Hash() common.Hash {
 	return v
 }
 
-
 type PowerMsgArr []*PowerMsg
 type PowerRevokeMsgArr []*PowerRevokeMsg
 
@@ -291,16 +290,16 @@ type MetadataMsg struct {
 func NewMetadataMessageFromRequest(req *pb.PublishMetadataRequest) *MetadataMsg {
 	metadataMsg := &MetadataMsg{
 		MetadataSummary: &libtypes.MetadataSummary{
-			MetadataId:     req.GetInformation().GetMetadataId(),
-			MetadataName:   req.GetInformation().GetMetadataName(),
-			MetadataType:   req.GetInformation().GetMetadataType(),
-			DataHash:       req.GetInformation().GetDataHash(),
-			Desc:           req.GetInformation().GetDesc(),
-			DataType:       req.GetInformation().GetDataType(),
-			Industry:       req.GetInformation().GetIndustry(),
-			State:          req.GetInformation().GetState(),
-			PublishAt:      req.GetInformation().GetPublishAt(),
-			UpdateAt:       req.GetInformation().GetUpdateAt(),
+			MetadataId:   req.GetInformation().GetMetadataId(),
+			MetadataName: req.GetInformation().GetMetadataName(),
+			MetadataType: req.GetInformation().GetMetadataType(),
+			DataHash:     req.GetInformation().GetDataHash(),
+			Desc:         req.GetInformation().GetDesc(),
+			DataType:     req.GetInformation().GetDataType(),
+			Industry:     req.GetInformation().GetIndustry(),
+			State:        req.GetInformation().GetState(),
+			PublishAt:    req.GetInformation().GetPublishAt(),
+			UpdateAt:     req.GetInformation().GetUpdateAt(),
 			//Nonce:          req.GetInformation().GetNonce(),
 			MetadataOption: req.GetInformation().GetMetadataOption(),
 			AllowExpose:    req.GetInformation().GetAllowExpose(),
@@ -316,21 +315,23 @@ func NewMetadataMessageFromRequest(req *pb.PublishMetadataRequest) *MetadataMsg 
 func (msg *MetadataMsg) ToDataCenter(identity *libtypes.Organization) *Metadata {
 	return NewMetadata(&libtypes.MetadataPB{
 
-		MetadataId:   msg.GetMetadataId(),
-		Owner:        identity,
-		DataId:       msg.GetMetadataId(),
-		DataStatus:   libtypes.DataStatus_DataStatus_Valid,
-		MetadataName: msg.GetMetadataName(),
-		MetadataType: msg.GetMetadataType(),
-		DataHash:     msg.GetDataHash(),
-		Desc:         msg.GetDesc(),
-		DataType:     msg.GetDataType(),
-		Industry:     msg.GetIndustry(),
+		MetadataId:     msg.GetMetadataId(),
+		Owner:          identity,
+		DataId:         msg.GetMetadataId(),
+		DataStatus:     libtypes.DataStatus_DataStatus_Valid,
+		MetadataName:   msg.GetMetadataName(),
+		MetadataType:   msg.GetMetadataType(),
+		DataHash:       msg.GetDataHash(),
+		Desc:           msg.GetDesc(),
+		DataType:       msg.GetDataType(),
+		Industry:       msg.GetIndustry(),
 		State:          libtypes.MetadataState_MetadataState_Released, // metaData status, eg: create/release/revoke
 		PublishAt:      timeutils.UnixMsecUint64(),
 		UpdateAt:       timeutils.UnixMsecUint64(),
 		Nonce:          msg.GetNonce(),
 		MetadataOption: msg.GetMetadataOption(),
+		AllowExpose:    msg.GetAllowExpose(),
+		TokenAddress:   msg.GetTokenAddress(),
 	})
 }
 func (msg *MetadataMsg) Marshal() ([]byte, error) { return nil, nil }
@@ -366,6 +367,7 @@ func (msg *MetadataMsg) GetState() libtypes.MetadataState {
 func (msg *MetadataMsg) GetIndustry() string       { return msg.GetMetadataSummary().Industry }
 func (msg *MetadataMsg) GetMetadataOption() string { return msg.GetMetadataSummary().MetadataOption }
 func (msg *MetadataMsg) GetAllowExpose() bool      { return msg.GetMetadataSummary().AllowExpose }
+func (msg *MetadataMsg) GetTokenAddress() string   { return msg.GetMetadataSummary().TokenAddress }
 func (msg *MetadataMsg) GetCreateAt() uint64       { return msg.CreateAt }
 func (msg *MetadataMsg) GetMetadataId() string     { return msg.GetMetadataSummary().MetadataId }
 
@@ -484,7 +486,6 @@ func (msg *MetadataRevokeMsg) Hash() common.Hash {
 	return v
 }
 
-
 type MetadataMsgArr []*MetadataMsg
 type MetadataRevokeMsgArr []*MetadataRevokeMsg
 
@@ -516,17 +517,13 @@ type MetadataAuthorityMsg struct {
 }
 
 func NewMetadataAuthorityMessageFromRequest(req *pb.ApplyMetadataAuthorityRequest) *MetadataAuthorityMsg {
-	metadataAuthorityMsg := &MetadataAuthorityMsg{
+	return &MetadataAuthorityMsg{
 		User:     req.GetUser(),
 		UserType: req.GetUserType(),
 		Auth:     req.GetAuth(),
 		Sign:     req.GetSign(),
 		CreateAt: timeutils.UnixMsecUint64(),
 	}
-
-	metadataAuthorityMsg.GenMetadataAuthId()
-
-	return metadataAuthorityMsg
 }
 
 func (msg *MetadataAuthorityMsg) GetMetadataAuthId() string                      { return msg.MetadataAuthId }
@@ -585,7 +582,7 @@ func (msg *MetadataAuthorityMsg) Hash() common.Hash {
 	StartAt     `
 	EndAt          `
 	Times
-	 */
+	*/
 	var buf bytes.Buffer
 
 	buf.Write([]byte(msg.GetMetadataAuthorityMetadataId()))
@@ -695,7 +692,6 @@ func (msg *MetadataAuthorityRevokeMsg) Hash() common.Hash {
 	return v
 }
 
-
 type MetadataAuthorityMsgArr []*MetadataAuthorityMsg
 type MetadataAuthorityRevokeMsgArr []*MetadataAuthorityRevokeMsg
 
@@ -738,12 +734,14 @@ func NewTaskMessageFromRequest(req *pb.PublishTaskDeclareRequest) *TaskMsg {
 			DataSuppliers: req.GetDataSuppliers(),
 			// PowerSuppliers: ,
 			Receivers:                req.GetReceivers(),
-			DataPolicyType:           req.GetDataPolicyType(),
-			DataPolicyOption:         req.GetDataPolicyOption(),
-			PowerPolicyType:          req.GetPowerPolicyType(),
-			PowerPolicyOption:        req.GetPowerPolicyOption(),
-			DataFlowPolicyType:       req.GetDataFlowPolicyType(),
-			DataFlowPolicyOption:     req.GetDataFlowPolicyOption(),
+			DataPolicyTypes:          req.GetDataPolicyTypes(),
+			DataPolicyOptions:        req.GetDataPolicyOptions(),
+			PowerPolicyTypes:         req.GetPowerPolicyTypes(),
+			PowerPolicyOptions:       req.GetPowerPolicyOptions(),
+			ReceiverPolicyTypes:      req.GetReceiverPolicyTypes(),
+			ReceiverPolicyOptions:    req.GetReceiverPolicyOptions(),
+			DataFlowPolicyTypes:      req.GetDataFlowPolicyTypes(),
+			DataFlowPolicyOptions:    req.GetDataFlowPolicyOptions(),
 			OperationCost:            req.GetOperationCost(),
 			AlgorithmCode:            req.GetAlgorithmCode(),
 			MetaAlgorithmId:          req.GetMetaAlgorithmId(),
@@ -800,17 +798,21 @@ func (msg *TaskMsg) GetPowerSuppliers() []*libtypes.TaskOrganization {
 func (msg *TaskMsg) GetReceivers() []*libtypes.TaskOrganization {
 	return msg.Data.GetTaskData().GetReceivers()
 }
-func (msg *TaskMsg) GetDataPolicyType() uint32   { return msg.Data.GetTaskData().GetDataPolicyType() }
-func (msg *TaskMsg) GetDataPolicyOption() string { return msg.Data.GetTaskData().GetDataPolicyOption() }
-func (msg *TaskMsg) GetPowerPolicyType() uint32  { return msg.Data.GetTaskData().GetPowerPolicyType() }
-func (msg *TaskMsg) GetPowerPolicyOption() string {
-	return msg.Data.GetTaskData().GetPowerPolicyOption()
+func (msg *TaskMsg) GetDataPolicyTypes() []uint32 { return msg.Data.GetTaskData().GetDataPolicyTypes() }
+func (msg *TaskMsg) GetDataPolicyOptions() []string {
+	return msg.Data.GetTaskData().GetDataPolicyOptions()
 }
-func (msg *TaskMsg) GetDataFlowPolicyType() uint32 {
-	return msg.Data.GetTaskData().GetDataFlowPolicyType()
+func (msg *TaskMsg) GetPowerPolicyTypes() []uint32 {
+	return msg.Data.GetTaskData().GetPowerPolicyTypes()
 }
-func (msg *TaskMsg) GetDataFlowPolicyOption() string {
-	return msg.Data.GetTaskData().GetDataFlowPolicyOption()
+func (msg *TaskMsg) GetPowerPolicyOptions() []string {
+	return msg.Data.GetTaskData().GetPowerPolicyOptions()
+}
+func (msg *TaskMsg) GetDataFlowPolicyTypes() []uint32 {
+	return msg.Data.GetTaskData().GetDataFlowPolicyTypes()
+}
+func (msg *TaskMsg) GetDataFlowPolicyOptions() []string {
+	return msg.Data.GetTaskData().GetDataFlowPolicyOptions()
 }
 func (msg *TaskMsg) GetOperationCost() *libtypes.TaskResourceCostDeclare {
 	return msg.Data.GetTaskData().GetOperationCost()
@@ -892,12 +894,12 @@ func (msg *TaskMsg) Hash() common.Hash {
 	buf.Write(bytesutil.Uint16ToBytes(uint16(len(msg.GetDataSuppliers()))))
 	buf.Write(bytesutil.Uint16ToBytes(uint16(len(msg.GetPowerSuppliers()))))
 	buf.Write(bytesutil.Uint16ToBytes(uint16(len(msg.GetReceivers()))))
-	buf.Write(bytesutil.Uint32ToBytes(msg.GetDataPolicyType()))
-	buf.Write([]byte(msg.GetDataPolicyOption()))
-	buf.Write(bytesutil.Uint32ToBytes(msg.GetPowerPolicyType()))
-	buf.Write([]byte(msg.GetPowerPolicyOption()))
-	buf.Write(bytesutil.Uint32ToBytes(msg.GetDataFlowPolicyType()))
-	buf.Write([]byte(msg.GetDataFlowPolicyOption()))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(len(msg.GetDataPolicyTypes()))))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(len(msg.GetDataPolicyOptions()))))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(len(msg.GetPowerPolicyTypes()))))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(len(msg.GetPowerPolicyOptions()))))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(len(msg.GetDataFlowPolicyTypes()))))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(len(msg.GetDataFlowPolicyOptions()))))
 	buf.Write(bytesutil.Uint32ToBytes(msg.GetOperationCost().GetProcessor()))
 	buf.Write(bytesutil.Uint64ToBytes(msg.GetOperationCost().GetBandwidth()))
 	buf.Write(bytesutil.Uint64ToBytes(msg.GetOperationCost().GetMemory()))
@@ -932,12 +934,12 @@ func (msg *TaskMsg) HashByCreateTime() common.Hash {
 	buf.Write(bytesutil.Uint16ToBytes(uint16(len(msg.GetDataSuppliers()))))
 	buf.Write(bytesutil.Uint16ToBytes(uint16(len(msg.GetPowerSuppliers()))))
 	buf.Write(bytesutil.Uint16ToBytes(uint16(len(msg.GetReceivers()))))
-	buf.Write(bytesutil.Uint32ToBytes(msg.GetDataPolicyType()))
-	buf.Write([]byte(msg.GetDataPolicyOption()))
-	buf.Write(bytesutil.Uint32ToBytes(msg.GetPowerPolicyType()))
-	buf.Write([]byte(msg.GetPowerPolicyOption()))
-	buf.Write(bytesutil.Uint32ToBytes(msg.GetDataFlowPolicyType()))
-	buf.Write([]byte(msg.GetDataFlowPolicyOption()))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(len(msg.GetDataPolicyTypes()))))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(len(msg.GetDataPolicyOptions()))))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(len(msg.GetPowerPolicyTypes()))))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(len(msg.GetPowerPolicyOptions()))))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(len(msg.GetDataFlowPolicyTypes()))))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(len(msg.GetDataFlowPolicyOptions()))))
 	buf.Write(bytesutil.Uint32ToBytes(msg.GetOperationCost().GetProcessor()))
 	buf.Write(bytesutil.Uint64ToBytes(msg.GetOperationCost().GetBandwidth()))
 	buf.Write(bytesutil.Uint64ToBytes(msg.GetOperationCost().GetMemory()))
@@ -994,7 +996,7 @@ func (msg *TaskTerminateMsg) Hash() common.Hash {
 	TaskId,
 	User,
 	UserType,
-	 */
+	*/
 
 	var buf bytes.Buffer
 
@@ -1053,7 +1055,6 @@ func (s TaskTerminateMsgArr) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
 func (s TaskTerminateMsgArr) Less(i, j int) bool {
 	return s[i].GetCreateAt() < s[j].GetCreateAt()
 }
-
 
 type TaskBullet struct {
 	TaskId      string
@@ -1138,40 +1139,40 @@ func (h *TaskBullets) DecreaseTermByCallbackFn(f func(b *TaskBullet)) {
 	}
 }
 
-
-
 /**
 Example:
 {
-  "party_id": "p0",
-  "data_party": {
-      "input_file": "../data/bank_predict_data.csv",
-       "key_column": "CLIENT_ID",
-       "selected_columns": ["col1", "col2"]
-    },
-  "dynamic_parameter": {
-    "model_restore_party": "p0",
-    "train_task_id": "task_id"
-  }
-}
-
-or:
-
-{
-  "party_id": "p0",
-  "data_party": {
-    "input_file": "../data/bank_train_data.csv",
-    "key_column": "CLIENT_ID",
-    "selected_columns": ["col1", "col2"]
+  "self_cfg_params": {
+      "party_id": "data1",    # 本方party_id
+      "input_data": [
+        {
+            "input_type": 1,     # 输入数据的类型. 0: unknown, 1: origin_data, 2: psi_output 3: model
+            "data_type": 1,      # 数据的格式. 0:unknown, 1:csv, 2:folder, 3:xls, 4:txt, 5:json, 6:mysql, 7:bin
+            "data_path": "path/to/data",  # 数据所在的本地路径
+            "key_column": "col1",  # ID列名
+            "selected_columns": ["col2", "col3"]  # 自变量(特征列名)
+        },
+        {
+            "input_type": 2,     # 输入数据的类型. 0: unknown, 1: origin_data, 2: psi_output 3: model
+            "data_type": 1,
+            "data_path": "path/to/data1/psi_result.csv",
+            "key_column": "",
+            "selected_columns": []
+        }
+      ]
   },
-  "dynamic_parameter": {
-    "label_owner": "p0",
-    "label_column_name": "Y",
-    "algorithm_parameter": {
-      "epochs": 10,
-      "batch_size": 256,
-      "learning_rate": 0.1
-    }
+  "algorithm_dynamic_params": {
+      "use_psi": true,           # 是否使用psi
+      "label_owner": "data1",       # 标签所在方的party_id
+      "label_column": "Y",       # 因变量(标签)
+      "hyperparams": {           # 逻辑回归的超参数
+          "epochs": 10,            # 训练轮次，大于0的整数
+          "batch_size": 256,       # 批量大小，大于0的整数
+          "learning_rate": 0.1,    # 学习率，，大于0的数
+          "use_validation_set": true,  # 是否使用验证集，true-用，false-不用
+          "validation_set_rate": 0.2,  # 验证集占输入数据集的比例，值域(0,1)
+          "predict_threshold": 0.5     # 验证集预测结果的分类阈值，值域[0,1]
+      }
   }
 }
 */
@@ -1183,4 +1184,58 @@ type FighterTaskReadyGoReqContractCfg struct {
 		SelectedColumns []string `json:"selected_columns"`
 	} `json:"data_party"`
 	DynamicParameter map[string]interface{} `json:"dynamic_parameter"`
+}
+
+type SelfCfgParams struct {
+	PartyId   string      `json:"party_id"`
+	InputData interface{} `json:"input_data""`
+}
+
+/**
+{
+    "input_type": 3,  # 输入数据的类型，(算法用标识数据使用方式). 0:unknown, 1:origin_data, 2:psi_output, 3:model
+    "access_type": 1, # 访问数据的方式，(fighter用决定是否预先加载数据). 0:unknown, 1:local, 2:url
+    "data_type": 0,   # 数据的格式，(算法用标识数据格式). 0:unknown, 1:csv, 2:dir, 3:binary, 4:xls, 5:xlsx, 6:txt, 7:json
+    "data_path": "/task_result/task:0xdeefff3434..556/"  # 数据所在的本地路径
+}
+*/
+type InputDataDIR struct {
+	InputType  uint32 `json:"input_type"`
+	AccessType uint32 `json:"access_type"` // 访问数据的方式，(fighter用决定是否预先加载数据). 0:unknown, 1:local <default>, 2:http, 3:https, 4:ftp
+	DataType   uint32 `json:"data_type"`
+	DataPath   string `json:"data_path"`
+}
+
+/**
+{
+    "input_type": 3,  # 输入数据的类型，(算法用标识数据使用方式). 0:unknown, 1:origin_data, 2:psi_output, 3:model
+    "access_type": 1, # 访问数据的方式，(fighter用决定是否预先加载数据). 0:unknown, 1:local, 2:url
+    "data_type": 0,   # 数据的格式，(算法用标识数据格式). 0:unknown, 1:csv, 2:dir, 3:binary, 4:xls, 5:xlsx, 6:txt, 7:json
+    "data_path": "/task_result/task:0xdeefff3434..556/"  # 数据所在的本地路径
+}
+*/
+type InputDataBINARY struct {
+	InputType  uint32 `json:"input_type"`
+	AccessType uint32 `json:"access_type"` // 访问数据的方式，(fighter用决定是否预先加载数据). 0:unknown, 1:local <default>, 2:http, 3:https, 4:ftp
+	DataType   uint32 `json:"data_type"`
+	DataPath   string `json:"data_path"`
+}
+
+/**
+{
+   "input_type": 1,  # 输入数据的类型，(算法用标识数据使用方式). 0:unknown, 1:origin_data, 2:psi_output, 3:model
+   "access_type": 1, # 访问数据的方式，(fighter用决定是否预先加载数据). 0:unknown, 1:local, 2:url
+   "data_type": 0,   # 数据的格式，(算法用标识数据格式). 0:unknown, 1:csv, 2:binary, 3:dir, 4:xls, 5:xlsx, 6:txt, 7:json
+   "data_path": "/metadata/20220427_预测银行数据.csv",  # 数据所在的本地路径
+   "key_column": "col1",  # ID列名
+   "selected_columns": ["col2", "col3"]  # 自变量(特征列名)
+}
+*/
+type InputDataCSV struct {
+	InputType       uint32   `json:"input_type"`
+	AccessType      uint32   `json:"access_type"` // 访问数据的方式，(fighter用决定是否预先加载数据). 0:unknown, 1:local <default>, 2:http, 3:https, 4:ftp
+	DataType        uint32   `json:"data_type"`
+	DataPath        string   `json:"data_path"`
+	KeyColumn       string   `json:"key_column"`
+	SelectedColumns []string `json:"selected_columns"`
 }

@@ -2,9 +2,9 @@ package node
 
 import (
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/carrier"
-	"github.com/RosettaFlow/Carrier-Go/common/flags"
-	"github.com/RosettaFlow/Carrier-Go/params"
+	"github.com/Metisnetwork/Metis-Carrier/carrier"
+	"github.com/Metisnetwork/Metis-Carrier/common/flags"
+	"github.com/Metisnetwork/Metis-Carrier/params"
 	"github.com/ethereum/go-ethereum/common/fdlimit"
 	"github.com/urfave/cli/v2"
 	"path/filepath"

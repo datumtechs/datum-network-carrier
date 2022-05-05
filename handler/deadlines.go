@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/params"
+	"github.com/Metisnetwork/Metis-Carrier/params"
 	"strings"
 	"time"
 

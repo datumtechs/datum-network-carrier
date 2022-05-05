@@ -3,8 +3,8 @@ package handler
 import (
 	"context"
 	"errors"
-	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
-	"github.com/RosettaFlow/Carrier-Go/p2p"
+	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
+	"github.com/Metisnetwork/Metis-Carrier/p2p"
 	"github.com/libp2p/go-libp2p-core/peer"
 )
 

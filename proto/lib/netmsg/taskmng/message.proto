@@ -5,7 +5,7 @@ package taskmng;
 import "repos/protobuf/gogoproto/gogo.proto";
 import "lib/netmsg/common/message.proto";
 
-option go_package = "github.com/RosettaFlow/Carrier-Go/lib/netmsg/taskmng";
+option go_package = "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/taskmng";
 
 // 参与方反馈 各自对某个task的执行结果 (发给发起方)
 message TaskResultMsg {

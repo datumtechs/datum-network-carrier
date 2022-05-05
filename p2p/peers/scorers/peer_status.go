@@ -1,9 +1,9 @@
 package scorers
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
-	pb "github.com/RosettaFlow/Carrier-Go/lib/p2p/v1"
-	"github.com/RosettaFlow/Carrier-Go/p2p/peers/peerdata"
+	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
+	pb "github.com/Metisnetwork/Metis-Carrier/lib/p2p/v1"
+	"github.com/Metisnetwork/Metis-Carrier/p2p/peers/peerdata"
 	"github.com/libp2p/go-libp2p-core/peer"
 	types "github.com/prysmaticlabs/eth2-types"
 	"math"

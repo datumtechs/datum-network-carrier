@@ -1,7 +1,7 @@
 package params
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/types"
+	"github.com/Metisnetwork/Metis-Carrier/types"
 )
 
 // use Default config

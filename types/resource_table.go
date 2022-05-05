@@ -411,39 +411,42 @@ func (drt *DataResourceTable) FreeDisk(use uint64) {
 }
 
 type DataResourceFileUpload struct {
-	originId   string // db key
-	nodeId     string
-	metadataId string
-	dataPath   string
-	dataHash   string // sha 256 hash
+	originId       string // 原始数据Id <db key>
+	nodeId         string // 数据节点的Id
+	metadataId     string // 元数据Id
+	dataHash       string // sha 256 hash
+	metadataOption string // 元数据的选项，和 data_type 配套使用
+	dataType       uint32 // 原始数据的类型
 }
 
 type dataResourceFileUploadRlp struct {
-	NodeId     string
-	OriginId   string
-	MetadataId string
-	DataPath   string
-	DataHash   string // sha 256 hash
+	NodeId         string
+	OriginId       string
+	MetadataId     string
+	DataHash       string // sha 256 hash
+	MetadataOption string // 元数据的选项，和 data_type 配套使用
+	DataType       uint32 // 原始数据的类型
 }
 
-func NewDataResourceFileUpload(nodeId, originId, metaDataId, dataPath, dataHash string) *DataResourceFileUpload {
+func NewDataResourceFileUpload(dataType uint32, nodeId, originId, metadataId, metadataOption, dataHash string) *DataResourceFileUpload {
 	return &DataResourceFileUpload{
-		nodeId:     nodeId,
-		originId:   originId,
-		metadataId: metaDataId,
-		dataPath:   dataPath,
-		dataHash:   dataHash,
+		nodeId:         nodeId,
+		originId:       originId,
+		metadataId:     metadataId,
+		dataHash:       dataHash,
+		metadataOption: metadataOption,
+		dataType:       dataType,
 	}
 }
 
 // EncodeRLP implements rlp.Encoder.
 func (drt *DataResourceFileUpload) EncodeRLP(w io.Writer) error {
 	return rlp.Encode(w, dataResourceFileUploadRlp{
-		NodeId:     drt.nodeId,
-		OriginId:   drt.originId,
-		MetadataId: drt.metadataId,
-		DataPath:   drt.dataPath,
-		DataHash:   drt.dataHash,
+		NodeId:         drt.nodeId,
+		OriginId:       drt.originId,
+		MetadataId:     drt.metadataId,
+		DataHash:       drt.dataHash,
+		MetadataOption: drt.metadataOption,
 	})
 }
 
@@ -452,8 +455,8 @@ func (drt *DataResourceFileUpload) DecodeRLP(s *rlp.Stream) error {
 	var dec dataResourceFileUploadRlp
 	err := s.Decode(&dec)
 	if err == nil {
-		drt.nodeId, drt.originId, drt.metadataId, drt.dataPath, drt.dataHash =
-			dec.NodeId, dec.OriginId, dec.MetadataId, dec.DataPath, dec.DataHash
+		drt.nodeId, drt.originId, drt.metadataId, drt.dataHash, drt.metadataOption, drt.dataType =
+			dec.NodeId, dec.OriginId, dec.MetadataId, dec.DataHash, dec.MetadataOption, dec.DataType
 	}
 	return err
 }
@@ -461,8 +464,9 @@ func (drt *DataResourceFileUpload) GetNodeId() string               { return drt
 func (drt *DataResourceFileUpload) GetOriginId() string             { return drt.originId }
 func (drt *DataResourceFileUpload) SetMetadataId(metaDataId string) { drt.metadataId = metaDataId }
 func (drt *DataResourceFileUpload) GetMetadataId() string           { return drt.metadataId }
-func (drt *DataResourceFileUpload) GetDataPath() string             { return drt.dataPath }
 func (drt *DataResourceFileUpload) GetDataHash() string             { return drt.dataHash }
+func (drt *DataResourceFileUpload) GetDataType() uint32             { return drt.dataType }
+func (drt *DataResourceFileUpload) GetMetadataOption() string       { return drt.metadataOption }
 
 type DataResourceDiskUsed struct {
 	metadataId string // db key

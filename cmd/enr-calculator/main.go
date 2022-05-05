@@ -5,7 +5,7 @@ import (
 	"crypto/ecdsa"
 	"encoding/hex"
 	"flag"
-	"github.com/RosettaFlow/Carrier-Go/common/fileutil"
+	"github.com/Metisnetwork/Metis-Carrier/common/fileutil"
 	"net"
 
 	"github.com/ethereum/go-ethereum/p2p/enode"

@@ -11,7 +11,7 @@ import "lib/types/identitydata.proto";
 //import "repos/protobuf/gogoproto/gogo.proto";
 //import "google/protobuf/any.proto";
 
-option go_package = "github.com/RosettaFlow/Carrier-Go/lib/types";
+option go_package = "github.com/Metisnetwork/Metis-Carrier/lib/types";
 
 // Metadata body data struct.
 message BlockData {

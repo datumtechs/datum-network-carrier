@@ -3,9 +3,9 @@
 package rawdb
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/common"
-	dbtype "github.com/RosettaFlow/Carrier-Go/lib/db"
-	"github.com/RosettaFlow/Carrier-Go/types"
+	"github.com/Metisnetwork/Metis-Carrier/common"
+	dbtype "github.com/Metisnetwork/Metis-Carrier/lib/db"
+	"github.com/Metisnetwork/Metis-Carrier/types"
 	"github.com/sirupsen/logrus"
 	"strings"
 )

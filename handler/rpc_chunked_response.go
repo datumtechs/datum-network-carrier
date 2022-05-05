@@ -2,10 +2,10 @@ package handler
 
 import (
 	"errors"
-	libp2ppb "github.com/RosettaFlow/Carrier-Go/lib/rpc/debug/v1"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
-	"github.com/RosettaFlow/Carrier-Go/p2p"
-	"github.com/RosettaFlow/Carrier-Go/p2p/encoder"
+	libp2ppb "github.com/Metisnetwork/Metis-Carrier/lib/rpc/debug/v1"
+	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/Metisnetwork/Metis-Carrier/p2p"
+	"github.com/Metisnetwork/Metis-Carrier/p2p/encoder"
 	libp2pcore "github.com/libp2p/go-libp2p-core"
 )
 

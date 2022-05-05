@@ -5,17 +5,17 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
-	"github.com/RosettaFlow/Carrier-Go/common/rlputil"
-	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
-	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
-	"github.com/RosettaFlow/Carrier-Go/grpclient"
-	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	"github.com/RosettaFlow/Carrier-Go/lib/fighter/computesvc"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
-	"github.com/RosettaFlow/Carrier-Go/params"
-	"github.com/RosettaFlow/Carrier-Go/policy"
-	"github.com/RosettaFlow/Carrier-Go/types"
+	"github.com/Metisnetwork/Metis-Carrier/common/bytesutil"
+	"github.com/Metisnetwork/Metis-Carrier/common/rlputil"
+	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
+	"github.com/Metisnetwork/Metis-Carrier/core/rawdb"
+	"github.com/Metisnetwork/Metis-Carrier/grpclient"
+	pb "github.com/Metisnetwork/Metis-Carrier/lib/api"
+	"github.com/Metisnetwork/Metis-Carrier/lib/fighter/computesvc"
+	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/Metisnetwork/Metis-Carrier/params"
+	"github.com/Metisnetwork/Metis-Carrier/policy"
+	"github.com/Metisnetwork/Metis-Carrier/types"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"math/big"
@@ -86,7 +86,7 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 	}
 
 	if addr, err := s.carrier.metisPayManager.QueryOrgWallet(); err == nil {
-		nodeInfo.ObserverProxyWalletAddress = addr
+		nodeInfo.ObserverProxyWalletAddress = addr.Hex()
 	} else {
 		log.WithError(err).Errorf("cannot load organization wallet of node info: %v", err)
 		return nil, err
@@ -617,7 +617,7 @@ func (s *CarrierAPIBackend) GenerateObServerProxyWalletAddress() (string, error)
 			return "", err
 		} else {
 			log.Debugf("Success to generate organization wallet %s", addr)
-			return addr, nil
+			return addr.Hex(), nil
 		}
 	} else {
 		return "", errors.New("MetisPay manager not initialized properly")
@@ -856,6 +856,7 @@ func (s *CarrierAPIBackend) GetGlobalPowerDetailList(lastUpdate uint64, pageSize
 				State:     resource.GetState(),
 				PublishAt: resource.GetPublishAt(),
 				UpdateAt:  resource.GetUpdateAt(),
+				Nonce:     resource.GetNonce(),
 			},
 		})
 	}
@@ -1008,7 +1009,7 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 				// local resource power need not they (publishAt and updateAt).
 				//PublishAt: ,
 				//UpdateAt: ,
-
+				Nonce: resource.GetNonce(),
 			},
 		}
 		nodePowerDetail.GetPower().Tasks = buildPowerTaskList(resource.GetJobNodeId())
@@ -1080,12 +1081,12 @@ func (s *CarrierAPIBackend) GetLocalTask(taskId string) (*libtypes.TaskDetail, e
 			DataSuppliers:            localTask.GetTaskData().GetDataSuppliers(),
 			PowerSuppliers:           localTask.GetTaskData().GetPowerSuppliers(),
 			Receivers:                localTask.GetTaskData().GetReceivers(),
-			DataPolicyType:           localTask.GetTaskData().GetDataPolicyType(),
-			DataPolicyOption:         localTask.GetTaskData().GetDataPolicyOption(),
-			PowerPolicyType:          localTask.GetTaskData().GetPowerPolicyType(),
-			PowerPolicyOption:        localTask.GetTaskData().GetPowerPolicyOption(),
-			DataFlowPolicyType:       localTask.GetTaskData().GetDataFlowPolicyType(),
-			DataFlowPolicyOption:     localTask.GetTaskData().GetDataFlowPolicyOption(),
+			DataPolicyTypes:          localTask.GetTaskData().GetDataPolicyTypes(),
+			DataPolicyOptions:        localTask.GetTaskData().GetDataPolicyOptions(),
+			PowerPolicyTypes:         localTask.GetTaskData().GetPowerPolicyTypes(),
+			PowerPolicyOptions:       localTask.GetTaskData().GetPowerPolicyOptions(),
+			DataFlowPolicyTypes:      localTask.GetTaskData().GetDataFlowPolicyTypes(),
+			DataFlowPolicyOptions:    localTask.GetTaskData().GetDataFlowPolicyOptions(),
 			OperationCost:            localTask.GetTaskData().GetOperationCost(),
 			AlgorithmCode:            localTask.GetTaskData().GetAlgorithmCode(),
 			MetaAlgorithmId:          localTask.GetTaskData().GetMetaAlgorithmId(),
@@ -1376,19 +1377,7 @@ func (s *CarrierAPIBackend) QueryDataResourceFileUploads() ([]*types.DataResourc
 	return s.carrier.carrierDB.QueryDataResourceFileUploads()
 }
 
-func (s *CarrierAPIBackend) StoreTaskUpResultFile(turf *types.TaskUpResultFile) error {
-	return s.carrier.carrierDB.StoreTaskUpResultFile(turf)
-}
-
-func (s *CarrierAPIBackend) QueryTaskUpResultFile(taskId string) (*types.TaskUpResultFile, error) {
-	return s.carrier.carrierDB.QueryTaskUpResultFile(taskId)
-}
-
-func (s *CarrierAPIBackend) RemoveTaskUpResultFile(taskId string) error {
-	return s.carrier.carrierDB.RemoveTaskUpResultFile(taskId)
-}
-
-func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, dataHash, dataPath, dataNodeId, extra string) error {
+func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, dataHash, metadataOption, dataNodeId, extra string, dataType uint32) error {
 	// generate metadataId
 	var buf bytes.Buffer
 	buf.Write([]byte(originId))
@@ -1399,39 +1388,39 @@ func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, dataHas
 
 	identity, err := s.carrier.carrierDB.QueryIdentity()
 	if nil != err {
-		log.WithError(err).Errorf("Failed query local identity on CarrierAPIBackend.StoreTaskResultFileSummary(), taskId: {%s}, dataNodeId: {%s}, originId: {%s}, metadataId: {%s}, dataPath: {%s}",
-			taskId, dataNodeId, originId, metadataId, dataPath)
+		log.WithError(err).Errorf("Failed query local identity on CarrierAPIBackend.StoreTaskResultFileSummary(), taskId: {%s}, dataNodeId: {%s}, originId: {%s}, metadataId: {%s}, dataType: {%s}, metadataOption: %s",
+			taskId, dataNodeId, originId, metadataId, libtypes.OrigindataType(dataType).String(), metadataOption)
 		return err
 	}
 
 	// store local metadata (about task result file)
-	s.carrier.carrierDB.StoreInternalMetadata(types.NewMetadata(&libtypes.MetadataPB{
-		MetadataId:   metadataId,
-		Owner:        identity,
-		DataId:       metadataId,
-		DataStatus:   libtypes.DataStatus_DataStatus_Valid,
-		MetadataName: fmt.Sprintf("task `%s` result file", taskId),
-		MetadataType: 2,  // It means this is a module.
-		DataHash:     "", // todo fill it.
-		Desc:         fmt.Sprintf("the task `%s` result file after executed", taskId),
-		DataType:     libtypes.OrigindataType_OrigindataType_Unknown,
-		Industry:     "Unknown",
-		// metaData status, eg: create/release/revoke
-		State:          libtypes.MetadataState_MetadataState_Created,
-		PublishAt:      0, // have not publish
+	metadata := types.NewMetadata(&libtypes.MetadataPB{
+		MetadataId:     metadataId,
+		Owner:          identity,
+		DataId:         metadataId,
+		DataStatus:     libtypes.DataStatus_DataStatus_Valid,
+		MetadataName:   fmt.Sprintf("task `%s` result file", taskId),
+		MetadataType:   libtypes.MetadataType_MetadataType_Unknown, // It means this is a module or psi result ??? so we don't known it.
+		DataHash:       dataHash,
+		Desc:           fmt.Sprintf("the task `%s` result file after executed", taskId),
+		DataType:       libtypes.OrigindataType(dataType),
+		Industry:       "Unknown",
+		State:          libtypes.MetadataState_MetadataState_Created, // metaData status, eg: create/release/revoke
+		PublishAt:      0,                                            // have not publish
 		UpdateAt:       timeutils.UnixMsecUint64(),
 		Nonce:          0,
-		MetadataOption: "",
+		MetadataOption: metadataOption,
 		TokenAddress:   "",
-	}))
+	})
+	s.carrier.carrierDB.StoreInternalMetadata(metadata)
 
 	// todo whether need to store a dataResourceDiskUsed (metadataId. dataNodeId, diskUsed) ??? 后面需要上传 磁盘使用空间在弄吧
 
 	// store dataResourceFileUpload (about task result file)
-	err = s.carrier.carrierDB.StoreDataResourceFileUpload(types.NewDataResourceFileUpload(dataNodeId, originId, metadataId, dataPath, dataHash))
+	err = s.carrier.carrierDB.StoreDataResourceFileUpload(types.NewDataResourceFileUpload(uint32(metadata.GetData().GetDataType()), dataNodeId, originId, metadataId, metadataOption, dataHash))
 	if nil != err {
-		log.WithError(err).Errorf("Failed store dataResourceFileUpload about task result file on CarrierAPIBackend.StoreTaskResultFileSummary(), taskId: {%s}, dataNodeId: {%s}, originId: {%s}, metadataId: {%s}, dataPath: {%s}",
-			taskId, dataNodeId, originId, metadataId, dataPath)
+		log.WithError(err).Errorf("Failed store dataResourceFileUpload about task result file on CarrierAPIBackend.StoreTaskResultFileSummary(), taskId: {%s}, dataNodeId: {%s}, originId: {%s}, metadataId: {%s}, dataType: {%s}, metadataOption: %s",
+			taskId, dataNodeId, originId, metadataId, metadata.GetData().GetDataType(), metadataOption)
 		return err
 	}
 	// 记录原始数据占用资源大小   StoreDataResourceTable  todo 后续考虑是否加上, 目前不加 因为对于系统生成的元数据暂时不需要记录 disk 使用实况 ??
@@ -1440,8 +1429,8 @@ func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, dataHas
 	// store taskId -> TaskUpResultFile (about task result file)
 	err = s.carrier.carrierDB.StoreTaskUpResultFile(types.NewTaskUpResultFile(taskId, originId, metadataId, extra))
 	if nil != err {
-		log.WithError(err).Errorf("Failed store taskUpResultFile on CarrierAPIBackend.StoreTaskResultFileSummary(), taskId: {%s}, dataNodeId: {%s}, originId: {%s}, metadataId: {%s}, dataPath: {%s}",
-			taskId, dataNodeId, originId, metadataId, dataPath)
+		log.WithError(err).Errorf("Failed store taskUpResultFile on CarrierAPIBackend.StoreTaskResultFileSummary(), taskId: {%s}, dataNodeId: {%s}, originId: {%s}, metadataId: {%s}, dataType: {%s}, metadataOption: %s",
+			taskId, dataNodeId, originId, metadataId, metadata.GetData().GetDataType(), metadataOption)
 		return err
 	}
 	return nil
@@ -1472,9 +1461,11 @@ func (s *CarrierAPIBackend) QueryTaskResultFileSummary(taskId string) (*types.Ta
 		dataResourceFileUpload.GetMetadataId(),
 		dataResourceFileUpload.GetOriginId(),
 		localMetadata.GetData().GetMetadataName(),
-		dataResourceFileUpload.GetDataPath(),
 		dataResourceFileUpload.GetNodeId(),
 		summarry.GetExtra(),
+		dataResourceFileUpload.GetDataHash(),
+		dataResourceFileUpload.GetMetadataOption(),
+		dataResourceFileUpload.GetDataType(),
 	), nil
 
 }
@@ -1507,17 +1498,19 @@ func (s *CarrierAPIBackend) QueryTaskResultFileSummaryList() (types.TaskResultFi
 			dataResourceFileUpload.GetMetadataId(),
 			dataResourceFileUpload.GetOriginId(),
 			localMetadata.GetData().GetMetadataName(),
-			dataResourceFileUpload.GetDataPath(),
 			dataResourceFileUpload.GetNodeId(),
 			summarry.GetExtra(),
+			dataResourceFileUpload.GetDataHash(),
+			dataResourceFileUpload.GetMetadataOption(),
+			dataResourceFileUpload.GetDataType(),
 		))
 	}
 
 	return arr, nil
 }
 
-func (s *CarrierAPIBackend) EstimateTaskGas(dataTokenTransferList []*pb.DataTokenTransferItem) (gasLimit uint64, gasPrice *big.Int, err error) {
-	gasLimit, gasPrice, err = s.carrier.metisPayManager.EstimateTaskGas(dataTokenTransferList)
+func (s *CarrierAPIBackend) EstimateTaskGas(dataTokenAddressList []string) (gasLimit uint64, gasPrice *big.Int, err error) {
+	gasLimit, gasPrice, err = s.carrier.metisPayManager.EstimateTaskGas(dataTokenAddressList)
 	if err != nil {
 		log.WithError(err).Error("Failed to call EstimateTaskGas() on CarrierAPIBackend.EstimateTaskGas()")
 	}

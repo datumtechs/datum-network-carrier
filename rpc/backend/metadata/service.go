@@ -3,11 +3,11 @@ package metadata
 import (
 	"context"
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
-	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
-	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
-	"github.com/RosettaFlow/Carrier-Go/types"
+	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
+	pb "github.com/Metisnetwork/Metis-Carrier/lib/api"
+	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/Metisnetwork/Metis-Carrier/rpc/backend"
+	"github.com/Metisnetwork/Metis-Carrier/types"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"strings"
 )

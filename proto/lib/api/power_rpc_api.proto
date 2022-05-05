@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package rpcapi;
 
-option go_package = "github.com/RosettaFlow/Carrier-Go/lib/api";
+option go_package = "github.com/Metisnetwork/Metis-Carrier/lib/api";
 
 import "lib/types/base.proto";
 import "lib/types/resourcedata.proto";

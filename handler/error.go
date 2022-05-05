@@ -2,10 +2,10 @@ package handler
 
 import (
 	"bytes"
-	"github.com/RosettaFlow/Carrier-Go/p2p"
-	"github.com/RosettaFlow/Carrier-Go/p2p/encoder"
-	"github.com/RosettaFlow/Carrier-Go/p2p/types"
-	"github.com/RosettaFlow/Carrier-Go/params"
+	"github.com/Metisnetwork/Metis-Carrier/p2p"
+	"github.com/Metisnetwork/Metis-Carrier/p2p/encoder"
+	"github.com/Metisnetwork/Metis-Carrier/p2p/types"
+	"github.com/Metisnetwork/Metis-Carrier/params"
 	libp2pcore "github.com/libp2p/go-libp2p-core"
 	"github.com/libp2p/go-libp2p-core/mux"
 	"github.com/libp2p/go-libp2p-core/network"

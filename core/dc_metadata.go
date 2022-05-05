@@ -2,9 +2,9 @@ package core
 
 import (
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
-	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
-	"github.com/RosettaFlow/Carrier-Go/types"
+	"github.com/Metisnetwork/Metis-Carrier/core/rawdb"
+	"github.com/Metisnetwork/Metis-Carrier/lib/center/api"
+	"github.com/Metisnetwork/Metis-Carrier/types"
 )
 
 // on local
@@ -75,6 +75,15 @@ func (dc *DataCenter) QueryMetadataById(metadataId string) (*types.Metadata, err
 		MetadataId: metadataId,
 	})
 	return types.NewMetadataFromResponse(metadataByIdResponse), err
+}
+
+func (dc *DataCenter) QueryMetadataByIds(metadataIds []string) ([]*types.Metadata, error) {
+	dc.serviceMu.Lock()
+	defer dc.serviceMu.Unlock()
+	metaDataListResponse, err := dc.client.GetMetadataByIds(dc.ctx, &api.FindMetadataByIdsRequest{
+		MetadataIds: metadataIds,
+	})
+	return types.NewMetadataArrayFromDetailListResponse(metaDataListResponse), err
 }
 
 func (dc *DataCenter) QueryMetadataList(lastUpdate, pageSize uint64) (types.MetadataArray, error) {

@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/p2p"
+	"github.com/Metisnetwork/Metis-Carrier/p2p"
 	"github.com/gogo/protobuf/proto"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	"github.com/pkg/errors"

@@ -1,8 +1,8 @@
 package carrier
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/consensus/twopc"
-	rpcpb "github.com/RosettaFlow/Carrier-Go/lib/rpc/debug/v1"
+	"github.com/Metisnetwork/Metis-Carrier/consensus/twopc"
+	rpcpb "github.com/Metisnetwork/Metis-Carrier/lib/rpc/debug/v1"
 )
 
 // CarrierDebugAPIBackend implements rpc.Backend for Carrier

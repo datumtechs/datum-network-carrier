@@ -22,34 +22,6 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-type AlgorithmCfgType int32
-
-const (
-	AlgorithmCfgType_AlgorithmCfgType_Unknown    AlgorithmCfgType = 0
-	AlgorithmCfgType_AlgorithmCfgType_2DTable    AlgorithmCfgType = 1
-	AlgorithmCfgType_AlgorithmCfgType_non2DTable AlgorithmCfgType = 2
-)
-
-var AlgorithmCfgType_name = map[int32]string{
-	0: "AlgorithmCfgType_Unknown",
-	1: "AlgorithmCfgType_2DTable",
-	2: "AlgorithmCfgType_non2DTable",
-}
-
-var AlgorithmCfgType_value = map[string]int32{
-	"AlgorithmCfgType_Unknown":    0,
-	"AlgorithmCfgType_2DTable":    1,
-	"AlgorithmCfgType_non2DTable": 2,
-}
-
-func (x AlgorithmCfgType) String() string {
-	return proto.EnumName(AlgorithmCfgType_name, int32(x))
-}
-
-func (AlgorithmCfgType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_3fb4ac3629666f03, []int{0}
-}
-
 type ConnectPolicyFormat int32
 
 const (
@@ -75,7 +47,7 @@ func (x ConnectPolicyFormat) String() string {
 }
 
 func (ConnectPolicyFormat) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_3fb4ac3629666f03, []int{1}
+	return fileDescriptor_3fb4ac3629666f03, []int{0}
 }
 
 type Party struct {
@@ -150,26 +122,25 @@ func (m *Party) GetName() string {
 }
 
 type TaskReadyGoReq struct {
-	TaskId               string              `protobuf:"bytes,1,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
-	PartyId              string              `protobuf:"bytes,2,opt,name=party_id,json=partyId,proto3" json:"party_id,omitempty"`
-	DataId               string              `protobuf:"bytes,3,opt,name=data_id,json=dataId,proto3" json:"data_id,omitempty"`
-	EnvId                string              `protobuf:"bytes,4,opt,name=env_id,json=envId,proto3" json:"env_id,omitempty"`
-	Parties              []*Party            `protobuf:"bytes,5,rep,name=parties,proto3" json:"parties,omitempty"`
-	AlgorithmCode        string              `protobuf:"bytes,6,opt,name=algorithm_code,json=algorithmCode,proto3" json:"algorithm_code,omitempty"`
-	AlgorithmCfgType     AlgorithmCfgType    `protobuf:"varint,7,opt,name=algorithm_cfg_type,json=algorithmCfgType,proto3,enum=common.AlgorithmCfgType" json:"algorithm_cfg_type,omitempty"`
-	AlgorithmCfg         string              `protobuf:"bytes,8,opt,name=algorithm_cfg,json=algorithmCfg,proto3" json:"algorithm_cfg,omitempty"`
-	DataPartyIds         []string            `protobuf:"bytes,9,rep,name=data_party_ids,json=dataPartyIds,proto3" json:"data_party_ids,omitempty"`
-	ComputationPartyIds  []string            `protobuf:"bytes,10,rep,name=computation_party_ids,json=computationPartyIds,proto3" json:"computation_party_ids,omitempty"`
-	ResultPartyIds       []string            `protobuf:"bytes,11,rep,name=result_party_ids,json=resultPartyIds,proto3" json:"result_party_ids,omitempty"`
-	Duration             uint64              `protobuf:"varint,12,opt,name=duration,proto3" json:"duration,omitempty"`
-	Memory               uint64              `protobuf:"varint,13,opt,name=memory,proto3" json:"memory,omitempty"`
-	Processor            uint32              `protobuf:"varint,14,opt,name=processor,proto3" json:"processor,omitempty"`
-	Bandwidth            uint64              `protobuf:"varint,15,opt,name=bandwidth,proto3" json:"bandwidth,omitempty"`
-	ConnectPolicyFormat  ConnectPolicyFormat `protobuf:"varint,16,opt,name=connect_policy_format,json=connectPolicyFormat,proto3,enum=common.ConnectPolicyFormat" json:"connect_policy_format,omitempty"`
-	ConnectPolicy        string              `protobuf:"bytes,17,opt,name=connect_policy,json=connectPolicy,proto3" json:"connect_policy,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}            `json:"-"`
-	XXX_unrecognized     []byte              `json:"-"`
-	XXX_sizecache        int32               `json:"-"`
+	TaskId                 string              `protobuf:"bytes,1,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
+	PartyId                string              `protobuf:"bytes,2,opt,name=party_id,json=partyId,proto3" json:"party_id,omitempty"`
+	EnvId                  string              `protobuf:"bytes,3,opt,name=env_id,json=envId,proto3" json:"env_id,omitempty"`
+	Parties                []*Party            `protobuf:"bytes,4,rep,name=parties,proto3" json:"parties,omitempty"`
+	AlgorithmCode          string              `protobuf:"bytes,5,opt,name=algorithm_code,json=algorithmCode,proto3" json:"algorithm_code,omitempty"`
+	SelfCfgParams          string              `protobuf:"bytes,6,opt,name=self_cfg_params,json=selfCfgParams,proto3" json:"self_cfg_params,omitempty"`
+	AlgorithmDynamicParams string              `protobuf:"bytes,7,opt,name=algorithm_dynamic_params,json=algorithmDynamicParams,proto3" json:"algorithm_dynamic_params,omitempty"`
+	DataPartyIds           []string            `protobuf:"bytes,8,rep,name=data_party_ids,json=dataPartyIds,proto3" json:"data_party_ids,omitempty"`
+	ComputationPartyIds    []string            `protobuf:"bytes,9,rep,name=computation_party_ids,json=computationPartyIds,proto3" json:"computation_party_ids,omitempty"`
+	ResultPartyIds         []string            `protobuf:"bytes,10,rep,name=result_party_ids,json=resultPartyIds,proto3" json:"result_party_ids,omitempty"`
+	Duration               uint64              `protobuf:"varint,11,opt,name=duration,proto3" json:"duration,omitempty"`
+	Memory                 uint64              `protobuf:"varint,12,opt,name=memory,proto3" json:"memory,omitempty"`
+	Processor              uint32              `protobuf:"varint,13,opt,name=processor,proto3" json:"processor,omitempty"`
+	Bandwidth              uint64              `protobuf:"varint,14,opt,name=bandwidth,proto3" json:"bandwidth,omitempty"`
+	ConnectPolicyFormat    ConnectPolicyFormat `protobuf:"varint,15,opt,name=connect_policy_format,json=connectPolicyFormat,proto3,enum=common.ConnectPolicyFormat" json:"connect_policy_format,omitempty"`
+	ConnectPolicy          string              `protobuf:"bytes,16,opt,name=connect_policy,json=connectPolicy,proto3" json:"connect_policy,omitempty"`
+	XXX_NoUnkeyedLiteral   struct{}            `json:"-"`
+	XXX_unrecognized       []byte              `json:"-"`
+	XXX_sizecache          int32               `json:"-"`
 }
 
 func (m *TaskReadyGoReq) Reset()         { *m = TaskReadyGoReq{} }
@@ -219,13 +190,6 @@ func (m *TaskReadyGoReq) GetPartyId() string {
 	return ""
 }
 
-func (m *TaskReadyGoReq) GetDataId() string {
-	if m != nil {
-		return m.DataId
-	}
-	return ""
-}
-
 func (m *TaskReadyGoReq) GetEnvId() string {
 	if m != nil {
 		return m.EnvId
@@ -247,16 +211,16 @@ func (m *TaskReadyGoReq) GetAlgorithmCode() string {
 	return ""
 }
 
-func (m *TaskReadyGoReq) GetAlgorithmCfgType() AlgorithmCfgType {
+func (m *TaskReadyGoReq) GetSelfCfgParams() string {
 	if m != nil {
-		return m.AlgorithmCfgType
+		return m.SelfCfgParams
 	}
-	return AlgorithmCfgType_AlgorithmCfgType_Unknown
+	return ""
 }
 
-func (m *TaskReadyGoReq) GetAlgorithmCfg() string {
+func (m *TaskReadyGoReq) GetAlgorithmDynamicParams() string {
 	if m != nil {
-		return m.AlgorithmCfg
+		return m.AlgorithmDynamicParams
 	}
 	return ""
 }
@@ -325,7 +289,7 @@ func (m *TaskReadyGoReq) GetConnectPolicy() string {
 }
 
 type TaskReadyGoReply struct {
-	Ok                   bool     `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
+	Status               int32    `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
 	Msg                  string   `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -365,11 +329,11 @@ func (m *TaskReadyGoReply) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_TaskReadyGoReply proto.InternalMessageInfo
 
-func (m *TaskReadyGoReply) GetOk() bool {
+func (m *TaskReadyGoReply) GetStatus() int32 {
 	if m != nil {
-		return m.Ok
+		return m.Status
 	}
-	return false
+	return 0
 }
 
 func (m *TaskReadyGoReply) GetMsg() string {
@@ -435,7 +399,7 @@ func (m *TaskCancelReq) GetPartyId() string {
 }
 
 type TaskCancelReply struct {
-	Ok                   bool     `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
+	Status               int32    `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
 	Msg                  string   `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -475,11 +439,11 @@ func (m *TaskCancelReply) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_TaskCancelReply proto.InternalMessageInfo
 
-func (m *TaskCancelReply) GetOk() bool {
+func (m *TaskCancelReply) GetStatus() int32 {
 	if m != nil {
-		return m.Ok
+		return m.Status
 	}
-	return false
+	return 0
 }
 
 func (m *TaskCancelReply) GetMsg() string {
@@ -490,7 +454,6 @@ func (m *TaskCancelReply) GetMsg() string {
 }
 
 func init() {
-	proto.RegisterEnum("common.AlgorithmCfgType", AlgorithmCfgType_name, AlgorithmCfgType_value)
 	proto.RegisterEnum("common.ConnectPolicyFormat", ConnectPolicyFormat_name, ConnectPolicyFormat_value)
 	proto.RegisterType((*Party)(nil), "common.Party")
 	proto.RegisterType((*TaskReadyGoReq)(nil), "common.TaskReadyGoReq")
@@ -502,46 +465,44 @@ func init() {
 func init() { proto.RegisterFile("lib/fighter/common/common.proto", fileDescriptor_3fb4ac3629666f03) }
 
 var fileDescriptor_3fb4ac3629666f03 = []byte{
-	// 624 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x94, 0xc1, 0x4e, 0xdb, 0x4c,
-	0x10, 0xc7, 0x3f, 0x27, 0xc4, 0x09, 0x03, 0x31, 0xfe, 0x16, 0x51, 0xb6, 0x05, 0x81, 0x95, 0xb6,
-	0xaa, 0x85, 0x54, 0x22, 0x05, 0x5e, 0xa0, 0xa4, 0x02, 0xa5, 0x97, 0x22, 0x97, 0x5e, 0xb8, 0x44,
-	0x1b, 0x7b, 0x93, 0x58, 0xb1, 0x77, 0xcc, 0x7a, 0x03, 0xca, 0xc3, 0xf4, 0x7d, 0x7a, 0xec, 0x23,
-	0x54, 0x3c, 0x49, 0xb5, 0xeb, 0x24, 0x38, 0x90, 0x43, 0xd5, 0x53, 0x76, 0xfe, 0xf3, 0x9b, 0x99,
-	0xcc, 0xec, 0x78, 0xe1, 0x38, 0x89, 0x07, 0xed, 0x61, 0x3c, 0x1a, 0x2b, 0x2e, 0xdb, 0x21, 0xa6,
-	0x29, 0x8a, 0xf9, 0xcf, 0x69, 0x26, 0x51, 0x21, 0xb1, 0x0b, 0xab, 0x75, 0x0b, 0xb5, 0x6b, 0x26,
-	0xd5, 0x8c, 0x38, 0x50, 0x89, 0x33, 0x6a, 0x79, 0x96, 0xbf, 0x19, 0x54, 0xe2, 0x8c, 0x10, 0xd8,
-	0xc8, 0x50, 0x2a, 0x5a, 0xf1, 0x2c, 0xbf, 0x16, 0x98, 0x33, 0x79, 0x0d, 0x8d, 0x4c, 0xc3, 0xfd,
-	0x38, 0xa2, 0x55, 0x43, 0xd6, 0x8d, 0xdd, 0x8b, 0x34, 0x2e, 0x58, 0xca, 0xe9, 0x86, 0x91, 0xcd,
-	0xb9, 0xf5, 0xa3, 0x06, 0xce, 0x0d, 0xcb, 0x27, 0x01, 0x67, 0xd1, 0xec, 0x0a, 0x03, 0x7e, 0x47,
-	0xf6, 0xa1, 0xae, 0x58, 0x3e, 0xd1, 0x09, 0x8a, 0x52, 0xb6, 0x36, 0x7b, 0xd1, 0x4a, 0xea, 0xca,
-	0x6a, 0xea, 0x7d, 0xa8, 0x47, 0x4c, 0xb1, 0xa7, 0xa2, 0xb6, 0x36, 0x7b, 0x11, 0xd9, 0x03, 0x9b,
-	0x8b, 0x7b, 0xad, 0x17, 0x55, 0x6b, 0x5c, 0xdc, 0xf7, 0x22, 0xf2, 0x01, 0x4c, 0x68, 0xcc, 0x73,
-	0x5a, 0xf3, 0xaa, 0xfe, 0x56, 0xa7, 0x79, 0x3a, 0x6f, 0xdd, 0x74, 0x1a, 0x2c, 0xbc, 0xe4, 0x3d,
-	0x38, 0x2c, 0x19, 0xa1, 0x8c, 0xd5, 0x38, 0xed, 0x87, 0x18, 0x71, 0x6a, 0x9b, 0x3c, 0xcd, 0xa5,
-	0xda, 0xc5, 0x88, 0x93, 0x4b, 0x20, 0x25, 0x6c, 0x38, 0xea, 0xab, 0x59, 0xc6, 0x69, 0xdd, 0xb3,
-	0x7c, 0xa7, 0x43, 0x17, 0xa9, 0x3f, 0x2d, 0x43, 0x86, 0xa3, 0x9b, 0x59, 0xc6, 0x03, 0x97, 0x3d,
-	0x53, 0xc8, 0x5b, 0x68, 0xae, 0xe4, 0xa1, 0x0d, 0x53, 0x6d, 0xbb, 0x0c, 0x92, 0x77, 0xe0, 0x98,
-	0x66, 0x17, 0xc3, 0xc8, 0xe9, 0xa6, 0x57, 0xd5, 0x94, 0x56, 0xaf, 0x8b, 0x89, 0xe4, 0xa4, 0x03,
-	0x7b, 0x21, 0xa6, 0xd9, 0x54, 0x31, 0x15, 0xa3, 0x28, 0xc1, 0x60, 0xe0, 0xdd, 0x92, 0x73, 0x19,
-	0xe3, 0x83, 0x2b, 0x79, 0x3e, 0x4d, 0x54, 0x09, 0xdf, 0x32, 0xb8, 0x53, 0xe8, 0x4b, 0xf2, 0x0d,
-	0x34, 0xa2, 0xa9, 0x34, 0xd1, 0x74, 0xdb, 0xb3, 0xfc, 0x8d, 0x60, 0x69, 0x93, 0x57, 0x60, 0xa7,
-	0x3c, 0x45, 0x39, 0xa3, 0x4d, 0xe3, 0x99, 0x5b, 0xe4, 0x10, 0x36, 0x33, 0x89, 0x21, 0xcf, 0x73,
-	0x94, 0xd4, 0xf1, 0x2c, 0xbf, 0x19, 0x3c, 0x09, 0xda, 0x3b, 0x60, 0x22, 0x7a, 0x88, 0x23, 0x35,
-	0xa6, 0x3b, 0x26, 0xf0, 0x49, 0x20, 0x5f, 0x75, 0x37, 0x42, 0xf0, 0x50, 0xf5, 0x33, 0x4c, 0xe2,
-	0x70, 0xd6, 0x1f, 0xa2, 0x4c, 0x99, 0xa2, 0xae, 0x99, 0xf1, 0xc1, 0x62, 0xc6, 0xdd, 0x02, 0xba,
-	0x36, 0xcc, 0xa5, 0x41, 0x74, 0xab, 0x2f, 0x44, 0x7d, 0xb1, 0xab, 0x09, 0xe9, 0xff, 0xc5, 0xc5,
-	0xae, 0xc0, 0xad, 0x73, 0x70, 0x57, 0xd6, 0x33, 0x4b, 0xcc, 0x67, 0x80, 0x13, 0xb3, 0x9b, 0x8d,
-	0xa0, 0x82, 0x13, 0xe2, 0x42, 0x35, 0xcd, 0x47, 0xf3, 0x95, 0xd4, 0xc7, 0x56, 0x17, 0x9a, 0x3a,
-	0xaa, 0xcb, 0x44, 0xc8, 0x93, 0x7f, 0xdc, 0xe9, 0xd6, 0x19, 0xec, 0x94, 0x93, 0xfc, 0x55, 0xe5,
-	0x13, 0x04, 0xf7, 0xf9, 0x9a, 0x91, 0x43, 0xa0, 0xcf, 0xb5, 0xfe, 0x77, 0x31, 0x11, 0xf8, 0x20,
-	0xdc, 0xff, 0xd6, 0x7a, 0x3b, 0x9f, 0x6f, 0xd8, 0x20, 0xe1, 0xae, 0x45, 0x8e, 0xe1, 0xe0, 0x85,
-	0x57, 0xa0, 0x58, 0x00, 0x95, 0x93, 0x3b, 0xd8, 0x5d, 0x33, 0x73, 0x1d, 0xb7, 0x46, 0x2e, 0x95,
-	0x3d, 0x80, 0xfd, 0x75, 0xc0, 0x37, 0x25, 0x5d, 0x4b, 0xff, 0xa7, 0x75, 0xce, 0x2f, 0x39, 0x0a,
-	0xb7, 0x72, 0x71, 0xf1, 0xf3, 0xf1, 0xc8, 0xfa, 0xf5, 0x78, 0x64, 0xfd, 0x7e, 0x3c, 0xb2, 0x6e,
-	0xcf, 0x47, 0xb1, 0x1a, 0x4f, 0x07, 0x7a, 0x01, 0xda, 0x01, 0xe6, 0x5c, 0x29, 0x76, 0x99, 0xe0,
-	0x43, 0xbb, 0xcb, 0xa4, 0x8c, 0xb9, 0xfc, 0x78, 0x85, 0xed, 0x97, 0x0f, 0xdd, 0xc0, 0x36, 0x4f,
-	0xdc, 0xd9, 0x9f, 0x00, 0x00, 0x00, 0xff, 0xff, 0x96, 0x92, 0x63, 0x49, 0x05, 0x05, 0x00, 0x00,
+	// 592 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x94, 0xcd, 0x6e, 0x13, 0x31,
+	0x10, 0xc7, 0xd9, 0x7c, 0xb5, 0x99, 0x36, 0xdb, 0x95, 0xab, 0xb6, 0x86, 0x56, 0xed, 0x2a, 0xe2,
+	0x63, 0x85, 0x44, 0x23, 0x95, 0x4b, 0x25, 0x38, 0x11, 0x54, 0x54, 0x24, 0x44, 0xb4, 0xc0, 0xa5,
+	0x97, 0x95, 0xb3, 0x76, 0x12, 0x2b, 0xbb, 0xf6, 0xd6, 0x76, 0x5a, 0xe5, 0x0d, 0x39, 0xf2, 0x08,
+	0xa8, 0x6f, 0xc1, 0x0d, 0xd9, 0x9b, 0x4f, 0x35, 0x17, 0x38, 0xc5, 0xf3, 0x9f, 0xdf, 0x8c, 0xf3,
+	0xdf, 0x19, 0x19, 0xce, 0x32, 0xde, 0xef, 0x0c, 0xf8, 0x70, 0x64, 0x98, 0xea, 0xa4, 0x32, 0xcf,
+	0xa5, 0x98, 0xfd, 0x9c, 0x17, 0x4a, 0x1a, 0x89, 0x1a, 0x65, 0xd4, 0xbe, 0x81, 0x7a, 0x8f, 0x28,
+	0x33, 0x45, 0x3e, 0x54, 0x78, 0x81, 0xbd, 0xd0, 0x8b, 0x9a, 0x71, 0x85, 0x17, 0x08, 0x41, 0xad,
+	0x90, 0xca, 0xe0, 0x4a, 0xe8, 0x45, 0xf5, 0xd8, 0x9d, 0xd1, 0x53, 0xd8, 0x2e, 0x2c, 0x9c, 0x70,
+	0x8a, 0xab, 0x8e, 0xdc, 0x72, 0xf1, 0x35, 0xb5, 0xb8, 0x20, 0x39, 0xc3, 0x35, 0x27, 0xbb, 0x73,
+	0xfb, 0x4f, 0x0d, 0xfc, 0xef, 0x44, 0x8f, 0x63, 0x46, 0xe8, 0xf4, 0x93, 0x8c, 0xd9, 0x2d, 0x3a,
+	0x82, 0x2d, 0x43, 0xf4, 0xd8, 0x36, 0x28, 0xaf, 0x6a, 0xd8, 0xf0, 0x9a, 0xae, 0xb5, 0xae, 0xac,
+	0xb7, 0x3e, 0x80, 0x06, 0x13, 0x77, 0xcb, 0x3b, 0xeb, 0x4c, 0xdc, 0x5d, 0x53, 0xf4, 0x0a, 0x1c,
+	0xc1, 0x99, 0xc6, 0xb5, 0xb0, 0x1a, 0xed, 0x5c, 0xb4, 0xce, 0x67, 0x0e, 0x9d, 0xa1, 0x78, 0x9e,
+	0x45, 0x2f, 0xc0, 0x27, 0xd9, 0x50, 0x2a, 0x6e, 0x46, 0x79, 0x92, 0x4a, 0xca, 0x70, 0xdd, 0xf5,
+	0x69, 0x2d, 0xd4, 0xae, 0xa4, 0x0c, 0xbd, 0x84, 0x3d, 0xcd, 0xb2, 0x41, 0x92, 0x0e, 0x86, 0x49,
+	0x41, 0x14, 0xc9, 0x35, 0x6e, 0x94, 0x9c, 0x95, 0xbb, 0x83, 0x61, 0xcf, 0x89, 0xe8, 0x12, 0xf0,
+	0xb2, 0x1d, 0x9d, 0x0a, 0x92, 0xf3, 0x74, 0x5e, 0xb0, 0xe5, 0x0a, 0x0e, 0x17, 0xf9, 0x8f, 0x65,
+	0x7a, 0x56, 0xf9, 0x1c, 0x7c, 0x4a, 0x0c, 0x49, 0xe6, 0x46, 0x35, 0xde, 0x0e, 0xab, 0x51, 0x33,
+	0xde, 0xb5, 0x6a, 0xaf, 0x74, 0xab, 0xd1, 0x05, 0x1c, 0xa4, 0x32, 0x2f, 0x26, 0x86, 0x18, 0x2e,
+	0xc5, 0x0a, 0xdc, 0x74, 0xf0, 0xfe, 0x4a, 0x72, 0x51, 0x13, 0x41, 0xa0, 0x98, 0x9e, 0x64, 0x66,
+	0x05, 0x07, 0x87, 0xfb, 0xa5, 0xbe, 0x20, 0x9f, 0xc1, 0x36, 0x9d, 0x28, 0x57, 0x8d, 0x77, 0x42,
+	0x2f, 0xaa, 0xc5, 0x8b, 0x18, 0x1d, 0x42, 0x23, 0x67, 0xb9, 0x54, 0x53, 0xbc, 0xeb, 0x32, 0xb3,
+	0x08, 0x9d, 0x40, 0xb3, 0x50, 0x32, 0x65, 0x5a, 0x4b, 0x85, 0x5b, 0xa1, 0x17, 0xb5, 0xe2, 0xa5,
+	0x60, 0xb3, 0x7d, 0x22, 0xe8, 0x3d, 0xa7, 0x66, 0x84, 0x7d, 0x57, 0xb8, 0x14, 0xd0, 0x57, 0xeb,
+	0x46, 0x08, 0x96, 0x9a, 0xa4, 0x90, 0x19, 0x4f, 0xa7, 0xc9, 0x40, 0xaa, 0x9c, 0x18, 0xbc, 0x17,
+	0x7a, 0x91, 0x7f, 0x71, 0x3c, 0x9f, 0x59, 0xb7, 0x84, 0x7a, 0x8e, 0xb9, 0x72, 0x88, 0xb5, 0xfa,
+	0x48, 0xb4, 0xd3, 0x5c, 0x6f, 0x88, 0x83, 0x72, 0x4a, 0x6b, 0x70, 0xfb, 0x3d, 0x04, 0x6b, 0xab,
+	0x57, 0x64, 0x53, 0xeb, 0x4f, 0x1b, 0x62, 0x26, 0xda, 0xed, 0x5e, 0x3d, 0x9e, 0x45, 0x28, 0x80,
+	0x6a, 0xae, 0x87, 0xb3, 0xb5, 0xb3, 0xc7, 0x76, 0x17, 0x5a, 0xb6, 0xba, 0x4b, 0x44, 0xca, 0xb2,
+	0xff, 0xdc, 0xdb, 0xf6, 0x3b, 0xd8, 0x5b, 0x6d, 0xf2, 0x4f, 0xff, 0xe0, 0xf5, 0x2d, 0xec, 0x6f,
+	0xf8, 0x24, 0xe8, 0x0c, 0x8e, 0x37, 0xc8, 0xc9, 0x0f, 0x31, 0x16, 0xf2, 0x5e, 0x04, 0x4f, 0xd0,
+	0x31, 0x1c, 0x6d, 0x02, 0xbe, 0x19, 0x15, 0x78, 0xe8, 0x04, 0xf0, 0xa6, 0xe4, 0x67, 0x2d, 0x45,
+	0x50, 0xf9, 0x70, 0xf5, 0xf3, 0xe1, 0xd4, 0xfb, 0xf5, 0x70, 0xea, 0xfd, 0x7e, 0x38, 0xf5, 0x6e,
+	0x2e, 0x87, 0xdc, 0x8c, 0x26, 0x7d, 0x3b, 0x9f, 0xce, 0x17, 0x66, 0xb8, 0x16, 0xcc, 0xdc, 0x4b,
+	0x35, 0x2e, 0x83, 0x37, 0x5d, 0xa2, 0x14, 0x67, 0xaa, 0xf3, 0xf8, 0x9d, 0xe9, 0x37, 0xdc, 0x0b,
+	0xf3, 0xf6, 0x6f, 0x00, 0x00, 0x00, 0xff, 0xff, 0xfc, 0x03, 0xb1, 0x94, 0x84, 0x04, 0x00, 0x00,
 }
 
 func (m *Party) Marshal() (dAtA []byte, err error) {
@@ -628,34 +589,32 @@ func (m *TaskReadyGoReq) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x1
 		i--
-		dAtA[i] = 0x8a
+		dAtA[i] = 0x82
 	}
 	if m.ConnectPolicyFormat != 0 {
 		i = encodeVarintCommon(dAtA, i, uint64(m.ConnectPolicyFormat))
 		i--
-		dAtA[i] = 0x1
-		i--
-		dAtA[i] = 0x80
+		dAtA[i] = 0x78
 	}
 	if m.Bandwidth != 0 {
 		i = encodeVarintCommon(dAtA, i, uint64(m.Bandwidth))
 		i--
-		dAtA[i] = 0x78
+		dAtA[i] = 0x70
 	}
 	if m.Processor != 0 {
 		i = encodeVarintCommon(dAtA, i, uint64(m.Processor))
 		i--
-		dAtA[i] = 0x70
+		dAtA[i] = 0x68
 	}
 	if m.Memory != 0 {
 		i = encodeVarintCommon(dAtA, i, uint64(m.Memory))
 		i--
-		dAtA[i] = 0x68
+		dAtA[i] = 0x60
 	}
 	if m.Duration != 0 {
 		i = encodeVarintCommon(dAtA, i, uint64(m.Duration))
 		i--
-		dAtA[i] = 0x60
+		dAtA[i] = 0x58
 	}
 	if len(m.ResultPartyIds) > 0 {
 		for iNdEx := len(m.ResultPartyIds) - 1; iNdEx >= 0; iNdEx-- {
@@ -663,7 +622,7 @@ func (m *TaskReadyGoReq) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			copy(dAtA[i:], m.ResultPartyIds[iNdEx])
 			i = encodeVarintCommon(dAtA, i, uint64(len(m.ResultPartyIds[iNdEx])))
 			i--
-			dAtA[i] = 0x5a
+			dAtA[i] = 0x52
 		}
 	}
 	if len(m.ComputationPartyIds) > 0 {
@@ -672,7 +631,7 @@ func (m *TaskReadyGoReq) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			copy(dAtA[i:], m.ComputationPartyIds[iNdEx])
 			i = encodeVarintCommon(dAtA, i, uint64(len(m.ComputationPartyIds[iNdEx])))
 			i--
-			dAtA[i] = 0x52
+			dAtA[i] = 0x4a
 		}
 	}
 	if len(m.DataPartyIds) > 0 {
@@ -681,27 +640,29 @@ func (m *TaskReadyGoReq) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			copy(dAtA[i:], m.DataPartyIds[iNdEx])
 			i = encodeVarintCommon(dAtA, i, uint64(len(m.DataPartyIds[iNdEx])))
 			i--
-			dAtA[i] = 0x4a
+			dAtA[i] = 0x42
 		}
 	}
-	if len(m.AlgorithmCfg) > 0 {
-		i -= len(m.AlgorithmCfg)
-		copy(dAtA[i:], m.AlgorithmCfg)
-		i = encodeVarintCommon(dAtA, i, uint64(len(m.AlgorithmCfg)))
+	if len(m.AlgorithmDynamicParams) > 0 {
+		i -= len(m.AlgorithmDynamicParams)
+		copy(dAtA[i:], m.AlgorithmDynamicParams)
+		i = encodeVarintCommon(dAtA, i, uint64(len(m.AlgorithmDynamicParams)))
 		i--
-		dAtA[i] = 0x42
+		dAtA[i] = 0x3a
 	}
-	if m.AlgorithmCfgType != 0 {
-		i = encodeVarintCommon(dAtA, i, uint64(m.AlgorithmCfgType))
+	if len(m.SelfCfgParams) > 0 {
+		i -= len(m.SelfCfgParams)
+		copy(dAtA[i:], m.SelfCfgParams)
+		i = encodeVarintCommon(dAtA, i, uint64(len(m.SelfCfgParams)))
 		i--
-		dAtA[i] = 0x38
+		dAtA[i] = 0x32
 	}
 	if len(m.AlgorithmCode) > 0 {
 		i -= len(m.AlgorithmCode)
 		copy(dAtA[i:], m.AlgorithmCode)
 		i = encodeVarintCommon(dAtA, i, uint64(len(m.AlgorithmCode)))
 		i--
-		dAtA[i] = 0x32
+		dAtA[i] = 0x2a
 	}
 	if len(m.Parties) > 0 {
 		for iNdEx := len(m.Parties) - 1; iNdEx >= 0; iNdEx-- {
@@ -714,20 +675,13 @@ func (m *TaskReadyGoReq) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 				i = encodeVarintCommon(dAtA, i, uint64(size))
 			}
 			i--
-			dAtA[i] = 0x2a
+			dAtA[i] = 0x22
 		}
 	}
 	if len(m.EnvId) > 0 {
 		i -= len(m.EnvId)
 		copy(dAtA[i:], m.EnvId)
 		i = encodeVarintCommon(dAtA, i, uint64(len(m.EnvId)))
-		i--
-		dAtA[i] = 0x22
-	}
-	if len(m.DataId) > 0 {
-		i -= len(m.DataId)
-		copy(dAtA[i:], m.DataId)
-		i = encodeVarintCommon(dAtA, i, uint64(len(m.DataId)))
 		i--
 		dAtA[i] = 0x1a
 	}
@@ -779,13 +733,8 @@ func (m *TaskReadyGoReply) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if m.Ok {
-		i--
-		if m.Ok {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
+	if m.Status != 0 {
+		i = encodeVarintCommon(dAtA, i, uint64(m.Status))
 		i--
 		dAtA[i] = 0x8
 	}
@@ -864,13 +813,8 @@ func (m *TaskCancelReply) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if m.Ok {
-		i--
-		if m.Ok {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
+	if m.Status != 0 {
+		i = encodeVarintCommon(dAtA, i, uint64(m.Status))
 		i--
 		dAtA[i] = 0x8
 	}
@@ -929,10 +873,6 @@ func (m *TaskReadyGoReq) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovCommon(uint64(l))
 	}
-	l = len(m.DataId)
-	if l > 0 {
-		n += 1 + l + sovCommon(uint64(l))
-	}
 	l = len(m.EnvId)
 	if l > 0 {
 		n += 1 + l + sovCommon(uint64(l))
@@ -947,10 +887,11 @@ func (m *TaskReadyGoReq) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovCommon(uint64(l))
 	}
-	if m.AlgorithmCfgType != 0 {
-		n += 1 + sovCommon(uint64(m.AlgorithmCfgType))
+	l = len(m.SelfCfgParams)
+	if l > 0 {
+		n += 1 + l + sovCommon(uint64(l))
 	}
-	l = len(m.AlgorithmCfg)
+	l = len(m.AlgorithmDynamicParams)
 	if l > 0 {
 		n += 1 + l + sovCommon(uint64(l))
 	}
@@ -985,7 +926,7 @@ func (m *TaskReadyGoReq) Size() (n int) {
 		n += 1 + sovCommon(uint64(m.Bandwidth))
 	}
 	if m.ConnectPolicyFormat != 0 {
-		n += 2 + sovCommon(uint64(m.ConnectPolicyFormat))
+		n += 1 + sovCommon(uint64(m.ConnectPolicyFormat))
 	}
 	l = len(m.ConnectPolicy)
 	if l > 0 {
@@ -1003,8 +944,8 @@ func (m *TaskReadyGoReply) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.Ok {
-		n += 2
+	if m.Status != 0 {
+		n += 1 + sovCommon(uint64(m.Status))
 	}
 	l = len(m.Msg)
 	if l > 0 {
@@ -1042,8 +983,8 @@ func (m *TaskCancelReply) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.Ok {
-		n += 2
+	if m.Status != 0 {
+		n += 1 + sovCommon(uint64(m.Status))
 	}
 	l = len(m.Msg)
 	if l > 0 {
@@ -1322,38 +1263,6 @@ func (m *TaskReadyGoReq) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field DataId", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCommon
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthCommon
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthCommon
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.DataId = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field EnvId", wireType)
 			}
 			var stringLen uint64
@@ -1384,7 +1293,7 @@ func (m *TaskReadyGoReq) Unmarshal(dAtA []byte) error {
 			}
 			m.EnvId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 5:
+		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Parties", wireType)
 			}
@@ -1418,7 +1327,7 @@ func (m *TaskReadyGoReq) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 6:
+		case 5:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field AlgorithmCode", wireType)
 			}
@@ -1450,28 +1359,9 @@ func (m *TaskReadyGoReq) Unmarshal(dAtA []byte) error {
 			}
 			m.AlgorithmCode = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 7:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field AlgorithmCfgType", wireType)
-			}
-			m.AlgorithmCfgType = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCommon
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.AlgorithmCfgType |= AlgorithmCfgType(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 8:
+		case 6:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field AlgorithmCfg", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field SelfCfgParams", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -1499,9 +1389,41 @@ func (m *TaskReadyGoReq) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.AlgorithmCfg = string(dAtA[iNdEx:postIndex])
+			m.SelfCfgParams = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 9:
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AlgorithmDynamicParams", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCommon
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCommon
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCommon
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.AlgorithmDynamicParams = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 8:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field DataPartyIds", wireType)
 			}
@@ -1533,7 +1455,7 @@ func (m *TaskReadyGoReq) Unmarshal(dAtA []byte) error {
 			}
 			m.DataPartyIds = append(m.DataPartyIds, string(dAtA[iNdEx:postIndex]))
 			iNdEx = postIndex
-		case 10:
+		case 9:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ComputationPartyIds", wireType)
 			}
@@ -1565,7 +1487,7 @@ func (m *TaskReadyGoReq) Unmarshal(dAtA []byte) error {
 			}
 			m.ComputationPartyIds = append(m.ComputationPartyIds, string(dAtA[iNdEx:postIndex]))
 			iNdEx = postIndex
-		case 11:
+		case 10:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ResultPartyIds", wireType)
 			}
@@ -1597,7 +1519,7 @@ func (m *TaskReadyGoReq) Unmarshal(dAtA []byte) error {
 			}
 			m.ResultPartyIds = append(m.ResultPartyIds, string(dAtA[iNdEx:postIndex]))
 			iNdEx = postIndex
-		case 12:
+		case 11:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Duration", wireType)
 			}
@@ -1616,7 +1538,7 @@ func (m *TaskReadyGoReq) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 13:
+		case 12:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Memory", wireType)
 			}
@@ -1635,7 +1557,7 @@ func (m *TaskReadyGoReq) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 14:
+		case 13:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Processor", wireType)
 			}
@@ -1654,7 +1576,7 @@ func (m *TaskReadyGoReq) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 15:
+		case 14:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Bandwidth", wireType)
 			}
@@ -1673,7 +1595,7 @@ func (m *TaskReadyGoReq) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 16:
+		case 15:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ConnectPolicyFormat", wireType)
 			}
@@ -1692,7 +1614,7 @@ func (m *TaskReadyGoReq) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 17:
+		case 16:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ConnectPolicy", wireType)
 			}
@@ -1777,9 +1699,9 @@ func (m *TaskReadyGoReply) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Ok", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
 			}
-			var v int
+			m.Status = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowCommon
@@ -1789,12 +1711,11 @@ func (m *TaskReadyGoReply) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				v |= int(b&0x7F) << shift
+				m.Status |= int32(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			m.Ok = bool(v != 0)
 		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Msg", wireType)
@@ -1995,9 +1916,9 @@ func (m *TaskCancelReply) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Ok", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
 			}
-			var v int
+			m.Status = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowCommon
@@ -2007,12 +1928,11 @@ func (m *TaskCancelReply) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				v |= int(b&0x7F) << shift
+				m.Status |= int32(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			m.Ok = bool(v != 0)
 		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Msg", wireType)

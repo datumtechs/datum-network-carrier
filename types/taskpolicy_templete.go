@@ -12,36 +12,36 @@ var (
 )
 
 const (
-	// ==================================================================== metadata policy option ====================================================================
-	/**
-	[
-		{
-	        "partyId": "p0",
-	        "metadataId": "metadata:0xf7396b9a6be9ca6cd2099f0d5e67a748643898f2735573c0da44fc54880cf52d",
-			"metadataName" "aaa",
-	        "keyColumn": 1,
-	        "selectedColumns": [1, 2, 3]
-	    },
-		{
-	        "partyId": "p1",
-	        "metadataId": "metadata:0x2843e8103c065268991943c56d970570bedc8b31066e05ef7d62ea20b6c537c7",
-			"metadataName" "bbb",
-	        "keyColumn": 1,
-	        "selectedColumns": [1, 2, 3]
-	    }
-	]
-	 */
-	TASK_METADATA_POLICY_ROW_COLUMN = 1
+	// ==================================================================== metadata policy option ====================================================================\
 
 	// ==================================================================== power policy option ====================================================================
+
+	TASK_POWER_POLICY_ASSIGNMENT_SYMBOL_RANDOM_ELECTION = 1
 	/**
-	["q0", "q1", "q2"]
+	"q0"
 	*/
-	TASK_POWER_POLICY_ASSIGNMENT_SYMBOL_RANDOM_ELECTION_POWER = 1
+
+	TASK_POWER_POLICY_DATANODE_PROVIDE = 2
 	/**
-	[{"p0", "identityId:0x...a"}, {"p1", "identityId:0x...b"}]
+	"{
+		"providerPartyId": "p0",
+		"powerPartyId": "y0"
+	}"
 	*/
-	TASK_POWER_POLICY_DATANODE_PROVIDE_POWER = 2
+
+	// ==================================================================== receiver policy option ====================================================================
+	TASK_RECEIVER_POLICY_RANDOM_ELECTION = 1
+	/**
+	"q0"
+	 */
+
+	TASK_RECEIVER_POLICY_DATANODE_PROVIDE = 2
+	/**
+	{
+		"providerPartyId": "p0",
+		"receiverPartyId": "q0"
+	}
+	*/
 
 	// ==================================================================== dataFlow policy option ====================================================================
 
@@ -50,56 +50,175 @@ const (
 // ==================================================================== metadata policy option ====================================================================
 
 /**
-enum:  TASK_METADATA_POLICY_ROW_COLUMN
-value: 1
+OrigindataType_Unknown
+value: 0
 example:
 
-	{
-        "partyId": "p0",
-        "metadataId": "metadata:0xf7396b9a6be9ca6cd2099f0d5e67a748643898f2735573c0da44fc54880cf52d",
-		"metadataName" "xxx",
-        "keyColumn": 1,
-        "selectedColumns": [1, 2, 3]
-    }
+			{
+				"partyId": "p0",
+				"metadataId": "metadata:0x2843e8103c...6c537c7",
+				"metadataName": "bbb",
+				"inputType": 3 // 输入数据的类型，0:unknown, 1:origin_data, 2:psi_output, 3:model
+			}
 
 
 */
-type TaskMetadataPolicyRowAndColumn struct {
-	PartyId         string
-	MetadataId      string
-	MetadataName    string
-	KeyColumn       uint32
-	SelectedColumns []uint32
+type TaskMetadataPolicyUnknown struct {
+	PartyId      string `json:"partyId"`
+	MetadataId   string `json:"metadataId"`
+	MetadataName string `json:"metadataName"`
+	InputType    uint32 `json:"inputType"`
 }
 
-func (p *TaskMetadataPolicyRowAndColumn) GetPartyId() string {
+func (p *TaskMetadataPolicyUnknown) GetPartyId() string {
 	return p.PartyId
 }
-func (p *TaskMetadataPolicyRowAndColumn) GetMetadataId() string {
+func (p *TaskMetadataPolicyUnknown) GetMetadataId() string {
 	return p.MetadataId
 }
-func (p *TaskMetadataPolicyRowAndColumn) GetMetadataName() string {
+func (p *TaskMetadataPolicyUnknown) GetMetadataName() string {
 	return p.MetadataName
 }
-func (p *TaskMetadataPolicyRowAndColumn) QueryKeyColumn() uint32 {
+func (p *TaskMetadataPolicyUnknown) QueryInputType() uint32 {
+	return p.InputType
+}
+
+/**
+OrigindataType_CSV
+value: 1
+example:
+
+			{
+				"partyId": "p0",
+				"metadataId": "metadata:0xf7396b9a6be9c20...c54880c2d",
+				"metadataName": "aaa",
+				"inputType": 1, // 输入数据的类型，0:unknown, 1:origin_data, 2:psi_output, 3:model
+				"keyColumn": 1,
+				"selectedColumns": [1, 2, 3]
+			}
+
+
+*/
+type TaskMetadataPolicyCSV struct {
+	PartyId         string   `json:"partyId"`
+	MetadataId      string   `json:"metadataId"`
+	MetadataName    string   `json:"metadataName"`
+	InputType       uint32   `json:"inputType"`
+	KeyColumn       uint32   `json:"keyColumn"`
+	SelectedColumns []uint32 `json:"selectedColumns"`
+}
+
+func (p *TaskMetadataPolicyCSV) GetPartyId() string {
+	return p.PartyId
+}
+func (p *TaskMetadataPolicyCSV) GetMetadataId() string {
+	return p.MetadataId
+}
+func (p *TaskMetadataPolicyCSV) GetMetadataName() string {
+	return p.MetadataName
+}
+func (p *TaskMetadataPolicyCSV) QueryInputType() uint32 {
+	return p.InputType
+}
+func (p *TaskMetadataPolicyCSV) QueryKeyColumn() uint32 {
 	return p.KeyColumn
 }
-func (p *TaskMetadataPolicyRowAndColumn) QuerySelectedColumns() []uint32 {
+func (p *TaskMetadataPolicyCSV) QuerySelectedColumns() []uint32 {
 	return p.SelectedColumns
+}
+
+/**
+OrigindataType_DIR
+value: 2
+example:
+
+			{
+				"partyId": "p0",
+				"metadataId": "metadata:0x2843e8103c...6c537c7",
+				"metadataName": "bbb",
+				"inputType": 3 // 输入数据的类型，0:unknown, 1:origin_data, 2:psi_output, 3:model
+			}
+
+
+*/
+type TaskMetadataPolicyDIR struct {
+	PartyId      string `json:"partyId"`
+	MetadataId   string `json:"metadataId"`
+	MetadataName string `json:"metadataName"`
+	InputType    uint32 `json:"inputType"`
+}
+
+func (p *TaskMetadataPolicyDIR) GetPartyId() string {
+	return p.PartyId
+}
+func (p *TaskMetadataPolicyDIR) GetMetadataId() string {
+	return p.MetadataId
+}
+func (p *TaskMetadataPolicyDIR) GetMetadataName() string {
+	return p.MetadataName
+}
+func (p *TaskMetadataPolicyDIR) QueryInputType() uint32 {
+	return p.InputType
+}
+
+/**
+OrigindataType_BINARY
+value: 3
+example:
+
+			{
+				"partyId": "p0",
+				"metadataId": "metadata:0x2843e8103c...6c537c7",
+				"metadataName": "bbb",
+				"inputType": 3 // 输入数据的类型，0:unknown, 1:origin_data, 2:psi_output, 3:model
+			}
+
+
+*/
+type TaskMetadataPolicyBINARY struct {
+	PartyId      string `json:"partyId"`
+	MetadataId   string `json:"metadataId"`
+	MetadataName string `json:"metadataName"`
+	InputType    uint32 `json:"inputType"`
+}
+
+func (p *TaskMetadataPolicyBINARY) GetPartyId() string {
+	return p.PartyId
+}
+func (p *TaskMetadataPolicyBINARY) GetMetadataId() string {
+	return p.MetadataId
+}
+func (p *TaskMetadataPolicyBINARY) GetMetadataName() string {
+	return p.MetadataName
+}
+func (p *TaskMetadataPolicyBINARY) QueryInputType() uint32 {
+	return p.InputType
 }
 
 // ==================================================================== power policy option ====================================================================
 
-type AssignmentProvidePower struct {
-	IdentityId string
-	PartyId    string
+/**
+{
+	"providerPartyId": "p0",
+	"powerPartyId": "y0"
+}
+*/
+type TaskPowerPolicyDataNodeProvide struct {
+	ProviderPartyId string `json:"providerPartyId"`
+	PowerPartyId    string `json:"powerPartyId"`
 }
 
-func (p *AssignmentProvidePower) GetIdentityId() string {
-	return p.IdentityId
+// ==================================================================== receiver policy option ====================================================================
+
+/**
+{
+	"providerPartyId": "p0",
+	"receiverPartyId": "q0"
 }
-func (p *AssignmentProvidePower) GetPartyId() string {
-	return p.PartyId
+*/
+type TaskReceiverPolicyDataNodeProvide struct {
+	ProviderPartyId string `json:"providerPartyId"`
+	ReceiverPartyId string `json:"receiverPartyId"`
 }
 
 // ==================================================================== dataFlow policy option ====================================================================

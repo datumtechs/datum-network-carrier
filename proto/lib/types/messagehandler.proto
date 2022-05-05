@@ -6,7 +6,7 @@ import "lib/types/base.proto";
 import "lib/types/metadata.proto";
 import "lib/types/taskdata.proto";
 
-option go_package = "github.com/RosettaFlow/Carrier-Go/lib/types";
+option go_package = "github.com/Metisnetwork/Metis-Carrier/lib/types";
 
 
 message PowerMsg {

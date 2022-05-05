@@ -3,10 +3,10 @@ package types
 import (
 	"bytes"
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
-	msgcommonpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/common"
-	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
+	msgcommonpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/common"
+	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
+	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"math"
 	"strings"
@@ -164,6 +164,13 @@ func (rsr *ReplayScheduleResult) String() string {
 		rsr.taskId, errStr, resourceStr)
 }
 
+// v 0.4.0
+type DatatokenPaySpec struct {
+	Consumed int32  `json:"consumed"`   // -1:
+	GasEstimated uint64 `json:"gasEstimated"` // prepay estimate gas total about task
+	GasUsed  uint64 `json:"gasUsed"`  // prepay gas used about task
+}
+
 // Tasks to be executed (local and remote, which have been completed by consensus and can be executed by issuing fighter)
 type NeedExecuteTask struct {
 	remotepid              peer.ID
@@ -175,8 +182,8 @@ type NeedExecuteTask struct {
 	localResource          *PrepareVoteResource
 	resources              *twopcpb.ConfirmTaskPeerInfo
 	taskId                 string
-	queryId                string     //	
-	consumed               uint32     //
+	consumeQueryId         string // The query Id used to query the consumption status of the task
+	consumeSpec            string // Consumption special of the task  (json format)
 	err                    error
 }
 
@@ -218,6 +225,8 @@ func (net *NeedExecuteTask) GetTaskId() string                          { return
 func (net *NeedExecuteTask) GetConsStatus() TaskActionStatus            { return net.status }
 func (net *NeedExecuteTask) GetLocalResource() *PrepareVoteResource     { return net.localResource }
 func (net *NeedExecuteTask) GetResources() *twopcpb.ConfirmTaskPeerInfo { return net.resources }
+func (net *NeedExecuteTask) GetConsumeQueryId() string                  { return net.consumeQueryId }
+func (net *NeedExecuteTask) GetConsumeSpec() string                     { return net.consumeSpec }
 func (net *NeedExecuteTask) GetErr() error                              { return net.err }
 func (net *NeedExecuteTask) String() string {
 	localIdentityStr := "{}"
@@ -235,6 +244,11 @@ func (net *NeedExecuteTask) String() string {
 	return fmt.Sprintf(`{"remotepid": %s, "localTaskRole": %s, "localTaskOrganization": %s, "remoteTaskRole": %s, "remoteTaskOrganization": %s, "taskId": %s, "localResource": %s, "resources": %s, "err": %s}`,
 		net.GetRemotePID(), net.GetLocalTaskRole().String(), localIdentityStr, net.GetRemoteTaskRole().String(), remoteIdentityStr, net.GetTaskId(), localResourceStr, ConfirmTaskPeerInfoString(net.GetResources()), net.GetErr())
 }
+
+func (net *NeedExecuteTask) SetConsumeQueryId(consumeQueryId string) {
+	net.consumeQueryId = consumeQueryId
+}
+func (net *NeedExecuteTask) SetConsumeSpec(consumeSpec string) { net.consumeSpec = consumeSpec }
 
 type ExecuteTaskMonitor struct {
 	taskId  string

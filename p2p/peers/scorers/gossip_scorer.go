@@ -1,8 +1,8 @@
 package scorers
 
 import (
-	pbrpc "github.com/RosettaFlow/Carrier-Go/lib/rpc/debug/v1"
-	"github.com/RosettaFlow/Carrier-Go/p2p/peers/peerdata"
+	pbrpc "github.com/Metisnetwork/Metis-Carrier/lib/rpc/debug/v1"
+	"github.com/Metisnetwork/Metis-Carrier/p2p/peers/peerdata"
 	"github.com/libp2p/go-libp2p-core/peer"
 )
 

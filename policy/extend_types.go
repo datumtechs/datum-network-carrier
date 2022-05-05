@@ -1,9 +1,9 @@
 package policy
 
 import (
-	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
-	"github.com/RosettaFlow/Carrier-Go/types"
+	pb "github.com/Metisnetwork/Metis-Carrier/lib/api"
+	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/Metisnetwork/Metis-Carrier/types"
 )
 
 func NewTaskDetailShowFromTaskData(input *types.Task) *libtypes.TaskDetail {
@@ -18,12 +18,12 @@ func NewTaskDetailShowFromTaskData(input *types.Task) *libtypes.TaskDetail {
 			DataSuppliers:            input.GetTaskData().GetDataSuppliers(),
 			PowerSuppliers:           input.GetTaskData().GetPowerSuppliers(),
 			Receivers:                input.GetTaskData().GetReceivers(),
-			DataPolicyType:           input.GetTaskData().GetDataPolicyType(),
-			DataPolicyOption:         input.GetTaskData().GetDataPolicyOption(),
-			PowerPolicyType:          input.GetTaskData().GetPowerPolicyType(),
-			PowerPolicyOption:        input.GetTaskData().GetPowerPolicyOption(),
-			DataFlowPolicyType:       input.GetTaskData().GetDataFlowPolicyType(),
-			DataFlowPolicyOption:     input.GetTaskData().GetDataFlowPolicyOption(),
+			DataPolicyTypes:          input.GetTaskData().GetDataPolicyTypes(),
+			DataPolicyOptions:        input.GetTaskData().GetDataPolicyOptions(),
+			PowerPolicyTypes:         input.GetTaskData().GetPowerPolicyTypes(),
+			PowerPolicyOptions:       input.GetTaskData().GetPowerPolicyOptions(),
+			DataFlowPolicyTypes:      input.GetTaskData().GetDataFlowPolicyTypes(),
+			DataFlowPolicyOptions:    input.GetTaskData().GetDataFlowPolicyOptions(),
 			OperationCost:            input.GetTaskData().GetOperationCost(),
 			AlgorithmCode:            input.GetTaskData().GetAlgorithmCode(),
 			MetaAlgorithmId:          input.GetTaskData().GetMetaAlgorithmId(),
@@ -59,6 +59,8 @@ func NewGlobalMetadataInfoFromMetadata(input *types.Metadata) *pb.GetGlobalMetad
 				UpdateAt:       input.GetData().GetUpdateAt(),
 				Nonce:          input.GetData().GetNonce(),
 				MetadataOption: input.GetData().GetMetadataOption(),
+				AllowExpose:    input.GetData().GetAllowExpose(),
+				TokenAddress:   input.GetData().GetTokenAddress(),
 			},
 		},
 	}
@@ -82,8 +84,10 @@ func NewLocalMetadataInfoFromMetadata(isInternal bool, input *types.Metadata) *p
 				UpdateAt:       input.GetData().GetUpdateAt(),
 				Nonce:          input.GetData().GetNonce(),
 				MetadataOption: input.GetData().GetMetadataOption(),
+				AllowExpose:    input.GetData().GetAllowExpose(),
+				TokenAddress:   input.GetData().GetTokenAddress(),
 			},
-			//TotalTaskCount: ,
+			TotalTaskCount: 0,
 		},
 		IsInternal: isInternal,
 	}

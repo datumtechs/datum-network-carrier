@@ -2,8 +2,8 @@ package debug
 
 import (
 	"context"
-	pbrpc "github.com/RosettaFlow/Carrier-Go/lib/rpc/debug/v1"
-	"github.com/RosettaFlow/Carrier-Go/p2p"
+	pbrpc "github.com/Metisnetwork/Metis-Carrier/lib/rpc/debug/v1"
+	"github.com/Metisnetwork/Metis-Carrier/p2p"
 	gethlog "github.com/ethereum/go-ethereum/log"
 	"github.com/golang/protobuf/ptypes/empty"
 	golog "github.com/ipfs/go-log/v2"

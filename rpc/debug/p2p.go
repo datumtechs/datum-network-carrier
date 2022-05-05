@@ -2,8 +2,8 @@ package debug
 
 import (
 	context "context"
-	rpcpb "github.com/RosettaFlow/Carrier-Go/lib/rpc/debug/v1"
-	"github.com/RosettaFlow/Carrier-Go/p2p"
+	rpcpb "github.com/Metisnetwork/Metis-Carrier/lib/rpc/debug/v1"
+	"github.com/Metisnetwork/Metis-Carrier/p2p"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"

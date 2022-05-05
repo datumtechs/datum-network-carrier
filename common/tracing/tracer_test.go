@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/common/traceutil"
+	"github.com/Metisnetwork/Metis-Carrier/common/traceutil"
 	"go.opencensus.io/trace"
 	"testing"
 	"time"
