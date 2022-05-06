@@ -7,6 +7,7 @@ import "google/api/annotations.proto";
 import "lib/fighter/common/common.proto";
 import "lib/types/base.proto";
 
+
 service DataProvider {
   rpc GetStatus(google.protobuf.Empty) returns (GetStatusReply) {
     option(google.api.http) = {

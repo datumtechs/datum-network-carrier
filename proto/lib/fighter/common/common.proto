@@ -2,7 +2,6 @@ syntax = "proto3";
 package common;
 option go_package = "github.com/Metisnetwork/Metis-Carrier/lib/fighter/common";
 
-
 message Party {                // 各参与方信息
     string ip = 1;
     int32 port = 2;
