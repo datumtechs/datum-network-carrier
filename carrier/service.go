@@ -3,9 +3,9 @@ package carrier
 import (
 	"context"
 	"fmt"
-	auth2 "github.com/Metisnetwork/Metis-Carrier/ach/auth"
-	metispay2 "github.com/Metisnetwork/Metis-Carrier/ach/metispay"
-	kms2 "github.com/Metisnetwork/Metis-Carrier/ach/metispay/kms"
+	"github.com/Metisnetwork/Metis-Carrier/ach/auth"
+	"github.com/Metisnetwork/Metis-Carrier/ach/metispay"
+	"github.com/Metisnetwork/Metis-Carrier/ach/metispay/kms"
 	"github.com/Metisnetwork/Metis-Carrier/common/flags"
 	"github.com/Metisnetwork/Metis-Carrier/consensus/chaincons"
 	"github.com/Metisnetwork/Metis-Carrier/consensus/twopc"
@@ -46,11 +46,11 @@ type Service struct {
 	resourceManager *resource.Manager
 	messageManager  *message.MessageHandler
 	TaskManager     handler.TaskManager
-	authManager     *auth2.AuthorityManager
+	authManager     *auth.AuthorityManager
 	scheduler       schedule.Scheduler
 	consulManager   *discovery.ConnectConsul
 	runError        error
-	metisPayManager *metispay2.MetisPayManager
+	metisPayManager *metispay.MetisPayManager
 	quit            chan struct{}
 }
 
@@ -74,7 +74,7 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 
 	resourceClientSet := grpclient.NewInternalResourceNodeSet()
 	resourceMng := resource.NewResourceManager(config.CarrierDB, resourceClientSet, mockIdentityIdsFile)
-	authManager := auth2.NewAuthorityManager(config.CarrierDB)
+	authManager := auth.NewAuthorityManager(config.CarrierDB)
 	scheduler := schedule.NewSchedulerStarveFIFO(election.NewVrfElector(config.P2P.PirKey(), resourceMng), eventEngine, resourceMng, authManager)
 	twopcEngine, err := twopc.New(
 		&twopc.Config{
@@ -94,25 +94,26 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 		needExecuteTaskCh,
 		taskConsResultCh,
 	)
+
 	if nil != err {
 		return nil, err
 	}
-	var metisPayManager *metispay2.MetisPayManager
+	var metisPayManager *metispay.MetisPayManager
 
 	if cliCtx.IsSet(flags.BlockChain.Name) {
-		var metispayConfig *metispay2.Config
-		metispayConfig = &metispay2.Config{URL: cliCtx.String(flags.BlockChain.Name)}
+		var metispayConfig *metispay.Config
+		metispayConfig = &metispay.Config{URL: cliCtx.String(flags.BlockChain.Name)}
 
-		var kmsConfig *kms2.Config
+		var kmsConfig *kms.Config
 		if cliCtx.IsSet(flags.KMSKeyId.Name) && cliCtx.IsSet(flags.KMSRegionId.Name) && cliCtx.IsSet(flags.KMSAccessKeyId.Name) && cliCtx.IsSet(flags.KMSAccessKeySecret.Name) {
-			kmsConfig = &kms2.Config{
+			kmsConfig = &kms.Config{
 				KeyId:           cliCtx.String(flags.KMSKeyId.Name),
 				RegionId:        cliCtx.String(flags.KMSRegionId.Name),
 				AccessKeyId:     cliCtx.String(flags.KMSAccessKeyId.Name),
 				AccessKeySecret: cliCtx.String(flags.KMSAccessKeySecret.Name),
 			}
 		}
-		metisPayManager = metispay2.NewMetisPayManager(config.CarrierDB, metispayConfig, kmsConfig)
+		metisPayManager = metispay.NewMetisPayManager(config.CarrierDB, metispayConfig, kmsConfig)
 	}
 
 	taskManager := task.NewTaskManager(
