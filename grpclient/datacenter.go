@@ -200,6 +200,7 @@ func (gc *GrpcClient) SaveIdentity(ctx context.Context, request *api.SaveIdentit
 	}
 	ctx, cancel := context.WithTimeout(ctx, DefaultGrpcRequestTimeout)
 	defer cancel()
+	log.Debugf("################## save identity req: %s", request.String())
 	return gc.identityService.SaveIdentity(ctx, request)
 }
 
