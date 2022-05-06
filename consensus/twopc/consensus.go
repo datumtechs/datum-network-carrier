@@ -90,14 +90,13 @@ func (t *Twopc) loop() {
 		select {
 
 		// Force serial execution of calls initiated by each goroutine,
-		//simplifying the error-proneness of concurrent logic
+		// simplifying the error-proneness of concurrent logic
 		case fn := <-t.asyncCallCh:
 
 			fn()
 
 		case <-refreshProposalStateTimer.C:
 
-			//t.refreshProposalState()
 			future := t.checkProposalStateMonitors(timeutils.UnixMsec())
 			refreshProposalStateTimer.Reset(time.Duration(future-timeutils.UnixMsec()) * time.Millisecond)
 
