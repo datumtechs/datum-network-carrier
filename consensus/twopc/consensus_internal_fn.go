@@ -656,48 +656,14 @@ func fetchOrgByPartyRole(partyId string, role libtypes.TaskRole, task *types.Tas
 	return nil
 }
 
-func (t *Twopc) verifyPrepareVoteRoleIsTaskPartner(identityId, partyId string, role libtypes.TaskRole, task *types.Task) (bool, error) {
-	var find bool
-	switch role {
-	case libtypes.TaskRole_TaskRole_DataSupplier:
-		for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
-			// identity + partyId
-			if dataSupplier.GetIdentityId() == identityId && dataSupplier.GetPartyId() == partyId {
-				find = true
-				break
-			}
-		}
-	case libtypes.TaskRole_TaskRole_PowerSupplier:
-		for _, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
-			// identity + partyId
-			if powerSupplier.GetIdentityId() == identityId && powerSupplier.GetPartyId() == partyId {
-				find = true
-				break
-			}
-		}
-	case libtypes.TaskRole_TaskRole_Receiver:
-		for _, receiver := range task.GetTaskData().GetReceivers() {
-			// identity + partyId
-			if receiver.GetIdentityId() == identityId && receiver.GetPartyId() == partyId {
-				find = true
-				break
-			}
-		}
-	default:
-		return false, fmt.Errorf("Invalid role, the role is not task partners role on the prepare vote [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
-			task.GetTaskData().GetTaskId(), role.String(), identityId, partyId)
-
-	}
-	return find, nil
-}
-func (t *Twopc) verifyConfirmVoteRoleIsTaskPartner(identityId, partyId string, role libtypes.TaskRole, task *types.Task) (bool, error) {
+func (t *Twopc) verifyPartyAndTaskPartner(role libtypes.TaskRole, party *libtypes.TaskOrganization, task *types.Task) (bool, error) {
 	var identityValid bool
 	switch role {
 	case libtypes.TaskRole_TaskRole_DataSupplier:
 
 		for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
 			// identity + partyId
-			if dataSupplier.GetIdentityId() == identityId && dataSupplier.GetPartyId() == partyId {
+			if dataSupplier.GetIdentityId() == party.GetIdentityId() && dataSupplier.GetPartyId() == party.GetPartyId() {
 				identityValid = true
 				break
 			}
@@ -706,7 +672,7 @@ func (t *Twopc) verifyConfirmVoteRoleIsTaskPartner(identityId, partyId string, r
 
 		for _, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
 			// identity + partyId
-			if powerSupplier.GetIdentityId() == identityId && powerSupplier.GetPartyId() == partyId {
+			if powerSupplier.GetIdentityId() == party.GetIdentityId() && powerSupplier.GetPartyId() == party.GetPartyId() {
 				identityValid = true
 				break
 			}
@@ -715,14 +681,14 @@ func (t *Twopc) verifyConfirmVoteRoleIsTaskPartner(identityId, partyId string, r
 
 		for _, receiver := range task.GetTaskData().GetReceivers() {
 			// identity + partyId
-			if receiver.GetIdentityId() == identityId && receiver.GetPartyId() == partyId {
+			if receiver.GetIdentityId() == party.GetIdentityId() && receiver.GetPartyId() == party.GetPartyId() {
 				identityValid = true
 				break
 			}
 		}
 	default:
-		return false, fmt.Errorf("Invalid role, the role is not task partners role on the confirm vote [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
-			task.GetTaskData().GetTaskId(), role.String(), identityId, partyId)
+		return false, fmt.Errorf("invalid party, the party is not task partners [taskId: %s, role: %s, identity: %s, partyId: %s]",
+			task.GetTaskData().GetTaskId(), role.String(), party.GetIdentityId(), party.GetPartyId())
 
 	}
 	return identityValid, nil
