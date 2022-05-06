@@ -243,6 +243,7 @@ func (s *CarrierAPIBackend) SetRegisterNode(typ pb.RegisteredNodeType, node *pb.
 
 		jobNodeStatus, err := client.GetStatus()
 		if err != nil {
+			client.Close()
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect jobNode query status failed, %s", err)
 		}
 		// add resource usage first, but not own power now (mem, proccessor, bandwidth)
@@ -259,6 +260,7 @@ func (s *CarrierAPIBackend) SetRegisterNode(typ pb.RegisteredNodeType, node *pb.
 
 		dataNodeStatus, err := client.GetStatus()
 		if err != nil {
+			client.Close()
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect dataNode query status failed, %s", err)
 		}
 		// add data resource  (disk)
@@ -326,6 +328,7 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *
 
 		jobNodeStatus, err := client.GetStatus()
 		if err != nil {
+			client.Close()
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect jobNode query status failed, %s", err)
 		}
 		// add resource usage first, but not own power now (mem, proccessor, bandwidth)
@@ -356,6 +359,7 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *
 
 		dataNodeStatus, err := client.GetStatus()
 		if err != nil {
+			client.Close()
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect dataNode query status failed, %s", err)
 		}
 		// add new data resource  (disk)

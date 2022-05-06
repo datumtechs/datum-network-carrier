@@ -673,6 +673,7 @@ func (m *Manager) AddDiscoveryJobNodeResource(identity *libtypes.Organization, j
 	if nil != err {
 		log.WithError(err).Errorf("Failed to connect jobNode to query status on resourceManager.AddDiscoveryJobNodeResource(), jobNodeServiceId: {%s}, jobNodeService: {%s:%s}",
 			jobNodeId, jobNodeIP, jobNodePort)
+		client.Close()
 		return err
 	}
 
@@ -942,6 +943,7 @@ func (m *Manager) AddDiscoveryDataNodeResource(identity *libtypes.Organization, 
 	if nil != err {
 		log.WithError(err).Errorf("Failed to connect jobNode to query status on resourceManager.AddDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%s}",
 			dataNodeId, dataNodeIP, dataNodePort)
+		client.Close()
 		return err
 	}
 	// 1. add data resource  (disk)
