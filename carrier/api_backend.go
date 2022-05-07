@@ -1513,8 +1513,8 @@ func (s *CarrierAPIBackend) QueryTaskResultFileSummaryList() (types.TaskResultFi
 	return arr, nil
 }
 
-func (s *CarrierAPIBackend) EstimateTaskGas(dataTokenAddressList []string) (gasLimit uint64, gasPrice *big.Int, err error) {
-	gasLimit, gasPrice, err = s.carrier.metisPayManager.EstimateTaskGas(dataTokenAddressList)
+func (s *CarrierAPIBackend) EstimateTaskGas(taskSponsorAddress string, dataTokenAddressList []string) (gasLimit uint64, gasPrice *big.Int, err error) {
+	gasLimit, gasPrice, err = s.carrier.metisPayManager.EstimateTaskGas(taskSponsorAddress, dataTokenAddressList)
 	if err != nil {
 		log.WithError(err).Error("Failed to call EstimateTaskGas() on CarrierAPIBackend.EstimateTaskGas()")
 	}
