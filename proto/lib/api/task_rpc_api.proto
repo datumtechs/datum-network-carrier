@@ -82,7 +82,8 @@ message TerminateTaskRequest {
 
 // 预估gas request
 message EstimateTaskGasRequest {
-  repeated string      data_token_addresses = 1;       // 当前任务用到的data token 合约地址0x开头//缺省转账金额是1
+  string               task_sponsor_address = 1;       //当前任务发起用户的钱包地址
+  repeated string      data_token_addresses = 2;       // 当前任务用到的data token 合约地址0x开头//缺省转账金额是1
 }
 
 // 预估gas response
