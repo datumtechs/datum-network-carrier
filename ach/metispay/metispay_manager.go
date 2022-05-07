@@ -248,12 +248,6 @@ func (metisPay *MetisPayManager) estimateGas(method string, params ...interface{
 
 // QueryOrgWallet returns the organization wallet address
 func (metisPay *MetisPayManager) QueryOrgWallet() (common.Address, error) {
-	if nil == metisPay {
-		log.Error("################# metisPay is nil")
-	}
-	if nil == metisPay.dataCenter {
-		log.Error("################# metisPay datacenter is nil")
-	}
 	wallet, err := metisPay.dataCenter.QueryOrgWallet()
 
 	if nil != err {
