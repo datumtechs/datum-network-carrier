@@ -175,6 +175,8 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (resTask *types.NeedConsensusTask
 		switch policyType {
 		case types.TASK_POWER_POLICY_ASSIGNMENT_SYMBOL_RANDOM_ELECTION:
 			assignmentSymbolRandomElectionPowerPartyIds = append(assignmentSymbolRandomElectionPowerPartyIds, task.GetTaskData().GetPowerPolicyOptions()[i])
+			// collection partyId index into cache.
+			partyIdAndIndexCache[task.GetTaskData().GetPowerPolicyOptions()[i]] = i
 		case types.TASK_POWER_POLICY_DATANODE_PROVIDE:
 
 			var policy *types.TaskPowerPolicyDataNodeProvide
@@ -183,14 +185,14 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (resTask *types.NeedConsensusTask
 				return types.NewNeedConsensusTask(task, ""), bullet.GetTaskId(), fmt.Errorf("can not unmarshal powerPolicyType of task, %d", policyType)
 			}
 			taskPowerPolicyDataNodeProvides = append(taskPowerPolicyDataNodeProvides, policy)
-
+			// collection partyId index into cache.
+			partyIdAndIndexCache[policy.PowerPartyId] = i
 		// NOTE: unknown powerPolicyType
 		default:
 			log.WithError(err).Errorf("unknown powerPolicyType of task on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
 			return types.NewNeedConsensusTask(task, ""), bullet.GetTaskId(), fmt.Errorf("unknown powerPolicyType of task, %d", policyType)
 		}
-		// collection partyId index into cache.
-		partyIdAndIndexCache[task.GetTaskData().GetPowerPolicyOptions()[i]] = i
+
 	}
 
 	powerOrgs      := make([]*libtypes.TaskOrganization, len(task.GetTaskData().GetPowerPolicyTypes()))
@@ -210,12 +212,12 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (resTask *types.NeedConsensusTask
 			Duration:  task.GetTaskData().GetOperationCost().GetDuration(),
 		}, assignmentSymbolRandomElectionPowerPartyIds)
 		if nil != err {
-			log.WithError(err).Errorf("not fetch partyIds from task powerPolicy on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
+			log.WithError(err).Errorf("vrf election powerSupplier failed on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
 			return types.NewNeedConsensusTask(task, ""), bullet.GetTaskId(), err
 		}
 		for i, org := range orgs {
 			if index, ok := partyIdAndIndexCache[org.GetPartyId()]; !ok {
-				log.Errorf("not fetch partyIds from task powerPolicy on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
+				log.Errorf("not found partyId of powerSupplier in partyIdAndIndexCache with vrf election powerSupplier on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
 				return types.NewNeedConsensusTask(task, ""), bullet.GetTaskId(), fmt.Errorf("invalid partyId")
 			} else {
 				powerOrgs[index] = org
@@ -228,13 +230,13 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (resTask *types.NeedConsensusTask
 	if len(taskPowerPolicyDataNodeProvides) != 0 {
 		orgs, resources, err := sche.scheduleDataNodeProvidePower(task, taskPowerPolicyDataNodeProvides)
 		if nil != err {
-			log.WithError(err).Errorf("not fetch partyIds from task powerPolicy on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
+			log.WithError(err).Errorf("dataNodeProvider election powerSupplier failed on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
 			return types.NewNeedConsensusTask(task, ""), bullet.GetTaskId(), err
 		}
 
 		for i, org := range orgs {
 			if index, ok := partyIdAndIndexCache[org.GetPartyId()]; !ok {
-				log.Errorf("not fetch partyIds from task powerPolicy on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
+				log.Errorf("not found partyId of powerSupplier in partyIdAndIndexCache with dataNodeProvider election powerSupplier on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
 				return types.NewNeedConsensusTask(task, ""), bullet.GetTaskId(), fmt.Errorf("invalid partyId")
 			} else {
 				powerOrgs[index] = org
