@@ -203,6 +203,8 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (resTask *types.NeedConsensusTask
 	)
 
 	// NOTE: many election policys
+	//
+	// 1、for vrf election power policy
 	if len(assignmentSymbolRandomElectionPowerPartyIds) != 0 {
 
 		evidenceJson, orgs, resources, err := sche.scheduleVrfElectionPower(task.GetTaskId(), &ctypes.TaskOperationCost{
@@ -217,7 +219,7 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (resTask *types.NeedConsensusTask
 		}
 		for i, org := range orgs {
 			if index, ok := partyIdAndIndexCache[org.GetPartyId()]; !ok {
-				log.Errorf("not found partyId of powerSupplier in partyIdAndIndexCache with vrf election powerSupplier on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
+				log.Errorf("not found partyId of powerSupplier in partyIdAndIndexCache with vrf election powerSupplier on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}, partyId: {%s}", task.GetTaskId(), org.GetPartyId())
 				return types.NewNeedConsensusTask(task, ""), bullet.GetTaskId(), fmt.Errorf("invalid partyId")
 			} else {
 				powerOrgs[index] = org
@@ -227,6 +229,7 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (resTask *types.NeedConsensusTask
 		evidence = evidenceJson
 	}
 
+	// 2、for dataProvider election power policy
 	if len(taskPowerPolicyDataNodeProvides) != 0 {
 		orgs, resources, err := sche.scheduleDataNodeProvidePower(task, taskPowerPolicyDataNodeProvides)
 		if nil != err {
@@ -236,7 +239,7 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (resTask *types.NeedConsensusTask
 
 		for i, org := range orgs {
 			if index, ok := partyIdAndIndexCache[org.GetPartyId()]; !ok {
-				log.Errorf("not found partyId of powerSupplier in partyIdAndIndexCache with dataNodeProvider election powerSupplier on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
+				log.Errorf("not found partyId of powerSupplier in partyIdAndIndexCache with dataNodeProvider election powerSupplier on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}, partyId: {%s}", task.GetTaskId(), org.GetPartyId())
 				return types.NewNeedConsensusTask(task, ""), bullet.GetTaskId(), fmt.Errorf("invalid partyId")
 			} else {
 				powerOrgs[index] = org
@@ -363,6 +366,9 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 			}
 		}
 
+		// NOTE: many election policys
+		//
+		// a、for vrf election power policy
 		if len(assignmentSymbolRandomElectionPowerSuppliers) != 0 {
 			if len(assignmentSymbolRandomElectionPowerSuppliers) != len(assignmentSymbolRandomElectionPowerResources) {
 				log.Errorf("assignmentSymbolRandom: election powerSuppliers count and election powerResources count is not same on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, powerSuppliers len: %d, powerResources len: %d",
@@ -375,6 +381,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 			}
 		}
 
+		// b、for dataProvide election power policy
 		if len(dataNodeProviderPowerSuppliers) != 0 {
 			if len(dataNodeProviderPowerSuppliers) != len(dataNodeProviderPowerResources) {
 				log.Errorf("dataNodeProvider: election powerSuppliers count and election powerResources count is not same on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, powerSuppliers len: %d, powerResources len: %d",
@@ -657,7 +664,13 @@ func (sche *SchedulerStarveFIFO) scheduleDataNodeProvidePower(task *types.Task, 
 
 	dataSupplierCache := make(map[string]*libtypes.TaskOrganization)
 	for _, supplier := range task.GetTaskData().GetDataSuppliers() {
-		dataSupplierCache[supplier.GetPartyId()] = supplier
+		newPowerSupplier := &libtypes.TaskOrganization{
+			IdentityId: supplier.GetIdentityId(),
+			NodeId: supplier.GetNodeId(),
+			NodeName: supplier.GetNodeName(),
+			PartyId: "",
+		}
+		dataSupplierCache[supplier.GetPartyId()] = newPowerSupplier
 	}
 
 	powers := make([]*libtypes.TaskOrganization, len(provides))
@@ -669,6 +682,7 @@ func (sche *SchedulerStarveFIFO) scheduleDataNodeProvidePower(task *types.Task, 
 				task.GetTaskId(), provide.ProviderPartyId, provide.PowerPartyId)
 			return nil, nil, fmt.Errorf("not found oranization of dataSupplier with partyId, %s to %s", provide.ProviderPartyId, provide.PowerPartyId)
 		}
+		supplier.PartyId = provide.PowerPartyId
 		powers[i] = supplier
 	}
 
