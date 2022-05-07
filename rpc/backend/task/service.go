@@ -253,7 +253,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 	if _, ok := checkPartyIdCache[req.GetAlgoSupplier().GetPartyId()]; ok {
 		log.Errorf("RPC-API:PublishTaskDeclare failed, check partyId of algoSupplier failed, this partyId has alreay exist, partyId: {%s}",
 			req.GetAlgoSupplier().GetPartyId())
-		return &pb.PublishTaskDeclareResponse { Status: backend.ErrPublishTaskMsg.ErrCode(), Msg: fmt.Sprintf("The partyId of the task participants cannot be repeated on algoSupplier, partyId: {%s}", req.GetAlgoSupplier().GetPartyId())}, nil
+		return &pb.PublishTaskDeclareResponse{Status: backend.ErrPublishTaskMsg.ErrCode(), Msg: fmt.Sprintf("The partyId of the task participants cannot be repeated on algoSupplier, partyId: {%s}", req.GetAlgoSupplier().GetPartyId())}, nil
 	}
 	checkPartyIdCache[req.GetAlgoSupplier().GetPartyId()] = struct{}{}
 
@@ -261,7 +261,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 		if _, ok := checkPartyIdCache[v.GetPartyId()]; ok {
 			log.Errorf("RPC-API:PublishTaskDeclare failed, check partyId of dataSuppliers failed, this partyId has alreay exist, partyId: {%s}",
 				v.GetPartyId())
-			return &pb.PublishTaskDeclareResponse { Status: backend.ErrPublishTaskMsg.ErrCode(), Msg: fmt.Sprintf("The partyId of the task participants cannot be repeated on dataSuppliers, partyId: {%s}", v.GetPartyId())}, nil
+			return &pb.PublishTaskDeclareResponse{Status: backend.ErrPublishTaskMsg.ErrCode(), Msg: fmt.Sprintf("The partyId of the task participants cannot be repeated on dataSuppliers, partyId: {%s}", v.GetPartyId())}, nil
 		}
 		checkPartyIdCache[v.GetPartyId()] = struct{}{}
 	}
@@ -270,13 +270,13 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 	powerPartyIds, err := policy.FetchPowerPartyIdsFromPowerPolicy(req.GetPowerPolicyTypes(), req.GetPowerPolicyOptions())
 	if nil != err {
 		log.WithError(err).Errorf("not fetch partyIds from task powerPolicy")
-		return &pb.PublishTaskDeclareResponse { Status: backend.ErrPublishTaskMsg.ErrCode(), Msg: "not fetch partyIds from task powerPolicy" }, nil
+		return &pb.PublishTaskDeclareResponse{Status: backend.ErrPublishTaskMsg.ErrCode(), Msg: "not fetch partyIds from task powerPolicy"}, nil
 	}
 	for _, partyId := range powerPartyIds {
 		if _, ok := checkPartyIdCache[partyId]; ok {
 			log.Errorf("RPC-API:PublishTaskDeclare failed, check partyId of powerSuppliers failed, this partyId has alreay exist, partyId: {%s}",
 				partyId)
-			return &pb.PublishTaskDeclareResponse { Status: backend.ErrPublishTaskMsg.ErrCode(), Msg: fmt.Sprintf("The partyId of the task participants cannot be repeated on powerSuppliers, partyId: {%s}", partyId)}, nil
+			return &pb.PublishTaskDeclareResponse{Status: backend.ErrPublishTaskMsg.ErrCode(), Msg: fmt.Sprintf("The partyId of the task participants cannot be repeated on powerSuppliers, partyId: {%s}", partyId)}, nil
 		}
 		checkPartyIdCache[partyId] = struct{}{}
 	}
@@ -288,7 +288,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 		if nil != err {
 			log.WithError(err).Errorf("RPC-API:PublishTaskDeclare failed, fetch partyId of receiverPolicy failed, index: {%d}, partyId of receiverPolicy: {%s}",
 				i, partyId)
-			return &pb.PublishTaskDeclareResponse { Status: backend.ErrPublishTaskMsg.ErrCode(),
+			return &pb.PublishTaskDeclareResponse{Status: backend.ErrPublishTaskMsg.ErrCode(),
 				Msg: fmt.Sprintf("fetch partyId of receiverPolicy failed, %s, index: {%d}, partyId: {%s}",
 					err, i, v.GetPartyId())}, nil
 		}
@@ -296,7 +296,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 		if partyId != v.GetPartyId() {
 			log.Errorf("RPC-API:PublishTaskDeclare failed, partyId of receiverPolicy and receiver is not same, index: {%d}, partyId of receiver: {%s}, partyId of receiverPolicy: {%s}",
 				i, v.GetPartyId(), partyId)
-			return &pb.PublishTaskDeclareResponse { Status: backend.ErrPublishTaskMsg.ErrCode(),
+			return &pb.PublishTaskDeclareResponse{Status: backend.ErrPublishTaskMsg.ErrCode(),
 				Msg: fmt.Sprintf("partyId of receiverPolicy and receiver is not same, index: {%d}, partyId of receiver: {%s}, partyId of receiverPolicy: {%s}",
 					i, v.GetPartyId(), partyId)}, nil
 		}
@@ -304,7 +304,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 		if _, ok := checkPartyIdCache[v.GetPartyId()]; ok {
 			log.Errorf("RPC-API:PublishTaskDeclare failed, check partyId of receiver failed, this partyId has alreay exist, partyId: {%s}",
 				v.GetPartyId())
-			return &pb.PublishTaskDeclareResponse { Status: backend.ErrPublishTaskMsg.ErrCode(),
+			return &pb.PublishTaskDeclareResponse{Status: backend.ErrPublishTaskMsg.ErrCode(),
 				Msg: fmt.Sprintf("The partyId of the task participants cannot be repeated on receivers, partyId: {%s}",
 					v.GetPartyId())}, nil
 		}
@@ -407,7 +407,7 @@ func (svr *Server) GenerateObServerProxyWalletAddress(ctx context.Context, req *
 }
 
 func (svr *Server) EstimateTaskGas(ctx context.Context, req *pb.EstimateTaskGasRequest) (*pb.EstimateTaskGasResponse, error) {
-	gasLimit, gasPrice, err := svr.B.EstimateTaskGas(req.GetDataTokenAddresses())
+	gasLimit, gasPrice, err := svr.B.EstimateTaskGas(req.GetTaskSponsorAddress(), req.GetDataTokenAddresses())
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:EstimateTaskGas failed")
 		return &pb.EstimateTaskGasResponse{Status: backend.ErrEstimateTaskGas.ErrCode(), Msg: backend.ErrEstimateTaskGas.Error()}, nil
