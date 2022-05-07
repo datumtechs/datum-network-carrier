@@ -646,31 +646,6 @@ func verifyPartyRole(partyId string, role libtypes.TaskRole, task *types.Task) b
 	return false
 }
 
-func fetchLocalIdentityAndOriganizationFromMsg(resourceMng *resource.Manager, option *types.MsgOption, task *types.Task) (*libtypes.Organization, *libtypes.TaskOrganization, *libtypes.TaskOrganization, error) {
-	identity, err := resourceMng.GetDB().QueryIdentity()
-	if nil != err {
-		//log.WithError(err).Errorf("Failed to call `QueryIdentity()` %s, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
-		//	logdesc, option.GetProposalId().String(), task.GetTaskId(), option.GetReceiverRole().String(), option.GetReceiverPartyId())
-		return nil, nil, nil, fmt.Errorf("query local identity failed, %s", err)
-	}
-
-	sender := fetchOrgByPartyRole(option.GetSenderPartyId(), option.GetSenderRole(), task)
-	receiver := fetchOrgByPartyRole(option.GetReceiverPartyId(), option.GetReceiverRole(), task)
-	if nil == sender || nil == receiver {
-		//log.Errorf("Failed to check msg.MsgOption sender and receiver %s, someone is empty, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
-		//	logdesc, option.GetProposalId().String(), task.GetTaskId(), option.GetReceiverRole().String(), option.GetReceiverPartyId())
-		return nil, nil, nil, fmt.Errorf("%s, sender and receiver of msg that someone is empty", ctypes.ErrConsensusMsgInvalid)
-	}
-
-	// verify the receiver is myself ?
-	if identity.GetIdentityId() != receiver.GetIdentityId() {
-		//log.Warnf("Warning verify receiver identityId of msg %s, receiver is not me, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, my identityId: {%s}, receiver identityId: {%s}",
-		//	logdesc, option.GetProposalId().String(), task.GetTaskId(), option.GetReceiverRole().String(), option.GetReceiverPartyId(), identity.GetIdentityId(), receiver.GetIdentityId())
-		return nil, nil, nil, fmt.Errorf("%s, receiver is not current identity", ctypes.ErrConsensusMsgInvalid)
-	}
-	return identity, sender, receiver, nil
-}
-
 func fetchOrgByPartyRole(partyId string, role libtypes.TaskRole, task *types.Task) *libtypes.TaskOrganization {
 
 	switch role {
