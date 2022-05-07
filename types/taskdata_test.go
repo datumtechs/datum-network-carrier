@@ -5,6 +5,7 @@ import (
 	"github.com/Metisnetwork/Metis-Carrier/common"
 	"github.com/Metisnetwork/Metis-Carrier/lib/types"
 	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"gotest.tools/assert"
 	"testing"
 )
 
@@ -36,4 +37,22 @@ func TestTaskDataEncode(t *testing.T) {
 	if !bytes.Equal(buffer.Bytes(), dBuffer.Bytes()) {
 		t.Fatalf("task encode protobuf mismatch, got %x, want %x", common.Bytes2Hex(dBuffer.Bytes()), common.Bytes2Hex(buffer.Bytes()))
 	}
+}
+
+func TestTaskHashEqual(t *testing.T) {
+
+	task1 := NewTask(&types.TaskPB{
+		TaskId: "0xwqrqrqwr",
+		TaskName: "Gavin",
+		UserType: libtypes.UserType_User_1,
+		User: "0x34234242",
+	})
+
+	task2 := NewTask(&types.TaskPB{
+		TaskId: "0xwqrqrqwr",
+		TaskName: "Gavin",
+		UserType: libtypes.UserType_User_1,
+		User: "0x34234242",
+	})
+	assert.Equal(t, task1.Hash(), task2.Hash(), "hash is not same")
 }
