@@ -231,19 +231,19 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (resTask *types.NeedConsensusTask
 
 	// 2、for dataProvider election power policy
 	if len(taskPowerPolicyDataNodeProvides) != 0 {
-		orgs, resources, err := sche.scheduleDataNodeProvidePower(task, taskPowerPolicyDataNodeProvides)
+		orgs, _, err := sche.scheduleDataNodeProvidePower(task, taskPowerPolicyDataNodeProvides)
 		if nil != err {
 			log.WithError(err).Errorf("dataNodeProvider election powerSupplier failed on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
 			return types.NewNeedConsensusTask(task, ""), bullet.GetTaskId(), err
 		}
 
-		for i, org := range orgs {
+		for _, org := range orgs {
 			if index, ok := partyIdAndIndexCache[org.GetPartyId()]; !ok {
 				log.Errorf("not found partyId of powerSupplier in partyIdAndIndexCache with dataNodeProvider election powerSupplier on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}, partyId: {%s}", task.GetTaskId(), org.GetPartyId())
 				return types.NewNeedConsensusTask(task, ""), bullet.GetTaskId(), fmt.Errorf("invalid partyId")
 			} else {
 				powerOrgs[index] = org
-				powerResources[index] = resources[i]
+				//powerResources[index] = resources[i]
 			}
 		}
 	}
@@ -342,7 +342,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 		assignmentSymbolRandomElectionPowerSuppliers := make([]*libtypes.TaskOrganization, 0)
 		assignmentSymbolRandomElectionPowerResources := make([]*libtypes.TaskPowerResourceOption, 0)
 		dataNodeProviderPowerSuppliers := make([]*libtypes.TaskOrganization, 0)
-		dataNodeProviderPowerResources := make([]*libtypes.TaskPowerResourceOption, 0)
+		//dataNodeProviderPowerResources := make([]*libtypes.TaskPowerResourceOption, 0)
 		taskPowerPolicyDataNodeProvides := make([]*types.TaskPowerPolicyDataNodeProvide, 0)
 		for i, policyType := range task.GetTaskData().GetPowerPolicyTypes() {
 
@@ -352,7 +352,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 				assignmentSymbolRandomElectionPowerResources = append(assignmentSymbolRandomElectionPowerResources, task.GetTaskData().GetPowerResourceOptions()[i])
 			case types.TASK_POWER_POLICY_DATANODE_PROVIDE:
 				dataNodeProviderPowerSuppliers = append(dataNodeProviderPowerSuppliers, task.GetTaskData().GetPowerSuppliers()[i])
-				dataNodeProviderPowerResources = append(dataNodeProviderPowerResources, task.GetTaskData().GetPowerResourceOptions()[i])
+				//dataNodeProviderPowerResources = append(dataNodeProviderPowerResources, task.GetTaskData().GetPowerResourceOptions()[i])
 				var powerPolicy *types.TaskPowerPolicyDataNodeProvide
 				if err := json.Unmarshal([]byte(task.GetTaskData().GetPowerPolicyOptions()[i]), &powerPolicy); nil != err {
 					log.WithError(err).Errorf("can not unmarshal powerPolicyType, on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}", task.GetTaskId())
@@ -383,11 +383,11 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 
 		// b、for dataProvide election power policy
 		if len(dataNodeProviderPowerSuppliers) != 0 {
-			if len(dataNodeProviderPowerSuppliers) != len(dataNodeProviderPowerResources) {
-				log.Errorf("dataNodeProvider: election powerSuppliers count and election powerResources count is not same on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, powerSuppliers len: %d, powerResources len: %d",
-					task.GetTaskId(), len(dataNodeProviderPowerSuppliers), len(dataNodeProviderPowerResources))
-				return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)
-			}
+			//if len(dataNodeProviderPowerSuppliers) != len(dataNodeProviderPowerResources) {
+			//	log.Errorf("dataNodeProvider: election powerSuppliers count and election powerResources count is not same on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, powerSuppliers len: %d, powerResources len: %d",
+			//		task.GetTaskId(), len(dataNodeProviderPowerSuppliers), len(dataNodeProviderPowerResources))
+			//	return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)
+			//}
 			if err := sche.reScheduleDataNodeProvidePower(task.GetTaskId(), task.GetTaskData().GetDataSuppliers(), dataNodeProviderPowerSuppliers, taskPowerPolicyDataNodeProvides); nil != err {
 				return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)
 			}
