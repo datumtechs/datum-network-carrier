@@ -316,7 +316,7 @@ func (metisPay *MetisPayManager) Prepay(taskID *big.Int, taskSponsorAccount comm
 	for idx, _ := range dataTokenAddressList {
 		dataTokenAmountList[idx] = defaultDataTokenPrepaymentAmount
 	}
-	gasLimit, err := metisPay.estimateGas("prepay", taskID, new(big.Int).SetUint64(1), dataTokenAddressList, dataTokenAmountList)
+	gasLimit, err := metisPay.estimateGas("prepay", taskID, taskSponsorAccount, new(big.Int).SetUint64(1), dataTokenAddressList, dataTokenAmountList)
 	if err != nil {
 		log.Errorf("failed to estimate gas for MetisPay.Prepay() error: %v", err)
 		return common.Hash{}, 0, errors.New("failed to estimate gas for MetisPay.Prepay()")
