@@ -48,7 +48,7 @@ func (m *Task) Hash() common.Hash {
 }
 
 func (m *Task) GetTaskId() string {
-	return m.data.TaskId
+	return m.data.GetTaskId()
 }
 
 func (m *Task) GetTaskData() *libtypes.TaskPB {
