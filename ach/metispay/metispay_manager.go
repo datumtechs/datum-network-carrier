@@ -208,27 +208,32 @@ func convert(dataTokenAddressList []string) ([]common.Address, []*big.Int) {
 
 // EstimateTaskGas estimates gas fee for a task's sponsor.
 // EstimateTaskGas returns estimated gas and suggested gas price.
-func (metisPay *MetisPayManager) EstimateTaskGas(dataTokenAddressList []string) (uint64, *big.Int, error) {
+func (metisPay *MetisPayManager) EstimateTaskGas(taskSponsorAddress string, dataTokenAddressList []string) (uint64, *big.Int, error) {
 	tokenAddressList, tokenAmountList := convert(dataTokenAddressList)
 
-	gasLimit1, err := metisPay.estimateGas("prepay", mockTaskID, metisPay.Config.walletAddress, big.NewInt(1), tokenAddressList, tokenAmountList)
+	// Estimating task gas happens before task starting, and the task ID has not been generated at this moment, so, apply a mock task ID.
+	gasLimit1, err := metisPay.estimateGas("prepay", mockTaskID, common.HexToAddress(taskSponsorAddress), big.NewInt(1), tokenAddressList, tokenAmountList)
 	if err != nil {
 		log.Errorf("call EstimateTaskGas error: %v", err)
 		return 0, nil, err
 	}
 
-	gasLimit2, err := metisPay.estimateGas("settle", mockTaskID, new(big.Int).SetUint64(1))
-	if err != nil {
-		log.Errorf("call EstimateTaskGas error: %v", err)
-		return 0, nil, err
-	}
+	//cannot settle a mock task.
+	// number of transactions in settlement is same as in prepayment, so settlement gas limit is considered same as prepayment gas limit.
+	/*
+		gasLimit2, err := metisPay.estimateGas("settle", mockTaskID, new(big.Int).SetUint64(1))
+		if err != nil {
+			log.Errorf("call EstimateTaskGas error: %v", err)
+			return 0, nil, err
+		}
+	*/
 
 	gasPrice, err := metisPay.client.SuggestGasPrice(context.Background())
 	if err != nil {
 		log.Errorf("call SuggestGasPrice error: %v", err)
 		return 0, nil, err
 	}
-	return gasLimit1 + gasLimit2, gasPrice, nil
+	return gasLimit1 + gasLimit1, gasPrice, nil
 }
 
 // estimateGas call EstimateGas() by RPC
@@ -311,7 +316,7 @@ func (metisPay *MetisPayManager) Prepay(taskID *big.Int, taskSponsorAccount comm
 	for idx, _ := range dataTokenAddressList {
 		dataTokenAmountList[idx] = defaultDataTokenPrepaymentAmount
 	}
-	gasLimit, err := metisPay.estimateGas("prepay", taskID, new(big.Int).SetUint64(1), dataTokenAddressList, dataTokenAmountList)
+	gasLimit, err := metisPay.estimateGas("prepay", taskID, taskSponsorAccount, new(big.Int).SetUint64(1), dataTokenAddressList, dataTokenAmountList)
 	if err != nil {
 		log.Errorf("failed to estimate gas for MetisPay.Prepay() error: %v", err)
 		return common.Hash{}, 0, errors.New("failed to estimate gas for MetisPay.Prepay()")
@@ -375,8 +380,6 @@ func (metisPay *MetisPayManager) Settle(taskID *big.Int, gasRefundPrepayment int
 	return tx.Hash(), gasLimit, nil
 }
 
-
-
 // GetReceipt returns the tx receipt. The caller goroutine will be blocked, and the caller could receive the receipt by channel.
 func (metisPay *MetisPayManager) GetReceipt(ctx context.Context, txHash common.Hash, period time.Duration) *ethereumtypes.Receipt {
 
@@ -395,7 +398,7 @@ func (metisPay *MetisPayManager) GetReceipt(ctx context.Context, txHash common.H
 
 		for {
 			select {
-			case <- ctx.Done():
+			case <-ctx.Done():
 				return nil
 			case <-ticker.C:
 				receipt, err := metisPay.client.TransactionReceipt(context.Background(), txHash)

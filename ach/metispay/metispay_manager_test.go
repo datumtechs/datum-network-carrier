@@ -23,7 +23,6 @@ var (
 	timespan = 4
 )
 
-
 var (
 	walletKey, _     = ethcrypto.HexToECDSA("b24285967575de7d5563e35213a806c60d69094faa509025f2ab5437017d343a")
 	walletAddress    = ethcrypto.PubkeyToAddress(walletKey.PublicKey) //0xEFb8aeE7c9BC8c8f1472976299855e7059b8Ecda
@@ -82,13 +81,16 @@ func Test_genKey(t *testing.T) {
 
 //在SimulatedBackend部署合约
 func TestMetisPay_DeployMetisPay(t *testing.T) {
+	var genAlloc ethcore.GenesisAlloc
 	var gasLimit uint64 = 8000029
-	txOpts, _ := bind.NewKeyedTransactorWithChainID(walletKey, big.NewInt(1337))
-	genAlloc := make(ethcore.GenesisAlloc)
-	genAlloc[txOpts.From] = ethcore.GenesisAccount{Balance: big.NewInt(2e13)}
-
-	sim := backends.NewSimulatedBackend(genAlloc, gasLimit)
+	var sim *backends.SimulatedBackend
+	genAlloc = make(ethcore.GenesisAlloc)
+	genAlloc[walletAddress] = ethcore.GenesisAccount{Balance: big.NewInt(2e13)}
+	genAlloc[tokenAddress] = ethcore.GenesisAccount{Balance: big.NewInt(2e10)}
+	sim = backends.NewSimulatedBackend(genAlloc, gasLimit)
 	defer sim.Close()
+
+	txOpts, _ := bind.NewKeyedTransactorWithChainID(walletKey, big.NewInt(1337))
 
 	txOpts.Nonce = big.NewInt(int64(0))
 	txOpts.Value = big.NewInt(0) // in wei
@@ -113,7 +115,7 @@ func TestMetisPay_DeployMetisPay(t *testing.T) {
 	//-------------
 }
 
-//增加白名单, 需要walletAddress上有LAT
+//增加白名单, 需要在https://devnetopenapi2.platon.network/rpc开发链上， walletAddress上有LAT
 func TestMetisPay_AddWhiteList(t *testing.T) {
 	opts, err := metisManager.buildTxOpts()
 	if err != nil {
@@ -127,14 +129,14 @@ func TestMetisPay_AddWhiteList(t *testing.T) {
 	timeout := time.Duration(10) * time.Second
 	ctx, cancelFn := context.WithTimeout(context.Background(), timeout)
 	defer cancelFn()
-	receipt := metisManager.GetReceipt(ctx, tx.Hash(), time.Duration(1000) * time.Millisecond)
+	receipt := metisManager.GetReceipt(ctx, tx.Hash(), time.Duration(1000)*time.Millisecond)
 	t.Logf("AddWhitelist receipt: %v", receipt)
 }
 
-//任务gas预估，需要walletAddress上有LAT，并兑换有wLAT， tokenAddress上有token
+//任务gas预估，需要在https://devnetopenapi2.platon.network/rpc开发链上，walletAddress上有LAT，并兑换有wLAT， tokenAddress上有token
 func TestMetisPay_EstimateTaskGas(t *testing.T) {
 	dataTokenTransferItemList := []string{tokenAddress.Hex()}
-	gasLimit, gasPrice, err := metisManager.EstimateTaskGas(dataTokenTransferItemList)
+	gasLimit, gasPrice, err := metisManager.EstimateTaskGas(walletAddress.Hex(), dataTokenTransferItemList)
 	if err != nil {
 		t.Fatalf("Failed to EstimateTaskGas : %v", err)
 	}
