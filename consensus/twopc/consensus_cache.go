@@ -6,7 +6,15 @@ import (
 )
 
 const (
-	Default2pcMsgCacheSize = 1024
+	default2pcMsgCacheSize = 1024
+)
+
+var (
+	twopcPrepareMsgCacheKeyPrefix  = []byte("prepareMsg")
+	twopcPrepareVoteCacheKeyPrefix = []byte("prepareVote")
+	twopcConfirmMsgCacheKeyPrefix  = []byte("confirmMsg")
+	twopcConfirmVoteCacheKeyPrefix = []byte("confirmVote")
+	twopcCommitMsgCacheKeyPrefix   = []byte("commitMsg")
 )
 
 type TwopcMsgCache struct {
@@ -24,7 +32,6 @@ func NewTwopcMsgCache(size int) (*TwopcMsgCache, error) {
 	w.lru = lru
 	return w, nil
 }
-
 
 // Purge is used to completely clear the cache
 func (c *TwopcMsgCache) Purge() {
@@ -112,4 +119,3 @@ func (c *TwopcMsgCache) Len() int {
 	defer c.lock.RUnlock()
 	return c.lru.Len()
 }
-

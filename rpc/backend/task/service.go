@@ -206,7 +206,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 	//	log.Errorf("RPC-API:PublishTaskDeclare failed, invalid dataFlowPolicys len")
 	//	return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "invalid dataFlowPolicys len"}, nil
 	//}
-	if req.GetOperationCost() == nil {
+	if nil == req.GetOperationCost() {
 		log.Errorf("RPC-API:PublishTaskDeclare failed, check OperationCost failed, OperationCost is empty")
 		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require operationCost"}, nil
 	}

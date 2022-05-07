@@ -52,7 +52,7 @@ func (dc *DataCenter) HasIdentity(identity *libtypes.Organization) (bool, error)
 	if err != nil {
 		return false, err
 	}
-	for _, organization := range responses.Identities {
+	for _, organization := range responses.GetIdentities() {
 		if strings.EqualFold(organization.IdentityId, identity.IdentityId) {
 			return true, nil
 		}

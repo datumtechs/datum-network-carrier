@@ -43,10 +43,10 @@ var (
 	ErrCommitMsgInTheFuture = errors.New("the commitMsg is in the future")
 	ErrCommitMsgIllegal     = errors.New("the commitMsg is illegal")
 
-	ErrOrganizationIdentity                   = errors.New("the organization identity is invalid")
-	ErrProposalTaskOperationCostInvalid       = errors.New("the proposal task OperationCost is invalid")
-	ErrProposalTaskCalculateContractCodeEmpty = errors.New("the proposal task CalculateContractCode is empty")
-	ErrProposalParamsInvalid                  = errors.New("the proposal params is invalid")
+	ErrOrganizationIdentity             = errors.New("the organization identity is invalid")
+	ErrProposalTaskOperationCostInvalid = errors.New("the proposal task OperationCost is invalid")
+	ErrProposalTaskAlgorithmEmpty       = errors.New("the proposal task Algorithm is empty")
+	ErrProposalParamsInvalid            = errors.New("the proposal params is invalid")
 
 	ErrMsgSignInvalid        = errors.New("the msg signature is invalid")
 	ErrMsgOwnerNodeIdInvalid = errors.New("the msg's owner nodeId is invalid")

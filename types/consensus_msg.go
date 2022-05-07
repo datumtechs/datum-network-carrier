@@ -1,11 +1,14 @@
 package types
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/Metisnetwork/Metis-Carrier/common"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/Metisnetwork/Metis-Carrier/common/bytesutil"
+	"github.com/Metisnetwork/Metis-Carrier/common/rlputil"
 	msgcommonpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/common"
 	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
+	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
 )
 
 type ConsensusEngineType string
@@ -43,6 +46,26 @@ func NewPrepareVoteResource(id, ip, port, partyId string) *PrepareVoteResource {
 func (resource *PrepareVoteResource) String() string {
 	return fmt.Sprintf(`{"id": %s, "ip": %s, "port": %s, "partyId": %s}`, resource.GetId(), resource.GetIp(), resource.GetPort(), resource.GetPartyId())
 }
+func (resource *PrepareVoteResource) Hash () common.Hash {
+
+	/**
+	Id      string
+	Ip      string
+	Port    string
+	PartyId string
+	 */
+
+	var buf bytes.Buffer
+
+	buf.Write([]byte(resource.GetId()))
+	buf.Write([]byte(resource.GetIp()))
+	buf.Write([]byte(resource.GetPort()))
+	buf.Write([]byte(resource.GetPartyId()))
+
+	v := rlputil.RlpHash(buf.Bytes())
+	return v
+}
+
 
 func (resource *PrepareVoteResource) GetId() string      { return resource.Id }
 func (resource *PrepareVoteResource) GetIp() string      { return resource.Ip }
@@ -142,6 +165,34 @@ func (option *MsgOption) String() string {
 	return fmt.Sprintf(`{"ProposalId": "%s", "senderRole": "%s", "senderPartyId": "%s", "receiverRole": "%s", "receiverPartyId": "%s", "owner": %s}`,
 		option.GetProposalId().String(), option.GetSenderRole().String(), option.GetSenderPartyId(), option.GetReceiverRole().String(), option.GetReceiverPartyId(), option.GetOwner().String())
 }
+func (option *MsgOption) Hash () common.Hash {
+
+	/**
+	ProposalId      common.Hash
+	SenderRole      libtypes.TaskRole
+	SenderPartyId   string
+	ReceiverRole    libtypes.TaskRole
+	ReceiverPartyId string
+	Owner.IdentityId string
+	Owner.NodeId string
+	Owner.NodeName string
+	Owner.PartyId string
+	*/
+	var buf bytes.Buffer
+
+	buf.Write(option.GetProposalId().Bytes())
+	buf.Write(bytesutil.Uint32ToBytes(uint32(option.GetSenderRole())))
+	buf.Write([]byte(option.GetSenderPartyId()))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(option.GetReceiverRole())))
+	buf.Write([]byte(option.GetReceiverPartyId()))
+	buf.Write([]byte(option.GetOwner().GetIdentityId()))
+	buf.Write([]byte(option.GetOwner().GetNodeId()))
+	buf.Write([]byte(option.GetOwner().GetNodeName()))
+	buf.Write([]byte(option.GetOwner().GetPartyId()))
+
+	v := rlputil.RlpHash(buf.Bytes())
+	return v
+}
 
 func (option *MsgOption) GetProposalId() common.Hash              { return option.ProposalId }
 func (option *MsgOption) GetSenderRole() libtypes.TaskRole     { return option.SenderRole }
@@ -182,6 +233,8 @@ func FetchMsgOption(option *msgcommonpb.MsgOption) *MsgOption {
 	}
 }
 
+
+
 type PrepareMsg struct {
 	MsgOption *MsgOption
 	TaskInfo  *Task
@@ -198,6 +251,25 @@ func (msg *PrepareMsg) StringWithTask() string {
 	return fmt.Sprintf(`{"msgOption": %s, "taskInfo": %s, "evidence": %s, "createAt": %d, "sign": %v}`,
 		msg.GetMsgOption().String(), msg.GetTask().GetTaskData().String(), msg.GetEvidence(), msg.GetCreateAt(), msg.GetSign())
 }
+func (msg *PrepareMsg) Hash() common.Hash {
+
+	/**
+	MsgOption *MsgOption
+	TaskInfo  *Task
+	Evidence  string
+	CreateAt  uint64
+	 */
+
+	var buf bytes.Buffer
+
+	buf.Write(msg.GetMsgOption().Hash().Bytes())
+	buf.Write(msg.GetTask().Hash().Bytes())
+	buf.Write([]byte(msg.GetEvidence()))
+	buf.Write(bytesutil.Uint64ToBytes(msg.GetCreateAt()))
+
+	v := rlputil.RlpHash(buf.Bytes())
+	return v
+}
 
 func (msg *PrepareMsg) GetMsgOption() *MsgOption { return msg.MsgOption }
 func (msg *PrepareMsg) GetTask() *Task           { return msg.TaskInfo }
@@ -205,46 +277,6 @@ func (msg *PrepareMsg) GetEvidence() string { return msg.Evidence }
 func (msg *PrepareMsg) GetCreateAt() uint64 { return msg.CreateAt }
 func (msg *PrepareMsg) GetSign() []byte     { return msg.Sign }
 
-//type PrepareMsgExtra struct {
-//	Nonce   []byte
-//	Weights [][]byte
-//}
-//func (msg *PrepareMsgExtra) String() string {
-//	nonceStr := "0x"
-//	if len(msg.Nonce) != 0 {
-//		nonceStr = common.BytesToHash(msg.Nonce).Hex()
-//	}
-//	weightsStr := "[]"
-//	if len(msg.Weights) != 0 {
-//		arr := make([]string, len(msg.Weights))
-//		for i, weight := range msg.Weights {
-//			arr[i] = new(big.Int).SetBytes(weight).String()
-//		}
-//		weightsStr = "[" + strings.Join(arr, ",") + "]"
-//	}
-//	return fmt.Sprintf(`{"nonce": %s, "Weights": %s}`,
-//		nonceStr, weightsStr)
-//}
-//func (msg *PrepareMsgExtra) GetNonce() []byte { return msg.Nonce }
-//func (msg *PrepareMsgExtra) GetWeights() [][]byte { return msg.Weights }
-//func (msg *PrepareMsgExtra) GetNonceHex() string {
-//	nonceStr := "0x"
-//	if len(msg.Nonce) != 0 {
-//		nonceStr = common.BytesToHash(msg.Nonce).Hex()
-//	}
-//	return nonceStr
-//}
-//
-//func (msg *PrepareMsgExtra) GetWeightsBigInt() []*big.Int {
-//	var weights []*big.Int
-//	if len(msg.Weights) != 0 {
-//		weights = make([]*big.Int, len(msg.Weights))
-//		for i, weight := range msg.Weights {
-//			weights[i] = new(big.Int).SetBytes(weight)
-//		}
-//	}
-//	return weights
-//}
 
 type PrepareVote struct {
 	MsgOption  *MsgOption
@@ -258,6 +290,25 @@ func (vote *PrepareVote) PeerInfoEmpty() bool { return nil == vote.GetPeerInfo()
 func (vote *PrepareVote) String() string {
 	return fmt.Sprintf(`{"msgOption": %s, "voteOption": "%s", "peerInfo": %s, "createAt": %d, "sign": %v}`,
 		vote.GetMsgOption().String(), vote.GetVoteOption().String(), vote.GetPeerInfo().String(), vote.GetCreateAt(), vote.GetSign())
+}
+func (vote *PrepareVote) Hash() common.Hash {
+
+	/**
+	MsgOption  *MsgOption
+	VoteOption VoteOption
+	PeerInfo   *PrepareVoteResource
+	CreateAt   uint64
+	*/
+
+	var buf bytes.Buffer
+
+	buf.Write(vote.GetMsgOption().Hash().Bytes())
+	buf.Write(vote.GetVoteOption().Bytes())
+	buf.Write(vote.GetPeerInfo().Hash().Bytes())
+	buf.Write(bytesutil.Uint64ToBytes(vote.GetCreateAt()))
+
+	v := rlputil.RlpHash(buf.Bytes())
+	return v
 }
 
 func (vote *PrepareVote) GetMsgOption() *MsgOption          { return vote.MsgOption }
@@ -316,6 +367,43 @@ func (msg *ConfirmMsg) String() string {
 	return fmt.Sprintf(`{"msgOption": %s, "confirmOption": "%s", "peers": %s, "createAt": %d, "sign": %v}`,
 		msg.GetMsgOption().String(), msg.GetConfirmOption().String(), peers, msg.GetCreateAt(), msg.GetSign())
 }
+func (msg *ConfirmMsg) Hash() common.Hash {
+
+	/**
+	MsgOption     *MsgOption
+	ConfirmOption TwopcMsgOption
+	Peers         *twopcpb.ConfirmTaskPeerInfo
+	CreateAt      uint64
+	*/
+
+	var buf bytes.Buffer
+
+	buf.Write(msg.GetMsgOption().Hash().Bytes())
+	buf.Write(msg.GetConfirmOption().Bytes())
+
+	peersBytes := make([]byte, 0)
+	for _, suppulier := range msg.GetPeers().GetDataSupplierPeerInfos() {
+		peersBytes = append(peersBytes, suppulier.GetIp()...)
+		peersBytes = append(peersBytes, suppulier.GetPort()...)
+		peersBytes = append(peersBytes, suppulier.GetPartyId()...)
+	}
+	for _, suppulier := range msg.GetPeers().GetPowerSupplierPeerInfos() {
+		peersBytes = append(peersBytes, suppulier.GetIp()...)
+		peersBytes = append(peersBytes, suppulier.GetPort()...)
+		peersBytes = append(peersBytes, suppulier.GetPartyId()...)
+	}
+	for _, suppulier := range msg.GetPeers().GetResultReceiverPeerInfos() {
+		peersBytes = append(peersBytes, suppulier.GetIp()...)
+		peersBytes = append(peersBytes, suppulier.GetPort()...)
+		peersBytes = append(peersBytes, suppulier.GetPartyId()...)
+	}
+	buf.Write(peersBytes)
+	buf.Write(bytesutil.Uint64ToBytes(msg.GetCreateAt()))
+
+	v := rlputil.RlpHash(buf.Bytes())
+	return v
+}
+
 
 func (msg *ConfirmMsg) GetMsgOption() *MsgOption               { return msg.MsgOption }
 func (msg *ConfirmMsg) GetConfirmOption() TwopcMsgOption       { return msg.ConfirmOption }
@@ -353,6 +441,24 @@ func (vote *ConfirmVote) String() string {
 	return fmt.Sprintf(`{"msgOption": %s, "voteOption": "%s", "createAt": %d, "sign": %v}`,
 		vote.GetMsgOption().String(), vote.GetVoteOption().String(), vote.GetCreateAt(), vote.GetSign())
 }
+func (vote *ConfirmVote) Hash() common.Hash {
+
+	/**
+	MsgOption  *MsgOption
+	VoteOption VoteOption
+	CreateAt   uint64
+	*/
+
+	var buf bytes.Buffer
+
+	buf.Write(vote.GetMsgOption().Hash().Bytes())
+	buf.Write(vote.GetVoteOption().Bytes())
+	buf.Write(bytesutil.Uint64ToBytes(vote.GetCreateAt()))
+
+	v := rlputil.RlpHash(buf.Bytes())
+	return v
+}
+
 
 func (vote *ConfirmVote) GetMsgOption() *MsgOption  { return vote.MsgOption }
 func (vote *ConfirmVote) GetVoteOption() VoteOption { return vote.VoteOption }
@@ -386,6 +492,23 @@ type CommitMsg struct {
 func (msg *CommitMsg) String() string {
 	return fmt.Sprintf(`{"msgOption": %s, "commitOption", "%s", "createAt": %d, "sign": %v}`,
 		msg.GetMsgOption().String(), msg.GetCommitOption().String(), msg.GetCreateAt(), msg.GetSign())
+}
+func (msg *CommitMsg) Hash() common.Hash {
+
+	/**
+	MsgOption    *MsgOption
+	CommitOption TwopcMsgOption
+	CreateAt     uint64
+	*/
+
+	var buf bytes.Buffer
+
+	buf.Write(msg.GetMsgOption().Hash().Bytes())
+	buf.Write(msg.GetCommitOption().Bytes())
+	buf.Write(bytesutil.Uint64ToBytes(msg.GetCreateAt()))
+
+	v := rlputil.RlpHash(buf.Bytes())
+	return v
 }
 
 func (msg *CommitMsg) GetMsgOption() *MsgOption        { return msg.MsgOption }

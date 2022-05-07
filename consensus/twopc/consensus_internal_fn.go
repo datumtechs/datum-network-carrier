@@ -13,6 +13,7 @@ import (
 	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
 	"github.com/Metisnetwork/Metis-Carrier/p2p"
 	"github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"strings"
@@ -344,6 +345,24 @@ func (t *Twopc) driveTask(
 	))
 }
 
+func (t *Twopc) replyTaskConsensusResult(result *types.TaskConsResult) {
+	go func(result *types.TaskConsResult) { // asynchronous transmission to reduce Chan blocking
+		t.taskConsResultCh <- result
+	}(result)
+}
+
+func (t *Twopc) sendNeedReplayScheduleTask(task *types.NeedReplayScheduleTask) {
+	go func(task *types.NeedReplayScheduleTask) { // asynchronous transmission to reduce Chan blocking
+		t.needReplayScheduleTaskCh <- task
+	}(task)
+}
+
+func (t *Twopc) sendNeedExecuteTask(task *types.NeedExecuteTask) {
+	go func(task *types.NeedExecuteTask) { // asynchronous transmission to reduce Chan blocking
+		t.needExecuteTaskCh <- task
+	}(task)
+}
+
 func (t *Twopc) sendPrepareMsg(proposalId common.Hash, nonConsTask *types.NeedConsensusTask, startTime uint64) error {
 
 	task := nonConsTask.GetTask()
@@ -377,11 +396,26 @@ func (t *Twopc) sendPrepareMsg(proposalId common.Hash, nonConsTask *types.NeedCo
 			proposalId.String(), task.GetTaskId(), err)
 	}
 
+	msg := &types.PrepareMsg{
+		MsgOption: types.FetchMsgOption(prepareMsg.GetMsgOption()),
+		TaskInfo:  task,
+		Evidence:  string(prepareMsg.GetEvidence()),
+		CreateAt:  prepareMsg.GetCreateAt(),
+	}
+
+	// signature the msg and fill sign field of prepareMsg
+	sign, err := crypto.Sign(msg.Hash().Bytes(), t.config.Option.NodePriKey)
+	if nil != err {
+		return fmt.Errorf("failed to sign prepareMsg, proposalId: %s, err: %s",
+			msg.GetMsgOption().GetProposalId().String(), err)
+	}
+	prepareMsg.Sign = sign
+
 	errs := make([]string, 0)
 	if needSendLocalMsgFn() {
-		 if err := t.sendLocalPrepareMsg("", prepareMsg); nil != err {
-			 errs = append(errs, fmt.Sprintf("send prepareMsg to local peer, %s", err))
-		 }
+		if err := t.sendLocalPrepareMsg("", prepareMsg); nil != err {
+			errs = append(errs, fmt.Sprintf("send prepareMsg to local peer, %s", err))
+		}
 	}
 
 	if err := t.p2p.Broadcast(context.TODO(), prepareMsg); nil != err {
@@ -399,25 +433,24 @@ func (t *Twopc) sendPrepareMsg(proposalId common.Hash, nonConsTask *types.NeedCo
 	return nil
 }
 
-func (t *Twopc) replyTaskConsensusResult(result *types.TaskConsResult) {
-	go func(result *types.TaskConsResult) { // asynchronous transmission to reduce Chan blocking
-		t.taskConsResultCh <- result
-	}(result)
-}
-
-func (t *Twopc) sendNeedReplayScheduleTask(task *types.NeedReplayScheduleTask) {
-	go func(task *types.NeedReplayScheduleTask) { // asynchronous transmission to reduce Chan blocking
-		t.needReplayScheduleTaskCh <- task
-	}(task)
-}
-
-func (t *Twopc) sendNeedExecuteTask(task *types.NeedExecuteTask) {
-	go func(task *types.NeedExecuteTask) { // asynchronous transmission to reduce Chan blocking
-		t.needExecuteTaskCh <- task
-	}(task)
-}
 
 func (t *Twopc) sendPrepareVote(pid peer.ID, sender, receiver *libtypes.TaskOrganization, req *twopcpb.PrepareVote) error {
+
+	vote := &types.PrepareVote{
+		MsgOption:  types.FetchMsgOption(req.GetMsgOption()),
+		VoteOption: types.VoteOptionFromBytes(req.GetVoteOption()),
+		PeerInfo:   types.FetchTaskPeerInfo(req.GetPeerInfo()),
+		CreateAt:   req.GetCreateAt(),
+	}
+
+	// signature the msg and fill sign field of prepareVote
+	sign, err := crypto.Sign(vote.Hash().Bytes(), t.config.Option.NodePriKey)
+	if nil != err {
+		return fmt.Errorf("failed to sign prepareVote, proposalId: %s, err: %s",
+			vote.GetMsgOption().GetProposalId().String(), err)
+	}
+	req.Sign = sign
+
 	if types.IsNotSameTaskOrg(sender, receiver) {
 		//return handler.SendTwoPcPrepareVote(context.TODO(), t.p2p, pid, req)
 		return t.p2p.Broadcast(context.TODO(), req)
@@ -454,6 +487,21 @@ func (t *Twopc) sendConfirmMsg(proposalId common.Hash, task *types.Task, peers *
 	confirmMsg := makeConfirmMsg(proposalId, libtypes.TaskRole_TaskRole_Sender, libtypes.TaskRole_TaskRole_Unknown,
 		sender.GetPartyId(), "", sender, peers, option, startTime)
 
+	msg := &types.ConfirmMsg{
+		MsgOption:     types.FetchMsgOption(confirmMsg.GetMsgOption()),
+		ConfirmOption: types.TwopcMsgOptionFromBytes(confirmMsg.GetConfirmOption()),
+		Peers:         confirmMsg.GetPeers(),
+		CreateAt:      confirmMsg.GetCreateAt(),
+	}
+
+	// signature the msg and fill sign field of confirmMsg
+	sign, err := crypto.Sign(msg.Hash().Bytes(), t.config.Option.NodePriKey)
+	if nil != err {
+		return fmt.Errorf("failed to sign confirmMsg, proposalId: %s, err: %s",
+			msg.GetMsgOption().GetProposalId().String(), err)
+	}
+	confirmMsg.Sign = sign
+
 	errs := make([]string, 0)
 	if needSendLocalMsgFn() {
 		if err := t.sendLocalConfirmMsg("", confirmMsg); nil != err {
@@ -478,6 +526,21 @@ func (t *Twopc) sendConfirmMsg(proposalId common.Hash, task *types.Task, peers *
 }
 
 func (t *Twopc) sendConfirmVote(pid peer.ID, sender, receiver *libtypes.TaskOrganization, req *twopcpb.ConfirmVote) error {
+
+	vote := &types.ConfirmVote{
+		MsgOption:  types.FetchMsgOption(req.GetMsgOption()),
+		VoteOption: types.VoteOptionFromBytes(req.GetVoteOption()),
+		CreateAt:   req.GetCreateAt(),
+	}
+
+	// signature the msg and fill sign field of confirmVote
+	sign, err := crypto.Sign(vote.Hash().Bytes(), t.config.Option.NodePriKey)
+	if nil != err {
+		return fmt.Errorf("failed to sign confirmVote, proposalId: %s, err: %s",
+			vote.GetMsgOption().GetProposalId().String(), err)
+	}
+	req.Sign = sign
+
 	if types.IsNotSameTaskOrg(sender, receiver) {
 		//return handler.SendTwoPcConfirmVote(context.TODO(), t.p2p, pid, req)
 		return t.p2p.Broadcast(context.TODO(), req)
@@ -490,86 +553,67 @@ func (t *Twopc) sendCommitMsg(proposalId common.Hash, task *types.Task, option t
 
 	sender := task.GetTaskSender()
 
-	sendCommitMsgFn := func(wg *sync.WaitGroup, sender, receiver *libtypes.TaskOrganization, senderRole, receiverRole libtypes.TaskRole, errCh chan<- error) {
 
-		defer wg.Done()
-
-		pid, err := p2p.HexPeerID(receiver.GetNodeId())
-		if nil != err {
-			errCh <- fmt.Errorf("failed to nodeId => peerId when send commitMsg, proposalId: %s, taskId: %s, other peer's taskRole: %s, other peer's partyId: %s, identityId: %s, pid: %s, err: %s",
-				proposalId.String(), task.GetTaskId(), receiverRole.String(), receiver.GetPartyId(), receiver.GetIdentityId(), pid, err)
-			return
+	needSendLocalMsgFn := func() bool {
+		for i := 0; i < len(task.GetTaskData().GetDataSuppliers()); i++ {
+			if sender.GetIdentityId() == task.GetTaskData().GetDataSuppliers()[i].GetIdentityId() {
+				return true
+			}
 		}
 
-		commitMsg := makeCommitMsg(proposalId, senderRole, receiverRole, sender.GetPartyId(), receiver.GetPartyId(), sender, option, startTime)
-
-		var sendErr error
-		var logdesc string
-		if types.IsSameTaskOrg(sender, receiver) {
-			sendErr = t.sendLocalCommitMsg(pid, commitMsg)
-			logdesc = "sendLocalCommitMsg()"
-		} else {
-			//sendErr = handler.SendTwoPcCommitMsg(context.TODO(), t.p2p, pid, commitMsg)
-			sendErr = t.p2p.Broadcast(context.TODO(), commitMsg)
-			logdesc = "Broadcast()"
+		for i := 0; i < len(task.GetTaskData().GetPowerSuppliers()); i++ {
+			if sender.GetIdentityId() == task.GetTaskData().GetPowerSuppliers()[i].GetIdentityId() {
+				return true
+			}
 		}
 
-		// Send the ConfirmMsg to other peer
-		if nil != sendErr {
-			errCh <- fmt.Errorf("failed to call`sendCommitMsg.%s` proposalId: %s, taskId: %s,  other peer's taskRole: %s, other peer's partyId: %s, identityId: %s, pid: %s, err: %s",
-				logdesc, proposalId.String(), task.GetTaskId(), receiverRole.String(), receiver.GetPartyId(), receiver.GetIdentityId(), pid, sendErr)
-			errCh <- err
-			return
+		for i := 0; i < len(task.GetTaskData().GetReceivers()); i++ {
+			if sender.GetIdentityId() == task.GetTaskData().GetReceivers()[i].GetIdentityId() {
+				return true
+			}
 		}
-
-		log.WithField("traceId", traceutil.GenerateTraceID(commitMsg)).Debugf("Succeed to call`sendCommitMsg.%s` proposalId: %s, taskId: %s,  other peer's taskRole: %s, other peer's partyId: %s, identityId: %s, pid: %s",
-			logdesc, proposalId.String(), task.GetTaskId(), receiverRole.String(), receiver.GetPartyId(), receiver.GetIdentityId(), pid)
-
+		return false
 	}
 
-	size := (len(task.GetTaskData().GetDataSuppliers())) + len(task.GetTaskData().GetPowerSuppliers()) + len(task.GetTaskData().GetReceivers())
-	errCh := make(chan error, size)
-	var wg sync.WaitGroup
+	commitMsg := makeCommitMsg(proposalId, libtypes.TaskRole_TaskRole_Sender, libtypes.TaskRole_TaskRole_Unknown,
+		sender.GetPartyId(), "", sender, option, startTime)
 
-	for i := 0; i < len(task.GetTaskData().GetDataSuppliers()); i++ {
-
-		wg.Add(1)
-		dataSupplier := task.GetTaskData().GetDataSuppliers()[i]
-		receiver := dataSupplier
-		go sendCommitMsgFn(&wg, sender, receiver, libtypes.TaskRole_TaskRole_Sender, libtypes.TaskRole_TaskRole_DataSupplier, errCh)
-
-	}
-	for i := 0; i < len(task.GetTaskData().GetPowerSuppliers()); i++ {
-
-		wg.Add(1)
-		powerSupplier := task.GetTaskData().GetPowerSuppliers()[i]
-		receiver := powerSupplier
-		go sendCommitMsgFn(&wg, sender, receiver, libtypes.TaskRole_TaskRole_Sender, libtypes.TaskRole_TaskRole_PowerSupplier, errCh)
-
+	msg := &types.CommitMsg{
+		MsgOption:     types.FetchMsgOption(commitMsg.GetMsgOption()),
+		CommitOption: types.TwopcMsgOptionFromBytes(commitMsg.GetCommitOption()),
+		CreateAt:      commitMsg.GetCreateAt(),
 	}
 
-	for i := 0; i < len(task.GetTaskData().GetReceivers()); i++ {
-
-		wg.Add(1)
-		receiver := task.GetTaskData().GetReceivers()[i]
-		go sendCommitMsgFn(&wg, sender, receiver, libtypes.TaskRole_TaskRole_Sender, libtypes.TaskRole_TaskRole_Receiver, errCh)
+	// signature the msg and fill sign field of commitMsg
+	sign, err := crypto.Sign(msg.Hash().Bytes(), t.config.Option.NodePriKey)
+	if nil != err {
+		return fmt.Errorf("failed to sign commitMsg, proposalId: %s, err: %s",
+			msg.GetMsgOption().GetProposalId().String(), err)
 	}
+	commitMsg.Sign = sign
 
-	wg.Wait()
-	close(errCh)
 
-	errStrs := make([]string, 0)
-
-	for err := range errCh {
-		if nil != err {
-			errStrs = append(errStrs, err.Error())
+	errs := make([]string, 0)
+	if needSendLocalMsgFn() {
+		if err := t.sendLocalCommitMsg("", commitMsg); nil != err {
+			errs = append(errs, fmt.Sprintf("send commitMsg to local peer, %s", err))
 		}
 	}
-	if len(errStrs) != 0 {
+
+	if err := t.p2p.Broadcast(context.TODO(), commitMsg); nil != err {
+		errs = append(errs, fmt.Sprintf("send commitMsg to remote peer, %s", err))
+	}
+
+	log.WithField("traceId", traceutil.GenerateTraceID(commitMsg)).Debugf("Succeed to call`sendCommitMsg.%s` proposalId: %s, taskId: %s",
+		proposalId.String(), task.GetTaskId())
+
+
+	if len(errs) != 0 {
 		return fmt.Errorf(
 			"\n######################################################## \n%s\n########################################################\n",
-			strings.Join(errStrs, "\n"))
+			strings.Join(errs, "\n"))
 	}
+
 	return nil
 }
 

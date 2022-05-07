@@ -230,6 +230,15 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 		return fmt.Errorf("%s when received prepareMsg", ctypes.ErrProposalIllegal)
 	}
 
+	// Verify the signature
+	_, err = t.verifyMsgSigned(msg.GetMsgOption().GetOwner().GetNodeId(), msg.Hash().Bytes(), msg.GetSign())
+	if err != nil {
+		return fmt.Errorf("verify prepareMsg sign %s", err)
+	}
+
+	if err := t.validateTaskOfPrepareMsg(pid, msg); nil != err {
+		return err
+	}
 
 	errCh := make(chan error, 0)
 
@@ -442,6 +451,12 @@ func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap, n
 
 	vote := fetchPrepareVote(prepareVote)
 
+	// Verify the signature
+	_, err := t.verifyMsgSigned(vote.GetMsgOption().GetOwner().GetNodeId(), vote.Hash().Bytes(), vote.GetSign())
+	if err != nil {
+		return fmt.Errorf("verify prepareVote sign %s", err)
+	}
+
 	errCh := make(chan error, 0)
 
 	t.asyncCallCh <- func() {
@@ -632,6 +647,12 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, nmls
 	}
 
 	msg := fetchConfirmMsg(confirmMsg)
+
+	// Verify the signature
+	_, err := t.verifyMsgSigned(msg.GetMsgOption().GetOwner().GetNodeId(), msg.Hash().Bytes(), msg.GetSign())
+	if err != nil {
+		return fmt.Errorf("verify confirmMsg sign %s", err)
+	}
 
 	errCh := make(chan error, 0)
 
@@ -872,6 +893,12 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, n
 
 	vote := fetchConfirmVote(confirmVote)
 
+	// Verify the signature
+	_, err := t.verifyMsgSigned(vote.GetMsgOption().GetOwner().GetNodeId(), vote.Hash().Bytes(), vote.GetSign())
+	if err != nil {
+		return fmt.Errorf("verify confirmVote sign %s", err)
+	}
+
 	errCh := make(chan error, 0)
 
 	t.asyncCallCh <- func() {
@@ -1054,6 +1081,12 @@ func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap, nmls ty
 	}
 
 	msg := fetchCommitMsg(cimmitMsg)
+
+	// Verify the signature
+	_, err := t.verifyMsgSigned(msg.GetMsgOption().GetOwner().GetNodeId(), msg.Hash().Bytes(), msg.GetSign())
+	if err != nil {
+		return fmt.Errorf("verify confirmVote sign %s", err)
+	}
 
 	errCh := make(chan error, 0)
 

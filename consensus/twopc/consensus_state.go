@@ -37,7 +37,7 @@ type state struct {
 }
 
 func newState(ldb *walDB) (*state, error) {
-	cache, err := NewTwopcMsgCache(Default2pcMsgCacheSize)
+	cache, err := NewTwopcMsgCache(default2pcMsgCacheSize)
 	if nil != err {
 		return nil, err
 	}
@@ -60,23 +60,23 @@ func (s *state) AddMsg(msg interface{}) bool {
 	switch msg.(type) {
 	case *twopcpb.PrepareMsg:
 		pure := msg.(*twopcpb.PrepareMsg)
-		key := append(pure.GetMsgOption().GetProposalId(), pure.GetMsgOption().GetSenderPartyId()...)
+		key := append(twopcPrepareMsgCacheKeyPrefix, append(pure.GetMsgOption().GetProposalId(), pure.GetMsgOption().GetSenderPartyId()...)...)
 		return s.msgCache.Add(string(key), struct {}{})
 	case *twopcpb.PrepareVote:
 		pure := msg.(*twopcpb.PrepareVote)
-		key := append(pure.GetMsgOption().GetProposalId(), pure.GetMsgOption().GetSenderPartyId()...)
+		key := append(twopcPrepareVoteCacheKeyPrefix, append(pure.GetMsgOption().GetProposalId(), pure.GetMsgOption().GetSenderPartyId()...)...)
 		return s.msgCache.Add(string(key), struct {}{})
 	case *twopcpb.ConfirmMsg:
 		pure := msg.(*twopcpb.ConfirmMsg)
-		key := append(pure.GetMsgOption().GetProposalId(), pure.GetMsgOption().GetSenderPartyId()...)
+		key := append(twopcConfirmMsgCacheKeyPrefix, append(pure.GetMsgOption().GetProposalId(), pure.GetMsgOption().GetSenderPartyId()...)...)
 		return s.msgCache.Add(string(key), struct {}{})
 	case *twopcpb.ConfirmVote:
 		pure := msg.(*twopcpb.ConfirmVote)
-		key := append(pure.GetMsgOption().GetProposalId(), pure.GetMsgOption().GetSenderPartyId()...)
+		key := append(twopcConfirmVoteCacheKeyPrefix, append(pure.GetMsgOption().GetProposalId(), pure.GetMsgOption().GetSenderPartyId()...)...)
 		return s.msgCache.Add(string(key), struct {}{})
 	case *twopcpb.CommitMsg:
 		pure := msg.(*twopcpb.CommitMsg)
-		key := append(pure.GetMsgOption().GetProposalId(), pure.GetMsgOption().GetSenderPartyId()...)
+		key := append(twopcCommitMsgCacheKeyPrefix, append(pure.GetMsgOption().GetProposalId(), pure.GetMsgOption().GetSenderPartyId()...)...)
 		return s.msgCache.Add(string(key), struct {}{})
 	//case *TerminateConsensusMsgWrap:
 	default:
@@ -88,23 +88,23 @@ func (s *state) ContainMsg(msg interface{}) bool {
 	switch msg.(type) {
 	case *twopcpb.PrepareMsg:
 		pure := msg.(*twopcpb.PrepareMsg)
-		key := append(pure.GetMsgOption().GetProposalId(), pure.GetMsgOption().GetSenderPartyId()...)
+		key := append(twopcPrepareMsgCacheKeyPrefix, append(pure.GetMsgOption().GetProposalId(), pure.GetMsgOption().GetSenderPartyId()...)...)
 		return s.msgCache.Contains(string(key))
 	case *twopcpb.PrepareVote:
 		pure := msg.(*twopcpb.PrepareVote)
-		key := append(pure.GetMsgOption().GetProposalId(), pure.GetMsgOption().GetSenderPartyId()...)
+		key := append(twopcPrepareVoteCacheKeyPrefix, append(pure.GetMsgOption().GetProposalId(), pure.GetMsgOption().GetSenderPartyId()...)...)
 		return s.msgCache.Contains(string(key))
 	case *twopcpb.ConfirmMsg:
 		pure := msg.(*twopcpb.ConfirmMsg)
-		key := append(pure.GetMsgOption().GetProposalId(), pure.GetMsgOption().GetSenderPartyId()...)
+		key := append(twopcConfirmMsgCacheKeyPrefix, append(pure.GetMsgOption().GetProposalId(), pure.GetMsgOption().GetSenderPartyId()...)...)
 		return s.msgCache.Contains(string(key))
 	case *twopcpb.ConfirmVote:
 		pure := msg.(*twopcpb.ConfirmVote)
-		key := append(pure.GetMsgOption().GetProposalId(), pure.GetMsgOption().GetSenderPartyId()...)
+		key := append(twopcConfirmVoteCacheKeyPrefix, append(pure.GetMsgOption().GetProposalId(), pure.GetMsgOption().GetSenderPartyId()...)...)
 		return s.msgCache.Contains(string(key))
 	case *twopcpb.CommitMsg:
 		pure := msg.(*twopcpb.CommitMsg)
-		key := append(pure.GetMsgOption().GetProposalId(), pure.GetMsgOption().GetSenderPartyId()...)
+		key := append(twopcCommitMsgCacheKeyPrefix, append(pure.GetMsgOption().GetProposalId(), pure.GetMsgOption().GetSenderPartyId()...)...)
 		return s.msgCache.Contains(string(key))
 	//case *TerminateConsensusMsgWrap:
 	default:
@@ -121,23 +121,23 @@ func (s *state) ContainsOrAddMsg(msg interface{}) error {
 	switch msg.(type) {
 	case *twopcpb.PrepareMsg:
 		pure := msg.(*twopcpb.PrepareMsg)
-		key := append(pure.GetMsgOption().GetProposalId(), pure.GetMsgOption().GetSenderPartyId()...)
+		key := append(twopcPrepareMsgCacheKeyPrefix, append(pure.GetMsgOption().GetProposalId(), pure.GetMsgOption().GetSenderPartyId()...)...)
 		has, evict = s.msgCache.ContainsOrAdd(string(key), struct {}{})
 	case *twopcpb.PrepareVote:
 		pure := msg.(*twopcpb.PrepareVote)
-		key := append(pure.GetMsgOption().GetProposalId(), pure.GetMsgOption().GetSenderPartyId()...)
+		key := append(twopcPrepareVoteCacheKeyPrefix, append(pure.GetMsgOption().GetProposalId(), pure.GetMsgOption().GetSenderPartyId()...)...)
 		has, evict = s.msgCache.ContainsOrAdd(string(key), struct {}{})
 	case *twopcpb.ConfirmMsg:
 		pure := msg.(*twopcpb.ConfirmMsg)
-		key := append(pure.GetMsgOption().GetProposalId(), pure.GetMsgOption().GetSenderPartyId()...)
+		key := append(twopcConfirmMsgCacheKeyPrefix, append(pure.GetMsgOption().GetProposalId(), pure.GetMsgOption().GetSenderPartyId()...)...)
 		has, evict = s.msgCache.ContainsOrAdd(string(key), struct {}{})
 	case *twopcpb.ConfirmVote:
 		pure := msg.(*twopcpb.ConfirmVote)
-		key := append(pure.GetMsgOption().GetProposalId(), pure.GetMsgOption().GetSenderPartyId()...)
+		key := append(twopcConfirmVoteCacheKeyPrefix, append(pure.GetMsgOption().GetProposalId(), pure.GetMsgOption().GetSenderPartyId()...)...)
 		has, evict = s.msgCache.ContainsOrAdd(string(key), struct {}{})
 	case *twopcpb.CommitMsg:
 		pure := msg.(*twopcpb.CommitMsg)
-		key := append(pure.GetMsgOption().GetProposalId(), pure.GetMsgOption().GetSenderPartyId()...)
+		key := append(twopcCommitMsgCacheKeyPrefix, append(pure.GetMsgOption().GetProposalId(), pure.GetMsgOption().GetSenderPartyId()...)...)
 		has, evict = s.msgCache.ContainsOrAdd(string(key), struct {}{})
 	//case *TerminateConsensusMsgWrap:
 	default:
