@@ -8,7 +8,6 @@ import (
 	"github.com/Metisnetwork/Metis-Carrier/common/traceutil"
 	ctypes "github.com/Metisnetwork/Metis-Carrier/consensus/twopc/types"
 	"github.com/Metisnetwork/Metis-Carrier/core/evengine"
-	"github.com/Metisnetwork/Metis-Carrier/core/resource"
 	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
 	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
 	"github.com/Metisnetwork/Metis-Carrier/p2p"
