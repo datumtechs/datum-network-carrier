@@ -186,7 +186,7 @@ func FetchPowerPartyIdByOptionFromPowerPolicy(policyType uint32, policyOption st
 		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
 			return "", err
 		}
-		return policy.PowerPartyId, nil
+		return policy.GetPowerPartyId(), nil
 	default:
 		return "", types.NotFoundPowerPolicy
 	}
@@ -223,7 +223,7 @@ func FetchReceiverPartyIdByOptionFromReceiverPolicy(policyType uint32, policyOpt
 		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
 			return "", err
 		}
-		return policy.ReceiverPartyId, nil
+		return policy.GetReceiverPartyId(), nil
 	default:
 		return "", types.NotFoundPowerPolicy
 	}

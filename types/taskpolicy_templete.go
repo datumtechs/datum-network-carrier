@@ -208,6 +208,9 @@ type TaskPowerPolicyDataNodeProvide struct {
 	PowerPartyId    string `json:"powerPartyId"`
 }
 
+func (p *TaskPowerPolicyDataNodeProvide) GetProviderPartyId() string { return p.ProviderPartyId }
+func (p *TaskPowerPolicyDataNodeProvide) GetPowerPartyId() string { return p.PowerPartyId }
+
 // ==================================================================== receiver policy option ====================================================================
 
 /**
@@ -220,5 +223,8 @@ type TaskReceiverPolicyDataNodeProvide struct {
 	ProviderPartyId string `json:"providerPartyId"`
 	ReceiverPartyId string `json:"receiverPartyId"`
 }
+
+func (p *TaskReceiverPolicyDataNodeProvide) GetProviderPartyId() string { return p.ProviderPartyId }
+func (p *TaskReceiverPolicyDataNodeProvide) GetReceiverPartyId() string { return p.ReceiverPartyId }
 
 // ==================================================================== dataFlow policy option ====================================================================

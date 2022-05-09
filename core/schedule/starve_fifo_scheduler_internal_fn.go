@@ -2,7 +2,6 @@ package schedule
 
 import (
 	"container/heap"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
 	"github.com/Metisnetwork/Metis-Carrier/types"
 
 	log "github.com/sirupsen/logrus"
@@ -148,8 +147,4 @@ func (sche *SchedulerStarveFIFO) increaseTotalTaskTerm() {
 		sche.resourceMng.GetDB().StoreTaskBullet(bullet)  		// update bullet into wal
 		i++
 	}
-}
-
-func (sche *SchedulerStarveFIFO) verifyUserMetadataAuthOnTask(userType libtypes.UserType, user, metadataId string) error {
-	return sche.authMng.VerifyMetadataAuth(userType, user, metadataId)
 }

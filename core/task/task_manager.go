@@ -351,6 +351,8 @@ func (m *Manager) loop() {
 
 				switch task.GetLocalTaskRole() {
 				case libtypes.TaskRole_TaskRole_Sender:
+					// init consumeSpec of NeedExecuteTask first (by v0.4.0)
+					m.initConsumeSpecByConsumeOption(task)
 					m.publishFinishedTaskToDataCenter(task, localTask, true)
 				default:
 					m.sendTaskResultMsgToTaskSender(task, localTask)
@@ -502,7 +504,7 @@ func (m *Manager) onTerminateExecuteTask(taskId, partyId string, task *types.Tas
 func (m *Manager) HandleTaskMsgs(msgArr types.TaskMsgArr) error {
 
 	if len(msgArr) == 0 {
-		return fmt.Errorf("Receive some empty task msgArr")
+		return fmt.Errorf("receive some empty task msgArr")
 	}
 
 	nonParsedMsgArr, parsedMsgArr := m.parser.ParseTask(msgArr)

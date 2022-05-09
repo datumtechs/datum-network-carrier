@@ -275,18 +275,31 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 			return fmt.Errorf("task state is not existing in MetisPay contract on beginConsumeByDataToken()")
 		}
 		// update consumeSpec into needExecuteTask
-		var consumeSpec types.DatatokenPaySpec
-		if err := json.Unmarshal([]byte(task.GetConsumeSpec()), &consumeSpec); nil != err {
-			return fmt.Errorf("json unmarshal consumeSpec failed on endConsumeByDataToken()")
+		if "" == strings.Trim(task.GetConsumeSpec(), "") {
+			return fmt.Errorf("consumeSpec about task is empty on beginConsumeByDataToken(), consumeSpec: %s", task.GetConsumeSpec())
 		}
+		var consumeSpec *types.DatatokenPaySpec
+		if err := json.Unmarshal([]byte(task.GetConsumeSpec()), &consumeSpec); nil != err {
+			return fmt.Errorf("cannot json unmarshal consumeSpec on beginConsumeByDataToken(), consumeSpec: %s, %s", task.GetConsumeSpec(), err)
+		}
+
+		// task state in contract
+		// constant int8 private NOTEXIST = -1;
+		// constant int8 private BEGIN = 0;
+		// constant int8 private PREPAY = 1;
+		// constant int8 private SETTLE = 2;
+		// constant int8 private END = 3;
 		consumeSpec.Consumed = int32(state)
 		consumeSpec.GasEstimated = gasLimit
 		consumeSpec.GasUsed = receipt.GasUsed
+
 		b, err := json.Marshal(consumeSpec)
 		if nil != err {
-			return fmt.Errorf("json marshal task consumeSpec failed on beginConsumeByDataToken(), %s", err)
+			return fmt.Errorf("connot json marshal task consumeSpec on beginConsumeByDataToken(), consumeSpec: %v, %s", consumeSpec, err)
 		}
 		task.SetConsumeSpec(string(b))
+		// update needExecuteTask into cache
+		m.updateNeedExecuteTaskCache(task)
 
 		return nil
 	case libtypes.TaskRole_TaskRole_DataSupplier:
@@ -366,13 +379,29 @@ func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *
 	case libtypes.TaskRole_TaskRole_Sender:
 
 		// query consumeSpec of task
-		var consumeSpec types.DatatokenPaySpec
+		var consumeSpec *types.DatatokenPaySpec
+
+		if "" == strings.Trim(task.GetConsumeSpec(), "") {
+			return fmt.Errorf("consumeSpec about task is empty on endConsumeByDataToken(), consumeSpec: %s", task.GetConsumeSpec())
+		}
+
 		if err := json.Unmarshal([]byte(task.GetConsumeSpec()), &consumeSpec); nil != err {
-			return fmt.Errorf("json unmarshal consumeSpec failed on endConsumeByDataToken()")
+			return fmt.Errorf("cannot json unmarshal consumeSpec on endConsumeByDataToken(), consumeSpec: %s, %s", task.GetConsumeSpec(), err)
 		}
 
 		if partyId != localTask.GetTaskSender().GetPartyId() {
-			return fmt.Errorf("this partyId is not task sender on endConsumeByDataToken()")
+			return fmt.Errorf("this partyId is not task sender on endConsumeByDataToken(), partyId: %s, sender partyId: %s",
+				partyId, localTask.GetTaskSender().GetPartyId())
+		}
+
+		// check task state in contract
+		//
+		// If the state of the contract is not "prepay",
+		// the settlement action will not be performed
+		if consumeSpec.GetConsumed() != 1 {
+			log.Warnf("Warning the task state value of contract is not `prepay`, the settlement action will not be performed, taskId: {%s}, partyId: {%s}, state: {%d}",
+				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), consumeSpec.GetConsumed())
+			return nil
 		}
 
 		taskId, err := hexutil.DecodeBig(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID))
@@ -383,7 +412,7 @@ func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *
 		// start prepay dataToken
 		txHash, _, err := m.metisPayMng.Settle(taskId, int64(consumeSpec.GasEstimated)-int64(consumeSpec.GasUsed))
 		if nil != err {
-			return fmt.Errorf("call metisPay to settle datatoken failed on endConsumeByDataToken(), %s", err)
+			return fmt.Errorf("cannot call metisPay to settle datatoken on endConsumeByDataToken(), %s", err)
 		}
 
 		// make sure the `prepay` tx into blockchain
@@ -704,8 +733,8 @@ func (m *Manager) publishFinishedTaskToDataCenter(task *types.NeedExecuteTask, l
 
 		eventList, err := m.resourceMng.GetDB().QueryTaskEventList(task.GetTaskId())
 		if nil != err {
-			log.WithError(err).Errorf("Failed to Query all task event list for sending datacenter on publishFinishedTaskToDataCenter, taskId: {%s}",
-				task.GetTaskId())
+			log.WithError(err).Errorf("Failed to Query all task event list for sending datacenter on publishFinishedTaskToDataCenter, taskId: {%s}, partyId: {%s}",
+				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
 			return
 		}
 
@@ -726,10 +755,12 @@ func (m *Manager) publishFinishedTaskToDataCenter(task *types.NeedExecuteTask, l
 
 		// 1、settle metadata or power usage.
 		if err := m.EndConsumeMetadataOrPower(task, localTask); nil != err {
-			log.WithError(err).Errorf("Failed to settle consume metadata or power on publishFinishedTaskToDataCenter, taskId: {%s}, taskState: {%s}", task.GetTaskId(), taskState.String())
+			log.WithError(err).Errorf("Failed to settle consume metadata or power on publishFinishedTaskToDataCenter, taskId: {%s}, partyId: {%s}, taskState: {%s}",
+				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskState.String())
 		}
 
-		log.Debugf("Start publishFinishedTaskToDataCenter, taskId: {%s}, taskState: {%s}", task.GetTaskId(), taskState.String())
+		log.Debugf("Start publishFinishedTaskToDataCenter, taskId: {%s}, partyId: {%s}, taskState: {%s}",
+			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskState.String())
 
 		// 2、fill task by events AND push task to datacenter
 		finalTask := m.fillTaskEventAndFinishedState(localTask, eventList, taskState)
@@ -761,7 +792,8 @@ func (m *Manager) sendTaskResultMsgToTaskSender(task *types.NeedExecuteTask, loc
 
 	// 1、settle metadata or power usage.
 	if err := m.EndConsumeMetadataOrPower(task, localTask); nil != err {
-		log.WithError(err).Errorf("Failed to settle consume metadata or power on sendTaskResultMsgToTaskSender, taskId: {%s}", task.GetTaskId())
+		log.WithError(err).Errorf("Failed to settle consume metadata or power on sendTaskResultMsgToTaskSender, taskId: {%s},  partyId: {%s}",
+			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
 	}
 
 	// 2、push all events of task to task sender.
@@ -1201,7 +1233,6 @@ func (m *Manager) metadataInputCSV(task *types.NeedExecuteTask, localTask *types
 
 func (m *Manager) metadataInputDIR(task *types.NeedExecuteTask, localTask *types.Task, dataPolicy *types.TaskMetadataPolicyDIR) (*types.InputDataDIR, error) {
 
-
 	metadataId := dataPolicy.GetMetadataId()
 	internalMetadataFlag, err := m.resourceMng.GetDB().IsInternalMetadataById(metadataId)
 	if nil != err {
@@ -1240,14 +1271,13 @@ func (m *Manager) metadataInputDIR(task *types.NeedExecuteTask, localTask *types
 	}
 
 	return &types.InputDataDIR{
-		InputType:       dataPolicy.QueryInputType(),
-		DataType:        uint32(metadata.GetData().GetDataType()),
-		DataPath:        dirPath,
+		InputType: dataPolicy.QueryInputType(),
+		DataType:  uint32(metadata.GetData().GetDataType()),
+		DataPath:  dirPath,
 	}, nil
 }
 
 func (m *Manager) metadataInputBINARY(task *types.NeedExecuteTask, localTask *types.Task, dataPolicy *types.TaskMetadataPolicyBINARY) (*types.InputDataBINARY, error) {
-
 
 	metadataId := dataPolicy.GetMetadataId()
 	internalMetadataFlag, err := m.resourceMng.GetDB().IsInternalMetadataById(metadataId)
@@ -1287,12 +1317,11 @@ func (m *Manager) metadataInputBINARY(task *types.NeedExecuteTask, localTask *ty
 	}
 
 	return &types.InputDataBINARY{
-		InputType:       dataPolicy.QueryInputType(),
-		DataType:        uint32(metadata.GetData().GetDataType()),
-		DataPath:        dataPath,
+		InputType: dataPolicy.QueryInputType(),
+		DataType:  uint32(metadata.GetData().GetDataType()),
+		DataPath:  dataPath,
 	}, nil
 }
-
 
 // make terminate rpc req
 func (m *Manager) makeTerminateTaskReq(task *types.NeedExecuteTask) (*fightercommon.TaskCancelReq, error) {
@@ -1315,6 +1344,12 @@ func (m *Manager) initConsumeSpecByConsumeOption(task *types.NeedExecuteTask) {
 		}
 		// store consumeSpec into needExecuteTask
 		consumeSpec := &types.DatatokenPaySpec{
+			// task state in contract
+			// constant int8 private NOTEXIST = -1;
+			// constant int8 private BEGIN = 0;
+			// constant int8 private PREPAY = 1;
+			// constant int8 private SETTLE = 2;
+			// constant int8 private END = 3;
 			Consumed:     int32(-1),
 			GasEstimated: 0,
 			GasUsed:      0,
@@ -1322,34 +1357,24 @@ func (m *Manager) initConsumeSpecByConsumeOption(task *types.NeedExecuteTask) {
 
 		b, err := json.Marshal(consumeSpec)
 		if nil != err {
-			log.WithError(err).Errorf("json marshal task consumeSpec failed on initConsumeSpecByConsumeOption()")
+			log.WithError(err).Errorf("cannot json marshal task consumeSpec on initConsumeSpecByConsumeOption(), consumeSpec: %v, %s", consumeSpec, err)
+			return
 		}
 		task.SetConsumeQueryId(taskId.String())
 		task.SetConsumeSpec(string(b))
+
 	default: // use nothing
 		// pass
 	}
 }
 
-func (m *Manager) addNeedExecuteTaskCache(task *types.NeedExecuteTask, when int64) {
-	m.runningTaskCacheLock.Lock()
+func (m *Manager) addNeedExecuteTaskCacheAndminotor(task *types.NeedExecuteTask, when int64) {
 
-	taskId, partyId := task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId()
+	m.addNeedExecuteTaskCache(task)
 
-	cache, ok := m.runningTaskCache[taskId]
-	if !ok {
-		cache = make(map[string]*types.NeedExecuteTask, 0)
-	}
-	cache[partyId] = task
-	m.runningTaskCache[taskId] = cache
-	if err := m.resourceMng.GetDB().StoreNeedExecuteTask(task); nil != err {
-		log.WithError(err).Errorf("store needExecuteTask failed, taskId: {%s}, partyId: {%s}", taskId, partyId)
-	}
 	// v0.3.0 add NeedExecuteTask Expire Monitor
 	m.addmonitor(task, when)
 
-	log.Debugf("Succeed call addNeedExecuteTaskCache, taskId: {%s}, partyId: {%s}", taskId, partyId)
-	m.runningTaskCacheLock.Unlock()
 }
 
 func (m *Manager) addmonitor(task *types.NeedExecuteTask, when int64) {
@@ -1385,8 +1410,9 @@ func (m *Manager) addmonitor(task *types.NeedExecuteTask, when int64) {
 			return
 		}
 
-		// 2、 check partyId from cache
-		if _, ok := cache[partyId]; !ok {
+		// 2、 check partyId from cache and query needExecuteTask
+		nt, ok := cache[partyId]
+		if !ok {
 			return
 		}
 
@@ -1401,16 +1427,16 @@ func (m *Manager) addmonitor(task *types.NeedExecuteTask, when int64) {
 
 			// 1、 store task expired (failed) event with current party
 			m.resourceMng.GetDB().StoreTaskEvent(m.eventEngine.GenerateEvent(ev.TaskFailed.GetType(), taskId,
-				task.GetLocalTaskOrganization().GetIdentityId(), partyId,
+				nt.GetLocalTaskOrganization().GetIdentityId(), partyId,
 				fmt.Sprintf("task running expire")))
 
-			switch task.GetLocalTaskRole() {
+			switch nt.GetLocalTaskRole() {
 			case libtypes.TaskRole_TaskRole_Sender:
-				m.publishFinishedTaskToDataCenter(task, localTask, true)
+				m.publishFinishedTaskToDataCenter(nt, localTask, true)
 			default:
 				// 2、terminate fighter processor for this task with current party
-				m.driveTaskForTerminate(task)
-				m.sendTaskResultMsgToTaskSender(task, localTask)
+				m.driveTaskForTerminate(nt)
+				m.sendTaskResultMsgToTaskSender(nt, localTask)
 			}
 
 			// clean current party task cache
@@ -1424,6 +1450,50 @@ func (m *Manager) addmonitor(task *types.NeedExecuteTask, when int64) {
 			log.Debugf("Call expireTaskMonitor remove NeedExecuteTask when task was expired, taskId: {%s}, partyId: {%s}", taskId, partyId)
 		}
 	}))
+}
+
+func (m *Manager) addNeedExecuteTaskCache(task *types.NeedExecuteTask) {
+	m.runningTaskCacheLock.Lock()
+
+	taskId, partyId := task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId()
+
+	cache, ok := m.runningTaskCache[taskId]
+	if !ok {
+		cache = make(map[string]*types.NeedExecuteTask, 0)
+	}
+	cache[partyId] = task
+	m.runningTaskCache[taskId] = cache
+	if err := m.resourceMng.GetDB().StoreNeedExecuteTask(task); nil != err {
+		log.WithError(err).Errorf("cannot store needExecuteTask on addNeedExecuteTaskCache(), taskId: {%s}, partyId: {%s}", taskId, partyId)
+	}
+
+	log.Debugf("Succeed call addNeedExecuteTaskCache, taskId: {%s}, partyId: {%s}", taskId, partyId)
+	m.runningTaskCacheLock.Unlock()
+}
+
+func (m *Manager) updateNeedExecuteTaskCache(task *types.NeedExecuteTask) {
+	m.runningTaskCacheLock.Lock()
+
+	taskId, partyId := task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId()
+
+	cache, ok := m.runningTaskCache[taskId]
+	if !ok {
+		return
+	}
+
+	_, ok = cache[partyId]
+	if !ok {
+		return
+	}
+
+	cache[partyId] = task
+	m.runningTaskCache[taskId] = cache
+	if err := m.resourceMng.GetDB().StoreNeedExecuteTask(task); nil != err {
+		log.WithError(err).Errorf("cannot store needExecuteTask on updateNeedExecuteTaskCache(), taskId: {%s}, partyId: {%s}", taskId, partyId)
+	}
+
+	log.Debugf("Succeed call updateNeedExecuteTaskCache, taskId: {%s}, partyId: {%s}", taskId, partyId)
+	m.runningTaskCacheLock.Unlock()
 }
 
 func (m *Manager) removeNeedExecuteTaskCache(taskId, partyId string) {
@@ -1595,7 +1665,7 @@ func (m *Manager) handleNeedExecuteTask(task *types.NeedExecuteTask, localTask *
 	// init consumeSpec of NeedExecuteTask first
 	m.initConsumeSpecByConsumeOption(task)
 	// store local cache
-	m.addNeedExecuteTaskCache(task, int64(localTask.GetTaskData().GetStartAt()+localTask.GetTaskData().GetOperationCost().GetDuration()))
+	m.addNeedExecuteTaskCacheAndminotor(task, int64(localTask.GetTaskData().GetStartAt()+localTask.GetTaskData().GetOperationCost().GetDuration()))
 
 	// The task sender will not execute the task
 	// driving task to executing
