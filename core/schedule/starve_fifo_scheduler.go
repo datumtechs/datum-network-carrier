@@ -738,17 +738,27 @@ func (sche *SchedulerStarveFIFO) reScheduleDataNodeProvidePower(taskId string, d
 
 	for _, provide := range provides {
 		// check from dataSuppliers
-		if _, ok := dataSupplierCache[provide.GetProviderPartyId()]; !ok {
+		dataSupplier, ok := dataSupplierCache[provide.GetProviderPartyId()]
+		if !ok {
 			log.Errorf("not found oranization of dataSupplier with partyId on reScheduleDataNodeProvidePower(), taskId: {%s}, provide partyId: {%s},  power partyId: {%s}",
 				taskId, provide.GetProviderPartyId(), provide.GetPowerPartyId())
 			return fmt.Errorf("not found oranization of dataSupplier with partyId, %s to %s", provide.GetProviderPartyId(), provide.GetPowerPartyId())
 		}
 		// check from powerSuppliers
-		if _, ok := powerSupplierCache[provide.GetPowerPartyId()]; !ok {
+		powerSupplier, ok := powerSupplierCache[provide.GetPowerPartyId()]
+		if !ok {
 			log.Errorf("not found oranization of powerSupplier with partyId on reScheduleDataNodeProvidePower(), taskId: {%s}, provide partyId: {%s},  power partyId: {%s}",
 				taskId, provide.GetProviderPartyId(), provide.GetPowerPartyId())
 			return fmt.Errorf("not found oranization of dataSupplier with partyId, %s to %s", provide.GetProviderPartyId(), provide.GetPowerPartyId())
 		}
+		// dataSupplier must equal powerSupplier
+		if dataSupplier.GetIdentityId() != powerSupplier.GetIdentityId() {
+			log.Errorf("the corresponding power provider of dataSupplier organization is inconsistent with the selected powerSupplier organization on reScheduleDataNodeProvidePower(), taskId: {%s}, provide partyId: {%s},  power partyId: {%s}",
+				taskId, provide.GetProviderPartyId(), provide.GetPowerPartyId())
+			return fmt.Errorf("the corresponding power provider of dataSupplier organization is inconsistent with the selected powerSupplier organization, dataSupplier: [partyId: %s, identityId: %s], powerSupplier:[partyId: %s, identityId: %s]",
+				dataSupplier.GetPartyId(), dataSupplier.GetIdentityId(), powerSupplier.GetPartyId(), powerSupplier.GetIdentityId())
+		}
 	}
+	
 	return nil
 }
