@@ -275,9 +275,12 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 			return fmt.Errorf("task state is not existing in MetisPay contract on beginConsumeByDataToken()")
 		}
 		// update consumeSpec into needExecuteTask
+		if "" == strings.Trim(task.GetConsumeSpec(), "") {
+			return fmt.Errorf("consumeSpec about task is empty on beginConsumeByDataToken(), consumeSpec: %s", task.GetConsumeSpec())
+		}
 		var consumeSpec *types.DatatokenPaySpec
 		if err := json.Unmarshal([]byte(task.GetConsumeSpec()), &consumeSpec); nil != err {
-			return fmt.Errorf("json unmarshal consumeSpec failed on endConsumeByDataToken()")
+			return fmt.Errorf("cannot json unmarshal consumeSpec on beginConsumeByDataToken(), consumeSpec: %s, %s", task.GetConsumeSpec(), err)
 		}
 		consumeSpec.Consumed = int32(state)
 		consumeSpec.GasEstimated = gasLimit
