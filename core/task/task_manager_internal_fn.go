@@ -291,6 +291,8 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 			return fmt.Errorf("connot json marshal task consumeSpec on beginConsumeByDataToken(), consumeSpec: %v, %s", consumeSpec, err)
 		}
 		task.SetConsumeSpec(string(b))
+		// update needExecuteTask into cache
+		m.updateNeedExecuteTaskCache(task)
 
 		return nil
 	case libtypes.TaskRole_TaskRole_DataSupplier:
@@ -1336,30 +1338,19 @@ func (m *Manager) initConsumeSpecByConsumeOption(task *types.NeedExecuteTask) {
 		}
 		task.SetConsumeQueryId(taskId.String())
 		task.SetConsumeSpec(string(b))
+
 	default: // use nothing
 		// pass
 	}
 }
 
-func (m *Manager) addNeedExecuteTaskCache(task *types.NeedExecuteTask, when int64) {
-	m.runningTaskCacheLock.Lock()
+func (m *Manager) addNeedExecuteTaskCacheAndminotor(task *types.NeedExecuteTask, when int64) {
 
-	taskId, partyId := task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId()
+	m.addNeedExecuteTaskCache(task)
 
-	cache, ok := m.runningTaskCache[taskId]
-	if !ok {
-		cache = make(map[string]*types.NeedExecuteTask, 0)
-	}
-	cache[partyId] = task
-	m.runningTaskCache[taskId] = cache
-	if err := m.resourceMng.GetDB().StoreNeedExecuteTask(task); nil != err {
-		log.WithError(err).Errorf("store needExecuteTask failed, taskId: {%s}, partyId: {%s}", taskId, partyId)
-	}
 	// v0.3.0 add NeedExecuteTask Expire Monitor
 	m.addmonitor(task, when)
 
-	log.Debugf("Succeed call addNeedExecuteTaskCache, taskId: {%s}, partyId: {%s}", taskId, partyId)
-	m.runningTaskCacheLock.Unlock()
 }
 
 func (m *Manager) addmonitor(task *types.NeedExecuteTask, when int64) {
@@ -1434,6 +1425,50 @@ func (m *Manager) addmonitor(task *types.NeedExecuteTask, when int64) {
 			log.Debugf("Call expireTaskMonitor remove NeedExecuteTask when task was expired, taskId: {%s}, partyId: {%s}", taskId, partyId)
 		}
 	}))
+}
+
+func (m *Manager) addNeedExecuteTaskCache(task *types.NeedExecuteTask) {
+	m.runningTaskCacheLock.Lock()
+
+	taskId, partyId := task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId()
+
+	cache, ok := m.runningTaskCache[taskId]
+	if !ok {
+		cache = make(map[string]*types.NeedExecuteTask, 0)
+	}
+	cache[partyId] = task
+	m.runningTaskCache[taskId] = cache
+	if err := m.resourceMng.GetDB().StoreNeedExecuteTask(task); nil != err {
+		log.WithError(err).Errorf("cannot store needExecuteTask on addNeedExecuteTaskCache(), taskId: {%s}, partyId: {%s}", taskId, partyId)
+	}
+
+	log.Debugf("Succeed call addNeedExecuteTaskCache, taskId: {%s}, partyId: {%s}", taskId, partyId)
+	m.runningTaskCacheLock.Unlock()
+}
+
+func (m *Manager) updateNeedExecuteTaskCache(task *types.NeedExecuteTask) {
+	m.runningTaskCacheLock.Lock()
+
+	taskId, partyId := task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId()
+
+	cache, ok := m.runningTaskCache[taskId]
+	if !ok {
+		return
+	}
+
+	_, ok = cache[partyId]
+	if !ok {
+		return
+	}
+
+	cache[partyId] = task
+	m.runningTaskCache[taskId] = cache
+	if err := m.resourceMng.GetDB().StoreNeedExecuteTask(task); nil != err {
+		log.WithError(err).Errorf("cannot store needExecuteTask on updateNeedExecuteTaskCache(), taskId: {%s}, partyId: {%s}", taskId, partyId)
+	}
+
+	log.Debugf("Succeed call updateNeedExecuteTaskCache, taskId: {%s}, partyId: {%s}", taskId, partyId)
+	m.runningTaskCacheLock.Unlock()
 }
 
 func (m *Manager) removeNeedExecuteTaskCache(taskId, partyId string) {
@@ -1605,7 +1640,7 @@ func (m *Manager) handleNeedExecuteTask(task *types.NeedExecuteTask, localTask *
 	// init consumeSpec of NeedExecuteTask first
 	m.initConsumeSpecByConsumeOption(task)
 	// store local cache
-	m.addNeedExecuteTaskCache(task, int64(localTask.GetTaskData().GetStartAt()+localTask.GetTaskData().GetOperationCost().GetDuration()))
+	m.addNeedExecuteTaskCacheAndminotor(task, int64(localTask.GetTaskData().GetStartAt()+localTask.GetTaskData().GetOperationCost().GetDuration()))
 
 	// The task sender will not execute the task
 	// driving task to executing
