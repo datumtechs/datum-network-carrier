@@ -275,16 +275,17 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 			return fmt.Errorf("task state is not existing in MetisPay contract on beginConsumeByDataToken()")
 		}
 		// update consumeSpec into needExecuteTask
-		var consumeSpec types.DatatokenPaySpec
+		var consumeSpec *types.DatatokenPaySpec
 		if err := json.Unmarshal([]byte(task.GetConsumeSpec()), &consumeSpec); nil != err {
 			return fmt.Errorf("json unmarshal consumeSpec failed on endConsumeByDataToken()")
 		}
 		consumeSpec.Consumed = int32(state)
 		consumeSpec.GasEstimated = gasLimit
 		consumeSpec.GasUsed = receipt.GasUsed
+
 		b, err := json.Marshal(consumeSpec)
 		if nil != err {
-			return fmt.Errorf("json marshal task consumeSpec failed on beginConsumeByDataToken(), %s", err)
+			return fmt.Errorf("connot json marshal task consumeSpec on beginConsumeByDataToken(), consumeSpec: %v, %s", consumeSpec, err)
 		}
 		task.SetConsumeSpec(string(b))
 
@@ -367,6 +368,11 @@ func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *
 
 		// query consumeSpec of task
 		var consumeSpec *types.DatatokenPaySpec
+
+		if "" == strings.Trim(task.GetConsumeSpec(), "") {
+			return fmt.Errorf("consumeSpec about task is empty on endConsumeByDataToken(), consumeSpec: %s", task.GetConsumeSpec())
+		}
+
 		if err := json.Unmarshal([]byte(task.GetConsumeSpec()), &consumeSpec); nil != err {
 			return fmt.Errorf("cannot json unmarshal consumeSpec on endConsumeByDataToken(), consumeSpec: %s, %s", task.GetConsumeSpec(), err)
 		}
