@@ -1100,7 +1100,7 @@ func (m *Manager) makeTaskReadyGoReq(task *types.NeedExecuteTask, localTask *typ
 
 func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types.Task) (string, error) {
 
-	var (
+
 		/**
 		# FOR DATANODE:
 
@@ -1124,10 +1124,6 @@ func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types
 		}
 
 		*/
-		params string
-		err    error
-
-	)
 
 	partyId := task.GetLocalTaskOrganization().GetPartyId()
 	inputDataArr := make([]interface{}, 0)
@@ -1143,7 +1139,7 @@ func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types
 
 				var dataPolicy *types.TaskMetadataPolicyCSV
 				if err := json.Unmarshal([]byte(localTask.GetTaskData().GetDataPolicyOptions()[i]), &dataPolicy); nil != err {
-					return "", fmt.Errorf("can not unmarshal dataPolicyOption, %s, taskId: {%s}", err, localTask.GetTaskId())
+					return "", fmt.Errorf("can not unmarshal dataPolicyOption, %s, taskId: {%s}, partyId: {%s}", err, localTask.GetTaskId(), partyId)
 				}
 
 				if dataPolicy.GetPartyId() == partyId {
@@ -1156,7 +1152,7 @@ func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types
 			case uint32(libtypes.OrigindataType_OrigindataType_DIR):
 				var dataPolicy *types.TaskMetadataPolicyDIR
 				if err := json.Unmarshal([]byte(localTask.GetTaskData().GetDataPolicyOptions()[i]), &dataPolicy); nil != err {
-					return "", fmt.Errorf("can not unmarshal dataPolicyOption, %s, taskId: {%s}", err, localTask.GetTaskId())
+					return "", fmt.Errorf("can not unmarshal dataPolicyOption, %s, taskId: {%s}, partyId: {%s}", err, localTask.GetTaskId(), partyId)
 				}
 
 				if dataPolicy.GetPartyId() == partyId {
@@ -1170,7 +1166,7 @@ func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types
 			case uint32(libtypes.OrigindataType_OrigindataType_BINARY):
 				var dataPolicy *types.TaskMetadataPolicyBINARY
 				if err := json.Unmarshal([]byte(localTask.GetTaskData().GetDataPolicyOptions()[i]), &dataPolicy); nil != err {
-					return "", fmt.Errorf("can not unmarshal dataPolicyOption, %s, taskId: {%s}", err, localTask.GetTaskId())
+					return "", fmt.Errorf("can not unmarshal dataPolicyOption, %s, taskId: {%s}, partyId: {%s}", err, localTask.GetTaskId(), partyId)
 				}
 
 				if dataPolicy.GetPartyId() == partyId {
@@ -1181,16 +1177,24 @@ func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types
 					inputDataArr = append(inputDataArr, inputData)
 				}
 			default:
-				return "", fmt.Errorf("unknown dataPolicy type, taskId: {%s}, dataPolicyType: {%d}", task.GetTaskId(), policyType)
+				return "", fmt.Errorf("unknown dataPolicy type, taskId: {%s}, partyId: {%s}, dataPolicyType: {%d}", task.GetTaskId(), partyId, policyType)
 			}
 		}
 	case libtypes.TaskRole_TaskRole_PowerSupplier:
 		// do nothing...
 	}
-	return
 
+	scps := &types.SelfCfgParams{
+		PartyId: partyId,
+		InputData: inputDataArr,
+	}
 
-	return params, err
+	b, err := json.Marshal(scps)
+	if nil != err {
+		return "", fmt.Errorf("cannot json marshal selfCfgParams, %s, taskId: {%s}, partyId: {%s}", err, task.GetTaskId(), partyId)
+	}
+
+	return string(b), err
 }
 
 func (m *Manager) metadataInputCSV(task *types.NeedExecuteTask, localTask *types.Task, dataPolicy *types.TaskMetadataPolicyCSV) (*types.InputDataCSV, error) {
