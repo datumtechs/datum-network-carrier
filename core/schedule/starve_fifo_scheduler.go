@@ -186,7 +186,7 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (resTask *types.NeedConsensusTask
 			}
 			taskPowerPolicyDataNodeProvides = append(taskPowerPolicyDataNodeProvides, policy)
 			// collection partyId index into cache.
-			partyIdAndIndexCache[policy.PowerPartyId] = i
+			partyIdAndIndexCache[policy.GetPowerPartyId()] = i
 		// NOTE: unknown powerPolicyType
 		default:
 			log.WithError(err).Errorf("unknown powerPolicyType of task on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
@@ -195,11 +195,11 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (resTask *types.NeedConsensusTask
 
 	}
 
-	powerOrgs      := make([]*libtypes.TaskOrganization, len(task.GetTaskData().GetPowerPolicyTypes()))
+	powerOrgs := make([]*libtypes.TaskOrganization, len(task.GetTaskData().GetPowerPolicyTypes()))
 	powerResources := make([]*libtypes.TaskPowerResourceOption, len(task.GetTaskData().GetPowerPolicyTypes()))
 
 	var (
-		evidence  string
+		evidence string
 	)
 
 	// NOTE: many election policys
@@ -231,19 +231,19 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (resTask *types.NeedConsensusTask
 
 	// 2、for dataProvider election power policy
 	if len(taskPowerPolicyDataNodeProvides) != 0 {
-		orgs, _, err := sche.scheduleDataNodeProvidePower(task, taskPowerPolicyDataNodeProvides)
+		orgs, resources, err := sche.scheduleDataNodeProvidePower(task, taskPowerPolicyDataNodeProvides)
 		if nil != err {
 			log.WithError(err).Errorf("dataNodeProvider election powerSupplier failed on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
 			return types.NewNeedConsensusTask(task, ""), bullet.GetTaskId(), err
 		}
 
-		for _, org := range orgs {
+		for i, org := range orgs {
 			if index, ok := partyIdAndIndexCache[org.GetPartyId()]; !ok {
 				log.Errorf("not found partyId of powerSupplier in partyIdAndIndexCache with dataNodeProvider election powerSupplier on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}, partyId: {%s}", task.GetTaskId(), org.GetPartyId())
 				return types.NewNeedConsensusTask(task, ""), bullet.GetTaskId(), fmt.Errorf("invalid partyId")
 			} else {
 				powerOrgs[index] = org
-				//powerResources[index] = resources[i]
+				powerResources[index] = resources[i]
 			}
 		}
 	}
@@ -277,7 +277,6 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 			task.GetTaskId(), taskRole.String(), partyId)
 		return types.NewReplayScheduleResult(task.GetTaskId(), fmt.Errorf("query local identity failed, %s", err), nil)
 	}
-
 
 	findDataNodeByMetadataIdFn := func(metadataId string) (*libapipb.YarnRegisteredPeerDetail, error) {
 		// Select the datanode where your metadata ID is located.
@@ -376,7 +375,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 				return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)
 			}
 			if err := sche.reScheduleVrfElectionPower(task.GetTaskId(), task.GetTaskSender().GetNodeId(),
-				assignmentSymbolRandomElectionPowerSuppliers, assignmentSymbolRandomElectionPowerResources,replayTask.GetEvidence()); nil != err {
+				assignmentSymbolRandomElectionPowerSuppliers, assignmentSymbolRandomElectionPowerResources, replayTask.GetEvidence()); nil != err {
 				return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)
 			}
 		}
@@ -443,7 +442,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 
 		var (
 			node *libapipb.YarnRegisteredPeerDetail
-			err error
+			err  error
 		)
 
 		for i, policyType := range task.GetTaskData().GetPowerPolicyTypes() {
@@ -495,14 +494,14 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 					return types.NewReplayScheduleResult(task.GetTaskId(), fmt.Errorf("can not unmarshal powerPolicyType of task, %d", policyType), nil)
 				}
 
-				if powerPolicy.PowerPartyId == partyId && task.GetTaskData().GetPowerSuppliers()[i].GetPartyId() == partyId {
+				if powerPolicy.GetPowerPartyId() == partyId && task.GetTaskData().GetPowerSuppliers()[i].GetPartyId() == partyId {
 
 					for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
 
 						// ### NOTE:
 						//		Only when the receiver and the dataSupplier belong to the same organization
 						//		that can the datasupplier's datanode be specified as the receiver's datanode
-						if powerPolicy.ProviderPartyId  == dataSupplier.GetPartyId() && identityId == dataSupplier.GetIdentityId() {
+						if powerPolicy.GetProviderPartyId() == dataSupplier.GetPartyId() && identityId == dataSupplier.GetIdentityId() {
 
 							metadataId, err := policy.FetchMetedataIdByPartyIdFromDataPolicy(partyId, task.GetTaskData().GetDataPolicyTypes(), task.GetTaskData().GetDataPolicyOptions())
 							if nil != err {
@@ -547,7 +546,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 
 		var (
 			dataNode *libapipb.YarnRegisteredPeerDetail
-			err error
+			err      error
 		)
 
 		for i, policyType := range task.GetTaskData().GetReceiverPolicyTypes() {
@@ -586,14 +585,14 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 					return types.NewReplayScheduleResult(task.GetTaskId(), fmt.Errorf("can not unmarshal receiverPolicyType of task, %d", policyType), nil)
 				}
 
-				if receiverPolicy.ReceiverPartyId == partyId && task.GetTaskData().GetReceivers()[i].GetPartyId() == partyId {
+				if receiverPolicy.GetReceiverPartyId() == partyId && task.GetTaskData().GetReceivers()[i].GetPartyId() == partyId {
 
 					for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
 
 						// ### NOTE:
 						//		Only when the receiver and the dataSupplier belong to the same organization
 						//		that can the datasupplier's datanode be specified as the receiver's datanode
-						if receiverPolicy.ProviderPartyId  == dataSupplier.GetPartyId() && identityId == dataSupplier.GetIdentityId() {
+						if receiverPolicy.GetProviderPartyId() == dataSupplier.GetPartyId() && identityId == dataSupplier.GetIdentityId() {
 
 							metadataId, err := policy.FetchMetedataIdByPartyIdFromDataPolicy(partyId, task.GetTaskData().GetDataPolicyTypes(), task.GetTaskData().GetDataPolicyOptions())
 							if nil != err {
@@ -666,27 +665,41 @@ func (sche *SchedulerStarveFIFO) scheduleDataNodeProvidePower(task *types.Task, 
 	for _, supplier := range task.GetTaskData().GetDataSuppliers() {
 		newPowerSupplier := &libtypes.TaskOrganization{
 			IdentityId: supplier.GetIdentityId(),
-			NodeId: supplier.GetNodeId(),
-			NodeName: supplier.GetNodeName(),
-			PartyId: "",
+			NodeId:     supplier.GetNodeId(),
+			NodeName:   supplier.GetNodeName(),
+			PartyId:    "",
 		}
 		dataSupplierCache[supplier.GetPartyId()] = newPowerSupplier
 	}
 
 	powers := make([]*libtypes.TaskOrganization, len(provides))
+	resources := make([]*libtypes.TaskPowerResourceOption, len(provides))
 	//
 	for i, provide := range provides {
-		supplier, ok := dataSupplierCache[provide.ProviderPartyId]
+		supplier, ok := dataSupplierCache[provide.GetProviderPartyId()]
 		if !ok {
 			log.Errorf("not found oranization of dataSupplier with partyId on scheduleDataNodeProvidePower(), taskId: {%s}, provide partyId: {%s},  power partyId: {%s}",
-				task.GetTaskId(), provide.ProviderPartyId, provide.PowerPartyId)
-			return nil, nil, fmt.Errorf("not found oranization of dataSupplier with partyId, %s to %s", provide.ProviderPartyId, provide.PowerPartyId)
+				task.GetTaskId(), provide.GetProviderPartyId(), provide.GetPowerPartyId())
+			return nil, nil, fmt.Errorf("not found oranization of dataSupplier with partyId, %s to %s", provide.GetProviderPartyId(), provide.GetPowerPartyId())
 		}
-		supplier.PartyId = provide.PowerPartyId
+		supplier.PartyId = provide.GetPowerPartyId()
 		powers[i] = supplier
+		resources[i] = &libtypes.TaskPowerResourceOption{
+			PartyId: provide.GetPowerPartyId(),
+			ResourceUsedOverview: &libtypes.ResourceUsageOverview{
+				TotalMem:       0, // total resource value of org.
+				UsedMem:        0, // used resource of this task (real time max used)
+				TotalBandwidth: 0,
+				UsedBandwidth:  0, // used resource of this task (real time max used)
+				TotalDisk:      0,
+				UsedDisk:       0,
+				TotalProcessor: 0,
+				UsedProcessor:  0, // used resource of this task (real time max used)
+			},
+		}
 	}
 
-	return powers, nil, nil
+	return powers, resources, nil
 }
 
 // NOTE: reSchedule powerSuppliers by powerPolicy of task
@@ -725,16 +738,16 @@ func (sche *SchedulerStarveFIFO) reScheduleDataNodeProvidePower(taskId string, d
 
 	for _, provide := range provides {
 		// check from dataSuppliers
-		if _, ok := dataSupplierCache[provide.ProviderPartyId]; !ok {
+		if _, ok := dataSupplierCache[provide.GetProviderPartyId()]; !ok {
 			log.Errorf("not found oranization of dataSupplier with partyId on reScheduleDataNodeProvidePower(), taskId: {%s}, provide partyId: {%s},  power partyId: {%s}",
-				taskId, provide.ProviderPartyId, provide.PowerPartyId)
-			return fmt.Errorf("not found oranization of dataSupplier with partyId, %s to %s", provide.ProviderPartyId, provide.PowerPartyId)
+				taskId, provide.GetProviderPartyId(), provide.GetPowerPartyId())
+			return fmt.Errorf("not found oranization of dataSupplier with partyId, %s to %s", provide.GetProviderPartyId(), provide.GetPowerPartyId())
 		}
 		// check from powerSuppliers
-		if _, ok := powerSupplierCache[provide.PowerPartyId]; !ok {
+		if _, ok := powerSupplierCache[provide.GetPowerPartyId()]; !ok {
 			log.Errorf("not found oranization of powerSupplier with partyId on reScheduleDataNodeProvidePower(), taskId: {%s}, provide partyId: {%s},  power partyId: {%s}",
-				taskId, provide.ProviderPartyId, provide.PowerPartyId)
-			return fmt.Errorf("not found oranization of dataSupplier with partyId, %s to %s", provide.ProviderPartyId, provide.PowerPartyId)
+				taskId, provide.GetProviderPartyId(), provide.GetPowerPartyId())
+			return fmt.Errorf("not found oranization of dataSupplier with partyId, %s to %s", provide.GetProviderPartyId(), provide.GetPowerPartyId())
 		}
 	}
 	return nil
