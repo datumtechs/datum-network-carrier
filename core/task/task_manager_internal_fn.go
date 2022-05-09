@@ -237,7 +237,7 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		// start prepay dataToken
 		txHash, gasLimit, err := m.metisPayMng.Prepay(taskId, ethereumcommon.HexToAddress(localTask.GetTaskData().GetUser()), dataTokenAaddresses)
 		if nil != err {
-			return fmt.Errorf("call metisPay to prepay datatoken failed on beginConsumeByDataToken(), %s", err)
+			return fmt.Errorf("cannot call metisPay to prepay datatoken on beginConsumeByDataToken(), %s", err)
 		}
 
 		// make sure the `prepay` tx into blockchain
@@ -976,7 +976,7 @@ func (m *Manager) sendTaskTerminateMsg(task *types.Task) error {
 func (m *Manager) sendTaskEvent(event *libtypes.TaskEvent) {
 	go func(event *libtypes.TaskEvent) {
 		m.eventCh <- event
-		log.Debugf("Succeed send to manager.loop() a task event on taskManager.sendTaskEvent(), event: %s", event.String())
+		log.Debugf("Succeed send a task event to manager.loop() on taskManager.sendTaskEvent(), event: %s", event.String())
 	}(event)
 }
 
@@ -1581,13 +1581,13 @@ func (m *Manager) queryNeedExecuteTaskCache(taskId, partyId string) (*types.Need
 	defer m.runningTaskCacheLock.RUnlock()
 	cache, ok := m.runningTaskCache[taskId]
 	if !ok {
-		log.Debugf("Call queryNeedExecuteTaskCache, taskId: {%s}, partyId: {%s}, has: {%v}",
-			taskId, partyId, ok)
+		//log.Debugf("Call queryNeedExecuteTaskCache, taskId: {%s}, partyId: {%s}, has: {%v}",
+		//	taskId, partyId, ok)
 		return nil, false
 	}
 	task, ok := cache[partyId]
-	log.Debugf("Call queryNeedExecuteTaskCache, taskId: {%s}, partyId: {%s}, has: {%v}",
-		taskId, partyId, ok)
+	//log.Debugf("Call queryNeedExecuteTaskCache, taskId: {%s}, partyId: {%s}, has: {%v}",
+	//	taskId, partyId, ok)
 	return task, ok
 }
 

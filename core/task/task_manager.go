@@ -201,7 +201,7 @@ func (m *Manager) loop() {
 
 			go func(result *types.TaskConsResult) {
 
-				log.Debugf("Received `NEED-CONSENSUS` task result from 2pc consensus engine when received `NEED-CONSENSUS` task result, taskId: {%s}, result: {%s}", result.GetTaskId(), result.String())
+				log.Debugf("Received `NEED-CONSENSUS` task result from 2pc consensus engine, taskId: {%s}, result: {%s}", result.GetTaskId(), result.String())
 
 				task, err := m.resourceMng.GetDB().QueryLocalTask(result.GetTaskId())
 				if nil != err {

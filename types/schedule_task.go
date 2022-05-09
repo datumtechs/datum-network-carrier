@@ -58,7 +58,7 @@ func (res *TaskConsResult) GetTaskId() string           { return res.TaskId }
 func (res *TaskConsResult) GetStatus() TaskActionStatus { return res.Status }
 func (res *TaskConsResult) GetErr() error               { return res.Err }
 func (res *TaskConsResult) String() string {
-	return fmt.Sprintf(`{"taskId": %s, "status": %s, "err": %s}`, res.TaskId, res.Status.String(), res.Err)
+	return fmt.Sprintf(`{"taskId": %s, "status": %s, "err": %v}`, res.TaskId, res.Status.String(), res.Err)
 }
 
 // ================================================= V2.0 =================================================
