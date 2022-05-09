@@ -318,7 +318,7 @@ func (metisPay *MetisPayManager) Prepay(taskID *big.Int, taskSponsorAccount comm
 	}
 	gasLimit, err := metisPay.estimateGas("prepay", taskID, taskSponsorAccount, new(big.Int).SetUint64(1), dataTokenAddressList, dataTokenAmountList)
 	if err != nil {
-		log.Errorf("failed to estimate gas for MetisPay.Prepay() error: %v", err)
+		log.Errorf("failed to estimate gas for MetisPay.Prepay(), taskID: %s, error: %v", hexutil.EncodeBig(taskID), err)
 		return common.Hash{}, 0, errors.New("failed to estimate gas for MetisPay.Prepay()")
 	}
 
@@ -332,7 +332,7 @@ func (metisPay *MetisPayManager) Prepay(taskID *big.Int, taskSponsorAccount comm
 	}
 	tx, err := metisPay.contractMetisPayInstance.Prepay(opts, taskID, taskSponsorAccount, new(big.Int).SetUint64(gasLimit), dataTokenAddressList, dataTokenAmountList)
 	if err != nil {
-		log.Errorf("failed to call MetisPay.Prepay(): %v", err)
+		log.Errorf("failed to call MetisPay.Prepay(), taskID: %s, error: %v", hexutil.EncodeBig(taskID), err)
 		return common.Hash{}, 0, errors.New("failed to call MetisPay.Prepay()")
 	}
 	log.Debugf("call MetisPay.Prepay() txHash:%v, taskID:%s ", tx.Hash().Hex(), hexutil.EncodeBig(taskID))
@@ -355,7 +355,7 @@ func (metisPay *MetisPayManager) Settle(taskID *big.Int, gasRefundPrepayment int
 
 	gasLimit, err := metisPay.estimateGas("settle", taskID, new(big.Int).SetUint64(1))
 	if err != nil {
-		log.Errorf("failed to estimate gas for MetisPay.Settle()r: %v", err)
+		log.Errorf("failed to estimate gas for MetisPay.Settle(), taskID: %s, error: %v", hexutil.EncodeBig(taskID), err)
 		return common.Hash{}, 0, errors.New("failed to estimate gas for MetisPay.Settle()")
 	}
 	//估算gas, +30%
@@ -372,7 +372,7 @@ func (metisPay *MetisPayManager) Settle(taskID *big.Int, gasRefundPrepayment int
 
 	tx, err := metisPay.contractMetisPayInstance.Settle(opts, taskID, new(big.Int).SetUint64(gasLimit))
 	if err != nil {
-		log.Errorf("failed to call MetisPay.Settle(): %v", err)
+		log.Errorf("failed to call MetisPay.Settle(), taskID: %s, error: %v", hexutil.EncodeBig(taskID), err)
 		return common.Hash{}, 0, errors.New("failed to call MetisPay.Settle()")
 	}
 	log.Debugf("call MetisPay.Settle() txHash:%v, taskID:%s ", tx.Hash().Hex(), hexutil.EncodeBig(taskID))
@@ -387,7 +387,7 @@ func (metisPay *MetisPayManager) GetReceipt(ctx context.Context, txHash common.H
 		receipt, err := metisPay.client.TransactionReceipt(context.Background(), txHash)
 		if nil != err {
 			//including NotFound
-			log.Errorf("query prepay transaction receipt failed, %s", err)
+			log.Errorf("query prepay transaction receipt failed, txHash: %s, error: %v", txHash.Hex(), err)
 			return nil
 		} else {
 			return receipt
@@ -404,7 +404,7 @@ func (metisPay *MetisPayManager) GetReceipt(ctx context.Context, txHash common.H
 				receipt, err := metisPay.client.TransactionReceipt(context.Background(), txHash)
 				if nil != err {
 					//including NotFound
-					log.Errorf("query prepay transaction receipt failed, %s", err)
+					log.Errorf("query prepay transaction receipt failed, txHash: %s, error: %v", txHash.Hex(), err)
 				} else {
 					return receipt
 				}
