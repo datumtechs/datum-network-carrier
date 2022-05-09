@@ -347,11 +347,12 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 					// constant int8 private SETTLE = 2;
 					// constant int8 private END = 3;
 					if state == -1 { //  We need to know if the task status value is 1.
-						log.Warnf("query task state value is %d, taskId: {%s}, partyId: {%s}, taskId.bigInt: {%d}",
-							state, task.GetTaskId(), partyId, taskId.Uint64())
+						//log.Warnf("query task state value is equal `NOTEXIST` on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskId.bigInt: {%d}, task.state: {%d}",
+						//	task.GetTaskId(), partyId, taskId.Uint64(), state)
 						continue
 					}
-
+					log.Debugf("Succeed query task.state value is not equal `NOTEXIST` on blockchain on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskId.bigInt: {%d}, task.state: {%d}",
+						task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskId.Uint64(), state)
 					return state, nil
 				}
 			}
