@@ -368,7 +368,7 @@ func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *
 		// query consumeSpec of task
 		var consumeSpec *types.DatatokenPaySpec
 		if err := json.Unmarshal([]byte(task.GetConsumeSpec()), &consumeSpec); nil != err {
-			return fmt.Errorf("cannot json unmarshal consumeSpec on endConsumeByDataToken(), %s", err)
+			return fmt.Errorf("cannot json unmarshal consumeSpec on endConsumeByDataToken(), consumeSpec: %s, %s", task.GetConsumeSpec(), err)
 		}
 
 		if partyId != localTask.GetTaskSender().GetPartyId() {
@@ -1323,6 +1323,7 @@ func (m *Manager) initConsumeSpecByConsumeOption(task *types.NeedExecuteTask) {
 		b, err := json.Marshal(consumeSpec)
 		if nil != err {
 			log.WithError(err).Errorf("json marshal task consumeSpec failed on initConsumeSpecByConsumeOption()")
+			return
 		}
 		task.SetConsumeQueryId(taskId.String())
 		task.SetConsumeSpec(string(b))
