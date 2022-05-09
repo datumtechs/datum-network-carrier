@@ -166,10 +166,20 @@ func (rsr *ReplayScheduleResult) String() string {
 
 // v 0.4.0
 type DatatokenPaySpec struct {
-	Consumed     int32  `json:"consumed"`     // -1:
+	// task state in contract
+	// constant int8 private NOTEXIST = -1;
+	// constant int8 private BEGIN = 0;
+	// constant int8 private PREPAY = 1;
+	// constant int8 private SETTLE = 2;
+	// constant int8 private END = 3;
+	Consumed     int32  `json:"consumed"`
 	GasEstimated uint64 `json:"gasEstimated"` // prepay estimate gas total about task
 	GasUsed      uint64 `json:"gasUsed"`      // prepay gas used about task
 }
+
+func (s *DatatokenPaySpec) GetConsumed() int32      { return s.Consumed }
+func (s *DatatokenPaySpec) GetGasEstimated() uint64 { return s.GasEstimated }
+func (s *DatatokenPaySpec) GetGasUsed() uint64      { return s.GasUsed }
 
 // Tasks to be executed (local and remote, which have been completed by consensus and can be executed by issuing fighter)
 type NeedExecuteTask struct {

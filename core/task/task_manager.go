@@ -351,6 +351,8 @@ func (m *Manager) loop() {
 
 				switch task.GetLocalTaskRole() {
 				case libtypes.TaskRole_TaskRole_Sender:
+					// init consumeSpec of NeedExecuteTask first (by v0.4.0)
+					m.initConsumeSpecByConsumeOption(task)
 					m.publishFinishedTaskToDataCenter(task, localTask, true)
 				default:
 					m.sendTaskResultMsgToTaskSender(task, localTask)

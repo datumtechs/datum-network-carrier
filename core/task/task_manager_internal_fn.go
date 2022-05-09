@@ -282,6 +282,13 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		if err := json.Unmarshal([]byte(task.GetConsumeSpec()), &consumeSpec); nil != err {
 			return fmt.Errorf("cannot json unmarshal consumeSpec on beginConsumeByDataToken(), consumeSpec: %s, %s", task.GetConsumeSpec(), err)
 		}
+
+		// task state in contract
+		// constant int8 private NOTEXIST = -1;
+		// constant int8 private BEGIN = 0;
+		// constant int8 private PREPAY = 1;
+		// constant int8 private SETTLE = 2;
+		// constant int8 private END = 3;
 		consumeSpec.Consumed = int32(state)
 		consumeSpec.GasEstimated = gasLimit
 		consumeSpec.GasUsed = receipt.GasUsed
@@ -385,6 +392,16 @@ func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *
 		if partyId != localTask.GetTaskSender().GetPartyId() {
 			return fmt.Errorf("this partyId is not task sender on endConsumeByDataToken(), partyId: %s, sender partyId: %s",
 				partyId, localTask.GetTaskSender().GetPartyId())
+		}
+
+		// check task state in contract
+		//
+		// If the state of the contract is not "prepay",
+		// the settlement action will not be performed
+		if consumeSpec.GetConsumed() != 1 {
+			log.Warnf("Warning the task state value of contract is not `prepay`, the settlement action will not be performed, taskId: {%s}, partyId: {%s}, state: {%d}",
+				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), consumeSpec.GetConsumed())
+			return nil
 		}
 
 		taskId, err := hexutil.DecodeBig(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID))
@@ -1327,6 +1344,12 @@ func (m *Manager) initConsumeSpecByConsumeOption(task *types.NeedExecuteTask) {
 		}
 		// store consumeSpec into needExecuteTask
 		consumeSpec := &types.DatatokenPaySpec{
+			// task state in contract
+			// constant int8 private NOTEXIST = -1;
+			// constant int8 private BEGIN = 0;
+			// constant int8 private PREPAY = 1;
+			// constant int8 private SETTLE = 2;
+			// constant int8 private END = 3;
 			Consumed:     int32(-1),
 			GasEstimated: 0,
 			GasUsed:      0,
@@ -1387,8 +1410,9 @@ func (m *Manager) addmonitor(task *types.NeedExecuteTask, when int64) {
 			return
 		}
 
-		// 2、 check partyId from cache
-		if _, ok := cache[partyId]; !ok {
+		// 2、 check partyId from cache and query needExecuteTask
+		nt, ok := cache[partyId]
+		if !ok {
 			return
 		}
 
@@ -1403,16 +1427,16 @@ func (m *Manager) addmonitor(task *types.NeedExecuteTask, when int64) {
 
 			// 1、 store task expired (failed) event with current party
 			m.resourceMng.GetDB().StoreTaskEvent(m.eventEngine.GenerateEvent(ev.TaskFailed.GetType(), taskId,
-				task.GetLocalTaskOrganization().GetIdentityId(), partyId,
+				nt.GetLocalTaskOrganization().GetIdentityId(), partyId,
 				fmt.Sprintf("task running expire")))
 
-			switch task.GetLocalTaskRole() {
+			switch nt.GetLocalTaskRole() {
 			case libtypes.TaskRole_TaskRole_Sender:
-				m.publishFinishedTaskToDataCenter(task, localTask, true)
+				m.publishFinishedTaskToDataCenter(nt, localTask, true)
 			default:
 				// 2、terminate fighter processor for this task with current party
-				m.driveTaskForTerminate(task)
-				m.sendTaskResultMsgToTaskSender(task, localTask)
+				m.driveTaskForTerminate(nt)
+				m.sendTaskResultMsgToTaskSender(nt, localTask)
 			}
 
 			// clean current party task cache
