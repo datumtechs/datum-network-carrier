@@ -103,3 +103,8 @@ func FetchTaskTerminateTaskMngMsg(msg *taskmngpb.TaskTerminateMsg) *TaskTerminat
 		Sign:      msg.GetSign(),
 	}
 }
+
+
+
+// # FOR FIGHTER RPC API
+type

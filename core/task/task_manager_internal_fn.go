@@ -1101,22 +1101,40 @@ func (m *Manager) makeTaskReadyGoReq(task *types.NeedExecuteTask, localTask *typ
 func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types.Task) (string, error) {
 
 	var (
+		/**
+		# FOR DATANODE:
+
+		{
+			"part_id": "p0",
+		    "input_data": [
+		          {
+		              "input_type": 3,  # 输入数据的类型，(算法用标识数据使用方式). 0:unknown, 1:origin_data, 2:psi_output, 3:model
+		              "access_type": 1, # 访问数据的方式，(fighter用决定是否预先加载数据). 0:unknown, 1:local, 2:url
+		              "data_type": 0,   # 数据的格式，(算法用标识数据格式). 0:unknown, 1:csv, 2:dir, 3:binary, 4:xls, 5:xlsx, 6:txt, 7:json
+		              "data_path": "/task_result/task:0xdeefff3434..556/"  # 数据所在的本地路径
+		          }
+		    ]
+		}
+
+		# FOR JOBNODE:
+
+		{
+			"part_id": "y0",
+		    "input_data": []
+		}
+
+		*/
 		params string
 		err    error
+
 	)
 
 	partyId := task.GetLocalTaskOrganization().GetPartyId()
+	inputDataArr := make([]interface{}, 0)
 
-	for _, dataSupplier := range localTask.GetTaskData().GetDataSuppliers() {
+	switch task.GetLocalTaskRole() {
+	case libtypes.TaskRole_TaskRole_DataSupplier:
 
-		if partyId == dataSupplier.GetPartyId() {
-
-		}
-	}
-
-	if task.GetLocalTaskRole() == libtypes.TaskRole_TaskRole_DataSupplier {
-
-		inputDataArr := make([]interface{}, 0)
 
 		for i, policyType := range localTask.GetTaskData().GetDataPolicyTypes() {
 
@@ -1166,7 +1184,11 @@ func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types
 				return "", fmt.Errorf("unknown dataPolicy type, taskId: {%s}, dataPolicyType: {%d}", task.GetTaskId(), policyType)
 			}
 		}
+	case libtypes.TaskRole_TaskRole_PowerSupplier:
+		// do nothing...
 	}
+	return
+
 
 	return params, err
 }
@@ -1680,8 +1702,6 @@ func (m *Manager) handleNeedExecuteTask(task *types.NeedExecuteTask, localTask *
 		}
 	}
 
-	// init consumeSpec of NeedExecuteTask first
-	m.initConsumeSpecByConsumeOption(task)
 	// store local cache
 	m.addNeedExecuteTaskCacheAndminotor(task, int64(localTask.GetTaskData().GetStartAt()+localTask.GetTaskData().GetOperationCost().GetDuration()))
 
