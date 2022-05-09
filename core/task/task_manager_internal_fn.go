@@ -383,7 +383,8 @@ func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *
 		}
 
 		if partyId != localTask.GetTaskSender().GetPartyId() {
-			return fmt.Errorf("this partyId is not task sender on endConsumeByDataToken()")
+			return fmt.Errorf("this partyId is not task sender on endConsumeByDataToken(), partyId: %s, sender partyId: %s",
+				partyId, localTask.GetTaskSender().GetPartyId())
 		}
 
 		taskId, err := hexutil.DecodeBig(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID))
@@ -715,8 +716,8 @@ func (m *Manager) publishFinishedTaskToDataCenter(task *types.NeedExecuteTask, l
 
 		eventList, err := m.resourceMng.GetDB().QueryTaskEventList(task.GetTaskId())
 		if nil != err {
-			log.WithError(err).Errorf("Failed to Query all task event list for sending datacenter on publishFinishedTaskToDataCenter, taskId: {%s}",
-				task.GetTaskId())
+			log.WithError(err).Errorf("Failed to Query all task event list for sending datacenter on publishFinishedTaskToDataCenter, taskId: {%s}, partyId: {%s}",
+				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
 			return
 		}
 
@@ -737,10 +738,12 @@ func (m *Manager) publishFinishedTaskToDataCenter(task *types.NeedExecuteTask, l
 
 		// 1、settle metadata or power usage.
 		if err := m.EndConsumeMetadataOrPower(task, localTask); nil != err {
-			log.WithError(err).Errorf("Failed to settle consume metadata or power on publishFinishedTaskToDataCenter, taskId: {%s}, taskState: {%s}", task.GetTaskId(), taskState.String())
+			log.WithError(err).Errorf("Failed to settle consume metadata or power on publishFinishedTaskToDataCenter, taskId: {%s}, partyId: {%s}, taskState: {%s}",
+				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskState.String())
 		}
 
-		log.Debugf("Start publishFinishedTaskToDataCenter, taskId: {%s}, taskState: {%s}", task.GetTaskId(), taskState.String())
+		log.Debugf("Start publishFinishedTaskToDataCenter, taskId: {%s}, partyId: {%s}, taskState: {%s}",
+			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskState.String())
 
 		// 2、fill task by events AND push task to datacenter
 		finalTask := m.fillTaskEventAndFinishedState(localTask, eventList, taskState)
@@ -772,7 +775,8 @@ func (m *Manager) sendTaskResultMsgToTaskSender(task *types.NeedExecuteTask, loc
 
 	// 1、settle metadata or power usage.
 	if err := m.EndConsumeMetadataOrPower(task, localTask); nil != err {
-		log.WithError(err).Errorf("Failed to settle consume metadata or power on sendTaskResultMsgToTaskSender, taskId: {%s}", task.GetTaskId())
+		log.WithError(err).Errorf("Failed to settle consume metadata or power on sendTaskResultMsgToTaskSender, taskId: {%s},  partyId: {%s}",
+			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
 	}
 
 	// 2、push all events of task to task sender.
@@ -1212,7 +1216,6 @@ func (m *Manager) metadataInputCSV(task *types.NeedExecuteTask, localTask *types
 
 func (m *Manager) metadataInputDIR(task *types.NeedExecuteTask, localTask *types.Task, dataPolicy *types.TaskMetadataPolicyDIR) (*types.InputDataDIR, error) {
 
-
 	metadataId := dataPolicy.GetMetadataId()
 	internalMetadataFlag, err := m.resourceMng.GetDB().IsInternalMetadataById(metadataId)
 	if nil != err {
@@ -1251,14 +1254,13 @@ func (m *Manager) metadataInputDIR(task *types.NeedExecuteTask, localTask *types
 	}
 
 	return &types.InputDataDIR{
-		InputType:       dataPolicy.QueryInputType(),
-		DataType:        uint32(metadata.GetData().GetDataType()),
-		DataPath:        dirPath,
+		InputType: dataPolicy.QueryInputType(),
+		DataType:  uint32(metadata.GetData().GetDataType()),
+		DataPath:  dirPath,
 	}, nil
 }
 
 func (m *Manager) metadataInputBINARY(task *types.NeedExecuteTask, localTask *types.Task, dataPolicy *types.TaskMetadataPolicyBINARY) (*types.InputDataBINARY, error) {
-
 
 	metadataId := dataPolicy.GetMetadataId()
 	internalMetadataFlag, err := m.resourceMng.GetDB().IsInternalMetadataById(metadataId)
@@ -1298,12 +1300,11 @@ func (m *Manager) metadataInputBINARY(task *types.NeedExecuteTask, localTask *ty
 	}
 
 	return &types.InputDataBINARY{
-		InputType:       dataPolicy.QueryInputType(),
-		DataType:        uint32(metadata.GetData().GetDataType()),
-		DataPath:        dataPath,
+		InputType: dataPolicy.QueryInputType(),
+		DataType:  uint32(metadata.GetData().GetDataType()),
+		DataPath:  dataPath,
 	}, nil
 }
-
 
 // make terminate rpc req
 func (m *Manager) makeTerminateTaskReq(task *types.NeedExecuteTask) (*fightercommon.TaskCancelReq, error) {
