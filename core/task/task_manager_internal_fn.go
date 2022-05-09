@@ -254,6 +254,10 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		//	}
 		//
 		//}(in.evm.Ctx)
+
+		log.Debugf("Succeed send tx to blockchain on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskId.bigInt: {%d}, txHash: {%s}",
+		task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskId.Uint64(), txHash.String())
+
 		receipt := m.metisPayMng.GetReceipt(ctx, txHash, time.Duration(500)*time.Millisecond) // period 500 ms
 		if nil == receipt {
 			return fmt.Errorf("prepay dataToken failed, the transaction had not receipt on beginConsumeByDataToken(), txHash: {%s}", txHash.String())
@@ -269,11 +273,19 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 			//including NotFound
 			return fmt.Errorf("query task state of metisPay failed, %s on beginConsumeByDataToken()", err)
 		}
-		// -1 : task is not existing in PayMetis.
-		// 1 : task has prepaid
+		// task state in contract
+		// constant int8 private NOTEXIST = -1;
+		// constant int8 private BEGIN = 0;
+		// constant int8 private PREPAY = 1;
+		// constant int8 private SETTLE = 2;
+		// constant int8 private END = 3;
 		if state == -1 { //  We need to know if the task status value is 1.
 			return fmt.Errorf("task state is not existing in MetisPay contract on beginConsumeByDataToken()")
 		}
+
+		log.Debugf("Succeed execute tx on blockchain on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskId.bigInt: {%d}, txHash: {%s}, task.state: {%d}",
+			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskId.Uint64(), txHash.String(), state)
+
 		// update consumeSpec into needExecuteTask
 		if "" == strings.Trim(task.GetConsumeSpec(), "") {
 			return fmt.Errorf("consumeSpec about task is empty on beginConsumeByDataToken(), consumeSpec: %s", task.GetConsumeSpec())
@@ -328,10 +340,15 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 						//including NotFound
 						return 0, fmt.Errorf("query task state of metisPay failed, %s", err)
 					}
-					// -1 : task is not existing in PayMetis.
-					// 1 : task has prepaid
+					// task state in contract
+					// constant int8 private NOTEXIST = -1;
+					// constant int8 private BEGIN = 0;
+					// constant int8 private PREPAY = 1;
+					// constant int8 private SETTLE = 2;
+					// constant int8 private END = 3;
 					if state == -1 { //  We need to know if the task status value is 1.
-						log.Warnf("query task state value is %d, taskId: {%s}, partyId: {%s}", state, task.GetTaskId(), partyId)
+						log.Warnf("query task state value is %d, taskId: {%s}, partyId: {%s}, taskId.bigInt: {%d}",
+							state, task.GetTaskId(), partyId, taskId.Uint64())
 						continue
 					}
 
