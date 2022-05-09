@@ -503,10 +503,10 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 						//		that can the datasupplier's datanode be specified as the receiver's datanode
 						if powerPolicy.GetProviderPartyId() == dataSupplier.GetPartyId() && identityId == dataSupplier.GetIdentityId() {
 
-							metadataId, err := policy.FetchMetedataIdByPartyIdFromDataPolicy(partyId, task.GetTaskData().GetDataPolicyTypes(), task.GetTaskData().GetDataPolicyOptions())
+							metadataId, err := policy.FetchMetedataIdByPartyIdFromDataPolicy(dataSupplier.GetPartyId(), task.GetTaskData().GetDataPolicyTypes(), task.GetTaskData().GetDataPolicyOptions())
 							if nil != err {
-								log.WithError(err).Errorf("not fetch metadataId from task dataPolicy when election jobNode on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, userType: {%s}, user: {%s}",
-									task.GetTaskId(), taskRole.String(), partyId, task.GetTaskData().GetUserType(), task.GetTaskData().GetUser())
+								log.WithError(err).Errorf("not fetch metadataId from task dataPolicy when dataNode provider election jobNode on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, powerSupplier partyId: {%s}, power provider dataSupplier partyId: {%s}, userType: {%s}, user: {%s}",
+									task.GetTaskId(), taskRole.String(), partyId, dataSupplier.GetPartyId(), task.GetTaskData().GetUserType(), task.GetTaskData().GetUser())
 								return types.NewReplayScheduleResult(task.GetTaskId(), fmt.Errorf("%s when fetch metadataId from task dataPolicy", err), nil)
 							}
 
@@ -594,10 +594,10 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 						//		that can the datasupplier's datanode be specified as the receiver's datanode
 						if receiverPolicy.GetProviderPartyId() == dataSupplier.GetPartyId() && identityId == dataSupplier.GetIdentityId() {
 
-							metadataId, err := policy.FetchMetedataIdByPartyIdFromDataPolicy(partyId, task.GetTaskData().GetDataPolicyTypes(), task.GetTaskData().GetDataPolicyOptions())
+							metadataId, err := policy.FetchMetedataIdByPartyIdFromDataPolicy(dataSupplier.GetPartyId(), task.GetTaskData().GetDataPolicyTypes(), task.GetTaskData().GetDataPolicyOptions())
 							if nil != err {
-								log.WithError(err).Errorf("not fetch metadataId from task dataPolicy on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, userType: {%s}, user: {%s}",
-									task.GetTaskId(), taskRole.String(), partyId, task.GetTaskData().GetUserType(), task.GetTaskData().GetUser())
+								log.WithError(err).Errorf("not fetch metadataId from task dataPolicy when dataNode provider receiver on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, receiver partyId: {%s}, receiver provider dataSupplier partyId: {%s}, userType: {%s}, user: {%s}",
+									task.GetTaskId(), taskRole.String(), partyId, dataSupplier.GetPartyId(), task.GetTaskData().GetUserType(), task.GetTaskData().GetUser())
 								return types.NewReplayScheduleResult(task.GetTaskId(), fmt.Errorf("%s when fetch metadataId from task dataPolicy", err), nil)
 							}
 							dataNode, err = findDataNodeByMetadataIdFn(metadataId)
@@ -759,6 +759,6 @@ func (sche *SchedulerStarveFIFO) reScheduleDataNodeProvidePower(taskId string, d
 				dataSupplier.GetPartyId(), dataSupplier.GetIdentityId(), powerSupplier.GetPartyId(), powerSupplier.GetIdentityId())
 		}
 	}
-	
+
 	return nil
 }
