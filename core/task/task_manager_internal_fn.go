@@ -366,9 +366,9 @@ func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *
 	case libtypes.TaskRole_TaskRole_Sender:
 
 		// query consumeSpec of task
-		var consumeSpec types.DatatokenPaySpec
+		var consumeSpec *types.DatatokenPaySpec
 		if err := json.Unmarshal([]byte(task.GetConsumeSpec()), &consumeSpec); nil != err {
-			return fmt.Errorf("json unmarshal consumeSpec failed on endConsumeByDataToken()")
+			return fmt.Errorf("cannot json unmarshal consumeSpec on endConsumeByDataToken(), %s", err)
 		}
 
 		if partyId != localTask.GetTaskSender().GetPartyId() {
@@ -383,7 +383,7 @@ func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *
 		// start prepay dataToken
 		txHash, _, err := m.metisPayMng.Settle(taskId, int64(consumeSpec.GasEstimated)-int64(consumeSpec.GasUsed))
 		if nil != err {
-			return fmt.Errorf("call metisPay to settle datatoken failed on endConsumeByDataToken(), %s", err)
+			return fmt.Errorf("cannot call metisPay to settle datatoken on endConsumeByDataToken(), %s", err)
 		}
 
 		// make sure the `prepay` tx into blockchain

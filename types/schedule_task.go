@@ -166,9 +166,9 @@ func (rsr *ReplayScheduleResult) String() string {
 
 // v 0.4.0
 type DatatokenPaySpec struct {
-	Consumed int32  `json:"consumed"`   // -1:
+	Consumed     int32  `json:"consumed"`     // -1:
 	GasEstimated uint64 `json:"gasEstimated"` // prepay estimate gas total about task
-	GasUsed  uint64 `json:"gasUsed"`  // prepay gas used about task
+	GasUsed      uint64 `json:"gasUsed"`      // prepay gas used about task
 }
 
 // Tasks to be executed (local and remote, which have been completed by consensus and can be executed by issuing fighter)
