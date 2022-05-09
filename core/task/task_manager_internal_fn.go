@@ -1331,7 +1331,7 @@ func (m *Manager) initConsumeSpecByConsumeOption(task *types.NeedExecuteTask) {
 
 		b, err := json.Marshal(consumeSpec)
 		if nil != err {
-			log.WithError(err).Errorf("json marshal task consumeSpec failed on initConsumeSpecByConsumeOption()")
+			log.WithError(err).Errorf("cannot json marshal task consumeSpec on initConsumeSpecByConsumeOption(), consumeSpec: %v, %s", consumeSpec, err)
 			return
 		}
 		task.SetConsumeQueryId(taskId.String())
