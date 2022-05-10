@@ -237,7 +237,7 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		// start prepay dataToken
 		txHash, gasLimit, err := m.metisPayMng.Prepay(taskId, ethereumcommon.HexToAddress(localTask.GetTaskData().GetUser()), dataTokenAaddresses)
 		if nil != err {
-			return fmt.Errorf("call metisPay to prepay datatoken failed on beginConsumeByDataToken(), %s", err)
+			return fmt.Errorf("cannot call metisPay to prepay datatoken on beginConsumeByDataToken(), %s", err)
 		}
 
 		// make sure the `prepay` tx into blockchain
@@ -254,6 +254,10 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		//	}
 		//
 		//}(in.evm.Ctx)
+
+		log.Debugf("Succeed send tx to blockchain on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskId.bigInt: {%d}, txHash: {%s}",
+		task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskId.Uint64(), txHash.String())
+
 		receipt := m.metisPayMng.GetReceipt(ctx, txHash, time.Duration(500)*time.Millisecond) // period 500 ms
 		if nil == receipt {
 			return fmt.Errorf("prepay dataToken failed, the transaction had not receipt on beginConsumeByDataToken(), txHash: {%s}", txHash.String())
@@ -269,11 +273,19 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 			//including NotFound
 			return fmt.Errorf("query task state of metisPay failed, %s on beginConsumeByDataToken()", err)
 		}
-		// -1 : task is not existing in PayMetis.
-		// 1 : task has prepaid
+		// task state in contract
+		// constant int8 private NOTEXIST = -1;
+		// constant int8 private BEGIN = 0;
+		// constant int8 private PREPAY = 1;
+		// constant int8 private SETTLE = 2;
+		// constant int8 private END = 3;
 		if state == -1 { //  We need to know if the task status value is 1.
 			return fmt.Errorf("task state is not existing in MetisPay contract on beginConsumeByDataToken()")
 		}
+
+		log.Debugf("Succeed execute tx on blockchain on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskId.bigInt: {%d}, txHash: {%s}, task.state: {%d}",
+			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskId.Uint64(), txHash.String(), state)
+
 		// update consumeSpec into needExecuteTask
 		if "" == strings.Trim(task.GetConsumeSpec(), "") {
 			return fmt.Errorf("consumeSpec about task is empty on beginConsumeByDataToken(), consumeSpec: %s", task.GetConsumeSpec())
@@ -328,13 +340,19 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 						//including NotFound
 						return 0, fmt.Errorf("query task state of metisPay failed, %s", err)
 					}
-					// -1 : task is not existing in PayMetis.
-					// 1 : task has prepaid
+					// task state in contract
+					// constant int8 private NOTEXIST = -1;
+					// constant int8 private BEGIN = 0;
+					// constant int8 private PREPAY = 1;
+					// constant int8 private SETTLE = 2;
+					// constant int8 private END = 3;
 					if state == -1 { //  We need to know if the task status value is 1.
-						log.Warnf("query task state value is %d, taskId: {%s}, partyId: {%s}", state, task.GetTaskId(), partyId)
+						//log.Warnf("query task state value is equal `NOTEXIST` on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskId.bigInt: {%d}, task.state: {%d}",
+						//	task.GetTaskId(), partyId, taskId.Uint64(), state)
 						continue
 					}
-
+					log.Debugf("Succeed query task.state value is not equal `NOTEXIST` on blockchain on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskId.bigInt: {%d}, task.state: {%d}",
+						task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskId.Uint64(), state)
 					return state, nil
 				}
 			}
@@ -958,7 +976,7 @@ func (m *Manager) sendTaskTerminateMsg(task *types.Task) error {
 func (m *Manager) sendTaskEvent(event *libtypes.TaskEvent) {
 	go func(event *libtypes.TaskEvent) {
 		m.eventCh <- event
-		log.Debugf("Succeed send to manager.loop() a task event on taskManager.sendTaskEvent(), event: %s", event.String())
+		log.Debugf("Succeed send a task event to manager.loop() on taskManager.sendTaskEvent(), event: %s", event.String())
 	}(event)
 }
 
@@ -1082,23 +1100,37 @@ func (m *Manager) makeTaskReadyGoReq(task *types.NeedExecuteTask, localTask *typ
 
 func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types.Task) (string, error) {
 
-	var (
-		params string
-		err    error
-	)
+
+		/**
+		# FOR DATANODE:
+
+		{
+			"part_id": "p0",
+		    "input_data": [
+		          {
+		              "input_type": 3,  # 输入数据的类型，(算法用标识数据使用方式). 0:unknown, 1:origin_data, 2:psi_output, 3:model
+		              "access_type": 1, # 访问数据的方式，(fighter用决定是否预先加载数据). 0:unknown, 1:local, 2:url
+		              "data_type": 0,   # 数据的格式，(算法用标识数据格式). 0:unknown, 1:csv, 2:dir, 3:binary, 4:xls, 5:xlsx, 6:txt, 7:json
+		              "data_path": "/task_result/task:0xdeefff3434..556/"  # 数据所在的本地路径
+		          }
+		    ]
+		}
+
+		# FOR JOBNODE:
+
+		{
+			"part_id": "y0",
+		    "input_data": []
+		}
+
+		*/
 
 	partyId := task.GetLocalTaskOrganization().GetPartyId()
+	inputDataArr := make([]interface{}, 0)
 
-	for _, dataSupplier := range localTask.GetTaskData().GetDataSuppliers() {
+	switch task.GetLocalTaskRole() {
+	case libtypes.TaskRole_TaskRole_DataSupplier:
 
-		if partyId == dataSupplier.GetPartyId() {
-
-		}
-	}
-
-	if task.GetLocalTaskRole() == libtypes.TaskRole_TaskRole_DataSupplier {
-
-		inputDataArr := make([]interface{}, 0)
 
 		for i, policyType := range localTask.GetTaskData().GetDataPolicyTypes() {
 
@@ -1107,7 +1139,7 @@ func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types
 
 				var dataPolicy *types.TaskMetadataPolicyCSV
 				if err := json.Unmarshal([]byte(localTask.GetTaskData().GetDataPolicyOptions()[i]), &dataPolicy); nil != err {
-					return "", fmt.Errorf("can not unmarshal dataPolicyOption, %s, taskId: {%s}", err, localTask.GetTaskId())
+					return "", fmt.Errorf("can not unmarshal dataPolicyOption, %s, taskId: {%s}, partyId: {%s}", err, localTask.GetTaskId(), partyId)
 				}
 
 				if dataPolicy.GetPartyId() == partyId {
@@ -1120,7 +1152,7 @@ func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types
 			case uint32(libtypes.OrigindataType_OrigindataType_DIR):
 				var dataPolicy *types.TaskMetadataPolicyDIR
 				if err := json.Unmarshal([]byte(localTask.GetTaskData().GetDataPolicyOptions()[i]), &dataPolicy); nil != err {
-					return "", fmt.Errorf("can not unmarshal dataPolicyOption, %s, taskId: {%s}", err, localTask.GetTaskId())
+					return "", fmt.Errorf("can not unmarshal dataPolicyOption, %s, taskId: {%s}, partyId: {%s}", err, localTask.GetTaskId(), partyId)
 				}
 
 				if dataPolicy.GetPartyId() == partyId {
@@ -1134,7 +1166,7 @@ func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types
 			case uint32(libtypes.OrigindataType_OrigindataType_BINARY):
 				var dataPolicy *types.TaskMetadataPolicyBINARY
 				if err := json.Unmarshal([]byte(localTask.GetTaskData().GetDataPolicyOptions()[i]), &dataPolicy); nil != err {
-					return "", fmt.Errorf("can not unmarshal dataPolicyOption, %s, taskId: {%s}", err, localTask.GetTaskId())
+					return "", fmt.Errorf("can not unmarshal dataPolicyOption, %s, taskId: {%s}, partyId: {%s}", err, localTask.GetTaskId(), partyId)
 				}
 
 				if dataPolicy.GetPartyId() == partyId {
@@ -1145,12 +1177,24 @@ func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types
 					inputDataArr = append(inputDataArr, inputData)
 				}
 			default:
-				return "", fmt.Errorf("unknown dataPolicy type, taskId: {%s}, dataPolicyType: {%d}", task.GetTaskId(), policyType)
+				return "", fmt.Errorf("unknown dataPolicy type, taskId: {%s}, partyId: {%s}, dataPolicyType: {%d}", task.GetTaskId(), partyId, policyType)
 			}
 		}
+	case libtypes.TaskRole_TaskRole_PowerSupplier:
+		// do nothing...
 	}
 
-	return params, err
+	scps := &types.SelfCfgParams{
+		PartyId: partyId,
+		InputData: inputDataArr,
+	}
+
+	b, err := json.Marshal(scps)
+	if nil != err {
+		return "", fmt.Errorf("cannot json marshal selfCfgParams, %s, taskId: {%s}, partyId: {%s}", err, task.GetTaskId(), partyId)
+	}
+
+	return string(b), err
 }
 
 func (m *Manager) metadataInputCSV(task *types.NeedExecuteTask, localTask *types.Task, dataPolicy *types.TaskMetadataPolicyCSV) (*types.InputDataCSV, error) {
@@ -1537,13 +1581,13 @@ func (m *Manager) queryNeedExecuteTaskCache(taskId, partyId string) (*types.Need
 	defer m.runningTaskCacheLock.RUnlock()
 	cache, ok := m.runningTaskCache[taskId]
 	if !ok {
-		log.Debugf("Call queryNeedExecuteTaskCache, taskId: {%s}, partyId: {%s}, has: {%v}",
-			taskId, partyId, ok)
+		//log.Debugf("Call queryNeedExecuteTaskCache, taskId: {%s}, partyId: {%s}, has: {%v}",
+		//	taskId, partyId, ok)
 		return nil, false
 	}
 	task, ok := cache[partyId]
-	log.Debugf("Call queryNeedExecuteTaskCache, taskId: {%s}, partyId: {%s}, has: {%v}",
-		taskId, partyId, ok)
+	//log.Debugf("Call queryNeedExecuteTaskCache, taskId: {%s}, partyId: {%s}, has: {%v}",
+	//	taskId, partyId, ok)
 	return task, ok
 }
 
@@ -1662,8 +1706,6 @@ func (m *Manager) handleNeedExecuteTask(task *types.NeedExecuteTask, localTask *
 		}
 	}
 
-	// init consumeSpec of NeedExecuteTask first
-	m.initConsumeSpecByConsumeOption(task)
 	// store local cache
 	m.addNeedExecuteTaskCacheAndminotor(task, int64(localTask.GetTaskData().GetStartAt()+localTask.GetTaskData().GetOperationCost().GetDuration()))
 

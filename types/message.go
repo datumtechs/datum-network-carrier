@@ -1176,15 +1176,6 @@ Example:
   }
 }
 */
-type FighterTaskReadyGoReqContractCfg struct {
-	PartyId   string `json:"party_id"`
-	DataParty struct {
-		InputFile       string   `json:"input_file"`
-		KeyColumn       string   `json:"key_column"`
-		SelectedColumns []string `json:"selected_columns"`
-	} `json:"data_party"`
-	DynamicParameter map[string]interface{} `json:"dynamic_parameter"`
-}
 
 type SelfCfgParams struct {
 	PartyId   string      `json:"party_id"`

@@ -201,7 +201,7 @@ func (m *Manager) loop() {
 
 			go func(result *types.TaskConsResult) {
 
-				log.Debugf("Received `NEED-CONSENSUS` task result from 2pc consensus engine when received `NEED-CONSENSUS` task result, taskId: {%s}, result: {%s}", result.GetTaskId(), result.String())
+				log.Debugf("Received `NEED-CONSENSUS` task result from 2pc consensus engine, taskId: {%s}, result: {%s}", result.GetTaskId(), result.String())
 
 				task, err := m.resourceMng.GetDB().QueryLocalTask(result.GetTaskId())
 				if nil != err {
@@ -324,6 +324,9 @@ func (m *Manager) loop() {
 				continue
 			}
 
+			// init consumeSpec of NeedExecuteTask first (by v0.4.0)
+			m.initConsumeSpecByConsumeOption(task)
+
 			switch task.GetConsStatus() {
 			// sender and partner to handle needExecuteTask when consensus succeed.
 			// sender need to store some cache, partner need to execute task.
@@ -351,8 +354,6 @@ func (m *Manager) loop() {
 
 				switch task.GetLocalTaskRole() {
 				case libtypes.TaskRole_TaskRole_Sender:
-					// init consumeSpec of NeedExecuteTask first (by v0.4.0)
-					m.initConsumeSpecByConsumeOption(task)
 					m.publishFinishedTaskToDataCenter(task, localTask, true)
 				default:
 					m.sendTaskResultMsgToTaskSender(task, localTask)
