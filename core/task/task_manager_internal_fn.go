@@ -208,7 +208,7 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 			return fmt.Errorf("this partyId is not task sender on beginConsumeByDataToken()")
 		}
 
-		taskId, err := hexutil.DecodeBig(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID))
+		taskIdBigInt, err := hexutil.DecodeBig(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID))
 		if nil != err {
 			return fmt.Errorf("cannot decode taskId to big.Int on beginConsumeByDataToken(), %s", err)
 		}
@@ -229,16 +229,30 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		if nil != err {
 			return fmt.Errorf("call QueryMetadataByIds() failed on beginConsumeByDataToken(), %s", err)
 		}
+
+		// for debug log...
+		addrs := make([]string, len(metadataList))
+
 		dataTokenAaddresses := make([]ethereumcommon.Address, len(metadataList))
 		for i, metadata := range metadataList {
-			dataTokenAaddresses[i] = ethereumcommon.HexToAddress(metadata.GetData().GetTokenAddress())
+			addr := ethereumcommon.HexToAddress(metadata.GetData().GetTokenAddress())
+			dataTokenAaddresses[i] = addr
+			addrs[i] = addr.String()
 		}
 
+		user := ethereumcommon.HexToAddress(localTask.GetTaskData().GetUser())
+
+		log.Debugf("Start call metisPayManager.Prepay(), taskId: {%s}, partyId: {%s}, call params{taskIdBigInt: %d, taskSponsorAccount: %s, dataTokenAaddresses: %s}",
+			task.GetTaskId(), partyId, taskIdBigInt, user.String(), "[" + strings.Join(addrs, ",") + "]")
+
 		// start prepay dataToken
-		txHash, gasLimit, err := m.metisPayMng.Prepay(taskId, ethereumcommon.HexToAddress(localTask.GetTaskData().GetUser()), dataTokenAaddresses)
+		txHash, gasLimit, err := m.metisPayMng.Prepay(taskIdBigInt, user, dataTokenAaddresses)
 		if nil != err {
 			return fmt.Errorf("cannot call metisPay to prepay datatoken on beginConsumeByDataToken(), %s", err)
 		}
+
+		log.Debugf("Succeed send `contract prepay()` tx to blockchain on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}, txHash: {%s}",
+			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt, txHash.String())
 
 		// make sure the `prepay` tx into blockchain
 		timeout := time.Duration(localTask.GetTaskData().GetOperationCost().GetDuration()) * time.Millisecond
@@ -255,9 +269,6 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		//
 		//}(in.evm.Ctx)
 
-		log.Debugf("Succeed send tx to blockchain on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskId.bigInt: {%d}, txHash: {%s}",
-		task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskId.Uint64(), txHash.String())
-
 		receipt := m.metisPayMng.GetReceipt(ctx, txHash, time.Duration(500)*time.Millisecond) // period 500 ms
 		if nil == receipt {
 			return fmt.Errorf("prepay dataToken failed, the transaction had not receipt on beginConsumeByDataToken(), txHash: {%s}", txHash.String())
@@ -268,7 +279,7 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		}
 
 		// query task state
-		state, err := m.metisPayMng.GetTaskState(taskId)
+		state, err := m.metisPayMng.GetTaskState(taskIdBigInt)
 		if nil != err {
 			//including NotFound
 			return fmt.Errorf("query task state of metisPay failed, %s on beginConsumeByDataToken()", err)
@@ -283,8 +294,8 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 			return fmt.Errorf("task state is not existing in MetisPay contract on beginConsumeByDataToken()")
 		}
 
-		log.Debugf("Succeed execute tx on blockchain on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskId.bigInt: {%d}, txHash: {%s}, task.state: {%d}",
-			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskId.Uint64(), txHash.String(), state)
+		log.Debugf("Succeed execute `contract prepay()` tx on blockchain on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}, txHash: {%s}, task.state: {%d}",
+			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt, txHash.String(), state)
 
 		// update consumeSpec into needExecuteTask
 		if "" == strings.Trim(task.GetConsumeSpec(), "") {
@@ -314,7 +325,7 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		m.updateNeedExecuteTaskCache(task)
 
 		return nil
-	case libtypes.TaskRole_TaskRole_DataSupplier:
+	case libtypes.TaskRole_TaskRole_DataSupplier, libtypes.TaskRole_TaskRole_PowerSupplier, libtypes.TaskRole_TaskRole_Receiver:
 
 		taskId, err := hexutil.DecodeBig(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID))
 		if nil != err {
@@ -327,18 +338,24 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		//ctx, cancelFn := context.WithCancel(context.Background())
 		defer cancelFn()
 
-		queryTaskState := func(ctx context.Context, taskId *big.Int, period time.Duration) (int, error) {
+		queryTaskState := func(ctx context.Context, taskIdBigInt *big.Int, period time.Duration) (int, error) {
 			ticker := time.NewTicker(period)
 
 			for {
 				select {
 				case <-ctx.Done():
+
+					log.Warnf("Warning query task state of metisPay time out on blockchain on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}",
+						task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt)
+
 					return 0, fmt.Errorf("query task state of metisPay time out")
 				case <-ticker.C:
 					state, err := m.metisPayMng.GetTaskState(taskId)
 					if nil != err {
 						//including NotFound
-						return 0, fmt.Errorf("query task state of metisPay failed, %s", err)
+						log.WithError(err).Warnf("Warning cannot query task state of metisPay on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}",
+							task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt)
+						continue
 					}
 					// task state in contract
 					// constant int8 private NOTEXIST = -1;
@@ -351,8 +368,8 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 						//	task.GetTaskId(), partyId, taskId.Uint64(), state)
 						continue
 					}
-					log.Debugf("Succeed query task.state value is not equal `NOTEXIST` on blockchain on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskId.bigInt: {%d}, task.state: {%d}",
-						task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskId.Uint64(), state)
+					log.Debugf("Succeed query task.state value is not equal `NOTEXIST` on blockchain on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}, task.state: {%d}",
+						task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt, state)
 					return state, nil
 				}
 			}
@@ -367,10 +384,10 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		}
 
 		return nil
-	case libtypes.TaskRole_TaskRole_PowerSupplier:
-		return nil // do nothing ...
-	case libtypes.TaskRole_TaskRole_Receiver:
-		return nil // do nothing ...
+	//case libtypes.TaskRole_TaskRole_PowerSupplier:
+	//	return nil // do nothing ...
+	//case libtypes.TaskRole_TaskRole_Receiver:
+	//	return nil // do nothing ...
 	default:
 		return fmt.Errorf("unknown task role on beginConsumeByDataToken()")
 	}
@@ -422,16 +439,23 @@ func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *
 			return nil
 		}
 
-		taskId, err := hexutil.DecodeBig(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID))
+		taskIdBigInt, err := hexutil.DecodeBig(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID))
 		if nil != err {
 			return fmt.Errorf("cannot decode taskId to big.Int on endConsumeByDataToken(), %s", err)
 		}
 
+		log.Debugf("Start call metisPayManager.Settle(), taskId: {%s}, partyId: {%s}, call params{taskIdBigInt: %d, gasRefundPrepayment: %s, dataTokenAaddresses: %s}",
+			task.GetTaskId(), partyId, taskIdBigInt, int64(consumeSpec.GasEstimated)-int64(consumeSpec.GasUsed))
+
+
 		// start prepay dataToken
-		txHash, _, err := m.metisPayMng.Settle(taskId, int64(consumeSpec.GasEstimated)-int64(consumeSpec.GasUsed))
+		txHash, _, err := m.metisPayMng.Settle(taskIdBigInt, int64(consumeSpec.GasEstimated)-int64(consumeSpec.GasUsed))
 		if nil != err {
 			return fmt.Errorf("cannot call metisPay to settle datatoken on endConsumeByDataToken(), %s", err)
 		}
+
+		log.Debugf("Succeed send `contract settle()` tx to blockchain on endConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}, txHash: {%s}",
+			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt, txHash.String())
 
 		// make sure the `prepay` tx into blockchain
 		timeout := time.Duration(localTask.GetTaskData().GetOperationCost().GetDuration()) * time.Millisecond
@@ -443,6 +467,14 @@ func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *
 		if nil == receipt {
 			return fmt.Errorf("settle dataToken failed, the transaction had not receipt on endConsumeByDataToken(), txHash: {%s}", txHash.String())
 		}
+
+		// contract tx execute failed.
+		if receipt.Status == 0 {
+			return fmt.Errorf("settle dataToken failed, the transaction receipt status is %d on endConsumeByDataToken(), txHash: {%s}", receipt.Status, txHash.String())
+		}
+
+		log.Debugf("Succeed execute `contract settle()` tx on blockchain on endConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}, txHash: {%s}",
+			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt, txHash.String())
 
 		return nil
 	case libtypes.TaskRole_TaskRole_DataSupplier:
