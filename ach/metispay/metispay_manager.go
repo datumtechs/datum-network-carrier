@@ -82,13 +82,12 @@ func (metisPay *MetisPayManager) loadPrivateKey() {
 				log.Errorf("decrypt organization wallet private key error: %v", err)
 				return
 			} else {
-				priKey, err := crypto.ToECDSA([]byte(key))
+				priKey, err := crypto.HexToECDSA(key)
 				if err != nil {
 					log.Errorf("convert organization wallet private key to ECDSA error: %v", err)
 					return
 				}
 				metisPay.Config.privateKey = priKey
-
 			}
 		} else {
 			key, err := crypto.HexToECDSA(wallet.PriKey)
@@ -100,6 +99,7 @@ func (metisPay *MetisPayManager) loadPrivateKey() {
 			}
 		}
 	}
+	log.Debugf("load organization wallet successful")
 }
 
 func (metisPay *MetisPayManager) getPrivateKey() *ecdsa.PrivateKey {
