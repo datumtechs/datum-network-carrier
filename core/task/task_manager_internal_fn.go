@@ -338,18 +338,24 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		//ctx, cancelFn := context.WithCancel(context.Background())
 		defer cancelFn()
 
-		queryTaskState := func(ctx context.Context, taskId *big.Int, period time.Duration) (int, error) {
+		queryTaskState := func(ctx context.Context, taskIdBigInt *big.Int, period time.Duration) (int, error) {
 			ticker := time.NewTicker(period)
 
 			for {
 				select {
 				case <-ctx.Done():
+
+					log.Warnf("Warning query task state of metisPay time out on blockchain on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}",
+						task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt)
+
 					return 0, fmt.Errorf("query task state of metisPay time out")
 				case <-ticker.C:
 					state, err := m.metisPayMng.GetTaskState(taskId)
 					if nil != err {
 						//including NotFound
-						return 0, fmt.Errorf("query task state of metisPay failed, %s", err)
+						log.WithError(err).Warnf("Warning cannot query task state of metisPay on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}",
+							task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt)
+						continue
 					}
 					// task state in contract
 					// constant int8 private NOTEXIST = -1;
@@ -362,8 +368,8 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 						//	task.GetTaskId(), partyId, taskId.Uint64(), state)
 						continue
 					}
-					log.Debugf("Succeed query task.state value is not equal `NOTEXIST` on blockchain on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskId.bigInt: {%d}, task.state: {%d}",
-						task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskId.Uint64(), state)
+					log.Debugf("Succeed query task.state value is not equal `NOTEXIST` on blockchain on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}, task.state: {%d}",
+						task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt, state)
 					return state, nil
 				}
 			}
