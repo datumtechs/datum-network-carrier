@@ -385,8 +385,8 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 
 			case types.TASK_POWER_POLICY_DATANODE_PROVIDE:
 
-				var powerPolicy *types.TaskPowerPolicyDataNodeProvide
-				if err := json.Unmarshal([]byte(task.GetTaskData().GetPowerPolicyOptions()[i]), &powerPolicy); nil != err {
+				var provide *types.TaskPowerPolicyDataNodeProvide
+				if err := json.Unmarshal([]byte(task.GetTaskData().GetPowerPolicyOptions()[i]), &provide); nil != err {
 					log.WithError(err).Errorf("can not unmarshal powerPolicyType, on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}", task.GetTaskId())
 					return types.NewReplayScheduleResult(task.GetTaskId(), fmt.Errorf("can not unmarshal powerPolicyType of task, %d", policyType), nil)
 				}
@@ -401,7 +401,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 					collecter = cache.(*ReScheduleWithDataNodeProvidePower)
 				}
 				collecter.AppendSupplier(task.GetTaskData().GetPowerSuppliers()[i])
-				collecter.AppendProvide(powerPolicy)
+				collecter.AppendProvide(provide)
 				caches[policyType] = collecter
 
 			// NOTE: unknown powerPolicyType
