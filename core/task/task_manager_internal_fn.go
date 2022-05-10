@@ -433,13 +433,17 @@ func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *
 			return nil
 		}
 
-		taskId, err := hexutil.DecodeBig(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID))
+		taskIdBigInt, err := hexutil.DecodeBig(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID))
 		if nil != err {
 			return fmt.Errorf("cannot decode taskId to big.Int on endConsumeByDataToken(), %s", err)
 		}
 
+		log.Debugf("Start call metisPayManager.Settle(), taskId: {%s}, partyId: {%s}, call params{taskIdBigInt: %d, gasRefundPrepayment: %s, dataTokenAaddresses: %s}",
+			task.GetTaskId(), partyId, taskIdBigInt, int64(consumeSpec.GasEstimated)-int64(consumeSpec.GasUsed))
+
+
 		// start prepay dataToken
-		txHash, _, err := m.metisPayMng.Settle(taskId, int64(consumeSpec.GasEstimated)-int64(consumeSpec.GasUsed))
+		txHash, _, err := m.metisPayMng.Settle(taskIdBigInt, int64(consumeSpec.GasEstimated)-int64(consumeSpec.GasUsed))
 		if nil != err {
 			return fmt.Errorf("cannot call metisPay to settle datatoken on endConsumeByDataToken(), %s", err)
 		}
