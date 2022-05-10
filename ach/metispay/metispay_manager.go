@@ -312,9 +312,16 @@ func (metisPay *MetisPayManager) Prepay(taskID *big.Int, taskSponsorAccount comm
 		return common.Hash{}, 0, errors.New("organization private key is missing")
 	}
 
+	// for debug log...
+	addrs := make([]string, len(dataTokenAddressList))
+	amounts := make([]string, len(dataTokenAddressList))
+
 	dataTokenAmountList := make([]*big.Int, len(dataTokenAddressList))
-	for idx, _ := range dataTokenAddressList {
+	for idx, addr := range dataTokenAddressList {
 		dataTokenAmountList[idx] = defaultDataTokenPrepaymentAmount
+
+		addrs[idx] = addr.String()
+		amounts[idx] = defaultDataTokenPrepaymentAmount.String()
 	}
 	gasLimit, err := metisPay.estimateGas("prepay", taskID, taskSponsorAccount, new(big.Int).SetUint64(1), dataTokenAddressList, dataTokenAmountList)
 	if err != nil {
@@ -330,6 +337,10 @@ func (metisPay *MetisPayManager) Prepay(taskID *big.Int, taskSponsorAccount comm
 		log.Errorf("failed to build transact options to call MetisPay.Prepay(): %v", err)
 		return common.Hash{}, 0, errors.New("failed to build transact options to call MetisPay.Prepay()")
 	}
+
+	log.Debugf("Start call contract prepay(), params{opts: %#v, taskID: %d, taskSponsorAccount: %s, gasLimit: %d, dataTokenAddressList: %s, dataTokenAmountList: %s}",
+		opts, taskID, taskSponsorAccount.String(), gasLimit, "[" + strings.Join(addrs, ",") + "]", "[" + strings.Join(amounts, ",") + "]")
+
 	tx, err := metisPay.contractMetisPayInstance.Prepay(opts, taskID, taskSponsorAccount, new(big.Int).SetUint64(gasLimit), dataTokenAddressList, dataTokenAmountList)
 	if err != nil {
 		log.Errorf("failed to call MetisPay.Prepay(), taskID: %s, error: %v", hexutil.EncodeBig(taskID), err)
@@ -370,6 +381,9 @@ func (metisPay *MetisPayManager) Settle(taskID *big.Int, gasRefundPrepayment int
 		log.Errorf("failed to build transact options: %v", err)
 	}
 
+	log.Debugf("Start call contract settle(), params{opts: %#v, taskID: %d, gasLimit: %d}",
+		opts, taskID, gasLimit)
+
 	tx, err := metisPay.contractMetisPayInstance.Settle(opts, taskID, new(big.Int).SetUint64(gasLimit))
 	if err != nil {
 		log.Errorf("failed to call MetisPay.Settle(), taskID: %s, error: %v", hexutil.EncodeBig(taskID), err)
@@ -387,7 +401,7 @@ func (metisPay *MetisPayManager) GetReceipt(ctx context.Context, txHash common.H
 		receipt, err := metisPay.client.TransactionReceipt(context.Background(), txHash)
 		if nil != err {
 			//including NotFound
-			log.Errorf("query prepay transaction receipt failed, txHash: %s, error: %v", txHash.Hex(), err)
+			log.WithError(err).Warnf("Warning cannot query prepay transaction receipt, txHash: %s", txHash.Hex())
 			return nil
 		} else {
 			return receipt
@@ -399,12 +413,13 @@ func (metisPay *MetisPayManager) GetReceipt(ctx context.Context, txHash common.H
 		for {
 			select {
 			case <-ctx.Done():
+				log.Warnf("query prepay transaction receipt timeout, txHash: %s", txHash.Hex())
 				return nil
 			case <-ticker.C:
 				receipt, err := metisPay.client.TransactionReceipt(context.Background(), txHash)
 				if nil != err {
 					//including NotFound
-					log.Errorf("query prepay transaction receipt failed, txHash: %s, error: %v", txHash.Hex(), err)
+					log.WithError(err).Warnf("Warning cannot query prepay transaction receipt, txHash: %s", txHash.Hex())
 				} else {
 					return receipt
 				}
@@ -414,9 +429,14 @@ func (metisPay *MetisPayManager) GetReceipt(ctx context.Context, txHash common.H
 }
 
 // GetTaskState returns the task payment state.
-// -1 : task is not existing in PayMetis.
-// 1 : task has prepaid
+// task state in contract
+// constant int8 private NOTEXIST = -1;
+// constant int8 private BEGIN = 0;
+// constant int8 private PREPAY = 1;
+// constant int8 private SETTLE = 2;
+// constant int8 private END = 3;
 func (metisPay *MetisPayManager) GetTaskState(taskId *big.Int) (int, error) {
+	log.Debugf("Start call contract taskState(), params{taskID: %d}", taskId)
 	if state, err := metisPay.contractMetisPayInstance.TaskState(&bind.CallOpts{}, taskId); err != nil {
 		return -1, err
 	} else {
