@@ -17,7 +17,7 @@ type ScheduleWithSymbolRandomElectionPower struct {
 func (s *ScheduleWithSymbolRandomElectionPower) Name() string { return "ScheduleWithSymbolRandomElectionPower" }
 func (s *ScheduleWithSymbolRandomElectionPower) String() string        { return "" }
 func (s *ScheduleWithSymbolRandomElectionPower) GetPartyIds() []string { return s.partyIds }
-func (s *ScheduleWithSymbolRandomElectionPower) Append(partyId string) {
+func (s *ScheduleWithSymbolRandomElectionPower) AppendPartyId(partyId string) {
 	s.partyIds = append(s.partyIds, partyId)
 }
 
@@ -28,7 +28,7 @@ type ScheduleWithDataNodeProvidePower struct {
 func (s *ScheduleWithDataNodeProvidePower) Name() string   { return "ScheduleWithDataNodeProvidePower" }
 func (s *ScheduleWithDataNodeProvidePower) String() string { return "" }
 func (s *ScheduleWithDataNodeProvidePower) Getprovides() []*types.TaskPowerPolicyDataNodeProvide { return s.provides }
-func (s *ScheduleWithDataNodeProvidePower) Append(provide *types.TaskPowerPolicyDataNodeProvide) {
+func (s *ScheduleWithDataNodeProvidePower) AppendProvide(provide *types.TaskPowerPolicyDataNodeProvide) {
 	s.provides = append(s.provides, provide)
 }
 

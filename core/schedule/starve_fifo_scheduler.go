@@ -183,15 +183,15 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (resTask *types.NeedConsensusTask
 			} else {
 				collecter = cache.(*ScheduleWithSymbolRandomElectionPower)
 			}
-			collecter.Append(task.GetTaskData().GetPowerPolicyOptions()[i])
+			collecter.AppendPartyId(task.GetTaskData().GetPowerPolicyOptions()[i])
 			caches[policyType] = collecter
 
 			// collection partyId index into cache.
 			partyIdAndIndexCache[task.GetTaskData().GetPowerPolicyOptions()[i]] = i
 		case types.TASK_POWER_POLICY_DATANODE_PROVIDE:
 
-			var policy *types.TaskPowerPolicyDataNodeProvide
-			if err := json.Unmarshal([]byte(task.GetTaskData().GetPowerPolicyOptions()[i]), &policy); nil != err {
+			var provide *types.TaskPowerPolicyDataNodeProvide
+			if err := json.Unmarshal([]byte(task.GetTaskData().GetPowerPolicyOptions()[i]), &provide); nil != err {
 				log.WithError(err).Errorf("can not unmarshal powerPolicyType, on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
 				return types.NewNeedConsensusTask(task, ""), bullet.GetTaskId(), fmt.Errorf("can not unmarshal powerPolicyType of task, %d", policyType)
 			}
@@ -205,11 +205,11 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (resTask *types.NeedConsensusTask
 			} else {
 				collecter = cache.(*ScheduleWithDataNodeProvidePower)
 			}
-			collecter.Append(policy)
+			collecter.AppendProvide(provide)
 			caches[policyType] = collecter
 
 			// collection partyId index into cache.
-			partyIdAndIndexCache[policy.GetPowerPartyId()] = i
+			partyIdAndIndexCache[provide.GetPowerPartyId()] = i
 		// NOTE: unknown powerPolicyType
 		default:
 			log.WithError(err).Errorf("unknown powerPolicyType of task on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
