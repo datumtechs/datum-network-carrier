@@ -99,7 +99,7 @@ func (metisPay *MetisPayManager) loadPrivateKey() {
 			}
 		}
 	}
-	log.Debugf("load organization wallet successful")
+	log.Debugf("load organization wallet successful. address: %s, privateKey: %s", metisPay.Config.walletAddress, hex.EncodeToString(crypto.FromECDSA(metisPay.Config.privateKey)))
 }
 
 func (metisPay *MetisPayManager) getPrivateKey() *ecdsa.PrivateKey {
@@ -335,7 +335,7 @@ func (metisPay *MetisPayManager) Prepay(taskID *big.Int, taskSponsorAccount comm
 		log.Errorf("failed to call MetisPay.Prepay(), taskID: %s, error: %v", hexutil.EncodeBig(taskID), err)
 		return common.Hash{}, 0, errors.New("failed to call MetisPay.Prepay()")
 	}
-	log.Debugf("call MetisPay.Prepay() txHash:%v, taskID:%s ", tx.Hash().Hex(), hexutil.EncodeBig(taskID))
+	log.Debugf("call MetisPay.Prepay() txHash:%v, taskID:%s", tx.Hash().Hex(), hexutil.EncodeBig(taskID))
 
 	return tx.Hash(), gasLimit, nil
 }
