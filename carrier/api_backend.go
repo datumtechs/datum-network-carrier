@@ -1399,6 +1399,26 @@ func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, dataHas
 
 	// store local metadata (about task result file)
 	metadata := types.NewMetadata(&libtypes.MetadataPB{
+		/**
+		MetadataId           string
+		Owner                *Organization
+		DataId               string
+		DataStatus           DataStatus
+		MetadataName         string
+		MetadataType         MetadataType
+		DataHash             string
+		Desc                 string
+		LocationType         DataLocationType
+		DataType             OrigindataType
+		Industry             string
+		State                MetadataState
+		PublishAt            uint64
+		UpdateAt             uint64
+		Nonce                uint64
+		MetadataOption       string
+		AllowExpose          bool
+		TokenAddress         string
+		*/
 		MetadataId:     metadataId,
 		Owner:          identity,
 		DataId:         metadataId,
@@ -1407,6 +1427,7 @@ func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, dataHas
 		MetadataType:   libtypes.MetadataType_MetadataType_Unknown, // It means this is a module or psi result ??? so we don't known it.
 		DataHash:       dataHash,
 		Desc:           fmt.Sprintf("the task `%s` result file after executed", taskId),
+		LocationType:   libtypes.DataLocationType_DataLocationType_Local,
 		DataType:       libtypes.OrigindataType(dataType),
 		Industry:       "Unknown",
 		State:          libtypes.MetadataState_MetadataState_Created, // metaData status, eg: create/release/revoke
@@ -1414,6 +1435,7 @@ func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, dataHas
 		UpdateAt:       timeutils.UnixMsecUint64(),
 		Nonce:          0,
 		MetadataOption: metadataOption,
+		AllowExpose:    false,
 		TokenAddress:   "",
 	})
 	s.carrier.carrierDB.StoreInternalMetadata(metadata)
