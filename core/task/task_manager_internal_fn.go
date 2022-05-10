@@ -314,7 +314,7 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		m.updateNeedExecuteTaskCache(task)
 
 		return nil
-	case libtypes.TaskRole_TaskRole_DataSupplier:
+	case libtypes.TaskRole_TaskRole_DataSupplier, libtypes.TaskRole_TaskRole_PowerSupplier, libtypes.TaskRole_TaskRole_Receiver:
 
 		taskId, err := hexutil.DecodeBig(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID))
 		if nil != err {
@@ -367,10 +367,10 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		}
 
 		return nil
-	case libtypes.TaskRole_TaskRole_PowerSupplier:
-		return nil // do nothing ...
-	case libtypes.TaskRole_TaskRole_Receiver:
-		return nil // do nothing ...
+	//case libtypes.TaskRole_TaskRole_PowerSupplier:
+	//	return nil // do nothing ...
+	//case libtypes.TaskRole_TaskRole_Receiver:
+	//	return nil // do nothing ...
 	default:
 		return fmt.Errorf("unknown task role on beginConsumeByDataToken()")
 	}
