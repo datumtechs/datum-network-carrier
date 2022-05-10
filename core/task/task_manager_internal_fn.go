@@ -128,7 +128,7 @@ func (m *Manager) sendNeedExecuteTaskByAction(task *types.NeedExecuteTask) {
 	}(task)
 }
 
-func (m *Manager) BeginConsumeMetadataOrPower(task *types.NeedExecuteTask, localTask *types.Task) error {
+func (m *Manager) beginConsumeMetadataOrPower(task *types.NeedExecuteTask, localTask *types.Task) error {
 
 	switch m.config.MetadataConsumeOption {
 	case 1: // use metadataAuth
@@ -384,7 +384,7 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 	}
 }
 
-func (m *Manager) EndConsumeMetadataOrPower(task *types.NeedExecuteTask, localTask *types.Task) error {
+func (m *Manager) endConsumeMetadataOrPower(task *types.NeedExecuteTask, localTask *types.Task) error {
 	switch m.config.MetadataConsumeOption {
 	case 1: // use metadataAuth
 		return m.endConsumeByMetadataAuth(task, localTask)
@@ -483,9 +483,10 @@ func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *
 func (m *Manager) driveTaskForExecute(task *types.NeedExecuteTask, localTask *types.Task) error {
 
 	// 1、 consume the resource of task
-	if err := m.BeginConsumeMetadataOrPower(task, localTask); nil != err {
-		return err
-	}
+	// TODO 打开这里 ...
+	//if err := m.beginConsumeMetadataOrPower(task, localTask); nil != err {
+	//	return err
+	//}
 
 	// 2、 update needExecuteTask to disk
 	if err := m.resourceMng.GetDB().StoreNeedExecuteTask(task); nil != err {
@@ -795,10 +796,11 @@ func (m *Manager) publishFinishedTaskToDataCenter(task *types.NeedExecuteTask, l
 		}
 
 		// 1、settle metadata or power usage.
-		if err := m.EndConsumeMetadataOrPower(task, localTask); nil != err {
-			log.WithError(err).Errorf("Failed to settle consume metadata or power on publishFinishedTaskToDataCenter, taskId: {%s}, partyId: {%s}, taskState: {%s}",
-				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskState.String())
-		}
+		// TODO 打开这里 ...
+		//if err := m.endConsumeMetadataOrPower(task, localTask); nil != err {
+		//	log.WithError(err).Errorf("Failed to settle consume metadata or power on publishFinishedTaskToDataCenter, taskId: {%s}, partyId: {%s}, taskState: {%s}",
+		//		task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskState.String())
+		//}
 
 		log.Debugf("Start publishFinishedTaskToDataCenter, taskId: {%s}, partyId: {%s}, taskState: {%s}",
 			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskState.String())
@@ -832,10 +834,11 @@ func (m *Manager) publishFinishedTaskToDataCenter(task *types.NeedExecuteTask, l
 func (m *Manager) sendTaskResultMsgToTaskSender(task *types.NeedExecuteTask, localTask *types.Task) {
 
 	// 1、settle metadata or power usage.
-	if err := m.EndConsumeMetadataOrPower(task, localTask); nil != err {
-		log.WithError(err).Errorf("Failed to settle consume metadata or power on sendTaskResultMsgToTaskSender, taskId: {%s},  partyId: {%s}",
-			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
-	}
+	// TODO 打开这里 ...
+	//if err := m.endConsumeMetadataOrPower(task, localTask); nil != err {
+	//	log.WithError(err).Errorf("Failed to settle consume metadata or power on sendTaskResultMsgToTaskSender, taskId: {%s},  partyId: {%s}",
+	//		task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
+	//}
 
 	// 2、push all events of task to task sender.
 	log.Debugf("Start sendTaskResultMsgToTaskSender, taskId: {%s}, partyId: {%s}, remote pid: {%s}",
