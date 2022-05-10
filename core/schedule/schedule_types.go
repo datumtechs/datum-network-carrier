@@ -61,7 +61,7 @@ type ReScheduleWithDataNodeProvidePower struct {
 	//resources  []*libtypes.TaskPowerResourceOption
 	provides []*types.TaskPowerPolicyDataNodeProvide
 }
-func (r *ReScheduleWithDataNodeProvidePower) Name() string { return "ReScheduleWithSymbolRandomElectionPower" }
+func (r *ReScheduleWithDataNodeProvidePower) Name() string { return "ReScheduleWithDataNodeProvidePower" }
 func (r *ReScheduleWithDataNodeProvidePower) String() string        { return "" }
 func (r *ReScheduleWithDataNodeProvidePower) GetSuppliers() []*libtypes.TaskOrganization { return r.suppliers }
 func (r *ReScheduleWithDataNodeProvidePower) GetProvides() []*types.TaskPowerPolicyDataNodeProvide { return r.provides }
