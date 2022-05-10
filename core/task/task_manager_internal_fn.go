@@ -260,15 +260,6 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		//ctx, cancelFn := context.WithCancel(context.Background())
 		defer cancelFn()
 
-		//go func(ctx context.Context) {
-		//	<-ctx.Done()
-		//	if err := ctx.Err(); err != nil && context.DeadlineExceeded == err {
-		//		// shutdown vm, change th vm.abort mark
-		//		in.evm.Cancel()
-		//	}
-		//
-		//}(in.evm.Ctx)
-
 		receipt := m.metisPayMng.GetReceipt(ctx, txHash, time.Duration(500)*time.Millisecond) // period 500 ms
 		if nil == receipt {
 			return fmt.Errorf("prepay dataToken failed, the transaction had not receipt on beginConsumeByDataToken(), txHash: {%s}", txHash.String())
