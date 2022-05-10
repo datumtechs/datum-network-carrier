@@ -1117,7 +1117,7 @@ func (m *Manager) makeTaskReadyGoReq(task *types.NeedExecuteTask, localTask *typ
 		Memory:                 localTask.GetTaskData().GetOperationCost().GetMemory(),
 		Processor:              localTask.GetTaskData().GetOperationCost().GetProcessor(),
 		Bandwidth:              localTask.GetTaskData().GetOperationCost().GetBandwidth(),
-		ConnectPolicyFormat:    fightercommon.ConnectPolicyFormat_ConnectPolicyFormat_Json,
+		ConnectPolicyFormat:    fightercommon.ConnectPolicyFormat_ConnectPolicyFormat_Str,
 		ConnectPolicy:          "all", // "" or "all" or "{}" it mean that  all nodes are fully connected
 	}
 
