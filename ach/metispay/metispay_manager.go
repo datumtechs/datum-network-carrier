@@ -343,7 +343,7 @@ func (metisPay *MetisPayManager) Prepay(taskID *big.Int, taskSponsorAccount comm
 
 	tx, err := metisPay.contractMetisPayInstance.Prepay(opts, taskID, taskSponsorAccount, new(big.Int).SetUint64(gasLimit), dataTokenAddressList, dataTokenAmountList)
 	if err != nil {
-		log.Errorf("failed to call MetisPay.Prepay(), taskID: %s, error: %v", hexutil.EncodeBig(taskID), err)
+		log.WithError(err).Errorf("failed to call MetisPay.Prepay(), taskID: %s", hexutil.EncodeBig(taskID))
 		return common.Hash{}, 0, errors.New("failed to call MetisPay.Prepay()")
 	}
 	log.Debugf("call MetisPay.Prepay() txHash:%v, taskID:%s ", tx.Hash().Hex(), hexutil.EncodeBig(taskID))

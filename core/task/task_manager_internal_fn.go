@@ -267,7 +267,7 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		//}(in.evm.Ctx)
 
 		log.Debugf("Succeed send tx to blockchain on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}, txHash: {%s}",
-		task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt.Uint64(), txHash.String())
+		task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt, txHash.String())
 
 		receipt := m.metisPayMng.GetReceipt(ctx, txHash, time.Duration(500)*time.Millisecond) // period 500 ms
 		if nil == receipt {
@@ -295,7 +295,7 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		}
 
 		log.Debugf("Succeed execute tx on blockchain on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}, txHash: {%s}, task.state: {%d}",
-			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt.Uint64(), txHash.String(), state)
+			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt, txHash.String(), state)
 
 		// update consumeSpec into needExecuteTask
 		if "" == strings.Trim(task.GetConsumeSpec(), "") {
