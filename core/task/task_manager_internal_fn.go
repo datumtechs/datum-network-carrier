@@ -331,7 +331,7 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 
 		queryTaskState := func(ctx context.Context, taskIdBigInt *big.Int, period time.Duration) (int, error) {
 			ticker := time.NewTicker(period)
-
+			defer ticker.Stop()
 			for {
 				select {
 				case <-ctx.Done():

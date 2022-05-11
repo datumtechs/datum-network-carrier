@@ -301,6 +301,10 @@ func (m *MessageHandler) loop() {
 			return
 		case <-m.quit:
 			log.Infof("Stopped message handler ...")
+			powerTicker.Stop()
+			metadataTicker.Stop()
+			metadataAuthTicker.Stop()
+			taskTicker.Stop()
 			return
 		}
 	}

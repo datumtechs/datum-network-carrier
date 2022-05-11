@@ -79,8 +79,8 @@ func (t *Twopc) Stop() error {
 	return nil
 }
 func (t *Twopc) loop() {
-	//refreshProposalStateTicker := time.NewTicker(defaultRefreshProposalStateInternal) // 300 ms
-	refreshProposalStateTimer := t.proposalStateMonitorTimer()
+
+	proposalStateMonitorTimer := t.proposalStateMonitorTimer()
 	for {
 		select {
 
@@ -90,19 +90,20 @@ func (t *Twopc) loop() {
 
 			fn()
 
-		case <-refreshProposalStateTimer.C:
+		case <-proposalStateMonitorTimer.C:
 
 			future := t.checkProposalStateMonitors(timeutils.UnixMsec())
 			now := timeutils.UnixMsec()
 			if future > now {
-				refreshProposalStateTimer.Reset(time.Duration(future-now) * time.Millisecond)
+				proposalStateMonitorTimer.Reset(time.Duration(future-now) * time.Millisecond)
 			} else if future < now {
-				refreshProposalStateTimer.Reset(time.Duration(now) * time.Millisecond)
+				proposalStateMonitorTimer.Reset(time.Duration(now) * time.Millisecond)
 			}
 			// when future value is 0, we do nothing
 
 		case <-t.quit:
 			log.Info("Stopped 2pc consensus engine ...")
+			proposalStateMonitorTimer.Stop()
 			return
 		}
 	}

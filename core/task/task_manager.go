@@ -374,6 +374,8 @@ func (m *Manager) loop() {
 
 		case <-m.quit:
 			log.Info("Stopped taskManager ...")
+			taskTicker.Stop()
+			taskMonitorTimer.Stop()
 			return
 		}
 	}

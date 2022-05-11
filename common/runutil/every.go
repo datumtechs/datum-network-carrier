@@ -13,7 +13,7 @@ import (
 // RunEvery runs the provided command periodically.
 // It runs in a goroutine, and can be cancelled by finishing the supplied context.
 func RunEvery(ctx context.Context, period time.Duration, f func()) {
-	funcName := runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name()
+
 	ticker := time.NewTicker(period)
 	go func() {
 		for {
@@ -22,6 +22,7 @@ func RunEvery(ctx context.Context, period time.Duration, f func()) {
 				//log.WithField("function", funcName).Trace("running")
 				f()
 			case <-ctx.Done():
+				funcName := runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name()
 				log.WithField("function", funcName).Debug("ticker context is closed, exiting")
 				ticker.Stop()
 				return
@@ -33,7 +34,7 @@ func RunEvery(ctx context.Context, period time.Duration, f func()) {
 // RunOnce delays running the supplied command.
 // It runs in goroutine and can be cancelled by completing the provided context.
 func RunOnce(ctx context.Context, period time.Duration, f func()) {
-	funcName := runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name()
+
 	timer := time.NewTimer(period)
 	go func() {
 		for {
@@ -42,6 +43,7 @@ func RunOnce(ctx context.Context, period time.Duration, f func()) {
 				//log.WithField("function", funcName).Trace("running")
 				f()
 			case <-ctx.Done():
+				funcName := runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name()
 				log.WithField("function", funcName).Debug("timer context is closed, exiting")
 				timer.Stop()
 				return
