@@ -290,11 +290,29 @@ type MetadataMsg struct {
 func NewMetadataMessageFromRequest(req *pb.PublishMetadataRequest) *MetadataMsg {
 	metadataMsg := &MetadataMsg{
 		MetadataSummary: &libtypes.MetadataSummary{
+			/**
+			MetadataId           string
+			MetadataName         string
+			MetadataType         MetadataType
+			DataHash             string
+			Desc                 string
+			LocationType         DataLocationType
+			DataType             OrigindataType
+			Industry             string
+			State                MetadataState
+			PublishAt            uint64
+			UpdateAt             uint64
+			Nonce                uint64
+			MetadataOption       string
+			AllowExpose          bool
+			TokenAddress         string
+			*/
 			MetadataId:   req.GetInformation().GetMetadataId(),
 			MetadataName: req.GetInformation().GetMetadataName(),
 			MetadataType: req.GetInformation().GetMetadataType(),
 			DataHash:     req.GetInformation().GetDataHash(),
 			Desc:         req.GetInformation().GetDesc(),
+			LocationType: req.GetInformation().GetLocationType(),
 			DataType:     req.GetInformation().GetDataType(),
 			Industry:     req.GetInformation().GetIndustry(),
 			State:        req.GetInformation().GetState(),
@@ -308,7 +326,6 @@ func NewMetadataMessageFromRequest(req *pb.PublishMetadataRequest) *MetadataMsg 
 		CreateAt: timeutils.UnixMsecUint64(),
 	}
 
-	metadataMsg.GenMetadataId()
 	return metadataMsg
 }
 

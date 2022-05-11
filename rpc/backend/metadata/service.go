@@ -79,6 +79,7 @@ func (svr *Server) PublishMetadata(ctx context.Context, req *pb.PublishMetadataR
 	}
 
 	metadataMsg := types.NewMetadataMessageFromRequest(req)
+	metadataMsg.GenMetadataId()
 
 	if err := svr.B.SendMsg(metadataMsg); nil != err {
 		log.WithError(err).Error("RPC-API:PublishMetadata failed")
