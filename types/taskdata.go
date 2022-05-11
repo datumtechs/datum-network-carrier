@@ -118,13 +118,13 @@ type TaskResultFileSummary struct {
 	DataType       uint32
 }
 
-func NewTaskResultFileSummary(taskId, metadataId, originId, metadataName, dataHash, metadataOption, id, extra string, dataType uint32) *TaskResultFileSummary {
+func NewTaskResultFileSummary(taskId, metadataId, originId, metadataName, dataHash, metadataOption, nodeId, extra string, dataType uint32) *TaskResultFileSummary {
 	return &TaskResultFileSummary{
 		TaskId:         taskId,
 		MetadataId:     metadataId,
 		OriginId:       originId,
 		MetadataName:   metadataName,
-		NodeId:         id,
+		NodeId:         nodeId,
 		Extra:          extra,
 		DataHash:       dataHash,
 		MetadataOption: metadataOption,

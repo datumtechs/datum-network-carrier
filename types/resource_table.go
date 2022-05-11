@@ -447,6 +447,7 @@ func (drt *DataResourceFileUpload) EncodeRLP(w io.Writer) error {
 		MetadataId:     drt.metadataId,
 		DataHash:       drt.dataHash,
 		MetadataOption: drt.metadataOption,
+		DataType:       drt.dataType,
 	})
 }
 
