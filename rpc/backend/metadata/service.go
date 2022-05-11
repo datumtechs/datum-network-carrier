@@ -79,6 +79,7 @@ func (svr *Server) PublishMetadata(ctx context.Context, req *pb.PublishMetadataR
 	}
 
 	metadataMsg := types.NewMetadataMessageFromRequest(req)
+	metadataMsg.GenMetadataId()
 
 	if err := svr.B.SendMsg(metadataMsg); nil != err {
 		log.WithError(err).Error("RPC-API:PublishMetadata failed")
@@ -219,6 +220,9 @@ func (svr *Server) PublishMetadataByInteranlMetadata(ctx context.Context, req *p
 	if "" == strings.Trim(req.GetInformation().GetDesc(), "") {
 		return &pb.PublishMetadataResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require desc"}, nil
 	}
+	if req.GetInformation().GetLocationType() == libtypes.DataLocationType_DataLocationType_Unknown {
+		return &pb.PublishMetadataResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown locationType"}, nil
+	}
 	if req.GetInformation().GetDataType() == libtypes.OrigindataType_OrigindataType_Unknown {
 		return &pb.PublishMetadataResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown dataType"}, nil
 	}
@@ -246,11 +250,29 @@ func (svr *Server) PublishMetadataByInteranlMetadata(ctx context.Context, req *p
 	// build metadata msg
 	metadataMsg := &types.MetadataMsg{
 		MetadataSummary: &libtypes.MetadataSummary{
+			/**
+			MetadataId           string
+			MetadataName         string
+			MetadataType         MetadataType
+			DataHash             string
+			Desc                 string
+			LocationType         DataLocationType
+			DataType             OrigindataType
+			Industry             string
+			State                MetadataState
+			PublishAt            uint64
+			UpdateAt             uint64
+			Nonce                uint64
+			MetadataOption       string
+			AllowExpose          bool
+			TokenAddress         string
+			*/
 			MetadataId:     req.GetInformation().GetMetadataId(),
 			MetadataName:   req.GetInformation().GetMetadataName(),
 			MetadataType:   req.GetInformation().GetMetadataType(),
 			DataHash:       metadata.GetData().GetDataHash(),
 			Desc:           req.GetInformation().GetDesc(),
+			LocationType:   req.GetInformation().GetLocationType(),
 			DataType:       req.GetInformation().GetDataType(),
 			Industry:       req.GetInformation().GetIndustry(),
 			State:          req.GetInformation().GetState(),
@@ -305,6 +327,9 @@ func (svr *Server) PublishMetadataByTaskResultFile(ctx context.Context, req *pb.
 	if "" == strings.Trim(req.GetInformation().GetDesc(), "") {
 		return &pb.PublishMetadataResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require desc"}, nil
 	}
+	if req.GetInformation().GetLocationType() == libtypes.DataLocationType_DataLocationType_Unknown {
+		return &pb.PublishMetadataResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown locationType"}, nil
+	}
 	if req.GetInformation().GetDataType() == libtypes.OrigindataType_OrigindataType_Unknown {
 		return &pb.PublishMetadataResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown dataType"}, nil
 	}
@@ -339,11 +364,29 @@ func (svr *Server) PublishMetadataByTaskResultFile(ctx context.Context, req *pb.
 	// build metadata msg
 	metadataMsg := &types.MetadataMsg{
 		MetadataSummary: &libtypes.MetadataSummary{
+			/**
+			MetadataId           string
+			MetadataName         string
+			MetadataType         MetadataType
+			DataHash             string
+			Desc                 string
+			LocationType         DataLocationType
+			DataType             OrigindataType
+			Industry             string
+			State                MetadataState
+			PublishAt            uint64
+			UpdateAt             uint64
+			Nonce                uint64
+			MetadataOption       string
+			AllowExpose          bool
+			TokenAddress         string
+			*/
 			MetadataId:     req.GetInformation().GetMetadataId(),
 			MetadataName:   req.GetInformation().GetMetadataName(),
 			MetadataType:   req.GetInformation().GetMetadataType(),
 			DataHash:       metadata.GetData().GetDataHash(),
 			Desc:           req.GetInformation().GetDesc(),
+			LocationType:   req.GetInformation().GetLocationType(),
 			DataType:       req.GetInformation().GetDataType(),
 			Industry:       req.GetInformation().GetIndustry(),
 			State:          req.GetInformation().GetState(),

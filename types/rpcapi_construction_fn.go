@@ -74,8 +74,7 @@ func NewSaveTaskRequest(task *Task) *api.SaveTaskRequest {
 func NewMetadataArrayFromDetailListResponse(response *api.ListMetadataResponse) MetadataArray {
 	var metadataArray MetadataArray
 	for _, v := range response.GetMetadata() {
-		metadata := NewMetadata(v)
-		metadataArray = append(metadataArray, metadata)
+		metadataArray = append(metadataArray, NewMetadata(v))
 	}
 	return metadataArray
 }
@@ -83,7 +82,7 @@ func NewMetadataArrayFromDetailListResponse(response *api.ListMetadataResponse) 
 func NewResourceArrayFromPowerTotalSummaryListResponse(response *api.ListPowerSummaryResponse) ResourceArray {
 	resourceArray := make(ResourceArray, 0, len(response.GetPowers()))
 	for _, v := range response.GetPowers() {
-		resource := NewResource(&libtypes.ResourcePB{
+		resourceArray = append(resourceArray, NewResource(&libtypes.ResourcePB{
 			/**
 			Owner                *Organization
 			DataId               string
@@ -114,8 +113,7 @@ func NewResourceArrayFromPowerTotalSummaryListResponse(response *api.ListPowerSu
 			UsedBandwidth:  v.GetPowerSummary().GetInformation().GetUsedBandwidth(),
 			UsedDisk:       v.GetPowerSummary().GetInformation().GetUsedDisk(),
 			// todo Summary is aggregate information and does not require paging, so there are no `publishat` and `updateat` and `nonce`
-		})
-		resourceArray = append(resourceArray, resource)
+		}))
 	}
 	return resourceArray
 }
@@ -123,8 +121,7 @@ func NewResourceArrayFromPowerTotalSummaryListResponse(response *api.ListPowerSu
 func NewResourceArrayFromPowerDetailListResponse(response *api.ListPowerResponse) ResourceArray {
 	resourceArray := make(ResourceArray, 0, len(response.GetPowers()))
 	for _, v := range response.GetPowers() {
-		resource := NewResource(v)
-		resourceArray = append(resourceArray, resource)
+		resourceArray = append(resourceArray, NewResource(v))
 	}
 	return resourceArray
 }

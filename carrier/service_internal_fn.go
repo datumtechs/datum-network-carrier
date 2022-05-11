@@ -31,6 +31,7 @@ func (s *Service) loop() {
 
 		case <-s.quit:
 			log.Info("Stopped carrier service ...")
+			refreshResourceNodesTicker.Stop()
 			return
 		}
 	}

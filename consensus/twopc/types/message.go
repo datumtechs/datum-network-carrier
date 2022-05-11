@@ -5,7 +5,6 @@ import (
 	"github.com/Metisnetwork/Metis-Carrier/common"
 	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
 	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"math"
 	"strings"
 	"sync"
 	"time"
@@ -342,18 +341,17 @@ func (syncQueue *SyncProposalStateMonitorQueue) CheckMonitors(now int64) int64 {
 	// Note that runMonitor may temporarily unlock queue.Lock.
 rerun:
 	for len(*(syncQueue.queue)) > 0 {
-		if future := syncQueue.runMonitor(now); future != 0 {
-			if future > 0 {
-				now = timeutils.UnixMsec()
-				if future > now {
-					return future
-				} else {
-					continue rerun
-				}
+		if future := syncQueue.runMonitor(now); future > 0  {
+			now = timeutils.UnixMsec()
+			if future > now {
+				return future
+			} else {
+				continue rerun
 			}
 		}
 	}
-	return math.MaxInt32
+	// when no one monitor, return 0 duration value
+	return 0
 }
 
 func (syncQueue *SyncProposalStateMonitorQueue) Size() int { return len(*(syncQueue.queue)) }

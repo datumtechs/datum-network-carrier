@@ -48,8 +48,8 @@ func (dc *DataCenter) InsertMetadata(metadata *types.Metadata) error {
 		log.WithError(err).WithField("hash", metadata.Hash()).Errorf("InsertMetadata failed")
 		return err
 	}
-	if response.Status != 0 {
-		return fmt.Errorf("insert metadata error: %s", response.Msg)
+	if response.GetStatus() != 0 {
+		return fmt.Errorf("insert metadata error: %s", response.GetMsg())
 	}
 	return nil
 }
@@ -62,8 +62,8 @@ func (dc *DataCenter) RevokeMetadata(metadata *types.Metadata) error {
 		log.WithError(err).WithField("hash", metadata.Hash()).Errorf("RevokeMetadata failed")
 		return err
 	}
-	if response.Status != 0 {
-		return fmt.Errorf("revoke metadata error: %s", response.Msg)
+	if response.GetStatus() != 0 {
+		return fmt.Errorf("revoke metadata error: %s", response.GetMsg())
 	}
 	return nil
 }

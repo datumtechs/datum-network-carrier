@@ -42,6 +42,7 @@ func (am *AuthorityManager) loop () {
 			am.refreshMetadataAuthority()
 		case <-am.quit:
 			log.Info("Stopped AuthorityManager ...")
+			ticker.Stop()
 			return
 		}
 	}
