@@ -92,9 +92,14 @@ func (t *Twopc) loop() {
 
 		case <-refreshProposalStateTimer.C:
 
-			//t.refreshProposalState()
 			future := t.checkProposalStateMonitors(timeutils.UnixMsec())
-			refreshProposalStateTimer.Reset(time.Duration(future-timeutils.UnixMsec()) * time.Millisecond)
+			now := timeutils.UnixMsec()
+			if future > now {
+				refreshProposalStateTimer.Reset(time.Duration(future-now) * time.Millisecond)
+			} else if future < now {
+				refreshProposalStateTimer.Reset(time.Duration(now) * time.Millisecond)
+			}
+			// when future value is 0, we do nothing
 
 		case <-t.quit:
 			log.Info("Stopped 2pc consensus engine ...")

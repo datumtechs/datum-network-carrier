@@ -246,7 +246,7 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 			task.GetTaskId(), partyId, taskIdBigInt, user.String(), "[" + strings.Join(addrs, ",") + "]")
 
 		// start prepay dataToken
-		txHash, gasLimit, err := m.metisPayMng.Prepay(taskIdBigInt, user, dataTokenAaddresses)
+		txHash, err := m.metisPayMng.Prepay(taskIdBigInt, user, dataTokenAaddresses)
 		if nil != err {
 			return fmt.Errorf("cannot call metisPay to prepay datatoken on beginConsumeByDataToken(), %s", err)
 		}
@@ -304,7 +304,7 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		// constant int8 private SETTLE = 2;
 		// constant int8 private END = 3;
 		consumeSpec.Consumed = int32(state)
-		consumeSpec.GasEstimated = gasLimit
+		//consumeSpec.GasEstimated = gasLimit
 		consumeSpec.GasUsed = receipt.GasUsed
 
 		b, err := json.Marshal(consumeSpec)
@@ -435,12 +435,12 @@ func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *
 			return fmt.Errorf("cannot decode taskId to big.Int on endConsumeByDataToken(), %s", err)
 		}
 
-		log.Debugf("Start call metisPayManager.Settle(), taskId: {%s}, partyId: {%s}, call params{taskIdBigInt: %d, gasRefundPrepayment: %s, dataTokenAaddresses: %s}",
-			task.GetTaskId(), partyId, taskIdBigInt, int64(consumeSpec.GasEstimated)-int64(consumeSpec.GasUsed))
+		log.Debugf("Start call metisPayManager.Settle(), taskId: {%s}, partyId: {%s}, call params{taskIdBigInt: %d, gasUsedPrepay: %d}",
+			task.GetTaskId(), partyId, taskIdBigInt, consumeSpec.GetGasUsed())
 
 
 		// start prepay dataToken
-		txHash, _, err := m.metisPayMng.Settle(taskIdBigInt, int64(consumeSpec.GasEstimated)-int64(consumeSpec.GasUsed))
+		txHash, err := m.metisPayMng.Settle(taskIdBigInt, consumeSpec.GetGasUsed())
 		if nil != err {
 			return fmt.Errorf("cannot call metisPay to settle datatoken on endConsumeByDataToken(), %s", err)
 		}
@@ -1421,7 +1421,7 @@ func (m *Manager) initConsumeSpecByConsumeOption(task *types.NeedExecuteTask) {
 			// constant int8 private SETTLE = 2;
 			// constant int8 private END = 3;
 			Consumed:     int32(-1),
-			GasEstimated: 0,
+			//GasEstimated: 0,
 			GasUsed:      0,
 		}
 

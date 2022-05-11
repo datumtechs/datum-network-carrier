@@ -364,7 +364,13 @@ func (m *Manager) loop() {
 		case <-taskMonitorTimer.C:
 
 			future := m.checkNeedExecuteTaskMonitors(timeutils.UnixMsec())
-			taskMonitorTimer.Reset(time.Duration(future-timeutils.UnixMsec()) * time.Millisecond)
+			now := timeutils.UnixMsec()
+			if future > now {
+				taskMonitorTimer.Reset(time.Duration(future-now) * time.Millisecond)
+			} else if future < now {
+				taskMonitorTimer.Reset(time.Duration(now) * time.Millisecond)
+			}
+			// when future value is 0, we do nothing
 
 		case <-m.quit:
 			log.Info("Stopped taskManager ...")

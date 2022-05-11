@@ -55,7 +55,13 @@ func TestProposalStateMonitor(t *testing.T) {
 			case <-timer.C:
 
 				future := consensus.checkProposalStateMonitors(timeutils.UnixMsec())
-				timer.Reset(time.Duration(future-timeutils.UnixMsec()) * time.Millisecond)
+				now := timeutils.UnixMsec()
+				if future > now {
+					timer.Reset(time.Duration(future-now) * time.Millisecond)
+				} else if future < now {
+					timer.Reset(time.Duration(now) * time.Millisecond)
+				}
+				// when future value is 0, we do nothing
 
 				if consensus.proposalStateMonitorsLen() == 0 {
 					cancelFn()
@@ -70,8 +76,22 @@ func TestProposalStateMonitor(t *testing.T) {
 
 	go func(queue *ctypes.SyncProposalStateMonitorQueue) {
 		t.Log("Start add new one member into 2pc consensus proposalState monitor queue")
-		for _, tm := range arr {
-			queue.AddMonitor(ctypes.NewProposalStateMonitor(nil, tm.UnixNano()/1e6, tm.UnixNano()/1e6+1000,
+		for i, tm := range arr {
+			orgState := ctypes.NewOrgProposalState(common.Hash{byte(uint8(i))},
+				fmt.Sprintf("taskId:%d", i), libtypes.TaskRole_TaskRole_Unknown,
+				&libtypes.TaskOrganization{
+					PartyId:    fmt.Sprintf("senderPartyId:%d", i),
+					NodeName:   fmt.Sprintf("senderNodeName:%d", i),
+					NodeId:     fmt.Sprintf("senderNodeId:%d", i),
+					IdentityId: fmt.Sprintf("senderIdentityId:%d", i),
+				},
+				&libtypes.TaskOrganization{
+					PartyId:    fmt.Sprintf("partyId:%d", i),
+					NodeName:   fmt.Sprintf("nodeName:%d", i),
+					NodeId:     fmt.Sprintf("nodeId:%d", i),
+					IdentityId: fmt.Sprintf("identityId:%d", i),
+				}, timeutils.UnixMsecUint64())
+			queue.AddMonitor(ctypes.NewProposalStateMonitor(orgState, tm.UnixNano()/1e6, tm.UnixNano()/1e6+1000,
 				func(orgState *ctypes.OrgProposalState) {
 					atomic.AddUint32(&count, 1)
 				}))
@@ -159,7 +179,7 @@ func mockTestData() *state {
 	for i := 0; i < 2; i++ {
 		for p := 0; p < 3; p++ {
 			partyId := fmt.Sprintf("%s,%d", "p", i)
-			votesC[partyId]= &types.ConfirmVote{
+			votesC[partyId] = &types.ConfirmVote{
 				MsgOption: &types.MsgOption{
 					ProposalId:      proposalIds[i],
 					SenderRole:      libtypes.TaskRole(12),

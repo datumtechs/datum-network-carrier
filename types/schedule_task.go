@@ -8,7 +8,6 @@ import (
 	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
 	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
 	"github.com/libp2p/go-libp2p-core/peer"
-	"math"
 	"strings"
 	"sync"
 	"time"
@@ -173,12 +172,12 @@ type DatatokenPaySpec struct {
 	// constant int8 private SETTLE = 2;
 	// constant int8 private END = 3;
 	Consumed     int32  `json:"consumed"`
-	GasEstimated uint64 `json:"gasEstimated"` // prepay estimate gas total about task
+	//GasEstimated uint64 `json:"gasEstimated"` // prepay estimate gas total about task
 	GasUsed      uint64 `json:"gasUsed"`      // prepay gas used about task
 }
 
 func (s *DatatokenPaySpec) GetConsumed() int32      { return s.Consumed }
-func (s *DatatokenPaySpec) GetGasEstimated() uint64 { return s.GasEstimated }
+//func (s *DatatokenPaySpec) GetGasEstimated() uint64 { return s.GasEstimated }
 func (s *DatatokenPaySpec) GetGasUsed() uint64      { return s.GasUsed }
 
 // Tasks to be executed (local and remote, which have been completed by consensus and can be executed by issuing fighter)
@@ -335,18 +334,17 @@ func (syncQueue *SyncExecuteTaskMonitorQueue) CheckMonitors(now int64) int64 {
 	// Note that runMonitor may temporarily unlock queue.Lock.
 rerun:
 	for len(*(syncQueue.queue)) > 0 {
-		if future := syncQueue.runMonitor(now); future != 0 {
-			if future > 0 {
-				now = timeutils.UnixMsec()
-				if future > now {
-					return future
-				} else {
-					continue rerun
-				}
+		if future := syncQueue.runMonitor(now); future > 0 {
+			now = timeutils.UnixMsec()
+			if future > now {
+				return future
+			} else {
+				continue rerun
 			}
 		}
 	}
-	return math.MaxInt32
+	// when no one monitor, return 0 duration value
+	return 0
 }
 
 func (syncQueue *SyncExecuteTaskMonitorQueue) Size() int { return len(*(syncQueue.queue)) }
