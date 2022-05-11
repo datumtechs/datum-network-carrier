@@ -9,6 +9,7 @@ import (
 func NewTaskDetailShowFromTaskData(input *types.Task) *libtypes.TaskDetail {
 	return &libtypes.TaskDetail{
 		Information: &libtypes.TaskDetailSummary{
+
 			TaskId:                   input.GetTaskData().GetTaskId(),
 			TaskName:                 input.GetTaskData().GetTaskName(),
 			UserType:                 input.GetTaskData().GetUserType(),
@@ -22,6 +23,8 @@ func NewTaskDetailShowFromTaskData(input *types.Task) *libtypes.TaskDetail {
 			DataPolicyOptions:        input.GetTaskData().GetDataPolicyOptions(),
 			PowerPolicyTypes:         input.GetTaskData().GetPowerPolicyTypes(),
 			PowerPolicyOptions:       input.GetTaskData().GetPowerPolicyOptions(),
+			ReceiverPolicyTypes:      input.GetTaskData().GetReceiverPolicyTypes(),
+			ReceiverPolicyOptions:    input.GetTaskData().GetReceiverPolicyOptions(),
 			DataFlowPolicyTypes:      input.GetTaskData().GetDataFlowPolicyTypes(),
 			DataFlowPolicyOptions:    input.GetTaskData().GetDataFlowPolicyOptions(),
 			OperationCost:            input.GetTaskData().GetOperationCost(),
@@ -47,11 +50,29 @@ func NewGlobalMetadataInfoFromMetadata(input *types.Metadata) *pb.GetGlobalMetad
 		Owner: input.GetData().GetOwner(),
 		Information: &libtypes.MetadataDetail{
 			MetadataSummary: &libtypes.MetadataSummary{
+				/**
+				MetadataId           string
+				MetadataName         string
+				MetadataType         MetadataType
+				DataHash             string
+				Desc                 string
+				LocationType         DataLocationType
+				DataType             OrigindataType
+				Industry             string
+				State                MetadataState
+				PublishAt            uint64
+				UpdateAt             uint64
+				Nonce                uint64
+				MetadataOption       string
+				AllowExpose          bool
+				TokenAddress         string
+				*/
 				MetadataId:     input.GetData().GetDataId(),
 				MetadataName:   input.GetData().GetMetadataName(),
 				MetadataType:   input.GetData().GetMetadataType(),
 				DataHash:       input.GetData().GetDataHash(),
 				Desc:           input.GetData().GetDesc(),
+				LocationType:   input.GetData().GetLocationType(),
 				DataType:       input.GetData().GetDataType(),
 				Industry:       input.GetData().GetIndustry(),
 				State:          input.GetData().GetState(),
@@ -72,11 +93,29 @@ func NewLocalMetadataInfoFromMetadata(isInternal bool, input *types.Metadata) *p
 		Owner: input.GetData().GetOwner(),
 		Information: &libtypes.MetadataDetail{
 			MetadataSummary: &libtypes.MetadataSummary{
+				/**
+				MetadataId           string
+				MetadataName         string
+				MetadataType         MetadataType
+				DataHash             string
+				Desc                 string
+				LocationType         DataLocationType
+				DataType             OrigindataType
+				Industry             string
+				State                MetadataState
+				PublishAt            uint64
+				UpdateAt             uint64
+				Nonce                uint64
+				MetadataOption       string
+				AllowExpose          bool
+				TokenAddress         string
+				*/
 				MetadataId:     input.GetData().GetDataId(),
 				MetadataName:   input.GetData().GetMetadataName(),
 				MetadataType:   input.GetData().GetMetadataType(),
 				DataHash:       input.GetData().GetDataHash(),
 				Desc:           input.GetData().GetDesc(),
+				LocationType:   input.GetData().GetLocationType(),
 				DataType:       input.GetData().GetDataType(),
 				Industry:       input.GetData().GetIndustry(),
 				State:          input.GetData().GetState(),
