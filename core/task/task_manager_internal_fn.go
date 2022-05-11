@@ -128,7 +128,7 @@ func (m *Manager) sendNeedExecuteTaskByAction(task *types.NeedExecuteTask) {
 	}(task)
 }
 
-func (m *Manager) BeginConsumeMetadataOrPower(task *types.NeedExecuteTask, localTask *types.Task) error {
+func (m *Manager) beginConsumeMetadataOrPower(task *types.NeedExecuteTask, localTask *types.Task) error {
 
 	switch m.config.MetadataConsumeOption {
 	case 1: // use metadataAuth
@@ -260,15 +260,6 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		//ctx, cancelFn := context.WithCancel(context.Background())
 		defer cancelFn()
 
-		//go func(ctx context.Context) {
-		//	<-ctx.Done()
-		//	if err := ctx.Err(); err != nil && context.DeadlineExceeded == err {
-		//		// shutdown vm, change th vm.abort mark
-		//		in.evm.Cancel()
-		//	}
-		//
-		//}(in.evm.Ctx)
-
 		receipt := m.metisPayMng.GetReceipt(ctx, txHash, time.Duration(500)*time.Millisecond) // period 500 ms
 		if nil == receipt {
 			return fmt.Errorf("prepay dataToken failed, the transaction had not receipt on beginConsumeByDataToken(), txHash: {%s}", txHash.String())
@@ -393,7 +384,7 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 	}
 }
 
-func (m *Manager) EndConsumeMetadataOrPower(task *types.NeedExecuteTask, localTask *types.Task) error {
+func (m *Manager) endConsumeMetadataOrPower(task *types.NeedExecuteTask, localTask *types.Task) error {
 	switch m.config.MetadataConsumeOption {
 	case 1: // use metadataAuth
 		return m.endConsumeByMetadataAuth(task, localTask)
@@ -492,9 +483,10 @@ func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *
 func (m *Manager) driveTaskForExecute(task *types.NeedExecuteTask, localTask *types.Task) error {
 
 	// 1、 consume the resource of task
-	if err := m.BeginConsumeMetadataOrPower(task, localTask); nil != err {
-		return err
-	}
+	// TODO 打开这里 ...
+	//if err := m.beginConsumeMetadataOrPower(task, localTask); nil != err {
+	//	return err
+	//}
 
 	// 2、 update needExecuteTask to disk
 	if err := m.resourceMng.GetDB().StoreNeedExecuteTask(task); nil != err {
@@ -804,10 +796,11 @@ func (m *Manager) publishFinishedTaskToDataCenter(task *types.NeedExecuteTask, l
 		}
 
 		// 1、settle metadata or power usage.
-		if err := m.EndConsumeMetadataOrPower(task, localTask); nil != err {
-			log.WithError(err).Errorf("Failed to settle consume metadata or power on publishFinishedTaskToDataCenter, taskId: {%s}, partyId: {%s}, taskState: {%s}",
-				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskState.String())
-		}
+		// TODO 打开这里 ...
+		//if err := m.endConsumeMetadataOrPower(task, localTask); nil != err {
+		//	log.WithError(err).Errorf("Failed to settle consume metadata or power on publishFinishedTaskToDataCenter, taskId: {%s}, partyId: {%s}, taskState: {%s}",
+		//		task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskState.String())
+		//}
 
 		log.Debugf("Start publishFinishedTaskToDataCenter, taskId: {%s}, partyId: {%s}, taskState: {%s}",
 			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskState.String())
@@ -841,10 +834,11 @@ func (m *Manager) publishFinishedTaskToDataCenter(task *types.NeedExecuteTask, l
 func (m *Manager) sendTaskResultMsgToTaskSender(task *types.NeedExecuteTask, localTask *types.Task) {
 
 	// 1、settle metadata or power usage.
-	if err := m.EndConsumeMetadataOrPower(task, localTask); nil != err {
-		log.WithError(err).Errorf("Failed to settle consume metadata or power on sendTaskResultMsgToTaskSender, taskId: {%s},  partyId: {%s}",
-			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
-	}
+	// TODO 打开这里 ...
+	//if err := m.endConsumeMetadataOrPower(task, localTask); nil != err {
+	//	log.WithError(err).Errorf("Failed to settle consume metadata or power on sendTaskResultMsgToTaskSender, taskId: {%s},  partyId: {%s}",
+	//		task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
+	//}
 
 	// 2、push all events of task to task sender.
 	log.Debugf("Start sendTaskResultMsgToTaskSender, taskId: {%s}, partyId: {%s}, remote pid: {%s}",
@@ -1123,8 +1117,8 @@ func (m *Manager) makeTaskReadyGoReq(task *types.NeedExecuteTask, localTask *typ
 		Memory:                 localTask.GetTaskData().GetOperationCost().GetMemory(),
 		Processor:              localTask.GetTaskData().GetOperationCost().GetProcessor(),
 		Bandwidth:              localTask.GetTaskData().GetOperationCost().GetBandwidth(),
-		ConnectPolicyFormat:    fightercommon.ConnectPolicyFormat_ConnectPolicyFormat_Json,
-		ConnectPolicy:          "{}", // {} it mean that  all nodes are fully connected
+		ConnectPolicyFormat:    fightercommon.ConnectPolicyFormat_ConnectPolicyFormat_Str,
+		ConnectPolicy:          "all", // "" or "all" or "{}" it mean that  all nodes are fully connected
 	}
 
 	return req, nil
