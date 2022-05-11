@@ -5,12 +5,13 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/Metisnetwork/Metis-Carrier/ach/metispay/contracts"
-	"github.com/Metisnetwork/Metis-Carrier/common"
 	"github.com/Metisnetwork/Metis-Carrier/core"
 	"github.com/Metisnetwork/Metis-Carrier/db"
 	"github.com/Metisnetwork/Metis-Carrier/types"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind/backends"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethcore "github.com/ethereum/go-ethereum/core"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -117,7 +118,7 @@ func TestMetisPay_DeployMetisPay(t *testing.T) {
 
 //增加白名单, 需要在https://devnetopenapi2.platon.network/rpc开发链上， walletAddress上有LAT
 func TestMetisPay_AddWhiteList(t *testing.T) {
-	opts, err := metisManager.buildTxOpts()
+	opts, err := metisManager.buildTxOpts(500000)
 	if err != nil {
 		t.Fatalf("failed to build transact options: %v", err)
 	}
@@ -141,4 +142,48 @@ func TestMetisPay_EstimateTaskGas(t *testing.T) {
 		t.Fatalf("Failed to EstimateTaskGas : %v", err)
 	}
 	t.Logf("gasLimit: %d, gasPrice: %d", gasLimit, gasPrice)
+}
+
+func TestMetisPay_Prepay(t *testing.T) {
+	database := db.NewMemoryDatabase()
+	carrierDB := core.NewDataCenter(context.Background(), database)
+
+	key, _ := ethcrypto.HexToECDSA("0481a0c35a0e22d25aeae127e948d02ebe7eb315620fb83421a5c8318260bb97")
+	addr := ethcrypto.PubkeyToAddress(walletKey.PublicKey)
+
+	wallet := &types.OrgWallet{Address: addr, PriKey: hex.EncodeToString(ethcrypto.FromECDSA(key))}
+	carrierDB.StoreOrgWallet(wallet)
+
+	config := &Config{
+		URL:           "http://192.168.10.146:6789",
+		walletAddress: addr,
+		privateKey:    key,
+	}
+	metisManager = NewMetisPayManager(carrierDB, config, nil)
+
+	taskIdBytes, _ := hex.DecodeString("9977f8c9962d4eb67815022b7a079ba67382afd1bd3ed5d2df65d995d2ca6c41")
+
+	taskID := new(big.Int).SetBytes(taskIdBytes)
+	t.Logf("taskID:%s", hexutil.EncodeBig(taskID))
+
+	taskSponsor := common.HexToAddress("0x6f852ba98639a001a315065ecaf2069c7479f4cc")
+
+	token1 := common.HexToAddress("0xe19Cfd8F9173155C26149818abd5dEcAA6F705F3")
+	token2 := common.HexToAddress("0xE88695D3a3BA03ee6bB2130Ffd7869a8E368a0b4")
+	tokenList := []common.Address{token1, token2}
+
+	txHash, err := metisManager.Prepay(taskID, taskSponsor, tokenList)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Logf("txHash:%s", txHash.Hex())
+
+	timeout := time.Duration(60000) * time.Millisecond
+
+	ctx, cancelFn := context.WithTimeout(context.Background(), timeout)
+	//ctx, cancelFn := context.WithCancel(context.Background())
+	defer cancelFn()
+	receipt := metisManager.GetReceipt(ctx, txHash, time.Duration(500)*time.Millisecond)
+	t.Logf("receipt.status: %d", receipt.Status)
 }

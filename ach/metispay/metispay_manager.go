@@ -172,7 +172,7 @@ func NewMetisPayManager(db core.CarrierDB, config *Config, kmsConfig *kms.Config
 	return metisPay
 }
 
-func (metisPay *MetisPayManager) buildTxOpts() (*bind.TransactOpts, error) {
+func (metisPay *MetisPayManager) buildTxOpts(gasLimit uint64) (*bind.TransactOpts, error) {
 	nonce, err := metisPay.client.PendingNonceAt(context.Background(), metisPay.Config.walletAddress)
 	if err != nil {
 		return nil, err
@@ -190,8 +190,8 @@ func (metisPay *MetisPayManager) buildTxOpts() (*bind.TransactOpts, error) {
 	}
 
 	txOpts.Nonce = big.NewInt(int64(nonce))
-	txOpts.Value = big.NewInt(0)     // in wei
-	txOpts.GasLimit = uint64(300000) // in units
+	txOpts.Value = big.NewInt(0) // in wei
+	txOpts.GasLimit = gasLimit   // in units
 	txOpts.GasPrice = gasPrice
 	return txOpts, nil
 }
@@ -304,12 +304,13 @@ func (metisPay *MetisPayManager) GenerateOrgWallet() (common.Address, error) {
 	}
 }
 
-// Prepay transfers funds from task sponsor to MetisPay.
-// Prepay returns hx.Hash, estimate gas for calling Prepay() and error.
-func (metisPay *MetisPayManager) Prepay(taskID *big.Int, taskSponsorAccount common.Address, dataTokenAddressList []common.Address) (common.Hash, uint64, error) {
+// Prepay transfers more than enough gas from task sponsor to MetisPay, this gas will pay carrier to call Prepay()/Settle(), and remaining gas will refund to task sponsor.
+// Prepay returns hx.Hash, and error.
+// The complete procedure consists of two calls to MetisPay, the first is Prepay, the second is Settle.
+func (metisPay *MetisPayManager) Prepay(taskID *big.Int, taskSponsorAccount common.Address, dataTokenAddressList []common.Address) (common.Hash, error) {
 	if metisPay.getPrivateKey() == nil {
 		log.Errorf("cannot send Prepay transaction cause organization wallet missing")
-		return common.Hash{}, 0, errors.New("organization private key is missing")
+		return common.Hash{}, errors.New("organization private key is missing")
 	}
 
 	// for debug log...
@@ -323,80 +324,80 @@ func (metisPay *MetisPayManager) Prepay(taskID *big.Int, taskSponsorAccount comm
 		addrs[idx] = addr.String()
 		amounts[idx] = defaultDataTokenPrepaymentAmount.String()
 	}
-	gasLimit, err := metisPay.estimateGas("prepay", taskID, taskSponsorAccount, new(big.Int).SetUint64(1), dataTokenAddressList, dataTokenAmountList)
+	//估算gas
+	estimatedGas, err := metisPay.estimateGas("prepay", taskID, taskSponsorAccount, new(big.Int).SetUint64(1), dataTokenAddressList, dataTokenAmountList)
 	if err != nil {
 		log.Errorf("failed to estimate gas for MetisPay.Prepay(), taskID: %s, error: %v", hexutil.EncodeBig(taskID), err)
-		return common.Hash{}, 0, errors.New("failed to estimate gas for MetisPay.Prepay()")
+		return common.Hash{}, errors.New("failed to estimate gas for MetisPay.Prepay()")
 	}
 
-	//估算gas, +30%
-	//gasLimit = uint64(float64(gasLimit) * 1.30)
-
-	opts, err := metisPay.buildTxOpts()
+	//用户预付的总的手续费，尽量放大。用来支付carrier调用prepay()/setter()支付的手续费。
+	//支付助手合约，需要记录用户预付的总的手续费
+	userPrepaidFee := estimatedGas * 5
+	//交易参数直接使用用户预付的总的手续费
+	opts, err := metisPay.buildTxOpts(userPrepaidFee)
 	if err != nil {
 		log.Errorf("failed to build transact options to call MetisPay.Prepay(): %v", err)
-		return common.Hash{}, 0, errors.New("failed to build transact options to call MetisPay.Prepay()")
+		return common.Hash{}, errors.New("failed to build transact options to call MetisPay.Prepay()")
 	}
 
 	log.Debugf("Start call contract prepay(), params{opts: %#v, taskID: %d, taskSponsorAccount: %s, gasLimit: %d, dataTokenAddressList: %s, dataTokenAmountList: %s}",
-		opts, taskID, taskSponsorAccount.String(), gasLimit, "[" + strings.Join(addrs, ",") + "]", "[" + strings.Join(amounts, ",") + "]")
+		opts, taskID, taskSponsorAccount.String(), userPrepaidFee, "["+strings.Join(addrs, ",")+"]", "["+strings.Join(amounts, ",")+"]")
 
-	tx, err := metisPay.contractMetisPayInstance.Prepay(opts, taskID, taskSponsorAccount, new(big.Int).SetUint64(gasLimit), dataTokenAddressList, dataTokenAmountList)
+	tx, err := metisPay.contractMetisPayInstance.Prepay(opts, taskID, taskSponsorAccount, new(big.Int).SetUint64(userPrepaidFee), dataTokenAddressList, dataTokenAmountList)
 	if err != nil {
 		log.WithError(err).Errorf("failed to call MetisPay.Prepay(), taskID: %s", hexutil.EncodeBig(taskID))
-		return common.Hash{}, 0, errors.New("failed to call MetisPay.Prepay()")
+		return common.Hash{}, errors.New("failed to call MetisPay.Prepay()")
 	}
 	log.Debugf("call MetisPay.Prepay() txHash:%v, taskID:%s", tx.Hash().Hex(), hexutil.EncodeBig(taskID))
 
-	return tx.Hash(), gasLimit, nil
+	return tx.Hash(), nil
 }
 
-// Settle get funds clearing, transfers funds from MetisPay to DataToken owner.
-// Settle returns hx.Hash, estimate gas for calling Settle() and error.
-// The complete procedure consists of two calls to MetisPay, the first is Prepay, the second is Settle.
-// The first call - Prepay will estimate the gas for tx and transfer the gas from the task sponsor to MetisPay,
-// but the actual gas used for tx may not match the previous gas estimated, so the second call - Settle can make up for the previous deviation value.
-// gasRefundPrepayment = gasEstimated (for Prepay)   - gasUsed (of Prepay).
-// gasEstimated is returned by Prepay(); gasUsed is returned by GetReceipt() for tx Prepay.
-func (metisPay *MetisPayManager) Settle(taskID *big.Int, gasRefundPrepayment int64) (common.Hash, uint64, error) {
+// Settle get funds clearing,
+// 1. transfers tokens from MetisPay to DataToken owner,
+// 2. transfers gas used to Carrier,
+// 3. refunds gas to task sponsor.
+// Settle returns hx.Hash, and error.
+// gasUsedPrepay - carrier used gas for Prepay()
+
+func (metisPay *MetisPayManager) Settle(taskID *big.Int, gasUsedPrepay uint64) (common.Hash, error) {
 	if metisPay.getPrivateKey() == nil {
 		log.Errorf("cannot send Settle transaction cause organization wallet missing")
-		return common.Hash{}, 0, errors.New("organization private key is missing")
+		return common.Hash{}, errors.New("organization private key is missing")
 	}
 
-	gasLimit, err := metisPay.estimateGas("settle", taskID, new(big.Int).SetUint64(1))
+	//估算gas
+	estimatedGas, err := metisPay.estimateGas("settle", taskID, new(big.Int).SetUint64(1))
 	if err != nil {
 		log.Errorf("failed to estimate gas for MetisPay.Settle(), taskID: %s, error: %v", hexutil.EncodeBig(taskID), err)
-		return common.Hash{}, 0, errors.New("failed to estimate gas for MetisPay.Settle()")
+		return common.Hash{}, errors.New("failed to estimate gas for MetisPay.Settle()")
 	}
-	//估算gas, +30%
-	//gasLimit = uint64(float64(gasLimit) * 1.30)
+	//carrier付出的总的手续费，gasUsedPrepay是准确的，estimatedGas是估计的
+	totalGasUsed := gasUsedPrepay + estimatedGas
 
-	if int64(gasLimit) > gasRefundPrepayment {
-		gasLimit = uint64(int64(gasLimit) - gasRefundPrepayment)
-	}
-
-	opts, err := metisPay.buildTxOpts()
+	//交易参数的gasLimit可以放大，以防止交易执行gas不足；实际并不会真的消耗这么多
+	gasLimit := estimatedGas * 2
+	opts, err := metisPay.buildTxOpts(gasLimit)
 	if err != nil {
 		log.Errorf("failed to build transact options: %v", err)
 	}
 
-	log.Debugf("Start call contract settle(), params{opts: %#v, taskID: %d, gasLimit: %d}",
-		opts, taskID, gasLimit)
+	log.Debugf("call contract settle(), opts: %#v, taskID: %d, totalTxFee: %d", opts, taskID, totalGasUsed)
 
-	tx, err := metisPay.contractMetisPayInstance.Settle(opts, taskID, new(big.Int).SetUint64(gasLimit))
+	//合约
+	tx, err := metisPay.contractMetisPayInstance.Settle(opts, taskID, new(big.Int).SetUint64(totalGasUsed))
 	if err != nil {
 		log.Errorf("failed to call MetisPay.Settle(), taskID: %s, error: %v", hexutil.EncodeBig(taskID), err)
-		return common.Hash{}, 0, errors.New("failed to call MetisPay.Settle()")
+		return common.Hash{}, errors.New("failed to call MetisPay.Settle()")
 	}
-	log.Debugf("call MetisPay.Settle() txHash:%v, taskID:%s ", tx.Hash().Hex(), hexutil.EncodeBig(taskID))
+	log.Debugf("call MetisPay.Settle() txHash:%v, taskID:%s", tx.Hash().Hex(), hexutil.EncodeBig(taskID))
 
-	return tx.Hash(), gasLimit, nil
+	return tx.Hash(), nil
 }
 
 // GetReceipt returns the tx receipt. The caller goroutine will be blocked, and the caller could receive the receipt by channel.
 func (metisPay *MetisPayManager) GetReceipt(ctx context.Context, txHash common.Hash, period time.Duration) *ethereumtypes.Receipt {
-
 	if period < 0 { // do once only
 		receipt, err := metisPay.client.TransactionReceipt(context.Background(), txHash)
 		if nil != err {
