@@ -7,6 +7,7 @@ import (
 	carriercommon "github.com/Metisnetwork/Metis-Carrier/common"
 	"github.com/Metisnetwork/Metis-Carrier/common/hexutil"
 	"github.com/Metisnetwork/Metis-Carrier/common/runutil"
+	"github.com/Metisnetwork/Metis-Carrier/common/signutil"
 	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
 	"github.com/Metisnetwork/Metis-Carrier/common/traceutil"
 	ev "github.com/Metisnetwork/Metis-Carrier/core/evengine"
@@ -14,6 +15,7 @@ import (
 	"github.com/Metisnetwork/Metis-Carrier/core/resource"
 	"github.com/Metisnetwork/Metis-Carrier/core/schedule"
 	ethereumcommon "github.com/ethereum/go-ethereum/common"
+	"github.com/prysmaticlabs/prysm/shared/hashutil"
 	"math/big"
 
 	libapipb "github.com/Metisnetwork/Metis-Carrier/lib/api"
@@ -22,13 +24,11 @@ import (
 	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
 	taskmngpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/taskmng"
 	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/p2p"
 	"github.com/Metisnetwork/Metis-Carrier/policy"
 	"github.com/Metisnetwork/Metis-Carrier/types"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -120,12 +120,6 @@ func (m *Manager) tryScheduleTask() error {
 		}
 	}(nonConsTask)
 	return nil
-}
-
-func (m *Manager) sendNeedExecuteTaskByAction(task *types.NeedExecuteTask) {
-	go func(task *types.NeedExecuteTask) { // asynchronous transmission to reduce Chan blocking
-		m.needExecuteTaskCh <- task
-	}(task)
 }
 
 func (m *Manager) beginConsumeMetadataOrPower(task *types.NeedExecuteTask, localTask *types.Task) error {
@@ -853,13 +847,24 @@ func (m *Manager) sendTaskResultMsgToTaskSender(task *types.NeedExecuteTask, loc
 	} else {
 		option = resource.SetAllReleaseResourceOption() // unlock local resource and remove local task and events
 		// broadcast `task result msg` to reply remote peer
-		taskResultMsg := m.makeTaskResultMsgWithEventList(task)
-		if nil != taskResultMsg {
-			if err := m.p2p.Broadcast(context.TODO(), taskResultMsg); nil != err {
+		msg := m.makeTaskResultMsgWithEventList(task)
+		if nil != msg {
+
+			taskResultMsg := types.FetchTaskResultMsg(msg)
+			// signature the msg and fill sign field of taskResourceUsageMsg
+			sign, err := signutil.SignMsg(taskResultMsg.Hash().Bytes(), m.nodePriKey)
+			if nil != err {
+				log.WithError(err).Errorf("failed to sign taskResultMsg,taskId: {%s}, partyId: {%s}, remote pid: {%s}, err: %s",
+					task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID(), err)
+				return
+			}
+			msg.Sign = sign
+
+			if err := m.p2p.Broadcast(context.TODO(), msg); nil != err {
 				log.WithError(err).Errorf("failed to call `SendTaskResultMsg` on sendTaskResultMsgToTaskSender(), taskId: {%s}, partyId: {%s}, remote pid: {%s}",
 					task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID())
 			} else {
-				log.WithField("traceId", traceutil.GenerateTraceID(taskResultMsg)).Debugf("Succeed broadcast taskResultMsg to taskSender on sendTaskResultMsgToTaskSender(), taskId: {%s}, partyId: {%s}, remote pid: {%s}",
+				log.WithField("traceId", traceutil.GenerateTraceID(msg)).Debugf("Succeed broadcast taskResultMsg to taskSender on sendTaskResultMsgToTaskSender(), taskId: {%s}, partyId: {%s}, remote pid: {%s}",
 					task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID())
 			}
 		}
@@ -874,6 +879,96 @@ func (m *Manager) sendTaskResultMsgToTaskSender(task *types.NeedExecuteTask, loc
 	}
 	log.Debugf("Finished sendTaskResultMsgToTaskSender, taskId: {%s}, partyId: {%s}, remote pid: {%s}",
 		task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID())
+}
+func (m *Manager) sendTaskTerminateMsg(task *types.Task) error {
+
+	sender := task.GetTaskSender()
+
+	needSendLocalMsgFn := func() bool {
+		for i := 0; i < len(task.GetTaskData().GetDataSuppliers()); i++ {
+			if sender.GetIdentityId() == task.GetTaskData().GetDataSuppliers()[i].GetIdentityId() {
+				return true
+			}
+		}
+
+		for i := 0; i < len(task.GetTaskData().GetPowerSuppliers()); i++ {
+			if sender.GetIdentityId() == task.GetTaskData().GetPowerSuppliers()[i].GetIdentityId() {
+				return true
+			}
+		}
+
+		for i := 0; i < len(task.GetTaskData().GetReceivers()); i++ {
+			if sender.GetIdentityId() == task.GetTaskData().GetReceivers()[i].GetIdentityId() {
+				return true
+			}
+		}
+		return false
+	}
+
+	terminateMsg := &taskmngpb.TaskTerminateMsg{
+		MsgOption: &msgcommonpb.MsgOption{
+			ProposalId:      carriercommon.Hash{}.Bytes(),
+			SenderRole:      uint64(libtypes.TaskRole_TaskRole_Sender),
+			SenderPartyId:   []byte(sender.GetPartyId()),
+			ReceiverRole:    uint64(libtypes.TaskRole_TaskRole_Unknown),
+			ReceiverPartyId: []byte{},
+			MsgOwner: &msgcommonpb.TaskOrganizationIdentityInfo{
+				Name:       []byte(sender.GetNodeName()),
+				NodeId:     []byte(sender.GetNodeId()),
+				IdentityId: []byte(sender.GetIdentityId()),
+				PartyId:    []byte(sender.GetPartyId()),
+			},
+		},
+		TaskId:   []byte(task.GetTaskId()),
+		CreateAt: timeutils.UnixMsecUint64(),
+		Sign:     nil,
+	}
+	msg := &types.TaskTerminateTaskMngMsg{
+		MsgOption: types.FetchMsgOption(terminateMsg.GetMsgOption()),
+		TaskId:    string(terminateMsg.GetTaskId()),
+		CreateAt:  terminateMsg.GetCreateAt(),
+	}
+
+	// signature the msg and fill sign field of taskTerminateMsg
+	sign, err := signutil.SignMsg(msg.Hash().Bytes(), m.nodePriKey)
+	if nil != err {
+		return fmt.Errorf("sign taskTerminateMsg, %s", err)
+	}
+	msg.Sign = sign
+
+	errs := make([]string, 0)
+	if needSendLocalMsgFn() {
+		if err := m.onTaskTerminateMsg("", terminateMsg, types.LocalNetworkMsg); nil != err {
+			errs = append(errs, fmt.Sprintf("send taskTerminateMsg to local peer, %s", err))
+		}
+	}
+
+	if err := m.p2p.Broadcast(context.TODO(), terminateMsg); nil != err {
+		errs = append(errs, fmt.Sprintf("send taskTerminateMsg to remote peer, %s", err))
+	}
+
+	log.WithField("traceId", traceutil.GenerateTraceID(terminateMsg)).Debugf("Succeed to call`sendTaskTerminateMsg.%s` taskId: %s",
+		task.GetTaskId())
+
+
+	if len(errs) != 0 {
+		return fmt.Errorf(
+			"\n######################################################## \n%s\n########################################################\n",
+			strings.Join(errs, "\n"))
+	}
+
+	return nil
+}
+func (m *Manager) sendTaskEvent(event *libtypes.TaskEvent) {
+	go func(event *libtypes.TaskEvent) {
+		m.eventCh <- event
+		log.Debugf("Succeed send a task event to manager.loop() on taskManager.sendTaskEvent(), event: %s", event.String())
+	}(event)
+}
+func (m *Manager) sendNeedExecuteTaskByAction(task *types.NeedExecuteTask) {
+	go func(task *types.NeedExecuteTask) { // asynchronous transmission to reduce Chan blocking
+		m.needExecuteTaskCh <- task
+	}(task)
 }
 
 func (m *Manager) StoreExecuteTaskStateBeforeExecuteTask(logdesc, taskId, partyId string) error {
@@ -904,107 +999,7 @@ func (m *Manager) RemoveExecuteTaskStateAfterExecuteTask(logdesc, taskId, partyI
 	return nil
 }
 
-func (m *Manager) sendTaskTerminateMsg(task *types.Task) error {
 
-	sender := task.GetTaskSender()
-
-	sendTerminateMsgFn := func(wg *sync.WaitGroup, sender, receiver *libtypes.TaskOrganization, senderRole, receiverRole libtypes.TaskRole, errCh chan<- error) {
-
-		defer wg.Done()
-
-		pid, err := p2p.HexPeerID(receiver.NodeId)
-		if nil != err {
-			errCh <- fmt.Errorf("failed to nodeId => peerId, taskId: %s, other peer's taskRole: %s, other peer's partyId: %s, other identityId: %s, pid: %s, err: %s",
-				task.GetTaskId(), receiverRole.String(), receiver.GetPartyId(), receiver.GetIdentityId(), pid, err)
-			return
-		}
-
-		terminateMsg := &taskmngpb.TaskTerminateMsg{
-			MsgOption: &msgcommonpb.MsgOption{
-				ProposalId:      carriercommon.Hash{}.Bytes(),
-				SenderRole:      uint64(senderRole),
-				SenderPartyId:   []byte(sender.GetPartyId()),
-				ReceiverRole:    uint64(receiverRole),
-				ReceiverPartyId: []byte(receiver.GetPartyId()),
-				MsgOwner: &msgcommonpb.TaskOrganizationIdentityInfo{
-					Name:       []byte(sender.GetNodeName()),
-					NodeId:     []byte(sender.GetNodeId()),
-					IdentityId: []byte(sender.GetIdentityId()),
-					PartyId:    []byte(sender.GetPartyId()),
-				},
-			},
-			TaskId:   []byte(task.GetTaskId()),
-			CreateAt: timeutils.UnixMsecUint64(),
-			Sign:     nil,
-		}
-
-		//var sendErr error
-		var logdesc string
-		if types.IsSameTaskOrg(sender, receiver) {
-			m.onTaskTerminateMsg(pid, terminateMsg, types.LocalNetworkMsg)
-			logdesc = "OnTaskTerminateMsg()"
-		} else {
-			m.p2p.Broadcast(context.TODO(), terminateMsg)
-			logdesc = "Broadcast()"
-		}
-
-		log.WithField("traceId", traceutil.GenerateTraceID(terminateMsg)).Debugf("Succeed to call`sendTaskTerminateMsg.%s` taskId: %s, other peer's taskRole: %s, other peer's partyId: %s, other identityId: %s, pid: %s",
-			logdesc, task.GetTaskId(), receiverRole.String(), receiver.GetPartyId(), receiver.GetIdentityId(), pid)
-
-	}
-
-	size := (len(task.GetTaskData().GetDataSuppliers())) + len(task.GetTaskData().GetPowerSuppliers()) + len(task.GetTaskData().GetReceivers())
-	errCh := make(chan error, size)
-	var wg sync.WaitGroup
-
-	for i := 0; i < len(task.GetTaskData().GetDataSuppliers()); i++ {
-
-		wg.Add(1)
-		dataSupplier := task.GetTaskData().GetDataSuppliers()[i]
-		receiver := dataSupplier
-		go sendTerminateMsgFn(&wg, sender, receiver, libtypes.TaskRole_TaskRole_Sender, libtypes.TaskRole_TaskRole_DataSupplier, errCh)
-
-	}
-	for i := 0; i < len(task.GetTaskData().GetPowerSuppliers()); i++ {
-
-		wg.Add(1)
-		powerSupplier := task.GetTaskData().GetPowerSuppliers()[i]
-		receiver := powerSupplier
-		go sendTerminateMsgFn(&wg, sender, receiver, libtypes.TaskRole_TaskRole_Sender, libtypes.TaskRole_TaskRole_PowerSupplier, errCh)
-
-	}
-
-	for i := 0; i < len(task.GetTaskData().GetReceivers()); i++ {
-
-		wg.Add(1)
-		receiver := task.GetTaskData().GetReceivers()[i]
-		go sendTerminateMsgFn(&wg, sender, receiver, libtypes.TaskRole_TaskRole_Sender, libtypes.TaskRole_TaskRole_Receiver, errCh)
-	}
-
-	wg.Wait()
-	close(errCh)
-
-	errStrs := make([]string, 0)
-
-	for err := range errCh {
-		if nil != err {
-			errStrs = append(errStrs, err.Error())
-		}
-	}
-	if len(errStrs) != 0 {
-		return fmt.Errorf(
-			"\n######################################################## \n%s\n########################################################\n",
-			strings.Join(errStrs, "\n"))
-	}
-	return nil
-}
-
-func (m *Manager) sendTaskEvent(event *libtypes.TaskEvent) {
-	go func(event *libtypes.TaskEvent) {
-		m.eventCh <- event
-		log.Debugf("Succeed send a task event to manager.loop() on taskManager.sendTaskEvent(), event: %s", event.String())
-	}(event)
-}
 
 func (m *Manager) publishBadTaskToDataCenter(task *types.Task, events []*libtypes.TaskEvent, reason string) error {
 	task.GetTaskData().TaskEvents = events
@@ -2081,7 +2076,17 @@ func (m *Manager) ValidateTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.Ta
 
 func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResultMsg) error {
 
+	if err := m.ContainsOrAddMsg(taskResultMsg); nil != err {
+		return err
+	}
+
 	msg := types.FetchTaskResultMsg(taskResultMsg)
+
+	// Verify the signature
+	_, err := signutil.VerifyMsgSign(msg.GetMsgOption().GetOwner().GetNodeId(), msg.Hash().Bytes(), msg.GetSign())
+	if err != nil {
+		return fmt.Errorf("verify taskResultMsg sign %s", err)
+	}
 
 	if len(msg.GetTaskEventList()) == 0 {
 		return nil
@@ -2163,7 +2168,17 @@ func (m *Manager) OnTaskResourceUsageMsg(pid peer.ID, usageMsg *taskmngpb.TaskRe
 
 func (m *Manager) onTaskResourceUsageMsg(pid peer.ID, usageMsg *taskmngpb.TaskResourceUsageMsg, nmls types.NetworkMsgLocationSymbol) error {
 
+	if err := m.ContainsOrAddMsg(usageMsg); nil != err {
+		return err
+	}
+
 	msg := types.FetchTaskResourceUsageMsg(usageMsg)
+
+	// Verify the signature
+	_, err := signutil.VerifyMsgSign(msg.GetMsgOption().GetOwner().GetNodeId(), msg.Hash().Bytes(), msg.GetSign())
+	if err != nil {
+		return fmt.Errorf("verify usageMsg sign %s", err)
+	}
 
 	if msg.GetMsgOption().GetSenderPartyId() != msg.GetUsage().GetPartyId() {
 		log.Errorf("sender partyId of usageMsg AND partyId of usageMsg is not same when received taskResourceUsageMsg, taskId: {%s}, sender partyId: {%s}, usagemsgPartyId: {%s}",
@@ -2232,7 +2247,18 @@ func (m *Manager) OnTaskTerminateMsg(pid peer.ID, terminateMsg *taskmngpb.TaskTe
 }
 
 func (m *Manager) onTaskTerminateMsg(pid peer.ID, terminateMsg *taskmngpb.TaskTerminateMsg, nmls types.NetworkMsgLocationSymbol) error {
+
+	if err := m.ContainsOrAddMsg(terminateMsg); nil != err {
+		return err
+	}
+
 	msg := types.FetchTaskTerminateTaskMngMsg(terminateMsg)
+
+	// Verify the signature
+	_, err := signutil.VerifyMsgSign(msg.GetMsgOption().GetOwner().GetNodeId(), msg.Hash().Bytes(), msg.GetSign())
+	if err != nil {
+		return fmt.Errorf("verify terminateMsg sign %s", err)
+	}
 
 	task, err := m.resourceMng.GetDB().QueryLocalTask(msg.GetTaskId())
 	if nil != err {
@@ -2370,7 +2396,7 @@ func (m *Manager) startTerminateWithNeedExecuteTask(needExecuteTask *types.NeedE
 		types.TaskTerminate,
 		&types.PrepareVoteResource{},   // zero value
 		&twopcpb.ConfirmTaskPeerInfo{}, // zero value
-		fmt.Errorf("task was terminated."),
+		fmt.Errorf("task was terminated"),
 	))
 	return nil
 }
@@ -2381,6 +2407,84 @@ func (m *Manager) checkNeedExecuteTaskMonitors(now int64) int64 {
 
 func (m *Manager) needExecuteTaskMonitorTimer() *time.Timer {
 	return m.syncExecuteTaskMonitors.Timer()
+}
+
+func (m *Manager) AddMsg(msg interface{}) bool {
+	switch msg.(type) {
+	case *taskmngpb.TaskResourceUsageMsg:
+		pure := msg.(*taskmngpb.TaskResourceUsageMsg)
+		v := hashutil.Hash([]byte(pure.String()))
+		key := append(taskResourceUsageMsgCacheKeyPrefix, v[:]...)
+		return m.msgCache.Add(string(key), struct {}{})
+	case *taskmngpb.TaskResultMsg:
+		pure := msg.(*taskmngpb.TaskResultMsg)
+		v := hashutil.Hash([]byte(pure.String()))
+		key := append(taskResultMsgCacheKeyPrefix, v[:]...)
+		return m.msgCache.Add(string(key), struct {}{})
+	case *taskmngpb.TaskTerminateMsg:
+		pure := msg.(*taskmngpb.TaskTerminateMsg)
+		v := hashutil.Hash([]byte(pure.String()))
+		key := append(taskTerminateMsgCacheKeyPrefix, v[:]...)
+		return m.msgCache.Add(string(key), struct {}{})
+	default:
+		return false
+	}
+}
+
+func (m *Manager) ContainMsg(msg interface{}) bool {
+	switch msg.(type) {
+	case *taskmngpb.TaskResourceUsageMsg:
+		pure := msg.(*taskmngpb.TaskResourceUsageMsg)
+		v := hashutil.Hash([]byte(pure.String()))
+		key := append(taskResourceUsageMsgCacheKeyPrefix, v[:]...)
+		return m.msgCache.Contains(string(key))
+	case *taskmngpb.TaskResultMsg:
+		pure := msg.(*taskmngpb.TaskResultMsg)
+		v := hashutil.Hash([]byte(pure.String()))
+		key := append(taskResultMsgCacheKeyPrefix, v[:]...)
+		return m.msgCache.Contains(string(key))
+	case *taskmngpb.TaskTerminateMsg:
+		pure := msg.(*taskmngpb.TaskTerminateMsg)
+		v := hashutil.Hash([]byte(pure.String()))
+		key := append(taskTerminateMsgCacheKeyPrefix, v[:]...)
+		return m.msgCache.Contains(string(key))
+	default:
+		return false
+	}
+}
+
+// return: ok, evict
+func (m *Manager) ContainsOrAddMsg(msg interface{}) error {
+	var (
+		has bool
+		evict bool
+	)
+	switch msg.(type) {
+	case *taskmngpb.TaskResourceUsageMsg:
+		pure := msg.(*taskmngpb.TaskResourceUsageMsg)
+		v := hashutil.Hash([]byte(pure.String()))
+		key := append(taskResourceUsageMsgCacheKeyPrefix, v[:]...)
+		has, evict = m.msgCache.ContainsOrAdd(string(key), struct {}{})
+	case *taskmngpb.TaskResultMsg:
+		pure := msg.(*taskmngpb.TaskResultMsg)
+		v := hashutil.Hash([]byte(pure.String()))
+		key := append(taskResultMsgCacheKeyPrefix, v[:]...)
+		has, evict = m.msgCache.ContainsOrAdd(string(key), struct {}{})
+	case *taskmngpb.TaskTerminateMsg:
+		pure := msg.(*taskmngpb.TaskTerminateMsg)
+		v := hashutil.Hash([]byte(pure.String()))
+		key := append(taskTerminateMsgCacheKeyPrefix, v[:]...)
+		has, evict = m.msgCache.ContainsOrAdd(string(key), struct {}{})
+	default:
+		has, evict = false, false
+	}
+	if has {
+		return fmt.Errorf("not found key value on lru cache")
+	}
+	if !evict {
+		return fmt.Errorf("add key value to lru cache failed")
+	}
+	return nil
 }
 
 func fetchOrgByPartyRole(partyId string, role libtypes.TaskRole, task *types.Task) *libtypes.TaskOrganization {

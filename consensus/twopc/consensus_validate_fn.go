@@ -1,14 +1,11 @@
 package twopc
 
 import (
-	"bytes"
-	"crypto/elliptic"
 	"fmt"
 	ctypes "github.com/Metisnetwork/Metis-Carrier/consensus/twopc/types"
 	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
 	"github.com/Metisnetwork/Metis-Carrier/p2p"
 	"github.com/Metisnetwork/Metis-Carrier/types"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"strings"
 )
@@ -114,49 +111,3 @@ func (t *Twopc) validateOranization(identity *libtypes.TaskOrganization) error {
 
 	return nil
 }
-
-func (t *Twopc) verifyMsgSigned(nodeId string, m []byte, sig []byte) (bool, error) {
-	// Verify the signature
-	if len(sig) < types.MsgSignLength {
-		return false, ctypes.ErrMsgSignInvalid
-	}
-
-	recPubKey, err := crypto.Ecrecover(m, sig)
-	if err != nil {
-		return false, err
-	}
-
-	ownerNodeId, err := p2p.HexID(nodeId)
-	if nil != err {
-		return false, ctypes.ErrMsgOwnerNodeIdInvalid
-	}
-	ownerPubKey, err := ownerNodeId.Pubkey()
-	if nil != err {
-		return false, ctypes.ErrMsgOwnerNodeIdInvalid
-	}
-	pbytes := elliptic.Marshal(ownerPubKey.Curve, ownerPubKey.X, ownerPubKey.Y)
-	if !bytes.Equal(pbytes, recPubKey) {
-		return false, ctypes.ErrMsgSignInvalid
-	}
-	return true, nil
-}
-
-func (t *Twopc) verifySelfSigned(m []byte, sig []byte) bool {
-	recPubKey, err := crypto.Ecrecover(m, sig)
-	if err != nil {
-		return false
-	}
-	pubKey := t.config.Option.NodePriKey.PublicKey
-	pbytes := elliptic.Marshal(pubKey.Curve, pubKey.X, pubKey.Y)
-	return bytes.Equal(pbytes, recPubKey)
-}
-
-//// VerifyHeader verify block's header.
-//func (vp *ValidatorPool) VerifyHeader(header *types.Header) error {
-//	_, err := crypto.Ecrecover(header.SealHash().Bytes(), header.Signature())
-//	if err != nil {
-//		return err
-//	}
-//	// todo: need confirmed.
-//	return vp.agency.VerifyHeader(header, nil)
-//}

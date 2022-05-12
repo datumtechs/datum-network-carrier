@@ -6,6 +6,7 @@ import (
 	"github.com/Metisnetwork/Metis-Carrier/common"
 	"github.com/Metisnetwork/Metis-Carrier/common/bytesutil"
 	"github.com/Metisnetwork/Metis-Carrier/common/rlputil"
+	"github.com/Metisnetwork/Metis-Carrier/common/signutil"
 	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
 	"github.com/Metisnetwork/Metis-Carrier/common/traceutil"
 	ctypes "github.com/Metisnetwork/Metis-Carrier/consensus/twopc/types"
@@ -238,7 +239,7 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 	}
 
 	// Verify the signature
-	_, err = t.verifyMsgSigned(msg.GetMsgOption().GetOwner().GetNodeId(), msg.Hash().Bytes(), msg.GetSign())
+	_, err = signutil.VerifyMsgSign(msg.GetMsgOption().GetOwner().GetNodeId(), msg.Hash().Bytes(), msg.GetSign())
 	if err != nil {
 		return fmt.Errorf("verify prepareMsg sign %s", err)
 	}
@@ -459,7 +460,7 @@ func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap, n
 	vote := fetchPrepareVote(prepareVote)
 
 	// Verify the signature
-	_, err := t.verifyMsgSigned(vote.GetMsgOption().GetOwner().GetNodeId(), vote.Hash().Bytes(), vote.GetSign())
+	_, err := signutil.VerifyMsgSign(vote.GetMsgOption().GetOwner().GetNodeId(), vote.Hash().Bytes(), vote.GetSign())
 	if err != nil {
 		return fmt.Errorf("verify prepareVote sign %s", err)
 	}
@@ -656,7 +657,7 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, nmls
 	msg := fetchConfirmMsg(confirmMsg)
 
 	// Verify the signature
-	_, err := t.verifyMsgSigned(msg.GetMsgOption().GetOwner().GetNodeId(), msg.Hash().Bytes(), msg.GetSign())
+	_, err := signutil.VerifyMsgSign(msg.GetMsgOption().GetOwner().GetNodeId(), msg.Hash().Bytes(), msg.GetSign())
 	if err != nil {
 		return fmt.Errorf("verify confirmMsg sign %s", err)
 	}
@@ -901,7 +902,7 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, n
 	vote := fetchConfirmVote(confirmVote)
 
 	// Verify the signature
-	_, err := t.verifyMsgSigned(vote.GetMsgOption().GetOwner().GetNodeId(), vote.Hash().Bytes(), vote.GetSign())
+	_, err := signutil.VerifyMsgSign(vote.GetMsgOption().GetOwner().GetNodeId(), vote.Hash().Bytes(), vote.GetSign())
 	if err != nil {
 		return fmt.Errorf("verify confirmVote sign %s", err)
 	}
@@ -1090,7 +1091,7 @@ func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap, nmls ty
 	msg := fetchCommitMsg(cimmitMsg)
 
 	// Verify the signature
-	_, err := t.verifyMsgSigned(msg.GetMsgOption().GetOwner().GetNodeId(), msg.Hash().Bytes(), msg.GetSign())
+	_, err := signutil.VerifyMsgSign(msg.GetMsgOption().GetOwner().GetNodeId(), msg.Hash().Bytes(), msg.GetSign())
 	if err != nil {
 		return fmt.Errorf("verify confirmVote sign %s", err)
 	}

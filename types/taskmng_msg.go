@@ -1,7 +1,11 @@
 package types
 
 import (
+	"bytes"
 	"fmt"
+	"github.com/Metisnetwork/Metis-Carrier/common"
+	"github.com/Metisnetwork/Metis-Carrier/common/bytesutil"
+	"github.com/Metisnetwork/Metis-Carrier/common/rlputil"
 	taskmngpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/taskmng"
 	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
 )
@@ -17,6 +21,44 @@ func (msg *TaskResultMsg) String() string {
 	return fmt.Sprintf(`{"msgOption": %s, "createAt": %d, "sign": %v}`,
 		msg.GetMsgOption().String(), msg.GetCreateAt(), msg.GetSign())
 }
+func (msg *TaskResultMsg) Hash() common.Hash {
+
+	/**
+	MsgOption     *MsgOption
+	TaskEventList []*libtypes.TaskEvent
+	CreateAt      uint64
+	*/
+
+	var buf bytes.Buffer
+
+	buf.Write(msg.GetMsgOption().Hash().Bytes())
+
+	eventBytes := make([]byte, 0)
+	for _, event := range msg.GetTaskEventList() {
+
+		/**
+		Type                 string
+		TaskId               string
+		IdentityId           string
+		PartyId              string
+		Content              string
+		CreateAt             uint64
+		*/
+		eventBytes = append(eventBytes, []byte(event.GetType())...)
+		eventBytes = append(eventBytes, []byte(event.GetTaskId())...)
+		eventBytes = append(eventBytes, []byte(event.GetIdentityId())...)
+		eventBytes = append(eventBytes, []byte(event.GetPartyId())...)
+		eventBytes = append(eventBytes, []byte(event.GetContent())...)
+		eventBytes = append(eventBytes, bytesutil.Uint64ToBytes(event.GetCreateAt())...)
+	}
+
+	buf.Write(eventBytes)
+	buf.Write(bytesutil.Uint64ToBytes(msg.GetCreateAt()))
+
+	v := rlputil.RlpHash(buf.Bytes())
+	return v
+}
+
 
 func (msg *TaskResultMsg) GetMsgOption() *MsgOption                { return msg.MsgOption }
 func (msg *TaskResultMsg) GetTaskEventList() []*libtypes.TaskEvent { return msg.TaskEventList }
@@ -51,6 +93,23 @@ type TaskResourceUsageMsg struct {
 func (msg *TaskResourceUsageMsg) String() string {
 	return fmt.Sprintf(`{"msgOption": %s, "usage": %s, "createAt": %d, "sign": %v}`,
 		msg.GetMsgOption().String(), msg.GetUsage().String(), msg.GetCreateAt(), msg.GetSign())
+}
+func (msg *TaskResourceUsageMsg) Hash() common.Hash {
+
+	/**
+	MsgOption *MsgOption
+	Usage     *TaskResuorceUsage
+	CreateAt  uint64
+	*/
+
+	var buf bytes.Buffer
+
+	buf.Write(msg.GetMsgOption().Hash().Bytes())
+	buf.Write(msg.GetUsage().Hash().Bytes())
+	buf.Write(bytesutil.Uint64ToBytes(msg.GetCreateAt()))
+
+	v := rlputil.RlpHash(buf.Bytes())
+	return v
 }
 
 func (msg *TaskResourceUsageMsg) GetMsgOption() *MsgOption     { return msg.MsgOption }
@@ -88,6 +147,23 @@ type TaskTerminateTaskMngMsg struct {
 func (msg *TaskTerminateTaskMngMsg) String() string {
 	return fmt.Sprintf(`{"msgOption": %s, "taskId": %s, "createAt": %d, "sign": %v}`,
 		msg.GetMsgOption().String(), msg.GetTaskId(), msg.GetCreateAt(), msg.GetSign())
+}
+func (msg *TaskTerminateTaskMngMsg) Hash() common.Hash {
+
+	/**
+	MsgOption *MsgOption
+	TaskId    string
+	CreateAt  uint64
+	*/
+
+	var buf bytes.Buffer
+
+	buf.Write(msg.GetMsgOption().Hash().Bytes())
+	buf.Write([]byte(msg.GetTaskId()))
+	buf.Write(bytesutil.Uint64ToBytes(msg.GetCreateAt()))
+
+	v := rlputil.RlpHash(buf.Bytes())
+	return v
 }
 
 func (msg *TaskTerminateTaskMngMsg) GetMsgOption() *MsgOption { return msg.MsgOption }

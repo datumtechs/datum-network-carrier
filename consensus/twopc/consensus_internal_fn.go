@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/Metisnetwork/Metis-Carrier/common"
+	"github.com/Metisnetwork/Metis-Carrier/common/signutil"
 	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
 	"github.com/Metisnetwork/Metis-Carrier/common/traceutil"
 	ctypes "github.com/Metisnetwork/Metis-Carrier/consensus/twopc/types"
@@ -12,7 +13,6 @@ import (
 	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
 	"github.com/Metisnetwork/Metis-Carrier/p2p"
 	"github.com/Metisnetwork/Metis-Carrier/types"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"strings"
@@ -403,7 +403,7 @@ func (t *Twopc) sendPrepareMsg(proposalId common.Hash, nonConsTask *types.NeedCo
 	}
 
 	// signature the msg and fill sign field of prepareMsg
-	sign, err := crypto.Sign(msg.Hash().Bytes(), t.config.Option.NodePriKey)
+	sign, err := signutil.SignMsg(msg.Hash().Bytes(), t.config.Option.NodePriKey)
 	if nil != err {
 		return fmt.Errorf("failed to sign prepareMsg, proposalId: %s, err: %s",
 			msg.GetMsgOption().GetProposalId().String(), err)
@@ -443,7 +443,7 @@ func (t *Twopc) sendPrepareVote(pid peer.ID, sender, receiver *libtypes.TaskOrga
 	}
 
 	// signature the msg and fill sign field of prepareVote
-	sign, err := crypto.Sign(vote.Hash().Bytes(), t.config.Option.NodePriKey)
+	sign, err := signutil.SignMsg(vote.Hash().Bytes(), t.config.Option.NodePriKey)
 	if nil != err {
 		return fmt.Errorf("failed to sign prepareVote, proposalId: %s, err: %s",
 			vote.GetMsgOption().GetProposalId().String(), err)
@@ -494,7 +494,7 @@ func (t *Twopc) sendConfirmMsg(proposalId common.Hash, task *types.Task, peers *
 	}
 
 	// signature the msg and fill sign field of confirmMsg
-	sign, err := crypto.Sign(msg.Hash().Bytes(), t.config.Option.NodePriKey)
+	sign, err := signutil.SignMsg(msg.Hash().Bytes(), t.config.Option.NodePriKey)
 	if nil != err {
 		return fmt.Errorf("failed to sign confirmMsg, proposalId: %s, err: %s",
 			msg.GetMsgOption().GetProposalId().String(), err)
@@ -533,7 +533,7 @@ func (t *Twopc) sendConfirmVote(pid peer.ID, sender, receiver *libtypes.TaskOrga
 	}
 
 	// signature the msg and fill sign field of confirmVote
-	sign, err := crypto.Sign(vote.Hash().Bytes(), t.config.Option.NodePriKey)
+	sign, err := signutil.SignMsg(vote.Hash().Bytes(), t.config.Option.NodePriKey)
 	if nil != err {
 		return fmt.Errorf("failed to sign confirmVote, proposalId: %s, err: %s",
 			vote.GetMsgOption().GetProposalId().String(), err)
@@ -584,7 +584,7 @@ func (t *Twopc) sendCommitMsg(proposalId common.Hash, task *types.Task, option t
 	}
 
 	// signature the msg and fill sign field of commitMsg
-	sign, err := crypto.Sign(msg.Hash().Bytes(), t.config.Option.NodePriKey)
+	sign, err := signutil.SignMsg(msg.Hash().Bytes(), t.config.Option.NodePriKey)
 	if nil != err {
 		return fmt.Errorf("failed to sign commitMsg, proposalId: %s, err: %s",
 			msg.GetMsgOption().GetProposalId().String(), err)

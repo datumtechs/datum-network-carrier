@@ -116,7 +116,8 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 		metisPayManager = metispay.NewMetisPayManager(config.CarrierDB, metispayConfig, kmsConfig)
 	}
 
-	taskManager := task.NewTaskManager(
+	taskManager, err := task.NewTaskManager(
+		config.P2P.PirKey(),
 		config.P2P,
 		scheduler,
 		twopcEngine,
@@ -129,6 +130,9 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 		taskConsResultCh,
 		config.TaskManagerConfig,
 	)
+	if nil != err {
+		return nil, err
+	}
 
 	s := &Service{
 		ctx:             ctx,

@@ -2,11 +2,13 @@ package task
 
 import (
 	"context"
+	"crypto/ecdsa"
 	"fmt"
 	"github.com/Metisnetwork/Metis-Carrier/ach/auth"
 	"github.com/Metisnetwork/Metis-Carrier/ach/metispay"
 	"github.com/Metisnetwork/Metis-Carrier/common"
 	"github.com/Metisnetwork/Metis-Carrier/common/bytesutil"
+	"github.com/Metisnetwork/Metis-Carrier/common/signutil"
 	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
 	"github.com/Metisnetwork/Metis-Carrier/common/traceutil"
 	"github.com/Metisnetwork/Metis-Carrier/consensus"
@@ -35,6 +37,7 @@ const (
 )
 
 type Manager struct {
+	nodePriKey      *ecdsa.PrivateKey
 	p2p             p2p.P2P
 	scheduler       schedule.Scheduler
 	consensusEngine consensus.Engine
@@ -45,7 +48,7 @@ type Manager struct {
 	parser          *TaskParser
 	validator       *TaskValidator
 	eventCh         chan *libtypes.TaskEvent
-	quit            chan struct{}
+
 	// send the validated taskMsgs to scheduler
 	localTasksCh             chan types.TaskDataArray
 	taskConsResultCh         chan *types.TaskConsResult
@@ -53,12 +56,15 @@ type Manager struct {
 	needExecuteTaskCh        chan *types.NeedExecuteTask
 	runningTaskCache         map[string]map[string]*types.NeedExecuteTask //  taskId -> {partyId -> task}
 	syncExecuteTaskMonitors  *types.SyncExecuteTaskMonitorQueue
+	quit                     chan struct{}
 	runningTaskCacheLock     sync.RWMutex
 	// add by v 0.4.0
-	config *params.TaskManagerConfig
+	config   *params.TaskManagerConfig
+	msgCache *TaskmngMsgCache
 }
 
 func NewTaskManager(
+	nodePriKey *ecdsa.PrivateKey,
 	p2p p2p.P2P,
 	scheduler schedule.Scheduler,
 	consensusEngine consensus.Engine,
@@ -70,9 +76,15 @@ func NewTaskManager(
 	needExecuteTaskCh chan *types.NeedExecuteTask,
 	taskConsResultCh chan *types.TaskConsResult,
 	config *params.TaskManagerConfig,
-) *Manager {
+) (*Manager, error) {
+
+	cache, err := NewTaskmngMsgCache(defaultTaskmngMsgCacheSize)
+	if nil != err {
+		return nil, err
+	}
 
 	m := &Manager{
+		nodePriKey:               nodePriKey,
 		p2p:                      p2p,
 		scheduler:                scheduler,
 		consensusEngine:          consensusEngine,
@@ -90,8 +102,9 @@ func NewTaskManager(
 		runningTaskCache:         make(map[string]map[string]*types.NeedExecuteTask, 0), // taskId -> partyId -> needExecuteTask
 		syncExecuteTaskMonitors:  types.NewSyncExecuteTaskMonitorQueue(0),
 		quit:                     make(chan struct{}),
+		msgCache:                 cache,
 	}
-	return m
+	return m, nil
 }
 func (m *Manager) recoveryNeedExecuteTask() {
 	prefix := rawdb.GetNeedExecuteTaskKeyPrefix()
@@ -641,7 +654,7 @@ func (m *Manager) HandleReportResourceUsage(usage *types.TaskResuorceUsage) erro
 		needExecuteTask.GetRemoteTaskOrganization().GetIdentityId() != identityId &&
 		needExecuteTask.GetRemoteTaskOrganization().GetIdentityId() == task.GetTaskSender().GetIdentityId() {
 
-		msg := &taskmngpb.TaskResourceUsageMsg{
+		usageMsg := &taskmngpb.TaskResourceUsageMsg{
 			MsgOption: &msgcommonpb.MsgOption{
 				ProposalId:      common.Hash{}.Bytes(),
 				SenderRole:      uint64(needExecuteTask.GetLocalTaskRole()),
@@ -669,15 +682,38 @@ func (m *Manager) HandleReportResourceUsage(usage *types.TaskResuorceUsage) erro
 			CreateAt: timeutils.UnixMsecUint64(),
 			Sign:     nil,
 		}
+		msg := &types.TaskResourceUsageMsg{
+			MsgOption: types.FetchMsgOption(usageMsg.GetMsgOption()),
+			Usage: types.NewTaskResuorceUsage(
+				string(usageMsg.GetTaskId()),
+				string(usageMsg.GetMsgOption().GetSenderPartyId()),
+				usageMsg.GetUsage().GetTotalMem(),
+				usageMsg.GetUsage().GetTotalBandwidth(),
+				usageMsg.GetUsage().GetTotalDisk(),
+				usageMsg.GetUsage().GetUsedMem(),
+				usageMsg.GetUsage().GetUsedBandwidth(),
+				usageMsg.GetUsage().GetUsedDisk(),
+				uint32(usageMsg.GetUsage().GetTotalProcessor()),
+				uint32(usageMsg.GetUsage().GetUsedProcessor()),
+			),
+			CreateAt: usageMsg.GetCreateAt(),
+		}
+
+		// signature the msg and fill sign field of taskResourceUsageMsg
+		sign, err := signutil.SignMsg(msg.Hash().Bytes(), m.nodePriKey)
+		if nil != err {
+			return fmt.Errorf("sign taskResourceUsageMsg, %s", err)
+		}
+		msg.Sign = sign
 
 		// broadcast `task resource usage msg` to reply remote peer
 		// send resource usage quo to remote peer that it will update power supplier resource usage info of task.
 		//
-		if err := m.p2p.Broadcast(context.TODO(), msg); nil != err {
+		if err := m.p2p.Broadcast(context.TODO(), usageMsg); nil != err {
 			log.WithError(err).Errorf("failed to call `SendTaskResourceUsageMsg` on taskManager.HandleReportResourceUsage(), taskId: {%s},  partyId: {%s}, remote pid: {%s}",
 				task.GetTaskId(), needExecuteTask.GetLocalTaskOrganization().GetPartyId(), needExecuteTask.GetRemotePID())
 		} else {
-			log.WithField("traceId", traceutil.GenerateTraceID(msg)).Debugf("Succeed to call `SendTaskResourceUsageMsg` on taskManager.HandleReportResourceUsage(), taskId: {%s},  partyId: {%s}, remote pid: {%s}",
+			log.WithField("traceId", traceutil.GenerateTraceID(usageMsg)).Debugf("Succeed to call `SendTaskResourceUsageMsg` on taskManager.HandleReportResourceUsage(), taskId: {%s},  partyId: {%s}, remote pid: {%s}",
 				task.GetTaskId(), needExecuteTask.GetLocalTaskOrganization().GetPartyId(), needExecuteTask.GetRemotePID())
 		}
 

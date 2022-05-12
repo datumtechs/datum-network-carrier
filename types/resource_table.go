@@ -1,7 +1,11 @@
 package types
 
 import (
+	"bytes"
 	"fmt"
+	"github.com/Metisnetwork/Metis-Carrier/common"
+	"github.com/Metisnetwork/Metis-Carrier/common/bytesutil"
+	"github.com/Metisnetwork/Metis-Carrier/common/rlputil"
 	"github.com/ethereum/go-ethereum/rlp"
 	"io"
 	"sync/atomic"
@@ -643,6 +647,37 @@ func (tru *TaskResuorceUsage) DecodeRLP(s *rlp.Stream) error {
 func (tru *TaskResuorceUsage) String() string {
 	return fmt.Sprintf(`{"taskId": %s, "partyId": %s, "totalMem": %d, "totalBandwidth": %d, "totalDisk": %d, "totalProcessor": %d, "usedMem": %d, "usedBandwidth": %d, "usedDisk": %d, "usedProcessor": %d}`,
 		tru.taskId, tru.partyId, tru.totalMem, tru.totalBandwidth, tru.totalDisk, tru.totalProcessor, tru.usedMem, tru.usedBandwidth, tru.usedDisk, tru.usedProcessor)
+}
+func (msg *TaskResuorceUsage) Hash() common.Hash {
+
+	/**
+	taskId         string
+	partyId        string
+	totalMem       uint64
+	totalProcessor uint32
+	totalBandwidth uint64
+	totalDisk      uint64
+	usedMem        uint64
+	usedProcessor  uint32
+	usedBandwidth  uint64
+	usedDisk       uint64
+	*/
+
+	var buf bytes.Buffer
+
+	buf.Write([]byte(msg.GetTaskId()))
+	buf.Write([]byte(msg.GetPartyId()))
+	buf.Write(bytesutil.Uint64ToBytes(msg.GetTotalMem()))
+	buf.Write(bytesutil.Uint32ToBytes(msg.GetTotalProcessor()))
+	buf.Write(bytesutil.Uint64ToBytes(msg.GetTotalBandwidth()))
+	buf.Write(bytesutil.Uint64ToBytes(msg.GetTotalDisk()))
+	buf.Write(bytesutil.Uint64ToBytes(msg.GetUsedMem()))
+	buf.Write(bytesutil.Uint32ToBytes(msg.GetUsedProcessor()))
+	buf.Write(bytesutil.Uint64ToBytes(msg.GetUsedBandwidth()))
+	buf.Write(bytesutil.Uint64ToBytes(msg.GetUsedDisk()))
+
+	v := rlputil.RlpHash(buf.Bytes())
+	return v
 }
 
 func (tru *TaskResuorceUsage) GetTaskId() string         { return tru.taskId }
