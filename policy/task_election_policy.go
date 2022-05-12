@@ -4,16 +4,16 @@ import "encoding/json"
 
 // VRF election
 type VRFElectionEvidence struct {
-	nonce      []byte
-	weights    [][]byte
-	electionAt uint64
+	Nonce      []byte
+	Weights    [][]byte
+	ElectionAt uint64
 }
 
 func NewVRFElectionEvidence(nonce []byte, weights [][]byte, electionAt uint64) *VRFElectionEvidence {
 	return &VRFElectionEvidence{
-		nonce:      nonce,
-		weights:    weights,
-		electionAt: electionAt,
+		Nonce:      nonce,
+		Weights:    weights,
+		ElectionAt: electionAt,
 	}
 }
 
@@ -32,6 +32,6 @@ func (e *VRFElectionEvidence) DecodeJson(jsonStr string) error {
 	return nil
 }
 
-func (e *VRFElectionEvidence) GetNonce() []byte { return e.nonce }
-func (e *VRFElectionEvidence) GetWeights() [][]byte { return e.weights }
-func (e *VRFElectionEvidence) GetElectionAt() uint64 { return e.electionAt }
+func (e *VRFElectionEvidence) GetNonce() []byte { return e.Nonce }
+func (e *VRFElectionEvidence) GetWeights() [][]byte { return e.Weights }
+func (e *VRFElectionEvidence) GetElectionAt() uint64 { return e.ElectionAt }
