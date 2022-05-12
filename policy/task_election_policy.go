@@ -2,7 +2,7 @@ package policy
 
 import "encoding/json"
 
-// VRF election
+// VRF election evidence
 type VRFElectionEvidence struct {
 	Nonce      []byte   `json:"nonce"`
 	Weights    [][]byte `json:"weights"`
