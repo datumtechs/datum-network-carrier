@@ -700,7 +700,7 @@ func (sche *SchedulerStarveFIFO) scheduleVrfElectionPower(taskId string, cost *c
 		return "", nil, nil, fmt.Errorf("election powerOrg failed, %s", err)
 	}
 
-	evidenceJson, err := policy.NewVRFElectionEvidence(nonce, weights, now).MarshalJSON()
+	evidenceJson, err := json.Marshal(policy.NewVRFElectionEvidence(nonce, weights, now))
 	if nil != err {
 		log.WithError(err).Errorf("Failed to encode evidence on scheduleVrfElectionPower(), taskId: {%s}", taskId)
 		return "", nil, nil, fmt.Errorf("encode evidence failed, %s", err)
@@ -761,7 +761,8 @@ func (sche *SchedulerStarveFIFO) reScheduleVrfElectionPower(taskId, nodeId strin
 	}
 
 	var evidence *policy.VRFElectionEvidence
-	if err := evidence.UnmarshalJSON([]byte(evidenceJson)); nil != err {
+
+	if err := json.Unmarshal([]byte(evidenceJson), &evidence); nil != err {
 		return fmt.Errorf("decode evidence failed, %s", err)
 	}
 	if nil == evidence {
