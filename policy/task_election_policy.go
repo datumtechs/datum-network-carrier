@@ -31,7 +31,7 @@ func (e *VRFElectionEvidence) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON parses MixedcasePlatONAddress
 func (e *VRFElectionEvidence) UnmarshalJSON(input []byte) error {
 	if len(input) == 0 {
-		return fmt.Errorf("input is nil when UnmarshalJSON")
+		return fmt.Errorf("VRFElectionEvidence input is nil when UnmarshalJSON")
 	}
 	return json.Unmarshal(input, &e)
 }
