@@ -191,22 +191,21 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 		log.Errorf("RPC-API:PublishTaskDeclare failed, invalid receiverPolicys len")
 		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "invalid receiverPolicys len"}, nil
 	}
-	// Maybe the dataFlowPolicyOption is empty,
-	// Because dataFlowPolicyType can already represent the way the data flows.
-	//
-	//if len(req.GetDataFlowPolicyTypes()) == 0  {
-	//	log.Errorf("RPC-API:PublishTaskDeclare failed, check DataFlowPolicyType failed, DataFlowPolicyTypes len is %d", len(req.GetDataFlowPolicyTypes()))
-	//	return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown dataFlowPolicyTypes"}, nil
-	//}
-	//if "" == strings.Trim(req.GetDataFlowPolicyOptions(), "") {
-	//	log.Errorf("RPC-API:PublishTaskDeclare failed, check DataFlowPolicyOption failed, DataFlowPolicyOptions len is %d", len(req.GetDataFlowPolicyOptions()))
-	//	return &pb.PublishTaskDeclareResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "require dataFlowPolicyOptions"}, nil
-	//}
-	//if len(req.GetDataFlowPolicyTypes()) != len(req.GetDataFlowPolicyOptions()) {
-	//	log.Errorf("RPC-API:PublishTaskDeclare failed, invalid dataFlowPolicys len")
-	//	return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "invalid dataFlowPolicys len"}, nil
-	//}
-	if nil == req.GetOperationCost() {
+
+	if len(req.GetDataFlowPolicyTypes()) == 0  {
+		log.Errorf("RPC-API:PublishTaskDeclare failed, check DataFlowPolicyType failed, DataFlowPolicyTypes len is %d", len(req.GetDataFlowPolicyTypes()))
+		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown dataFlowPolicyTypes"}, nil
+	}
+	if len(req.GetDataFlowPolicyOptions()) == 0 {
+		log.Errorf("RPC-API:PublishTaskDeclare failed, check DataFlowPolicyOption failed, DataFlowPolicyOptions len is %d", len(req.GetDataFlowPolicyOptions()))
+		return &pb.PublishTaskDeclareResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "require dataFlowPolicyOptions"}, nil
+	}
+	if len(req.GetDataFlowPolicyTypes()) != len(req.GetDataFlowPolicyOptions()) {
+		log.Errorf("RPC-API:PublishTaskDeclare failed, invalid dataFlowPolicys len")
+		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "invalid dataFlowPolicys len"}, nil
+	}
+
+	if req.GetOperationCost() == nil {
 		log.Errorf("RPC-API:PublishTaskDeclare failed, check OperationCost failed, OperationCost is empty")
 		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require operationCost"}, nil
 	}

@@ -1482,15 +1482,16 @@ func (s *CarrierAPIBackend) QueryTaskResultFileSummary(taskId string) (*types.Ta
 		return nil, err
 	}
 
+	// taskId, metadataId, originId, metadataName, dataHash, metadataOption, nodeId, extra string, dataType uint32
 	return types.NewTaskResultFileSummary(
 		summarry.GetTaskId(),
 		dataResourceFileUpload.GetMetadataId(),
 		dataResourceFileUpload.GetOriginId(),
 		localMetadata.GetData().GetMetadataName(),
-		dataResourceFileUpload.GetNodeId(),
-		summarry.GetExtra(),
 		dataResourceFileUpload.GetDataHash(),
 		dataResourceFileUpload.GetMetadataOption(),
+		dataResourceFileUpload.GetNodeId(),
+		summarry.GetExtra(),
 		dataResourceFileUpload.GetDataType(),
 	), nil
 
@@ -1518,16 +1519,16 @@ func (s *CarrierAPIBackend) QueryTaskResultFileSummaryList() (types.TaskResultFi
 				summarry.GetTaskId(), summarry.GetOriginId(), dataResourceFileUpload.GetMetadataId())
 			continue
 		}
-
+		// taskId, metadataId, originId, metadataName, dataHash, metadataOption, nodeId, extra string, dataType uint32
 		arr = append(arr, types.NewTaskResultFileSummary(
 			summarry.GetTaskId(),
 			dataResourceFileUpload.GetMetadataId(),
 			dataResourceFileUpload.GetOriginId(),
 			localMetadata.GetData().GetMetadataName(),
-			dataResourceFileUpload.GetNodeId(),
-			summarry.GetExtra(),
 			dataResourceFileUpload.GetDataHash(),
 			dataResourceFileUpload.GetMetadataOption(),
+			dataResourceFileUpload.GetNodeId(),
+			summarry.GetExtra(),
 			dataResourceFileUpload.GetDataType(),
 		))
 	}

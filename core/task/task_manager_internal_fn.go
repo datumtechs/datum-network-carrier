@@ -1081,7 +1081,13 @@ func (m *Manager) makeTaskReadyGoReq(task *types.NeedExecuteTask, localTask *typ
 	if nil != err {
 		return nil, fmt.Errorf("make contractParams failed, %s", err)
 	}
-	log.Debugf("Succeed make selfCfgParams field of req, taskId:{%s}, selfCfgParams: %s", task.GetTaskId(), selfCfgParams)
+
+	connectPolicyFormat, connectPolicy, err := m.makeConnectPolicy(task, localTask)
+	if nil != err {
+		return nil, fmt.Errorf("make makeConnectPolicy failed, %s", err)
+	}
+	log.Debugf("Succeed make selfCfgParams field of req, taskId:{%s}, partyId: {%s}, selfCfgParams: %s, connectPolicyType: %s, connectPolicy: %s",
+		task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), selfCfgParams, connectPolicyFormat.String(), connectPolicy)
 
 	req := &fightercommon.TaskReadyGoReq{
 
@@ -1117,8 +1123,8 @@ func (m *Manager) makeTaskReadyGoReq(task *types.NeedExecuteTask, localTask *typ
 		Memory:                 localTask.GetTaskData().GetOperationCost().GetMemory(),
 		Processor:              localTask.GetTaskData().GetOperationCost().GetProcessor(),
 		Bandwidth:              localTask.GetTaskData().GetOperationCost().GetBandwidth(),
-		ConnectPolicyFormat:    fightercommon.ConnectPolicyFormat_ConnectPolicyFormat_Json,
-		ConnectPolicy:          "{}", // [str ->"" or "all"] or [json -> "{}"] it mean that  all nodes are fully connected
+		ConnectPolicyFormat:    connectPolicyFormat,
+		ConnectPolicy:          connectPolicy,
 	}
 
 	return req, nil
@@ -1392,6 +1398,34 @@ func (m *Manager) metadataInputBINARY(task *types.NeedExecuteTask, localTask *ty
 		DataPath:  dataPath,
 	}, nil
 }
+
+func (m *Manager) makeConnectPolicy(task *types.NeedExecuteTask, localTask *types.Task) (fightercommon.ConnectPolicyFormat, string, error) {
+
+	//partyId := task.GetLocalTaskOrganization().GetPartyId()
+
+	var (
+		format fightercommon.ConnectPolicyFormat
+		connectPolicy string
+		err error
+	)
+
+	for i, policyType := range localTask.GetTaskData().GetDataFlowPolicyTypes() {
+
+		policy := localTask.GetTaskData().GetDataFlowPolicyOptions()[i]
+
+		switch policyType {
+		case types.TASK_DATAFLOW_POLICY_GENERAL_FULL_CONNECT, types.TASK_DATAFLOW_POLICY_GENERAL_DIRECTIONAL_CONNECT:
+			format = fightercommon.ConnectPolicyFormat_ConnectPolicyFormat_Json
+			connectPolicy = policy
+		default:
+			format, connectPolicy, err =
+				fightercommon.ConnectPolicyFormat_ConnectPolicyFormat_Unknown, "", fmt.Errorf("unknown dataFlowPolicyType")
+		}
+		break
+	}
+	return format, connectPolicy, err
+}
+
 
 // make terminate rpc req
 func (m *Manager) makeTerminateTaskReq(task *types.NeedExecuteTask) (*fightercommon.TaskCancelReq, error) {
