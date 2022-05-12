@@ -18,6 +18,7 @@ import (
 	"github.com/Metisnetwork/Metis-Carrier/types"
 	"github.com/ethereum/go-ethereum/rlp"
 	log "github.com/sirupsen/logrus"
+	"strings"
 	"sync"
 )
 
@@ -231,16 +232,24 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (resTask *types.NeedConsensusTask
 		// 1、for vrf election power policy
 		case *ScheduleWithSymbolRandomElectionPower:
 
-			evidenceJson, orgs, resources, err := sche.scheduleVrfElectionPower(task.GetTaskId(), &ctypes.TaskOperationCost{
-				Mem:       task.GetTaskData().GetOperationCost().GetMemory(),
-				Processor: task.GetTaskData().GetOperationCost().GetProcessor(),
-				Bandwidth: task.GetTaskData().GetOperationCost().GetBandwidth(),
-				Duration:  task.GetTaskData().GetOperationCost().GetDuration(),
-			}, coller.(*ScheduleWithSymbolRandomElectionPower).GetPartyIds())
+			evidenceJson, orgs, resources, err := sche.scheduleVrfElectionPower(
+				task.GetTaskId(),
+				&ctypes.TaskOperationCost{
+					Mem:       task.GetTaskData().GetOperationCost().GetMemory(),
+					Processor: task.GetTaskData().GetOperationCost().GetProcessor(),
+					Bandwidth: task.GetTaskData().GetOperationCost().GetBandwidth(),
+					Duration:  task.GetTaskData().GetOperationCost().GetDuration(),
+				}, coller.(*ScheduleWithSymbolRandomElectionPower).GetPartyIds())
 			if nil != err {
 				log.WithError(err).Errorf("vrf election powerSupplier failed on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
 				return types.NewNeedConsensusTask(task, ""), bullet.GetTaskId(), err
 			}
+
+			if "" == strings.Trim(evidenceJson, "") {
+				log.Errorf("vrf election evidenceJson is empty on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
+				return types.NewNeedConsensusTask(task, ""), bullet.GetTaskId(), fmt.Errorf("vrf election evidenceJson is empty")
+			}
+
 			for i, org := range orgs {
 				if index, ok := partyIdAndIndexCache[org.GetPartyId()]; !ok {
 					log.Errorf("not found partyId of powerSupplier in partyIdAndIndexCache with vrf election powerSupplier on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}, partyId: {%s}", task.GetTaskId(), org.GetPartyId())
@@ -273,9 +282,8 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (resTask *types.NeedConsensusTask
 		}
 	}
 
-
-	log.Debugf("Succeed to election powers org on SchedulerStarveFIFO.TrySchedule(), taskId {%s}, powerOrgs: %s, powerResources: %s",
-		task.GetTaskId(), types.UtilOrgPowerArrString(powerOrgs), types.UtilOrgPowerResourceArrString(powerResources))
+	log.Debugf("Succeed to election powers org on SchedulerStarveFIFO.TrySchedule(), taskId {%s}, powerOrgs: %s, powerResources: %s, evidence: %s",
+		task.GetTaskId(), types.UtilOrgPowerArrString(powerOrgs), types.UtilOrgPowerResourceArrString(powerResources), evidence)
 
 	// Set elected powers into task info, and restore into local db.
 	task.SetPowerSuppliers(powerOrgs)
@@ -395,7 +403,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 				if !ok {
 					collecter = &ReScheduleWithDataNodeProvidePower{
 						suppliers: make([]*libtypes.TaskOrganization, 0),
-						provides: make([]*types.TaskPowerPolicyDataNodeProvide, 0),
+						provides:  make([]*types.TaskPowerPolicyDataNodeProvide, 0),
 					}
 				} else {
 					collecter = cache.(*ReScheduleWithDataNodeProvidePower)
@@ -747,6 +755,11 @@ func (sche *SchedulerStarveFIFO) scheduleDataNodeProvidePower(task *types.Task, 
 // NOTE: reSchedule powerSuppliers by powerPolicy of task
 
 func (sche *SchedulerStarveFIFO) reScheduleVrfElectionPower(taskId, nodeId string, powerSuppliers []*libtypes.TaskOrganization, powerResources []*libtypes.TaskPowerResourceOption, evidenceJson string) error {
+
+	if "" == strings.Trim(evidenceJson, "") {
+		return fmt.Errorf("received evidence of vrf election is empty")
+	}
+
 	var evidence *policy.VRFElectionEvidence
 	if err := evidence.DecodeJson(evidenceJson); nil != err {
 		return fmt.Errorf("decode evidence failed, %s", err)
