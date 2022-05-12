@@ -1,6 +1,9 @@
 package policy
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 // VRF election evidence
 type VRFElectionEvidence struct {
@@ -17,20 +20,23 @@ func NewVRFElectionEvidence(nonce []byte, weights [][]byte, electionAt uint64) *
 	}
 }
 
-func (e *VRFElectionEvidence) EncodeJson() (string, error) {
-	b, err := json.Marshal(&e)
-	if nil != err {
-		return "", err
+// MarshalJSON marshals the original value
+func (e *VRFElectionEvidence) MarshalJSON() ([]byte, error) {
+	if nil == e {
+		return nil, fmt.Errorf("VRFElectionEvidence is nil when MarshalJSON")
 	}
-	return string(b), nil
+	return json.Marshal(&e)
 }
 
-func (e *VRFElectionEvidence) DecodeJson(jsonStr string) error {
-	if err := json.Unmarshal([]byte(jsonStr), &e); nil != err {
-		return err
+// UnmarshalJSON parses MixedcasePlatONAddress
+func (e *VRFElectionEvidence) UnmarshalJSON(input []byte) error {
+	if len(input) == 0 {
+		return fmt.Errorf("input is nil when UnmarshalJSON")
 	}
-	return nil
+	return json.Unmarshal(input, &e)
 }
+
+
 
 func (e *VRFElectionEvidence) GetNonce() []byte      { return e.Nonce }
 func (e *VRFElectionEvidence) GetWeights() [][]byte  { return e.Weights }

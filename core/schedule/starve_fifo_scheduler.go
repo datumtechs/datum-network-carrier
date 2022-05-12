@@ -700,12 +700,12 @@ func (sche *SchedulerStarveFIFO) scheduleVrfElectionPower(taskId string, cost *c
 		return "", nil, nil, fmt.Errorf("election powerOrg failed, %s", err)
 	}
 
-	evidenceJson, err := policy.NewVRFElectionEvidence(nonce, weights, now).EncodeJson()
+	evidenceJson, err := policy.NewVRFElectionEvidence(nonce, weights, now).MarshalJSON()
 	if nil != err {
 		log.WithError(err).Errorf("Failed to encode evidence on scheduleVrfElectionPower(), taskId: {%s}", taskId)
 		return "", nil, nil, fmt.Errorf("encode evidence failed, %s", err)
 	}
-	return evidenceJson, powers, resources, nil
+	return string(evidenceJson), powers, resources, nil
 }
 
 func (sche *SchedulerStarveFIFO) scheduleDataNodeProvidePower(task *types.Task, provides []*types.TaskPowerPolicyDataNodeProvide) (
@@ -761,9 +761,13 @@ func (sche *SchedulerStarveFIFO) reScheduleVrfElectionPower(taskId, nodeId strin
 	}
 
 	var evidence *policy.VRFElectionEvidence
-	if err := evidence.DecodeJson(evidenceJson); nil != err {
+	if err := evidence.UnmarshalJSON([]byte(evidenceJson)); nil != err {
 		return fmt.Errorf("decode evidence failed, %s", err)
 	}
+	if nil == evidence {
+		return fmt.Errorf("evidence is nil")
+	}
+
 	vrfInput := append([]byte(taskId), bytesutil.Uint64ToBytes(evidence.GetElectionAt())...) // input == taskId + nowtime
 	// verify orgs of power of task
 	if err := sche.elector.VerifyElectionOrganization(
