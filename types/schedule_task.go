@@ -65,9 +65,6 @@ func (res *TaskConsResult) String() string {
 // Local tasks that need to be agreed (scheduled but not yet agreed)
 type NeedConsensusTask struct {
 	task *Task
-	//nonce      []byte
-	//weights    [][]byte
-	//electionAt uint64
 	evidence string
 }
 
