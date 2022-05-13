@@ -1177,7 +1177,8 @@ func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types
 				if dataPolicy.GetPartyId() == partyId {
 					inputData, err := m.metadataInputCSV(task, localTask, dataPolicy)
 					if nil != err {
-						return "", fmt.Errorf("can not unmarshal metadataInputCSV, %s, taskId: {%s}, partyId: {%s}, metadataId: {%s}", err, localTask.GetTaskId(), partyId, dataPolicy.GetMetadataId())
+						return "", fmt.Errorf("can not unmarshal metadataInputCSV, %s, taskId: {%s}, partyId: {%s}, metadataId: {%s}, metadataName: {%s}",
+							err, localTask.GetTaskId(), partyId, dataPolicy.GetMetadataId(), dataPolicy.GetMetadataName())
 					}
 					inputDataArr = append(inputDataArr, inputData)
 				}
@@ -1190,7 +1191,8 @@ func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types
 				if dataPolicy.GetPartyId() == partyId {
 					inputData, err := m.metadataInputDIR(task, localTask, dataPolicy)
 					if nil != err {
-						return "", fmt.Errorf("can not unmarshal metadataInputDIR, %s, taskId: {%s}, partyId: {%s}, metadataId: {%s}", err, localTask.GetTaskId(), partyId, dataPolicy.GetMetadataId())
+						return "", fmt.Errorf("can not unmarshal metadataInputDIR, %s, taskId: {%s}, partyId: {%s}, metadataId: {%s}, metadataName: {%s}",
+							err, localTask.GetTaskId(), partyId, dataPolicy.GetMetadataId(), dataPolicy.GetMetadataName())
 					}
 					inputDataArr = append(inputDataArr, inputData)
 				}
@@ -1204,7 +1206,8 @@ func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types
 				if dataPolicy.GetPartyId() == partyId {
 					inputData, err := m.metadataInputBINARY(task, localTask, dataPolicy)
 					if nil != err {
-						return "", fmt.Errorf("can not unmarshal metadataInputBINARY, %s, taskId: {%s}, partyId: {%s}, metadataId: {%s}", err, localTask.GetTaskId(), partyId, dataPolicy.GetMetadataId())
+						return "", fmt.Errorf("can not unmarshal metadataInputBINARY, %s, taskId: {%s}, partyId: {%s}, metadataId: {%s}, metadataName: {%s}",
+							err, localTask.GetTaskId(), partyId, dataPolicy.GetMetadataId(), dataPolicy.GetMetadataName())
 					}
 					inputDataArr = append(inputDataArr, inputData)
 				}
