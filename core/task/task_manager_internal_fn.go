@@ -243,7 +243,7 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		user := ethereumcommon.HexToAddress(localTask.GetTaskData().GetUser())
 
 		log.Debugf("Start call metisPayManager.Prepay(), taskId: {%s}, partyId: {%s}, call params{taskIdBigInt: %d, taskSponsorAccount: %s, dataTokenAaddresses: %s}",
-			task.GetTaskId(), partyId, taskIdBigInt, user.String(), "[" + strings.Join(addrs, ",") + "]")
+			task.GetTaskId(), partyId, taskIdBigInt, user.String(), "["+strings.Join(addrs, ",")+"]")
 
 		// start prepay dataToken
 		txHash, err := m.metisPayMng.Prepay(taskIdBigInt, user, dataTokenAaddresses)
@@ -437,7 +437,6 @@ func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *
 
 		log.Debugf("Start call metisPayManager.Settle(), taskId: {%s}, partyId: {%s}, call params{taskIdBigInt: %d, gasUsedPrepay: %d}",
 			task.GetTaskId(), partyId, taskIdBigInt, consumeSpec.GetGasUsed())
-
 
 		// start prepay dataToken
 		txHash, err := m.metisPayMng.Settle(taskIdBigInt, consumeSpec.GetGasUsed())
@@ -1132,37 +1131,35 @@ func (m *Manager) makeTaskReadyGoReq(task *types.NeedExecuteTask, localTask *typ
 
 func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types.Task) (string, error) {
 
+	/**
+	# FOR DATANODE:
 
-		/**
-		# FOR DATANODE:
+	{
+		"part_id": "p0",
+	    "input_data": [
+	          {
+	              "input_type": 3,  # 输入数据的类型，(算法用标识数据使用方式). 0:unknown, 1:origin_data, 2:psi_output, 3:model
+	              "access_type": 1, # 访问数据的方式，(fighter用决定是否预先加载数据). 0:unknown, 1:local, 2:url
+	              "data_type": 0,   # 数据的格式，(算法用标识数据格式). 0:unknown, 1:csv, 2:dir, 3:binary, 4:xls, 5:xlsx, 6:txt, 7:json
+	              "data_path": "/task_result/task:0xdeefff3434..556/"  # 数据所在的本地路径
+	          }
+	    ]
+	}
 
-		{
-			"part_id": "p0",
-		    "input_data": [
-		          {
-		              "input_type": 3,  # 输入数据的类型，(算法用标识数据使用方式). 0:unknown, 1:origin_data, 2:psi_output, 3:model
-		              "access_type": 1, # 访问数据的方式，(fighter用决定是否预先加载数据). 0:unknown, 1:local, 2:url
-		              "data_type": 0,   # 数据的格式，(算法用标识数据格式). 0:unknown, 1:csv, 2:dir, 3:binary, 4:xls, 5:xlsx, 6:txt, 7:json
-		              "data_path": "/task_result/task:0xdeefff3434..556/"  # 数据所在的本地路径
-		          }
-		    ]
-		}
+	# FOR JOBNODE:
 
-		# FOR JOBNODE:
+	{
+		"part_id": "y0",
+	    "input_data": []
+	}
 
-		{
-			"part_id": "y0",
-		    "input_data": []
-		}
-
-		*/
+	*/
 
 	partyId := task.GetLocalTaskOrganization().GetPartyId()
 	inputDataArr := make([]interface{}, 0)
 
 	switch task.GetLocalTaskRole() {
 	case libtypes.TaskRole_TaskRole_DataSupplier:
-
 
 		for i, policyType := range localTask.GetTaskData().GetDataPolicyTypes() {
 
@@ -1220,7 +1217,7 @@ func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types
 	}
 
 	scps := &types.SelfCfgParams{
-		PartyId: partyId,
+		PartyId:   partyId,
 		InputData: inputDataArr,
 	}
 
@@ -1349,9 +1346,10 @@ func (m *Manager) metadataInputDIR(task *types.NeedExecuteTask, localTask *types
 	}
 
 	return &types.InputDataDIR{
-		InputType: dataPolicy.QueryInputType(),
-		DataType:  uint32(metadata.GetData().GetDataType()),
-		DataPath:  dirPath,
+		InputType:  dataPolicy.QueryInputType(),
+		AccessType: uint32(metadata.GetData().GetLocationType()),
+		DataType:   uint32(metadata.GetData().GetDataType()),
+		DataPath:   dirPath,
 	}, nil
 }
 func (m *Manager) metadataInputBINARY(task *types.NeedExecuteTask, localTask *types.Task, dataPolicy *types.TaskMetadataPolicyBINARY) (*types.InputDataBINARY, error) {
@@ -1394,9 +1392,10 @@ func (m *Manager) metadataInputBINARY(task *types.NeedExecuteTask, localTask *ty
 	}
 
 	return &types.InputDataBINARY{
-		InputType: dataPolicy.QueryInputType(),
-		DataType:  uint32(metadata.GetData().GetDataType()),
-		DataPath:  dataPath,
+		InputType:  dataPolicy.QueryInputType(),
+		AccessType: uint32(metadata.GetData().GetLocationType()),
+		DataType:   uint32(metadata.GetData().GetDataType()),
+		DataPath:   dataPath,
 	}, nil
 }
 
@@ -1405,9 +1404,9 @@ func (m *Manager) makeConnectPolicy(task *types.NeedExecuteTask, localTask *type
 	//partyId := task.GetLocalTaskOrganization().GetPartyId()
 
 	var (
-		format fightercommon.ConnectPolicyFormat
+		format        fightercommon.ConnectPolicyFormat
 		connectPolicy string
-		err error
+		err           error
 	)
 
 	for i, policyType := range localTask.GetTaskData().GetDataFlowPolicyTypes() {
@@ -1426,7 +1425,6 @@ func (m *Manager) makeConnectPolicy(task *types.NeedExecuteTask, localTask *type
 	}
 	return format, connectPolicy, err
 }
-
 
 // make terminate rpc req
 func (m *Manager) makeTerminateTaskReq(task *types.NeedExecuteTask) (*fightercommon.TaskCancelReq, error) {
@@ -1455,9 +1453,9 @@ func (m *Manager) initConsumeSpecByConsumeOption(task *types.NeedExecuteTask) {
 			// constant int8 private PREPAY = 1;
 			// constant int8 private SETTLE = 2;
 			// constant int8 private END = 3;
-			Consumed:     int32(-1),
+			Consumed: int32(-1),
 			//GasEstimated: 0,
-			GasUsed:      0,
+			GasUsed: 0,
 		}
 
 		b, err := json.Marshal(consumeSpec)
