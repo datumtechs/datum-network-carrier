@@ -1264,7 +1264,7 @@ func (m *Manager) metadataInputCSV(task *types.NeedExecuteTask, localTask *types
 	}
 
 	if types.IsNotCSVdata(metadata.GetData().GetDataType()) {
-		return nil, fmt.Errorf("dataType of metadata is not `CSV`, dataType: %d", metadata.GetData().GetDataType())
+		return nil, fmt.Errorf("dataType of metadata is not `CSV`, dataType: %s", metadata.GetData().GetDataType().String())
 	}
 
 	var metadataOption *types.MetadataOptionCSV
@@ -1335,7 +1335,7 @@ func (m *Manager) metadataInputDIR(task *types.NeedExecuteTask, localTask *types
 	}
 
 	if types.IsNotDIRdata(metadata.GetData().GetDataType()) {
-		return nil, fmt.Errorf("dataType of metadata is not `DIR`, dataType: %d", metadata.GetData().GetDataType())
+		return nil, fmt.Errorf("dataType of metadata is not `DIR`, dataType: %s", metadata.GetData().GetDataType().String())
 	}
 
 	var metadataOption *types.MetadataOptionDIR
@@ -1380,7 +1380,7 @@ func (m *Manager) metadataInputBINARY(task *types.NeedExecuteTask, localTask *ty
 	}
 
 	if types.IsNotBINARYdata(metadata.GetData().GetDataType()) {
-		return nil, fmt.Errorf("dataType of metadata is not `BINARY`, dataType: %d", metadata.GetData().GetDataType())
+		return nil, fmt.Errorf("dataType of metadata is not `BINARY`, dataType: %s", metadata.GetData().GetDataType().String())
 	}
 
 	var metadataOption *types.MetadataOptionBINARY
