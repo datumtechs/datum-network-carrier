@@ -190,43 +190,28 @@ func (p *PrepareMsg) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	}
 
 	// Field (1) 'TaskInfo'
-	{
-		elemIndx := hh.Index()
-		byteLen := uint64(len(p.TaskInfo))
-		if byteLen > 16777216 {
-			err = ssz.ErrIncorrectListSize
-			return
-		}
-		hh.PutBytes(p.TaskInfo)
-		hh.MerkleizeWithMixin(elemIndx, byteLen, (16777216+31)/32)
+	if len(p.TaskInfo) > 16777216 {
+		err = ssz.ErrBytesLength
+		return
 	}
+	hh.PutBytes(p.TaskInfo)
 
 	// Field (2) 'Evidence'
-	{
-		elemIndx := hh.Index()
-		byteLen := uint64(len(p.Evidence))
-		if byteLen > 1024 {
-			err = ssz.ErrIncorrectListSize
-			return
-		}
-		hh.PutBytes(p.Evidence)
-		hh.MerkleizeWithMixin(elemIndx, byteLen, (1024+31)/32)
+	if len(p.Evidence) > 1024 {
+		err = ssz.ErrBytesLength
+		return
 	}
+	hh.PutBytes(p.Evidence)
 
 	// Field (3) 'CreateAt'
 	hh.PutUint64(p.CreateAt)
 
 	// Field (4) 'Sign'
-	{
-		elemIndx := hh.Index()
-		byteLen := uint64(len(p.Sign))
-		if byteLen > 1024 {
-			err = ssz.ErrIncorrectListSize
-			return
-		}
-		hh.PutBytes(p.Sign)
-		hh.MerkleizeWithMixin(elemIndx, byteLen, (1024+31)/32)
+	if len(p.Sign) > 1024 {
+		err = ssz.ErrBytesLength
+		return
 	}
+	hh.PutBytes(p.Sign)
 
 	hh.Merkleize(indx)
 	return
