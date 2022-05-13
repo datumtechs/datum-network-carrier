@@ -1243,7 +1243,7 @@ func (m *Manager) metadataInputCSV(task *types.NeedExecuteTask, localTask *types
 	metadataId := dataPolicy.GetMetadataId()
 	internalMetadataFlag, err := m.resourceMng.GetDB().IsInternalMetadataById(metadataId)
 	if nil != err {
-		return nil, fmt.Errorf("check metadata whether internal metadata failed, %s", err)
+		return nil, fmt.Errorf("cannot check metadata whether internal metadata, %s", err)
 	}
 
 	var metadata *types.Metadata
@@ -1253,23 +1253,23 @@ func (m *Manager) metadataInputCSV(task *types.NeedExecuteTask, localTask *types
 		// query internal metadata
 		metadata, err = m.resourceMng.GetDB().QueryInternalMetadataById(metadataId)
 		if nil != err {
-			return nil, fmt.Errorf("query internale metadata failed, %s", err)
+			return nil, fmt.Errorf("cannot query internale metadata, %s", err)
 		}
 	} else {
 		// query published metadata
 		metadata, err = m.resourceMng.GetDB().QueryMetadataById(metadataId)
 		if nil != err {
-			return nil, fmt.Errorf("query publish metadata failed, %s", err)
+			return nil, fmt.Errorf("cannot query publish metadata, %s", err)
 		}
 	}
 
 	if types.IsNotCSVdata(metadata.GetData().GetDataType()) {
-		return nil, fmt.Errorf("the metadataOption and dataPolicyOption of task is not match, %s", err)
+		return nil, fmt.Errorf("dataType of metadata is not `CSV`, dataType: %d", metadata.GetData().GetDataType())
 	}
 
 	var metadataOption *types.MetadataOptionCSV
 	if err := json.Unmarshal([]byte(metadata.GetData().GetMetadataOption()), &metadataOption); nil != err {
-		return nil, fmt.Errorf("can not unmarshal metadataOption, %s", err)
+		return nil, fmt.Errorf("can not unmarshal `CSV` metadataOption, %s", err)
 	}
 
 	// collection all the column name cache
@@ -1281,7 +1281,7 @@ func (m *Manager) metadataInputCSV(task *types.NeedExecuteTask, localTask *types
 	if kname, ok := columnNameCache[dataPolicy.QueryKeyColumn()]; ok {
 		keyColumn = kname
 	} else {
-		return nil, fmt.Errorf("not found the keyColumn of task dataPolicy on metadataOption, columnIndex: {%d}", dataPolicy.QueryKeyColumn())
+		return nil, fmt.Errorf("not found the keyColumn of task dataPolicy on `CSV` metadataOption, columnIndex: {%d}", dataPolicy.QueryKeyColumn())
 	}
 
 	// find all select column names
@@ -1291,13 +1291,13 @@ func (m *Manager) metadataInputCSV(task *types.NeedExecuteTask, localTask *types
 		if sname, ok := columnNameCache[selectedColumnIndex]; ok {
 			selectedColumns[i] = sname
 		} else {
-			return nil, fmt.Errorf("not found the selectColumn of task dataPolicy on metadataOption, columnIndex: {%d}", selectedColumnIndex)
+			return nil, fmt.Errorf("not found the selectColumn of task dataPolicy on `CSV` metadataOption, columnIndex: {%d}", selectedColumnIndex)
 		}
 	}
 
 	dataPath = metadataOption.GetDataPath()
 	if strings.Trim(dataPath, "") == "" {
-		return nil, fmt.Errorf("not found the dataPath of task dataPolicy on metadataOption")
+		return nil, fmt.Errorf("dataPath is empty")
 	}
 
 	return &types.InputDataCSV{
@@ -1314,7 +1314,7 @@ func (m *Manager) metadataInputDIR(task *types.NeedExecuteTask, localTask *types
 	metadataId := dataPolicy.GetMetadataId()
 	internalMetadataFlag, err := m.resourceMng.GetDB().IsInternalMetadataById(metadataId)
 	if nil != err {
-		return nil, fmt.Errorf("check metadata whether internal metadata failed, %s", err)
+		return nil, fmt.Errorf("cannot check metadata whether internal metadata, %s", err)
 	}
 
 	var metadata *types.Metadata
@@ -1324,28 +1324,28 @@ func (m *Manager) metadataInputDIR(task *types.NeedExecuteTask, localTask *types
 		// query internal metadata
 		metadata, err = m.resourceMng.GetDB().QueryInternalMetadataById(metadataId)
 		if nil != err {
-			return nil, fmt.Errorf("query internale metadata failed, %s", err)
+			return nil, fmt.Errorf("cannot query internale metadata, %s", err)
 		}
 	} else {
 		// query published metadata
 		metadata, err = m.resourceMng.GetDB().QueryMetadataById(metadataId)
 		if nil != err {
-			return nil, fmt.Errorf("query publish metadata failed, %s", err)
+			return nil, fmt.Errorf("cannot query publish metadata, %s", err)
 		}
 	}
 
 	if types.IsNotDIRdata(metadata.GetData().GetDataType()) {
-		return nil, fmt.Errorf("the metadataOption and dataPolicyOption of task is not match, %s", err)
+		return nil, fmt.Errorf("dataType of metadata is not `DIR`, dataType: %d", metadata.GetData().GetDataType())
 	}
 
 	var metadataOption *types.MetadataOptionDIR
 	if err := json.Unmarshal([]byte(metadata.GetData().GetMetadataOption()), &metadataOption); nil != err {
-		return nil, fmt.Errorf("can not unmarshal metadataOption, %s", err)
+		return nil, fmt.Errorf("can not unmarshal `DIR` metadataOption, %s", err)
 	}
 
 	dirPath := metadataOption.GetDirPath()
 	if strings.Trim(dirPath, "") == "" {
-		return nil, fmt.Errorf("not found the dataPath of task dataPolicy on metadataOption")
+		return nil, fmt.Errorf("dirPath is empty")
 	}
 
 	return &types.InputDataDIR{
@@ -1359,7 +1359,7 @@ func (m *Manager) metadataInputBINARY(task *types.NeedExecuteTask, localTask *ty
 	metadataId := dataPolicy.GetMetadataId()
 	internalMetadataFlag, err := m.resourceMng.GetDB().IsInternalMetadataById(metadataId)
 	if nil != err {
-		return nil, fmt.Errorf("check metadata whether internal metadata failed, %s", err)
+		return nil, fmt.Errorf("cannot check metadata whether internal metadata, %s", err)
 	}
 
 	var metadata *types.Metadata
@@ -1369,28 +1369,28 @@ func (m *Manager) metadataInputBINARY(task *types.NeedExecuteTask, localTask *ty
 		// query internal metadata
 		metadata, err = m.resourceMng.GetDB().QueryInternalMetadataById(metadataId)
 		if nil != err {
-			return nil, fmt.Errorf("query internale metadata failed, %s", err)
+			return nil, fmt.Errorf("cannot query internale metadata, %s", err)
 		}
 	} else {
 		// query published metadata
 		metadata, err = m.resourceMng.GetDB().QueryMetadataById(metadataId)
 		if nil != err {
-			return nil, fmt.Errorf("query publish metadata failed, %s", err)
+			return nil, fmt.Errorf("cannot query publish metadata, %s", err)
 		}
 	}
 
 	if types.IsNotBINARYdata(metadata.GetData().GetDataType()) {
-		return nil, fmt.Errorf("the metadataOption and dataPolicyOption of task is not match, %s", err)
+		return nil, fmt.Errorf("dataType of metadata is not `BINARY`, dataType: %d", metadata.GetData().GetDataType())
 	}
 
 	var metadataOption *types.MetadataOptionBINARY
 	if err := json.Unmarshal([]byte(metadata.GetData().GetMetadataOption()), &metadataOption); nil != err {
-		return nil, fmt.Errorf("can not unmarshal metadataOption, %s", err)
+		return nil, fmt.Errorf("can not unmarshal `BINARY` metadataOption, %s", err)
 	}
 
 	dataPath := metadataOption.GetDataPath()
 	if strings.Trim(dataPath, "") == "" {
-		return nil, fmt.Errorf("not found the dataPath of task dataPolicy on metadataOption")
+		return nil, fmt.Errorf("dataPath is empty")
 	}
 
 	return &types.InputDataBINARY{
