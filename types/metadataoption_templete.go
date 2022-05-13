@@ -17,7 +17,7 @@ func IsCSVdata(dataType libtypes.OrigindataType) bool {
 	return false
 }
 
-func IsNotDIRdata(dataType libtypes.OrigindataType) bool { return !IsCSVdata(dataType) }
+func IsNotDIRdata(dataType libtypes.OrigindataType) bool { return !IsDIRdata(dataType) }
 func IsDIRdata(dataType libtypes.OrigindataType) bool {
 	if dataType == libtypes.OrigindataType_OrigindataType_DIR {
 		return true
@@ -25,7 +25,7 @@ func IsDIRdata(dataType libtypes.OrigindataType) bool {
 	return false
 }
 
-func IsNotBINARYdata(dataType libtypes.OrigindataType) bool { return !IsCSVdata(dataType) }
+func IsNotBINARYdata(dataType libtypes.OrigindataType) bool { return !IsBINARYdata(dataType) }
 func IsBINARYdata(dataType libtypes.OrigindataType) bool {
 	if dataType == libtypes.OrigindataType_OrigindataType_BINARY {
 		return true
