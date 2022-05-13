@@ -501,7 +501,8 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 						task.GetTaskData().GetOperationCost().GetProcessor())
 
 					// election jobNode machine
-					node, err = sche.elector.ElectionNode(task.GetTaskId(),
+					node, err = sche.elector.ElectionNode(
+						task.GetTaskId(), partyId,
 						task.GetTaskData().GetOperationCost().GetMemory(),
 						task.GetTaskData().GetOperationCost().GetBandwidth(), 0,
 						task.GetTaskData().GetOperationCost().GetProcessor(), "")
