@@ -208,7 +208,7 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 			return fmt.Errorf("this partyId is not task sender on beginConsumeByDataToken()")
 		}
 
-		taskIdBigInt, err := hexutil.DecodeBig(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID))
+		taskIdBigInt, err := hexutil.DecodeBig("0x" + strings.TrimLeft(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID+"0x"), "\x00"))
 		if nil != err {
 			return fmt.Errorf("cannot decode taskId to big.Int on beginConsumeByDataToken(), %s", err)
 		}
@@ -318,7 +318,7 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		return nil
 	case libtypes.TaskRole_TaskRole_DataSupplier, libtypes.TaskRole_TaskRole_PowerSupplier, libtypes.TaskRole_TaskRole_Receiver:
 
-		taskId, err := hexutil.DecodeBig(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID))
+		taskIdBigInt, err := hexutil.DecodeBig("0x" + strings.TrimLeft(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID+"0x"), "\x00"))
 		if nil != err {
 			return fmt.Errorf("cannot decode taskId to big.Int on beginConsumeByDataToken(), %s", err)
 		}
@@ -346,7 +346,7 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 
 					return 0, fmt.Errorf("query task state of metisPay time out")
 				case <-ticker.C:
-					state, err := m.metisPayMng.GetTaskState(taskId)
+					state, err := m.metisPayMng.GetTaskState(taskIdBigInt)
 					if nil != err {
 						//including NotFound
 						log.WithError(err).Warnf("Warning cannot query task state of metisPay on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}",
@@ -371,7 +371,7 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 			}
 		}
 
-		state, err := queryTaskState(ctx, taskId, time.Duration(500)*time.Millisecond) // period 500 ms
+		state, err := queryTaskState(ctx, taskIdBigInt, time.Duration(500)*time.Millisecond) // period 500 ms
 		if nil != err {
 			return err
 		}
@@ -435,7 +435,7 @@ func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *
 			return nil
 		}
 
-		taskIdBigInt, err := hexutil.DecodeBig(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID))
+		taskIdBigInt, err := hexutil.DecodeBig("0x" + strings.TrimLeft(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID+"0x"), "\x00"))
 		if nil != err {
 			return fmt.Errorf("cannot decode taskId to big.Int on endConsumeByDataToken(), %s", err)
 		}
@@ -1445,7 +1445,7 @@ func (m *Manager) initConsumeSpecByConsumeOption(task *types.NeedExecuteTask) {
 	case 1: // use metadataAuth
 		// pass
 	case 2: // use datatoken
-		taskId, err := hexutil.DecodeBig(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID))
+		taskIdBigInt, err := hexutil.DecodeBig("0x" + strings.TrimLeft(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID+"0x"), "\x00"))
 		if nil != err {
 			log.WithError(err).Errorf("cannot decode taskId to big.Int on initConsumeSpecByConsumeOption()")
 			return
@@ -1468,7 +1468,7 @@ func (m *Manager) initConsumeSpecByConsumeOption(task *types.NeedExecuteTask) {
 			log.WithError(err).Errorf("cannot json marshal task consumeSpec on initConsumeSpecByConsumeOption(), consumeSpec: %v, %s", consumeSpec, err)
 			return
 		}
-		task.SetConsumeQueryId(taskId.String())
+		task.SetConsumeQueryId(taskIdBigInt.String())
 		task.SetConsumeSpec(string(b))
 
 	default: // use nothing

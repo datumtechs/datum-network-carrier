@@ -1,9 +1,11 @@
 package hexutil
 
-
 import (
 	"bytes"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/stretchr/testify/assert"
 	"math/big"
+	"strings"
 	"testing"
 )
 
@@ -185,4 +187,33 @@ func TestDecodeUint64(t *testing.T) {
 			continue
 		}
 	}
+}
+
+
+func TestPrefixZero(t *testing.T) {
+	zeroPrefixVal := "0x072f251a415c7566bd1a5f912e2c1638a075a533b7e5cee6bef52b56d2624e8c"
+	bigInt, err := hexutil.DecodeBig(strings.Trim(zeroPrefixVal, ""))
+	assert.NotNil(t, err, "epected err")
+
+	val := "0x" + strings.TrimLeft(strings.Trim(zeroPrefixVal, "0x"), "\x00")
+	t.Log("val:", val)
+	//strings.TrimLeft(strings.Trim(zeroPrefixVal, ""), "\x00")
+	bigInt, err = hexutil.DecodeBig(strings.Trim(val, ""))
+	assert.Nil(t, err, err)
+	t.Log("bigInt:", bigInt)
+	//nonZeroPrefixVal := "0x772f251a415c7566bd1a5f912e2c1638a075a533b7e5cee6bef52b56d2624e8c"
+	//bigInt, err = hexutil.DecodeBig(strings.Trim(nonZeroPrefixVal, ""))
+	//assert.Nil(t, err, err)
+	//t.Log(bigInt)
+
+
+	//taskId := "task:0x072f251a415c7566bd1a5f912e2c1638a075a533b7e5cee6bef52b56d2624e8c"
+	taskId := "task:0x000f251a415c7566bd1a5f912e2c1638a075a533b7e5cee6bef52b56d2624e8c"
+	str := "0x" + strings.TrimLeft(strings.Trim(taskId, "task:"+"0x"), "\x00")
+	t.Log("taskId after trimLef zero:", str)
+	taskIdBigInt, err := hexutil.DecodeBig(str)
+	t.Log("taskIdBigInt:", taskIdBigInt)
+
+
+
 }
