@@ -34,7 +34,7 @@ func NewVrfElector(privateKey *ecdsa.PrivateKey, resourceMng *resource.Manager) 
 	}
 }
 
-func (s *VrfElector) ElectionNode(taskId string, mem, bandwidth, disk uint64, processor uint32, extra string) (*pb.YarnRegisteredPeerDetail, error) {
+func (s *VrfElector) ElectionNode(taskId, partyId string, mem, bandwidth, disk uint64, processor uint32, extra string) (*pb.YarnRegisteredPeerDetail, error) {
 
 	if s.resourceMng.HasNotInternalJobNodeClientSet() {
 		return nil, fmt.Errorf("not found alive jobNode")
@@ -46,12 +46,12 @@ func (s *VrfElector) ElectionNode(taskId string, mem, bandwidth, disk uint64, pr
 	if nil != err {
 		return nil, fmt.Errorf("query local resource tables failed, %s", err)
 	}
-	log.Debugf("QueryLocalResourceTables on electionJobNode, taskId: {%s}, localResources: %s", taskId, types.UtilLocalResourceArrString(tables))
+	log.Debugf("QueryLocalResourceTables on electionJobNode, taskId: {%s}, partyId: {%s}, localResources: %s", taskId, partyId, types.UtilLocalResourceArrString(tables))
 	for _, r := range tables {
 		isEnough := r.IsEnough(mem, bandwidth, disk, processor)
 		if isEnough {
-			log.Debugf("Call electionJobNode find resource enough jobNode, taskId: {%s}, resource: %s, r.RemainMem(): %d, r.RemainBandwidth(): %d, r.RemainDisk(): %d, r.RemainProcessor(): %d, needMem: %d, needBandwidth: %d, needDisk: %d, needProcessor: %d, isEnough: %v",
-				taskId, r.String(), r.RemainMem(), r.RemainBandwidth(), r.RemainDisk(), r.RemainProcessor(), mem, bandwidth, disk, processor, isEnough)
+			log.Debugf("Call electionJobNode find resource enough jobNode, taskId: {%s}, partyId: {%s}, resource: %s, r.RemainMem(): %d, r.RemainBandwidth(): %d, r.RemainDisk(): %d, r.RemainProcessor(): %d, needMem: %d, needBandwidth: %d, needDisk: %d, needProcessor: %d, isEnough: %v",
+				taskId, partyId, r.String(), r.RemainMem(), r.RemainBandwidth(), r.RemainDisk(), r.RemainProcessor(), mem, bandwidth, disk, processor, isEnough)
 			jobNodeClient, find := s.resourceMng.QueryJobNodeClient(r.GetNodeId())
 			if find && jobNodeClient.IsConnected() {
 				resourceNodeIdArr = append(resourceNodeIdArr, r.GetNodeId())
@@ -59,8 +59,8 @@ func (s *VrfElector) ElectionNode(taskId string, mem, bandwidth, disk uint64, pr
 			}
 		} else {
 			taskIds, _ := s.resourceMng.GetDB().QueryJobNodeRunningTaskIdList(r.GetNodeId())
-			log.Debugf("Call electionJobNode it is a not enough resource jobNode, taskId: {%s}, resource: %s, r.RemainMem(): %d, r.RemainBandwidth(): %d, r.RemainDisk(): %d, r.RemainProcessor(): %d, needMem: %d, needBandwidth: %d, needDisk: %d, needProcessor: %d, isEnough: %v, was running taskIds: %v",
-				taskId, r.String(), r.RemainMem(), r.RemainBandwidth(), r.RemainDisk(), r.RemainProcessor(), mem, bandwidth, disk, processor, isEnough, "[" + strings.Join(taskIds, ",") + "]")
+			log.Debugf("Call electionJobNode it is a not enough resource jobNode, taskId: {%s}, partyId: {%s}, resource: %s, r.RemainMem(): %d, r.RemainBandwidth(): %d, r.RemainDisk(): %d, r.RemainProcessor(): %d, needMem: %d, needBandwidth: %d, needDisk: %d, needProcessor: %d, isEnough: %v, was running taskIds: %v",
+				taskId, partyId, r.String(), r.RemainMem(), r.RemainBandwidth(), r.RemainDisk(), r.RemainProcessor(), mem, bandwidth, disk, processor, isEnough, "[" + strings.Join(taskIds, ",") + "]")
 		}
 	}
 
@@ -312,7 +312,7 @@ func (s *VrfElector) queryValidGlobalPowerList (logkeyword, taskId string) (type
 		return nil, fmt.Errorf("query global identity list failed, %s", err)
 	}
 
-	log.Debugf("QueryIdentityList by dataCenter on VrfElector.%s, taskId: {%s}, len: {%d}, identityList: %s", logkeyword, taskId, len(identityInfoArr), identityInfoArr.String())
+	log.Debugf("call queryValidGlobalPowerList-QueryIdentityList() by dataCenter on VrfElector.%s, taskId: {%s}, len: {%d}, identityList: %s", logkeyword, taskId, len(identityInfoArr), identityInfoArr.String())
 
 	identityInfoCache := make(map[string]struct{}, len(identityInfoArr))
 
@@ -334,7 +334,7 @@ func (s *VrfElector) queryValidGlobalPowerList (logkeyword, taskId string) (type
 	if nil != err {
 		return nil, fmt.Errorf("query global powerSummary list failed, %s", err)
 	}
-	log.Debugf("GetRemoteResouceTables on VrfElector.%s, taskId: {%s}, len: {%d}, globalpowerSummarys: %s", logkeyword, taskId, len(globalpowerSummarys), globalpowerSummarys.String())
+	log.Debugf("call queryValidGlobalPowerList-QueryGlobalResourceSummaryList() on VrfElector.%s, taskId: {%s}, len: {%d}, globalpowerSummarys: %s", logkeyword, taskId, len(globalpowerSummarys), globalpowerSummarys.String())
 
 	// filter global powerSummary list without invalid identityId
 	validGlobalpowerSummarys := make(types.ResourceArray, 0)

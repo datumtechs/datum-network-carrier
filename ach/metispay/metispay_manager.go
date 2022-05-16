@@ -411,7 +411,7 @@ func (metisPay *MetisPayManager) GetReceipt(ctx context.Context, txHash common.H
 
 	} else {
 		ticker := time.NewTicker(period)
-
+		defer ticker.Stop()
 		for {
 			select {
 			case <-ctx.Done():

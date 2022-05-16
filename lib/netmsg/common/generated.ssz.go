@@ -2,9 +2,7 @@
 // Hash: ab89bda0887470b8f9c781e2bed5fc92a04dde540f42bc07530e825537040ab3
 package common
 
-import (
-	ssz "github.com/ferranbt/fastssz"
-)
+import ssz "github.com/ferranbt/fastssz"
 
 // MarshalSSZ ssz marshals the MsgOption object
 func (m *MsgOption) MarshalSSZ() ([]byte, error) {

@@ -89,7 +89,7 @@ type Backend interface {
 	QueryDataResourceFileUploads() ([]*types.DataResourceFileUpload, error)
 
 	// about task result file
-	StoreTaskResultFileSummary(taskId, originId, dataHash, metadataOption, dataNodeId, extra string, dataType uint32) error
+	StoreTaskResultFileSummary(taskId, originId, dataHash, metadataOption, dataNodeId, extra string, dataType libtypes.OrigindataType) error
 	QueryTaskResultFileSummary(taskId string) (*types.TaskResultFileSummary, error)
 	QueryTaskResultFileSummaryList() (types.TaskResultFileSummaryArr, error)
 
