@@ -242,7 +242,7 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 
 		user := ethereumcommon.HexToAddress(localTask.GetTaskData().GetUser())
 
-		log.Debugf("Start call metisPayManager.Prepay(), taskId: {%s}, partyId: {%s}, call params{taskIdBigInt: %d, taskSponsorAccount: %s, dataTokenAaddresses: %s}",
+		log.Debugf("Start call metisPayManager.prepay(), taskId: {%s}, partyId: {%s}, call params{taskIdBigInt: %d, taskSponsorAccount: %s, dataTokenAaddresses: %s}",
 			task.GetTaskId(), partyId, taskIdBigInt, user.String(), "["+strings.Join(addrs, ",")+"]")
 
 		// start prepay dataToken
@@ -330,14 +330,19 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		defer cancelFn()
 
 		queryTaskState := func(ctx context.Context, taskIdBigInt *big.Int, period time.Duration) (int, error) {
+
+			start := time.Now()
+
 			ticker := time.NewTicker(period)
 			defer ticker.Stop()
 			for {
 				select {
 				case <-ctx.Done():
 
-					log.Warnf("Warning query task state of metisPay time out on blockchain on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}",
-						task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt)
+					end := time.Now()
+
+					log.Warnf("Warning query task state of metisPay time out on blockchain on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}, startTime: {%d <==> %s}, endTime: {%d <==> %s}, duration: %d ms",
+						task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt, start.UnixNano()/1e6, start.Format("2006-01-02 15:04:05"), end.UnixNano()/1e6, end.Format("2006-01-02 15:04:05"), end.UnixNano()/1e6-start.UnixNano()/1e6)
 
 					return 0, fmt.Errorf("query task state of metisPay time out")
 				case <-ticker.C:
@@ -435,7 +440,7 @@ func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *
 			return fmt.Errorf("cannot decode taskId to big.Int on endConsumeByDataToken(), %s", err)
 		}
 
-		log.Debugf("Start call metisPayManager.Settle(), taskId: {%s}, partyId: {%s}, call params{taskIdBigInt: %d, gasUsedPrepay: %d}",
+		log.Debugf("Start call metisPayManager.settle(), taskId: {%s}, partyId: {%s}, call params{taskIdBigInt: %d, gasUsedPrepay: %d}",
 			task.GetTaskId(), partyId, taskIdBigInt, consumeSpec.GetGasUsed())
 
 		// start prepay dataToken
