@@ -36,21 +36,6 @@ var (
 	mockTaskID, _ = hexutil.DecodeBig("0x81050ea1c64ab0ed96e50b151c36bcef180eea18d3b3245e7c4a42aa08638c58")
 )
 
-func LoadCarrierKey() (*ecdsa.PrivateKey, common.Address) {
-	privateKey, err := crypto.HexToECDSA("fad9c8855b740a0b7ed4c221dbad0f33a83a49cad6b3fe8d5817ac83d38b6a19")
-	if err != nil {
-		log.Fatalf("cannot load private key: %v", err)
-	}
-	publicKey := privateKey.Public()
-	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
-	if !ok {
-		log.Fatal("error casting public key to ECDSA")
-	}
-
-	fromAddress := crypto.PubkeyToAddress(*publicKeyECDSA)
-	return privateKey, fromAddress
-}
-
 type Config struct {
 	URL           string `json:"chain"`
 	WalletPwd     string
