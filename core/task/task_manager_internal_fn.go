@@ -483,9 +483,9 @@ func (m *Manager) driveTaskForExecute(task *types.NeedExecuteTask, localTask *ty
 
 	// 1、 consume the resource of task
 	// TODO 打开这里 ...
-	//if err := m.beginConsumeMetadataOrPower(task, localTask); nil != err {
-	//	return err
-	//}
+	if err := m.beginConsumeMetadataOrPower(task, localTask); nil != err {
+		return err
+	}
 
 	// 2、 update needExecuteTask to disk
 	if err := m.resourceMng.GetDB().StoreNeedExecuteTask(task); nil != err {
@@ -796,10 +796,10 @@ func (m *Manager) publishFinishedTaskToDataCenter(task *types.NeedExecuteTask, l
 
 		// 1、settle metadata or power usage.
 		// TODO 打开这里 ...
-		//if err := m.endConsumeMetadataOrPower(task, localTask); nil != err {
-		//	log.WithError(err).Errorf("Failed to settle consume metadata or power on publishFinishedTaskToDataCenter, taskId: {%s}, partyId: {%s}, taskState: {%s}",
-		//		task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskState.String())
-		//}
+		if err := m.endConsumeMetadataOrPower(task, localTask); nil != err {
+			log.WithError(err).Errorf("Failed to settle consume metadata or power on publishFinishedTaskToDataCenter, taskId: {%s}, partyId: {%s}, taskState: {%s}",
+				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskState.String())
+		}
 
 		log.Debugf("Start publishFinishedTaskToDataCenter, taskId: {%s}, partyId: {%s}, taskState: {%s}",
 			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskState.String())
@@ -834,10 +834,10 @@ func (m *Manager) sendTaskResultMsgToTaskSender(task *types.NeedExecuteTask, loc
 
 	// 1、settle metadata or power usage.
 	// TODO 打开这里 ...
-	//if err := m.endConsumeMetadataOrPower(task, localTask); nil != err {
-	//	log.WithError(err).Errorf("Failed to settle consume metadata or power on sendTaskResultMsgToTaskSender, taskId: {%s},  partyId: {%s}",
-	//		task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
-	//}
+	if err := m.endConsumeMetadataOrPower(task, localTask); nil != err {
+		log.WithError(err).Errorf("Failed to settle consume metadata or power on sendTaskResultMsgToTaskSender, taskId: {%s},  partyId: {%s}",
+			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
+	}
 
 	// 2、push all events of task to task sender.
 	log.Debugf("Start sendTaskResultMsgToTaskSender, taskId: {%s}, partyId: {%s}, remote pid: {%s}",
