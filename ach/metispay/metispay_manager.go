@@ -30,7 +30,7 @@ const keystoreFile = ".keystore"
 
 //"task:0x81050ea1c64ab0ed96e50b151c36bcef180eea18d3b3245e7c4a42aa08638c58"
 var (
-	contractMetisPayAddress          = common.HexToAddress("0x3979cA71ea6B4c0A7CF23a8Bf216fD9FC37a4dF9")
+	contractMetisPayAddress          = common.HexToAddress("0x58950A32F121763ddF82a6Db228132dbb315a5B9")
 	defaultDataTokenPrepaymentAmount = big.NewInt(1)
 
 	mockTaskID, _ = hexutil.DecodeBig("0x81050ea1c64ab0ed96e50b151c36bcef180eea18d3b3245e7c4a42aa08638c58")
