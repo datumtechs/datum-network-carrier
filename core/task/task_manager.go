@@ -280,85 +280,97 @@ func (m *Manager) loop() {
 			}(res)
 
 		// handle the task of need replay scheduling while received from remote peer on consensus epoch
-		case needReplayScheduleTask := <-m.needReplayScheduleTaskCh:
+		case task := <-m.needReplayScheduleTaskCh:
 
-			go func() {
+			if nil == task {
+				continue
+			}
+
+			go func(task *types.NeedReplayScheduleTask) {
 
 				// Do duplication check ...
-				has, err := m.resourceMng.GetDB().HasLocalTask(needReplayScheduleTask.GetTask().GetTaskId())
+				has, err := m.resourceMng.GetDB().HasLocalTask(task.GetTask().GetTaskId())
 				if nil != err {
-					log.WithError(err).Errorf("Failed to query local task when received remote task, taskId: {%s}", needReplayScheduleTask.GetTask().GetTaskId())
+					log.WithError(err).Errorf("Failed to query local task when received remote task, taskId: {%s}", task.GetTask().GetTaskId())
 					return
 				}
 
 				// There is no need to store local tasks repeatedly
 				if !has {
 
-					log.Infof("Start to store local task on taskManager.loop() when received needReplayScheduleTask, taskId: {%s}", needReplayScheduleTask.GetTask().GetTaskId())
+					log.Infof("Start to store local task on taskManager.loop() when received needReplayScheduleTask, taskId: {%s}", task.GetTask().GetTaskId())
 
 					// store metadata used taskId
-					if err := m.storeMetadataUsedTaskId(needReplayScheduleTask.GetTask()); nil != err {
-						log.WithError(err).Errorf("Failed to store metadata used taskId when received remote task, taskId: {%s}", needReplayScheduleTask.GetTask().GetTaskId())
+					if err := m.storeMetadataUsedTaskId(task.GetTask()); nil != err {
+						log.WithError(err).Errorf("Failed to store metadata used taskId when received remote task, taskId: {%s}", task.GetTask().GetTaskId())
 					}
-					if err := m.resourceMng.GetDB().StoreLocalTask(needReplayScheduleTask.GetTask()); nil != err {
-						log.WithError(err).Errorf("Failed to call StoreLocalTask when replay schedule remote task, taskId: {%s}", needReplayScheduleTask.GetTask().GetTaskId())
-						needReplayScheduleTask.SendFailedResult(needReplayScheduleTask.GetTask().GetTaskId(), err)
+					if err := m.resourceMng.GetDB().StoreLocalTask(task.GetTask()); nil != err {
+						log.WithError(err).Errorf("Failed to call StoreLocalTask when replay schedule remote task, taskId: {%s}", task.GetTask().GetTaskId())
+						task.SendFailedResult(task.GetTask().GetTaskId(), err)
 						return
 					}
-					log.Infof("Finished to store local task on taskManager.loop() when received needReplayScheduleTask, taskId: {%s}", needReplayScheduleTask.GetTask().GetTaskId())
+					log.Infof("Finished to store local task on taskManager.loop() when received needReplayScheduleTask, taskId: {%s}", task.GetTask().GetTaskId())
 
 				}
 
 				// Start replay schedule remote task ...
-				result := m.scheduler.ReplaySchedule(needReplayScheduleTask.GetLocalPartyId(), needReplayScheduleTask.GetLocalTaskRole(), needReplayScheduleTask)
-				needReplayScheduleTask.SendResult(result)
-			}()
+				result := m.scheduler.ReplaySchedule(task.GetLocalPartyId(), task.GetLocalTaskRole(), task)
+				task.SendResult(result)
+			}(task)
 
 		// handle task of need to executing, and send it to fighter of myself organization or send the task result msg to remote peer
 		case task := <-m.needExecuteTaskCh:
 
-			localTask, err := m.resourceMng.GetDB().QueryLocalTask(task.GetTaskId())
-			if nil != err {
-				log.WithError(err).Errorf("Failed to query local task info on taskManager.loop() when received needExecuteTask, taskId: {%s}, partyId: {%s}, status: {%s}",
-					task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), task.GetConsStatus().String())
+			if nil == task {
 				continue
 			}
 
-			// init consumeSpec of NeedExecuteTask first (by v0.4.0)
-			m.initConsumeSpecByConsumeOption(task)
+			go func(task *types.NeedExecuteTask) {
 
-			switch task.GetConsStatus() {
-			// sender and partner to handle needExecuteTask when consensus succeed.
-			// sender need to store some cache, partner need to execute task.
-			case types.TaskNeedExecute, types.TaskConsensusFinished:
-				// to execute the task
-				m.handleNeedExecuteTask(task, localTask)
-
-			// sender and partner to clear local task things after received status: `scheduleFailed` and `interrupt` and `terminate`.
-			// sender need to publish local task and event to datacenter,
-			// partner need to send task's event to remote task's sender.
-			//
-			// NOTE:
-			//	sender never received status `interrupt`, and partners never received status `scheduleFailed`.
-			default:
-
-				// store a bad event into local db before handle bad task.
-				var eventTyp string
-				if task.GetConsStatus() == types.TaskConsensusInterrupt {
-					eventTyp = ev.TaskFailedConsensus.GetType()
-				} else {
-					eventTyp = ev.TaskFailed.GetType() // then the task status was `scheduleFailed` and `terminate`.
+				localTask, err := m.resourceMng.GetDB().QueryLocalTask(task.GetTaskId())
+				if nil != err {
+					log.WithError(err).Errorf("Failed to query local task info on taskManager.loop() when received needExecuteTask, taskId: {%s}, partyId: {%s}, status: {%s}",
+						task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), task.GetConsStatus().String())
+					//continue
+					return
 				}
-				m.resourceMng.GetDB().StoreTaskEvent(m.eventEngine.GenerateEvent(eventTyp, task.GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(),
-					task.GetLocalTaskOrganization().GetPartyId(), task.GetErr().Error()))
 
-				switch task.GetLocalTaskRole() {
-				case libtypes.TaskRole_TaskRole_Sender:
-					m.publishFinishedTaskToDataCenter(task, localTask, true)
+				// init consumeSpec of NeedExecuteTask first (by v0.4.0)
+				m.initConsumeSpecByConsumeOption(task)
+
+				switch task.GetConsStatus() {
+				// sender and partner to handle needExecuteTask when consensus succeed.
+				// sender need to store some cache, partner need to execute task.
+				case types.TaskNeedExecute, types.TaskConsensusFinished:
+					// to execute the task
+					m.handleNeedExecuteTask(task, localTask)
+
+				// sender and partner to clear local task things after received status: `scheduleFailed` and `interrupt` and `terminate`.
+				// sender need to publish local task and event to datacenter,
+				// partner need to send task's event to remote task's sender.
+				//
+				// NOTE:
+				//	sender never received status `interrupt`, and partners never received status `scheduleFailed`.
 				default:
-					m.sendTaskResultMsgToTaskSender(task, localTask)
+
+					// store a bad event into local db before handle bad task.
+					var eventTyp string
+					if task.GetConsStatus() == types.TaskConsensusInterrupt {
+						eventTyp = ev.TaskFailedConsensus.GetType()
+					} else {
+						eventTyp = ev.TaskFailed.GetType() // then the task status was `scheduleFailed` and `terminate`.
+					}
+					m.resourceMng.GetDB().StoreTaskEvent(m.eventEngine.GenerateEvent(eventTyp, task.GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(),
+						task.GetLocalTaskOrganization().GetPartyId(), task.GetErr().Error()))
+
+					switch task.GetLocalTaskRole() {
+					case libtypes.TaskRole_TaskRole_Sender:
+						m.publishFinishedTaskToDataCenter(task, localTask, true)
+					default:
+						m.sendTaskResultMsgToTaskSender(task, localTask)
+					}
 				}
-			}
+			}(task)
 
 		// handle the executing expire tasks
 		case <-taskMonitorTimer.C:
