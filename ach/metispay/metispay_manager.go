@@ -30,7 +30,7 @@ const keystoreFile = ".keystore"
 
 //"task:0x81050ea1c64ab0ed96e50b151c36bcef180eea18d3b3245e7c4a42aa08638c58"
 var (
-	contractMetisPayAddress          = common.HexToAddress("0x58950A32F121763ddF82a6Db228132dbb315a5B9")
+	contractMetisPayAddress          = common.HexToAddress("0x263B1D39843BF2e1DA27d827e749992fbD1f1577")
 	defaultDataTokenPrepaymentAmount = big.NewInt(1e18)
 
 	mockTaskID, _ = hexutil.DecodeBig("0x81050ea1c64ab0ed96e50b151c36bcef180eea18d3b3245e7c4a42aa08638c58")
@@ -327,7 +327,7 @@ func (metisPay *MetisPayManager) Prepay(taskID *big.Int, taskSponsorAccount comm
 	feePrepaid := new(big.Int).Mul(new(big.Int).SetUint64(estimatedGas), opts.GasPrice)
 
 	log.Debugf("Start call contract prepay(), taskID: %d, gasEstimated: %d, gasLimit: %d, gasPrice: %d, feePrepaid: %d, taskSponsorAccount: %s, dataTokenAddressList: %s, dataTokenAmountList: %s",
-		taskID, estimatedGas, opts.GasLimit,  opts.GasPrice, feePrepaid, taskSponsorAccount.String(), "["+strings.Join(addrs, ",")+"]", "["+strings.Join(amounts, ",")+"]")
+		taskID, estimatedGas, opts.GasLimit, opts.GasPrice, feePrepaid, taskSponsorAccount.String(), "["+strings.Join(addrs, ",")+"]", "["+strings.Join(amounts, ",")+"]")
 
 	tx, err := metisPay.contractMetisPayInstance.Prepay(opts, taskID, taskSponsorAccount, feePrepaid, dataTokenAddressList, dataTokenAmountList)
 	if err != nil {
