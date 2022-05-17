@@ -48,7 +48,7 @@ func TestExecuteTaskMonitor (t *testing.T) {
 
 			case <-timer.C:
 
-				future := m.checkNeedExecuteTaskMonitors(timeutils.UnixMsec())
+				future := m.checkNeedExecuteTaskMonitors(timeutils.UnixMsec(), true)
 				now := timeutils.UnixMsec()
 				if future > now {
 					timer.Reset(time.Duration(future-now) * time.Millisecond)

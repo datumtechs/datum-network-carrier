@@ -242,8 +242,8 @@ func (t *Twopc) makeConfirmTaskPeerDesc(proposalId common.Hash) *twopcpb.Confirm
 	}
 }
 
-func (t *Twopc) checkProposalStateMonitors(now int64) int64 {
-	return t.state.CheckProposalStateMonitors(now)
+func (t *Twopc) checkProposalStateMonitors(now int64, syncCall bool) int64 {
+	return t.state.CheckProposalStateMonitors(now, syncCall)
 }
 
 func (t *Twopc) proposalStateMonitorTimer() *time.Timer {
