@@ -1471,8 +1471,8 @@ func (m *Manager) initConsumeSpecByConsumeOption(task *types.NeedExecuteTask) {
 		task.SetConsumeQueryId(taskIdBigInt.String())
 		task.SetConsumeSpec(string(b))
 
-	default: // use nothing
-		// pass
+	//default: // use nothing
+	//	// pass
 	}
 }
 
