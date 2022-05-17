@@ -357,13 +357,16 @@ rerun:
 func (syncQueue *SyncProposalStateMonitorQueue) Size() int { return len(*(syncQueue.queue)) }
 
 func (syncQueue *SyncProposalStateMonitorQueue) AddMonitor(m *ProposalStateMonitor) {
-	syncQueue.lock.Lock()
-	defer syncQueue.lock.Unlock()
+
 	// when must never be negative;
 	if m.GetWhen()-timeutils.UnixMsec() < 0 {
-		log.Warnf("target when time is negative number, proposalId: %s, taskId: %s, partyId: %s, when: %d, now: %d",
+		log.Warnf("Warning add proposalState monitor, target when time is negative number, proposalId: %s, taskId: %s, partyId: %s, when: %d, now: %d",
 			m.GetProposalId().String(), m.GetOrgState().GetTaskId(), m.GetPartyId(), m.GetWhen(), timeutils.UnixMsec())
 	}
+
+	syncQueue.lock.Lock()
+	defer syncQueue.lock.Unlock()
+
 	i := len(*(syncQueue.queue))
 	m.index = i
 	*(syncQueue.queue) = append(*(syncQueue.queue), m)
@@ -386,12 +389,17 @@ func (syncQueue *SyncProposalStateMonitorQueue) AddMonitor(m *ProposalStateMonit
 }
 
 func (syncQueue *SyncProposalStateMonitorQueue) UpdateMonitor(proposalId common.Hash, partyId string, when, next int64) {
-	syncQueue.lock.Lock()
-	defer syncQueue.lock.Unlock()
+
 	// when must never be negative;
 	if when-timeutils.UnixMsec() < 0 {
-		panic("target time is negative number")
+		log.Errorf("Failed to update proposalState monitor, target time is negative number, proposalId: %s, partyId: %s, when: %d, next: %d, now: %d",
+			proposalId.String(), partyId, when, next, timeutils.UnixMsec())
+		return
 	}
+
+	syncQueue.lock.Lock()
+	defer syncQueue.lock.Unlock()
+
 	for i := 0; i < len(*(syncQueue.queue)); i++ {
 		m := (*(syncQueue.queue))[i]
 		if m.GetProposalId() == proposalId && m.GetPartyId() == partyId {

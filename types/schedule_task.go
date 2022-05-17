@@ -347,13 +347,16 @@ rerun:
 func (syncQueue *SyncExecuteTaskMonitorQueue) Size() int { return len(*(syncQueue.queue)) }
 
 func (syncQueue *SyncExecuteTaskMonitorQueue) AddMonitor(m *ExecuteTaskMonitor) {
-	syncQueue.lock.Lock()
-	defer syncQueue.lock.Unlock()
+
 	// when must never be negative;
 	if m.when-timeutils.UnixMsec() < 0 {
-		log.Warnf("target time is negative number, taskId: %s, partyId: %s, when: %d, now: %d",
+		log.Warnf("Warning add needExecuteTask monitor, target time is negative number, taskId: %s, partyId: %s, when: %d, now: %d",
 			m.GetTaskId(), m.GetPartyId(), m.when, timeutils.UnixMsec())
 	}
+
+	syncQueue.lock.Lock()
+	defer syncQueue.lock.Unlock()
+
 	i := len(*(syncQueue.queue))
 	m.index = i
 	*(syncQueue.queue) = append(*(syncQueue.queue), m)
