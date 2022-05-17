@@ -331,7 +331,7 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 
 		queryTaskState := func(ctx context.Context, taskIdBigInt *big.Int, period time.Duration) (int, error) {
 
-			start := time.Now()
+			start := timeutils.UnixMsec()
 
 			ticker := time.NewTicker(period)
 			defer ticker.Stop()
@@ -339,10 +339,10 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 				select {
 				case <-ctx.Done():
 
-					end := time.Now()
-
+					end := timeutils.UnixMsec()
+					// time.Unix(end/1000, 0)
 					log.Warnf("Warning query task state of metisPay time out on blockchain on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}, startTime: {%d <==> %s}, endTime: {%d <==> %s}, duration: %d ms",
-						task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt, start.UnixNano()/1e6, start.Format("2006-01-02 15:04:05"), end.UnixNano()/1e6, end.Format("2006-01-02 15:04:05"), end.UnixNano()/1e6-start.UnixNano()/1e6)
+						task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt, start, time.Unix(start/1000, 0).Format("2006-01-02 15:04:05"), end, time.Unix(end/1000, 0).Format("2006-01-02 15:04:05"), end-start)
 
 					return 0, fmt.Errorf("query task state of metisPay time out")
 				case <-ticker.C:
@@ -488,9 +488,9 @@ func (m *Manager) driveTaskForExecute(task *types.NeedExecuteTask, localTask *ty
 
 	// 1、 consume the resource of task
 	// TODO 打开这里 ...
-	if err := m.beginConsumeMetadataOrPower(task, localTask); nil != err {
-		return err
-	}
+	//if err := m.beginConsumeMetadataOrPower(task, localTask); nil != err {
+	//	return err
+	//}
 
 	// 2、 update needExecuteTask to disk
 	if err := m.resourceMng.GetDB().StoreNeedExecuteTask(task); nil != err {
@@ -801,10 +801,10 @@ func (m *Manager) publishFinishedTaskToDataCenter(task *types.NeedExecuteTask, l
 
 		// 1、settle metadata or power usage.
 		// TODO 打开这里 ...
-		if err := m.endConsumeMetadataOrPower(task, localTask); nil != err {
-			log.WithError(err).Errorf("Failed to settle consume metadata or power on publishFinishedTaskToDataCenter, taskId: {%s}, partyId: {%s}, taskState: {%s}",
-				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskState.String())
-		}
+		//if err := m.endConsumeMetadataOrPower(task, localTask); nil != err {
+		//	log.WithError(err).Errorf("Failed to settle consume metadata or power on publishFinishedTaskToDataCenter, taskId: {%s}, partyId: {%s}, taskState: {%s}",
+		//		task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskState.String())
+		//}
 
 		log.Debugf("Start publishFinishedTaskToDataCenter, taskId: {%s}, partyId: {%s}, taskState: {%s}",
 			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskState.String())
@@ -839,10 +839,10 @@ func (m *Manager) sendTaskResultMsgToTaskSender(task *types.NeedExecuteTask, loc
 
 	// 1、settle metadata or power usage.
 	// TODO 打开这里 ...
-	if err := m.endConsumeMetadataOrPower(task, localTask); nil != err {
-		log.WithError(err).Errorf("Failed to settle consume metadata or power on sendTaskResultMsgToTaskSender, taskId: {%s},  partyId: {%s}",
-			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
-	}
+	//if err := m.endConsumeMetadataOrPower(task, localTask); nil != err {
+	//	log.WithError(err).Errorf("Failed to settle consume metadata or power on sendTaskResultMsgToTaskSender, taskId: {%s},  partyId: {%s}",
+	//		task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
+	//}
 
 	// 2、push all events of task to task sender.
 	log.Debugf("Start sendTaskResultMsgToTaskSender, taskId: {%s}, partyId: {%s}, remote pid: {%s}",
