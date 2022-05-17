@@ -316,20 +316,20 @@ func (metisPay *MetisPayManager) Prepay(taskID *big.Int, taskSponsorAccount comm
 		return common.Hash{}, errors.New("failed to estimate gas for MetisPay.Prepay()")
 	}
 
-	//交易参数直接使用用户预付的总的gas，尽量放大，用来支付carrier调用prepay()/setter()支付的gas
-	opts, err := metisPay.buildTxOpts(estimatedGas * 5)
+	//交易参数直接使用用户预付的总的gas，尽量放大，以防止交易执行gas不足
+	opts, err := metisPay.buildTxOpts(estimatedGas * 2)
 	if err != nil {
 		log.Errorf("failed to build transact options to call MetisPay.Prepay(): %v", err)
 		return common.Hash{}, errors.New("failed to build transact options to call MetisPay.Prepay()")
 	}
 
-	//gas fee, 支付助手合约，需要记录用户预付的总的手续费
-	totalFeePrepaid := new(big.Int).Mul(new(big.Int).SetUint64(opts.GasLimit), opts.GasPrice)
+	//gas fee, 支付助手合约，需要记录用户预付的手续费
+	feePrepaid := new(big.Int).Mul(new(big.Int).SetUint64(estimatedGas), opts.GasPrice)
 
-	log.Debugf("Start call contract prepay(), params{opts: %#v, taskID: %d, taskSponsorAccount: %s, totalFeePrepaid: %d, dataTokenAddressList: %s, dataTokenAmountList: %s}",
-		opts, taskID, taskSponsorAccount.String(), totalFeePrepaid, "["+strings.Join(addrs, ",")+"]", "["+strings.Join(amounts, ",")+"]")
+	log.Debugf("Start call contract prepay(), taskID: %d, gasEstimated: %d, gasLimit: %d, gasPrice: %d, feePrepaid: %d, taskSponsorAccount: %s, dataTokenAddressList: %s, dataTokenAmountList: %s",
+		taskID, estimatedGas, opts.GasLimit,  opts.GasPrice, feePrepaid, taskSponsorAccount.String(), "["+strings.Join(addrs, ",")+"]", "["+strings.Join(amounts, ",")+"]")
 
-	tx, err := metisPay.contractMetisPayInstance.Prepay(opts, taskID, taskSponsorAccount, totalFeePrepaid, dataTokenAddressList, dataTokenAmountList)
+	tx, err := metisPay.contractMetisPayInstance.Prepay(opts, taskID, taskSponsorAccount, feePrepaid, dataTokenAddressList, dataTokenAmountList)
 	if err != nil {
 		log.WithError(err).Errorf("failed to call MetisPay.Prepay(), taskID: %s", hexutil.EncodeBig(taskID))
 		return common.Hash{}, errors.New("failed to call MetisPay.Prepay()")
@@ -360,8 +360,7 @@ func (metisPay *MetisPayManager) Settle(taskID *big.Int, gasUsedPrepay uint64) (
 	}
 
 	//交易参数的gasLimit可以放大，以防止交易执行gas不足；实际并不会真的消耗这么多
-	gasLimit := estimatedGas * 2
-	opts, err := metisPay.buildTxOpts(gasLimit)
+	opts, err := metisPay.buildTxOpts(estimatedGas * 2)
 	if err != nil {
 		log.Errorf("failed to build transact options: %v", err)
 	}
@@ -372,7 +371,7 @@ func (metisPay *MetisPayManager) Settle(taskID *big.Int, gasUsedPrepay uint64) (
 	//gas fee
 	totalFeeUsed := new(big.Int).Mul(new(big.Int).SetUint64(totalGasUsed), opts.GasPrice)
 
-	log.Debugf("call contract settle(), opts: %#v, taskID: %d, totalFeeUsed: %d", opts, taskID, totalFeeUsed)
+	log.Debugf("call contract settle(),  taskID: %d, gasEstimated: %d, gasLimit: %d, gasPrice: %d, totalFeeUsed: %d", taskID, estimatedGas, opts.GasLimit, opts.GasPrice, totalFeeUsed)
 
 	//合约
 	tx, err := metisPay.contractMetisPayInstance.Settle(opts, taskID, totalFeeUsed)
