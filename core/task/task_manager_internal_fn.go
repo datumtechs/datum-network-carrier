@@ -2374,7 +2374,7 @@ func (m *Manager) startTerminateWithNeedExecuteTask(needExecuteTask *types.NeedE
 		types.TaskTerminate,
 		&types.PrepareVoteResource{},   // zero value
 		&twopcpb.ConfirmTaskPeerInfo{}, // zero value
-		fmt.Errorf("task was terminated."),
+		fmt.Errorf("task was terminated"),
 	))
 	return nil
 }

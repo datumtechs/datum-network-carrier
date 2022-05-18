@@ -393,7 +393,7 @@ func (metisPay *MetisPayManager) GetReceipt(ctx context.Context, txHash common.H
 			log.WithError(err).Warnf("Warning cannot query prepay transaction receipt, txHash: %s", txHash.Hex())
 			return nil
 		} else {
-			log.Debugf("txHash:%s, receipt.status: %d", txHash.Hex(), receipt.Status)
+			log.Debugf("txHash:%s, receipt: %#v", txHash.Hex(), receipt)
 			return receipt
 		}
 
@@ -411,7 +411,7 @@ func (metisPay *MetisPayManager) GetReceipt(ctx context.Context, txHash common.H
 					//including NotFound
 					log.WithError(err).Warnf("Warning cannot query prepay transaction receipt, txHash: %s", txHash.Hex())
 				} else {
-					log.Debugf("txHash:%s, receipt.status: %d", txHash.Hex(), receipt.Status)
+					log.Debugf("txHash:%s, receipt: %#v", txHash.Hex(), receipt)
 					return receipt
 				}
 			}
