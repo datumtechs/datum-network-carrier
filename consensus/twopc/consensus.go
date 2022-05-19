@@ -98,7 +98,7 @@ func (t *Twopc) loop() {
 
 		case <-proposalStateMonitorTimer.C:
 
-			future := t.checkProposalStateMonitors(timeutils.UnixMsec())
+			future := t.checkProposalStateMonitors(timeutils.UnixMsec(), true)
 			now := timeutils.UnixMsec()
 			if future > now {
 				proposalStateMonitorTimer.Reset(time.Duration(future-now) * time.Millisecond)

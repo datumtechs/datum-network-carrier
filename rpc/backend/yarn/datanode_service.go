@@ -137,7 +137,7 @@ func (svr *Server) ReportTaskResultFileSummary(ctx context.Context, req *pb.Repo
 	}
 
 	// the empty fileHash for task result file
-	err = svr.B.StoreTaskResultFileSummary(req.GetTaskId(), req.GetOriginId(), req.GetDataHash(), req.GetMetadataOption(), dataNodeId, req.GetExtra(), uint32(req.GetDataType()))
+	err = svr.B.StoreTaskResultFileSummary(req.GetTaskId(), req.GetOriginId(), req.GetDataHash(), req.GetMetadataOption(), dataNodeId, req.GetExtra(), req.GetDataType())
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:ReportTaskResultFileSummary failed, call StoreTaskResultFileSummary() failed, req.TaskId: {%s}, req.GetOriginId: {%s}, req.GetDataType: {%s}, req.Ip: {%s}, req.Port: {%s}, req.DataHash: {%s}, req.MetadataOption: %s, found dataNodeId: {%s}",
 			req.GetTaskId(), req.GetOriginId(), req.GetDataType().String(), req.GetIp(), req.GetPort(), req.GetDataHash(), req.GetMetadataOption(), dataNodeId)

@@ -9,25 +9,25 @@ var (
 	CannotMatchMetadataOption = fmt.Errorf("cannot match metadata option")
 )
 
-func IsNotCSVdata(fileType libtypes.OrigindataType) bool { return !IsCSVdata(fileType) }
-func IsCSVdata(fileType libtypes.OrigindataType) bool {
-	if fileType == libtypes.OrigindataType_OrigindataType_CSV {
+func IsNotCSVdata(dataType libtypes.OrigindataType) bool { return !IsCSVdata(dataType) }
+func IsCSVdata(dataType libtypes.OrigindataType) bool {
+	if dataType == libtypes.OrigindataType_OrigindataType_CSV {
 		return true
 	}
 	return false
 }
 
-func IsNotDIRdata(fileType libtypes.OrigindataType) bool { return !IsCSVdata(fileType) }
-func IsDIRdata(fileType libtypes.OrigindataType) bool {
-	if fileType == libtypes.OrigindataType_OrigindataType_DIR {
+func IsNotDIRdata(dataType libtypes.OrigindataType) bool { return !IsDIRdata(dataType) }
+func IsDIRdata(dataType libtypes.OrigindataType) bool {
+	if dataType == libtypes.OrigindataType_OrigindataType_DIR {
 		return true
 	}
 	return false
 }
 
-func IsNotBINARYdata(fileType libtypes.OrigindataType) bool { return !IsCSVdata(fileType) }
-func IsBINARYdata(fileType libtypes.OrigindataType) bool {
-	if fileType == libtypes.OrigindataType_OrigindataType_BINARY {
+func IsNotBINARYdata(dataType libtypes.OrigindataType) bool { return !IsBINARYdata(dataType) }
+func IsBINARYdata(dataType libtypes.OrigindataType) bool {
+	if dataType == libtypes.OrigindataType_OrigindataType_BINARY {
 		return true
 	}
 	return false

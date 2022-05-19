@@ -54,7 +54,7 @@ func TestProposalStateMonitor(t *testing.T) {
 
 			case <-timer.C:
 
-				future := consensus.checkProposalStateMonitors(timeutils.UnixMsec())
+				future := consensus.checkProposalStateMonitors(timeutils.UnixMsec(), true)
 				now := timeutils.UnixMsec()
 				if future > now {
 					timer.Reset(time.Duration(future-now) * time.Millisecond)

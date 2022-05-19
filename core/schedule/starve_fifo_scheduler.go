@@ -452,7 +452,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 			}
 		}
 
-		log.Debugf("Succeed to verify election powers org when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, agree: %v",
+		log.Debugf("Succeed to verify election powers org when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}",
 			task.GetTaskId(), taskRole.String(), partyId)
 
 		// ## 2、check metadata on current party AND choosing the dataNode

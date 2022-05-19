@@ -202,7 +202,7 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 			return fmt.Errorf("this partyId is not task sender on beginConsumeByDataToken()")
 		}
 
-		taskIdBigInt, err := hexutil.DecodeBig(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID))
+		taskIdBigInt, err := hexutil.DecodeBig("0x" + strings.TrimLeft(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID+"0x"), "\x00"))
 		if nil != err {
 			return fmt.Errorf("cannot decode taskId to big.Int on beginConsumeByDataToken(), %s", err)
 		}
@@ -236,8 +236,8 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 
 		user := ethereumcommon.HexToAddress(localTask.GetTaskData().GetUser())
 
-		log.Debugf("Start call metisPayManager.Prepay(), taskId: {%s}, partyId: {%s}, call params{taskIdBigInt: %d, taskSponsorAccount: %s, dataTokenAaddresses: %s}",
-			task.GetTaskId(), partyId, taskIdBigInt, user.String(), "[" + strings.Join(addrs, ",") + "]")
+		log.Debugf("Start call metisPayManager.prepay(), taskId: {%s}, partyId: {%s}, call params{taskIdBigInt: %d, taskSponsorAccount: %s, dataTokenAaddresses: %s}",
+			task.GetTaskId(), partyId, taskIdBigInt, user.String(), "["+strings.Join(addrs, ",")+"]")
 
 		// start prepay dataToken
 		txHash, err := m.metisPayMng.Prepay(taskIdBigInt, user, dataTokenAaddresses)
@@ -312,7 +312,7 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		return nil
 	case libtypes.TaskRole_TaskRole_DataSupplier, libtypes.TaskRole_TaskRole_PowerSupplier, libtypes.TaskRole_TaskRole_Receiver:
 
-		taskId, err := hexutil.DecodeBig(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID))
+		taskIdBigInt, err := hexutil.DecodeBig("0x" + strings.TrimLeft(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID+"0x"), "\x00"))
 		if nil != err {
 			return fmt.Errorf("cannot decode taskId to big.Int on beginConsumeByDataToken(), %s", err)
 		}
@@ -324,18 +324,23 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		defer cancelFn()
 
 		queryTaskState := func(ctx context.Context, taskIdBigInt *big.Int, period time.Duration) (int, error) {
+
+			start := timeutils.UnixMsec()
+
 			ticker := time.NewTicker(period)
 			defer ticker.Stop()
 			for {
 				select {
 				case <-ctx.Done():
 
-					log.Warnf("Warning query task state of metisPay time out on blockchain on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}",
-						task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt)
+					end := timeutils.UnixMsec()
+					// time.Unix(end/1000, 0)
+					log.Warnf("Warning query task state of metisPay time out on blockchain on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}, startTime: {%d <==> %s}, endTime: {%d <==> %s}, duration: %d ms",
+						task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt, start, time.Unix(start/1000, 0).Format("2006-01-02 15:04:05"), end, time.Unix(end/1000, 0).Format("2006-01-02 15:04:05"), end-start)
 
 					return 0, fmt.Errorf("query task state of metisPay time out")
 				case <-ticker.C:
-					state, err := m.metisPayMng.GetTaskState(taskId)
+					state, err := m.metisPayMng.GetTaskState(taskIdBigInt)
 					if nil != err {
 						//including NotFound
 						log.WithError(err).Warnf("Warning cannot query task state of metisPay on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}",
@@ -360,7 +365,7 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 			}
 		}
 
-		state, err := queryTaskState(ctx, taskId, time.Duration(500)*time.Millisecond) // period 500 ms
+		state, err := queryTaskState(ctx, taskIdBigInt, time.Duration(500)*time.Millisecond) // period 500 ms
 		if nil != err {
 			return err
 		}
@@ -424,14 +429,13 @@ func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *
 			return nil
 		}
 
-		taskIdBigInt, err := hexutil.DecodeBig(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID))
+		taskIdBigInt, err := hexutil.DecodeBig("0x" + strings.TrimLeft(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID+"0x"), "\x00"))
 		if nil != err {
 			return fmt.Errorf("cannot decode taskId to big.Int on endConsumeByDataToken(), %s", err)
 		}
 
-		log.Debugf("Start call metisPayManager.Settle(), taskId: {%s}, partyId: {%s}, call params{taskIdBigInt: %d, gasUsedPrepay: %d}",
+		log.Debugf("Start call metisPayManager.settle(), taskId: {%s}, partyId: {%s}, call params{taskIdBigInt: %d, gasUsedPrepay: %d}",
 			task.GetTaskId(), partyId, taskIdBigInt, consumeSpec.GetGasUsed())
-
 
 		// start prepay dataToken
 		txHash, err := m.metisPayMng.Settle(taskIdBigInt, consumeSpec.GetGasUsed())
@@ -478,9 +482,9 @@ func (m *Manager) driveTaskForExecute(task *types.NeedExecuteTask, localTask *ty
 
 	// 1、 consume the resource of task
 	// TODO 打开这里 ...
-	//if err := m.beginConsumeMetadataOrPower(task, localTask); nil != err {
-	//	return err
-	//}
+	if err := m.beginConsumeMetadataOrPower(task, localTask); nil != err {
+		return err
+	}
 
 	// 2、 update needExecuteTask to disk
 	if err := m.resourceMng.GetDB().StoreNeedExecuteTask(task); nil != err {
@@ -791,10 +795,10 @@ func (m *Manager) publishFinishedTaskToDataCenter(task *types.NeedExecuteTask, l
 
 		// 1、settle metadata or power usage.
 		// TODO 打开这里 ...
-		//if err := m.endConsumeMetadataOrPower(task, localTask); nil != err {
-		//	log.WithError(err).Errorf("Failed to settle consume metadata or power on publishFinishedTaskToDataCenter, taskId: {%s}, partyId: {%s}, taskState: {%s}",
-		//		task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskState.String())
-		//}
+		if err := m.endConsumeMetadataOrPower(task, localTask); nil != err {
+			log.WithError(err).Errorf("Failed to settle consume metadata or power on publishFinishedTaskToDataCenter, taskId: {%s}, partyId: {%s}, taskState: {%s}",
+				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskState.String())
+		}
 
 		log.Debugf("Start publishFinishedTaskToDataCenter, taskId: {%s}, partyId: {%s}, taskState: {%s}",
 			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskState.String())
@@ -829,10 +833,10 @@ func (m *Manager) sendTaskResultMsgToTaskSender(task *types.NeedExecuteTask, loc
 
 	// 1、settle metadata or power usage.
 	// TODO 打开这里 ...
-	//if err := m.endConsumeMetadataOrPower(task, localTask); nil != err {
-	//	log.WithError(err).Errorf("Failed to settle consume metadata or power on sendTaskResultMsgToTaskSender, taskId: {%s},  partyId: {%s}",
-	//		task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
-	//}
+	if err := m.endConsumeMetadataOrPower(task, localTask); nil != err {
+		log.WithError(err).Errorf("Failed to settle consume metadata or power on sendTaskResultMsgToTaskSender, taskId: {%s},  partyId: {%s}",
+			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
+	}
 
 	// 2、push all events of task to task sender.
 	log.Debugf("Start sendTaskResultMsgToTaskSender, taskId: {%s}, partyId: {%s}, remote pid: {%s}",
@@ -1127,37 +1131,35 @@ func (m *Manager) makeTaskReadyGoReq(task *types.NeedExecuteTask, localTask *typ
 
 func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types.Task) (string, error) {
 
+	/**
+	# FOR DATANODE:
 
-		/**
-		# FOR DATANODE:
+	{
+		"part_id": "p0",
+	    "input_data": [
+	          {
+	              "input_type": 3,  # 输入数据的类型，(算法用标识数据使用方式). 0:unknown, 1:origin_data, 2:psi_output, 3:model
+	              "access_type": 1, # 访问数据的方式，(fighter用决定是否预先加载数据). 0:unknown, 1:local, 2:url
+	              "data_type": 0,   # 数据的格式，(算法用标识数据格式). 0:unknown, 1:csv, 2:dir, 3:binary, 4:xls, 5:xlsx, 6:txt, 7:json
+	              "data_path": "/task_result/task:0xdeefff3434..556/"  # 数据所在的本地路径
+	          }
+	    ]
+	}
 
-		{
-			"part_id": "p0",
-		    "input_data": [
-		          {
-		              "input_type": 3,  # 输入数据的类型，(算法用标识数据使用方式). 0:unknown, 1:origin_data, 2:psi_output, 3:model
-		              "access_type": 1, # 访问数据的方式，(fighter用决定是否预先加载数据). 0:unknown, 1:local, 2:url
-		              "data_type": 0,   # 数据的格式，(算法用标识数据格式). 0:unknown, 1:csv, 2:dir, 3:binary, 4:xls, 5:xlsx, 6:txt, 7:json
-		              "data_path": "/task_result/task:0xdeefff3434..556/"  # 数据所在的本地路径
-		          }
-		    ]
-		}
+	# FOR JOBNODE:
 
-		# FOR JOBNODE:
+	{
+		"part_id": "y0",
+	    "input_data": []
+	}
 
-		{
-			"part_id": "y0",
-		    "input_data": []
-		}
-
-		*/
+	*/
 
 	partyId := task.GetLocalTaskOrganization().GetPartyId()
 	inputDataArr := make([]interface{}, 0)
 
 	switch task.GetLocalTaskRole() {
 	case libtypes.TaskRole_TaskRole_DataSupplier:
-
 
 		for i, policyType := range localTask.GetTaskData().GetDataPolicyTypes() {
 
@@ -1172,7 +1174,8 @@ func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types
 				if dataPolicy.GetPartyId() == partyId {
 					inputData, err := m.metadataInputCSV(task, localTask, dataPolicy)
 					if nil != err {
-						return "", fmt.Errorf("can not unmarshal metadataInputCSV, %s, taskId: {%s}, partyId: {%s}, metadataId: {%s}", err, localTask.GetTaskId(), partyId, dataPolicy.GetMetadataId())
+						return "", fmt.Errorf("can not unmarshal metadataInputCSV, %s, taskId: {%s}, partyId: {%s}, metadataId: {%s}, metadataName: {%s}",
+							err, localTask.GetTaskId(), partyId, dataPolicy.GetMetadataId(), dataPolicy.GetMetadataName())
 					}
 					inputDataArr = append(inputDataArr, inputData)
 				}
@@ -1185,7 +1188,8 @@ func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types
 				if dataPolicy.GetPartyId() == partyId {
 					inputData, err := m.metadataInputDIR(task, localTask, dataPolicy)
 					if nil != err {
-						return "", fmt.Errorf("can not unmarshal metadataInputDIR, %s, taskId: {%s}, partyId: {%s}, metadataId: {%s}", err, localTask.GetTaskId(), partyId, dataPolicy.GetMetadataId())
+						return "", fmt.Errorf("can not unmarshal metadataInputDIR, %s, taskId: {%s}, partyId: {%s}, metadataId: {%s}, metadataName: {%s}",
+							err, localTask.GetTaskId(), partyId, dataPolicy.GetMetadataId(), dataPolicy.GetMetadataName())
 					}
 					inputDataArr = append(inputDataArr, inputData)
 				}
@@ -1199,7 +1203,8 @@ func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types
 				if dataPolicy.GetPartyId() == partyId {
 					inputData, err := m.metadataInputBINARY(task, localTask, dataPolicy)
 					if nil != err {
-						return "", fmt.Errorf("can not unmarshal metadataInputBINARY, %s, taskId: {%s}, partyId: {%s}, metadataId: {%s}", err, localTask.GetTaskId(), partyId, dataPolicy.GetMetadataId())
+						return "", fmt.Errorf("can not unmarshal metadataInputBINARY, %s, taskId: {%s}, partyId: {%s}, metadataId: {%s}, metadataName: {%s}",
+							err, localTask.GetTaskId(), partyId, dataPolicy.GetMetadataId(), dataPolicy.GetMetadataName())
 					}
 					inputDataArr = append(inputDataArr, inputData)
 				}
@@ -1212,7 +1217,7 @@ func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types
 	}
 
 	scps := &types.SelfCfgParams{
-		PartyId: partyId,
+		PartyId:   partyId,
 		InputData: inputDataArr,
 	}
 
@@ -1235,7 +1240,7 @@ func (m *Manager) metadataInputCSV(task *types.NeedExecuteTask, localTask *types
 	metadataId := dataPolicy.GetMetadataId()
 	internalMetadataFlag, err := m.resourceMng.GetDB().IsInternalMetadataById(metadataId)
 	if nil != err {
-		return nil, fmt.Errorf("check metadata whether internal metadata failed, %s", err)
+		return nil, fmt.Errorf("cannot check metadata whether internal metadata, %s", err)
 	}
 
 	var metadata *types.Metadata
@@ -1245,23 +1250,23 @@ func (m *Manager) metadataInputCSV(task *types.NeedExecuteTask, localTask *types
 		// query internal metadata
 		metadata, err = m.resourceMng.GetDB().QueryInternalMetadataById(metadataId)
 		if nil != err {
-			return nil, fmt.Errorf("query internale metadata failed, %s", err)
+			return nil, fmt.Errorf("cannot query internale metadata, %s", err)
 		}
 	} else {
 		// query published metadata
 		metadata, err = m.resourceMng.GetDB().QueryMetadataById(metadataId)
 		if nil != err {
-			return nil, fmt.Errorf("query publish metadata failed, %s", err)
+			return nil, fmt.Errorf("cannot query publish metadata, %s", err)
 		}
 	}
 
 	if types.IsNotCSVdata(metadata.GetData().GetDataType()) {
-		return nil, fmt.Errorf("the metadataOption and dataPolicyOption of task is not match, %s", err)
+		return nil, fmt.Errorf("dataType of metadata is not `CSV`, dataType: %s", metadata.GetData().GetDataType().String())
 	}
 
 	var metadataOption *types.MetadataOptionCSV
 	if err := json.Unmarshal([]byte(metadata.GetData().GetMetadataOption()), &metadataOption); nil != err {
-		return nil, fmt.Errorf("can not unmarshal metadataOption, %s", err)
+		return nil, fmt.Errorf("can not unmarshal `CSV` metadataOption, %s", err)
 	}
 
 	// collection all the column name cache
@@ -1273,7 +1278,7 @@ func (m *Manager) metadataInputCSV(task *types.NeedExecuteTask, localTask *types
 	if kname, ok := columnNameCache[dataPolicy.QueryKeyColumn()]; ok {
 		keyColumn = kname
 	} else {
-		return nil, fmt.Errorf("not found the keyColumn of task dataPolicy on metadataOption, columnIndex: {%d}", dataPolicy.QueryKeyColumn())
+		return nil, fmt.Errorf("not found the keyColumn of task dataPolicy on `CSV` metadataOption, columnIndex: {%d}", dataPolicy.QueryKeyColumn())
 	}
 
 	// find all select column names
@@ -1283,13 +1288,13 @@ func (m *Manager) metadataInputCSV(task *types.NeedExecuteTask, localTask *types
 		if sname, ok := columnNameCache[selectedColumnIndex]; ok {
 			selectedColumns[i] = sname
 		} else {
-			return nil, fmt.Errorf("not found the selectColumn of task dataPolicy on metadataOption, columnIndex: {%d}", selectedColumnIndex)
+			return nil, fmt.Errorf("not found the selectColumn of task dataPolicy on `CSV` metadataOption, columnIndex: {%d}", selectedColumnIndex)
 		}
 	}
 
 	dataPath = metadataOption.GetDataPath()
 	if strings.Trim(dataPath, "") == "" {
-		return nil, fmt.Errorf("not found the dataPath of task dataPolicy on metadataOption")
+		return nil, fmt.Errorf("dataPath is empty")
 	}
 
 	return &types.InputDataCSV{
@@ -1307,7 +1312,7 @@ func (m *Manager) metadataInputDIR(task *types.NeedExecuteTask, localTask *types
 	metadataId := dataPolicy.GetMetadataId()
 	internalMetadataFlag, err := m.resourceMng.GetDB().IsInternalMetadataById(metadataId)
 	if nil != err {
-		return nil, fmt.Errorf("check metadata whether internal metadata failed, %s", err)
+		return nil, fmt.Errorf("cannot check metadata whether internal metadata, %s", err)
 	}
 
 	var metadata *types.Metadata
@@ -1317,34 +1322,35 @@ func (m *Manager) metadataInputDIR(task *types.NeedExecuteTask, localTask *types
 		// query internal metadata
 		metadata, err = m.resourceMng.GetDB().QueryInternalMetadataById(metadataId)
 		if nil != err {
-			return nil, fmt.Errorf("query internale metadata failed, %s", err)
+			return nil, fmt.Errorf("cannot query internale metadata, %s", err)
 		}
 	} else {
 		// query published metadata
 		metadata, err = m.resourceMng.GetDB().QueryMetadataById(metadataId)
 		if nil != err {
-			return nil, fmt.Errorf("query publish metadata failed, %s", err)
+			return nil, fmt.Errorf("cannot query publish metadata, %s", err)
 		}
 	}
 
 	if types.IsNotDIRdata(metadata.GetData().GetDataType()) {
-		return nil, fmt.Errorf("the metadataOption and dataPolicyOption of task is not match, %s", err)
+		return nil, fmt.Errorf("dataType of metadata is not `DIR`, dataType: %s", metadata.GetData().GetDataType().String())
 	}
 
 	var metadataOption *types.MetadataOptionDIR
 	if err := json.Unmarshal([]byte(metadata.GetData().GetMetadataOption()), &metadataOption); nil != err {
-		return nil, fmt.Errorf("can not unmarshal metadataOption, %s", err)
+		return nil, fmt.Errorf("can not unmarshal `DIR` metadataOption, %s", err)
 	}
 
 	dirPath := metadataOption.GetDirPath()
 	if strings.Trim(dirPath, "") == "" {
-		return nil, fmt.Errorf("not found the dataPath of task dataPolicy on metadataOption")
+		return nil, fmt.Errorf("dirPath is empty")
 	}
 
 	return &types.InputDataDIR{
-		InputType: dataPolicy.QueryInputType(),
-		DataType:  uint32(metadata.GetData().GetDataType()),
-		DataPath:  dirPath,
+		InputType:  dataPolicy.QueryInputType(),
+		AccessType: uint32(metadata.GetData().GetLocationType()),
+		DataType:   uint32(metadata.GetData().GetDataType()),
+		DataPath:   dirPath,
 	}, nil
 }
 
@@ -1353,7 +1359,7 @@ func (m *Manager) metadataInputBINARY(task *types.NeedExecuteTask, localTask *ty
 	metadataId := dataPolicy.GetMetadataId()
 	internalMetadataFlag, err := m.resourceMng.GetDB().IsInternalMetadataById(metadataId)
 	if nil != err {
-		return nil, fmt.Errorf("check metadata whether internal metadata failed, %s", err)
+		return nil, fmt.Errorf("cannot check metadata whether internal metadata, %s", err)
 	}
 
 	var metadata *types.Metadata
@@ -1363,34 +1369,35 @@ func (m *Manager) metadataInputBINARY(task *types.NeedExecuteTask, localTask *ty
 		// query internal metadata
 		metadata, err = m.resourceMng.GetDB().QueryInternalMetadataById(metadataId)
 		if nil != err {
-			return nil, fmt.Errorf("query internale metadata failed, %s", err)
+			return nil, fmt.Errorf("cannot query internale metadata, %s", err)
 		}
 	} else {
 		// query published metadata
 		metadata, err = m.resourceMng.GetDB().QueryMetadataById(metadataId)
 		if nil != err {
-			return nil, fmt.Errorf("query publish metadata failed, %s", err)
+			return nil, fmt.Errorf("cannot query publish metadata, %s", err)
 		}
 	}
 
 	if types.IsNotBINARYdata(metadata.GetData().GetDataType()) {
-		return nil, fmt.Errorf("the metadataOption and dataPolicyOption of task is not match, %s", err)
+		return nil, fmt.Errorf("dataType of metadata is not `BINARY`, dataType: %s", metadata.GetData().GetDataType().String())
 	}
 
 	var metadataOption *types.MetadataOptionBINARY
 	if err := json.Unmarshal([]byte(metadata.GetData().GetMetadataOption()), &metadataOption); nil != err {
-		return nil, fmt.Errorf("can not unmarshal metadataOption, %s", err)
+		return nil, fmt.Errorf("can not unmarshal `BINARY` metadataOption, %s", err)
 	}
 
 	dataPath := metadataOption.GetDataPath()
 	if strings.Trim(dataPath, "") == "" {
-		return nil, fmt.Errorf("not found the dataPath of task dataPolicy on metadataOption")
+		return nil, fmt.Errorf("dataPath is empty")
 	}
 
 	return &types.InputDataBINARY{
-		InputType: dataPolicy.QueryInputType(),
-		DataType:  uint32(metadata.GetData().GetDataType()),
-		DataPath:  dataPath,
+		InputType:  dataPolicy.QueryInputType(),
+		AccessType: uint32(metadata.GetData().GetLocationType()),
+		DataType:   uint32(metadata.GetData().GetDataType()),
+		DataPath:   dataPath,
 	}, nil
 }
 
@@ -1399,9 +1406,9 @@ func (m *Manager) makeConnectPolicy(task *types.NeedExecuteTask, localTask *type
 	//partyId := task.GetLocalTaskOrganization().GetPartyId()
 
 	var (
-		format fightercommon.ConnectPolicyFormat
+		format        fightercommon.ConnectPolicyFormat
 		connectPolicy string
-		err error
+		err           error
 	)
 
 	for i, policyType := range localTask.GetTaskData().GetDataFlowPolicyTypes() {
@@ -1421,7 +1428,6 @@ func (m *Manager) makeConnectPolicy(task *types.NeedExecuteTask, localTask *type
 	return format, connectPolicy, err
 }
 
-
 // make terminate rpc req
 func (m *Manager) makeTerminateTaskReq(task *types.NeedExecuteTask) (*fightercommon.TaskCancelReq, error) {
 	return &fightercommon.TaskCancelReq{
@@ -1436,7 +1442,7 @@ func (m *Manager) initConsumeSpecByConsumeOption(task *types.NeedExecuteTask) {
 	case 1: // use metadataAuth
 		// pass
 	case 2: // use datatoken
-		taskId, err := hexutil.DecodeBig(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID))
+		taskIdBigInt, err := hexutil.DecodeBig("0x" + strings.TrimLeft(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID+"0x"), "\x00"))
 		if nil != err {
 			log.WithError(err).Errorf("cannot decode taskId to big.Int on initConsumeSpecByConsumeOption()")
 			return
@@ -1449,9 +1455,9 @@ func (m *Manager) initConsumeSpecByConsumeOption(task *types.NeedExecuteTask) {
 			// constant int8 private PREPAY = 1;
 			// constant int8 private SETTLE = 2;
 			// constant int8 private END = 3;
-			Consumed:     int32(-1),
+			Consumed: int32(-1),
 			//GasEstimated: 0,
-			GasUsed:      0,
+			GasUsed: 0,
 		}
 
 		b, err := json.Marshal(consumeSpec)
@@ -1459,11 +1465,11 @@ func (m *Manager) initConsumeSpecByConsumeOption(task *types.NeedExecuteTask) {
 			log.WithError(err).Errorf("cannot json marshal task consumeSpec on initConsumeSpecByConsumeOption(), consumeSpec: %v, %s", consumeSpec, err)
 			return
 		}
-		task.SetConsumeQueryId(taskId.String())
+		task.SetConsumeQueryId(taskIdBigInt.String())
 		task.SetConsumeSpec(string(b))
 
-	default: // use nothing
-		// pass
+	//default: // use nothing
+	//	// pass
 	}
 }
 
@@ -2401,8 +2407,8 @@ func (m *Manager) startTerminateWithNeedExecuteTask(needExecuteTask *types.NeedE
 	return nil
 }
 
-func (m *Manager) checkNeedExecuteTaskMonitors(now int64) int64 {
-	return m.syncExecuteTaskMonitors.CheckMonitors(now)
+func (m *Manager) checkNeedExecuteTaskMonitors(now int64, syncCall bool) int64 {
+	return m.syncExecuteTaskMonitors.CheckMonitors(now, syncCall)
 }
 
 func (m *Manager) needExecuteTaskMonitorTimer() *time.Timer {

@@ -187,3 +187,14 @@ func TestMetisPay_Prepay(t *testing.T) {
 	receipt := metisManager.GetReceipt(ctx, txHash, time.Duration(500)*time.Millisecond)
 	t.Logf("receipt.status: %d", receipt.Status)
 }
+
+func Test_bigintmul(t *testing.T) {
+	//估算gas
+	estimatedGas := uint64(430000)
+
+	gasPrice := new(big.Int).SetUint64(1e11)
+	//gas fee
+	totalFeeUsed := new(big.Int).Mul(new(big.Int).SetUint64(estimatedGas), gasPrice)
+
+	t.Logf("totalFeeUsed:%d", totalFeeUsed)
+}
