@@ -1381,7 +1381,7 @@ func (s *CarrierAPIBackend) QueryDataResourceFileUploads() ([]*types.DataResourc
 	return s.carrier.carrierDB.QueryDataResourceFileUploads()
 }
 
-func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, dataHash, metadataOption, dataNodeId, extra string, dataType uint32) error {
+func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, dataHash, metadataOption, dataNodeId, extra string, dataType libtypes.OrigindataType) error {
 	// generate metadataId
 	var buf bytes.Buffer
 	buf.Write([]byte(originId))
@@ -1393,7 +1393,7 @@ func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, dataHas
 	identity, err := s.carrier.carrierDB.QueryIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("Failed query local identity on CarrierAPIBackend.StoreTaskResultFileSummary(), taskId: {%s}, dataNodeId: {%s}, originId: {%s}, metadataId: {%s}, dataType: {%s}, metadataOption: %s",
-			taskId, dataNodeId, originId, metadataId, libtypes.OrigindataType(dataType).String(), metadataOption)
+			taskId, dataNodeId, originId, metadataId, dataType.String(), metadataOption)
 		return err
 	}
 
@@ -1428,7 +1428,7 @@ func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, dataHas
 		DataHash:       dataHash,
 		Desc:           fmt.Sprintf("the task `%s` result file after executed", taskId),
 		LocationType:   libtypes.DataLocationType_DataLocationType_Local,
-		DataType:       libtypes.OrigindataType(dataType),
+		DataType:       dataType,
 		Industry:       "Unknown",
 		State:          libtypes.MetadataState_MetadataState_Created, // metaData status, eg: create/release/revoke
 		PublishAt:      0,                                            // have not publish

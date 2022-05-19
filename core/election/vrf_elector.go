@@ -312,7 +312,7 @@ func (s *VrfElector) queryValidGlobalPowerList (logkeyword, taskId string) (type
 		return nil, fmt.Errorf("query global identity list failed, %s", err)
 	}
 
-	log.Debugf("QueryIdentityList by dataCenter on VrfElector.%s, taskId: {%s}, len: {%d}, identityList: %s", logkeyword, taskId, len(identityInfoArr), identityInfoArr.String())
+	log.Debugf("call queryValidGlobalPowerList-QueryIdentityList() by dataCenter on VrfElector.%s, taskId: {%s}, len: {%d}, identityList: %s", logkeyword, taskId, len(identityInfoArr), identityInfoArr.String())
 
 	identityInfoCache := make(map[string]struct{}, len(identityInfoArr))
 
@@ -334,7 +334,7 @@ func (s *VrfElector) queryValidGlobalPowerList (logkeyword, taskId string) (type
 	if nil != err {
 		return nil, fmt.Errorf("query global powerSummary list failed, %s", err)
 	}
-	log.Debugf("GetRemoteResouceTables on VrfElector.%s, taskId: {%s}, len: {%d}, globalpowerSummarys: %s", logkeyword, taskId, len(globalpowerSummarys), globalpowerSummarys.String())
+	log.Debugf("call queryValidGlobalPowerList-QueryGlobalResourceSummaryList() on VrfElector.%s, taskId: {%s}, len: {%d}, globalpowerSummarys: %s", logkeyword, taskId, len(globalpowerSummarys), globalpowerSummarys.String())
 
 	// filter global powerSummary list without invalid identityId
 	validGlobalpowerSummarys := make(types.ResourceArray, 0)

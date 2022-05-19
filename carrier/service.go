@@ -73,6 +73,9 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 		make(chan *types.NeedExecuteTask, config.TaskManagerConfig.NeedExecuteTaskChanSize),
 		make(chan *types.TaskConsResult, config.TaskManagerConfig.TaskConsResultChanSize)
 
+	log.Debugf("Get some chan size value from config when carrier NewService, NeedReplayScheduleTaskChanSize: %d, NeedExecuteTaskChanSize: %d, TaskConsResultChanSize: %d",
+		config.TaskManagerConfig.NeedReplayScheduleTaskChanSize, config.TaskManagerConfig.NeedExecuteTaskChanSize, config.TaskManagerConfig.TaskConsResultChanSize)
+
 	resourceClientSet := grpclient.NewInternalResourceNodeSet()
 	resourceMng := resource.NewResourceManager(config.CarrierDB, resourceClientSet, mockIdentityIdsFile)
 	authManager := auth.NewAuthorityManager(config.CarrierDB)

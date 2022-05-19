@@ -105,15 +105,15 @@ func (dc *DataCenter) GetResourceListByIdentityId(identityId string) (types.Reso
 func (dc *DataCenter) QueryGlobalResourceSummaryList() (types.ResourceArray, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
-	powerListRequest, err := dc.client.GetPowerGlobalSummaryList(dc.ctx)
-	return types.NewResourceArrayFromPowerTotalSummaryListResponse(powerListRequest), err
+	powerListResp, err := dc.client.GetPowerGlobalSummaryList(dc.ctx)
+	return types.NewResourceArrayFromPowerTotalSummaryListResponse(powerListResp), err
 }
 
 func (dc *DataCenter) QueryGlobalResourceDetailList(lastUpdate uint64, pageSize uint64) (types.ResourceArray, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
-	powerListRequest, err := dc.client.GetPowerList(dc.ctx, &api.ListPowerRequest{LastUpdated: lastUpdate, PageSize: pageSize})
-	return types.NewResourceArrayFromPowerDetailListResponse(powerListRequest), err
+	powerListResp, err := dc.client.GetPowerList(dc.ctx, &api.ListPowerRequest{LastUpdated: lastUpdate, PageSize: pageSize})
+	return types.NewResourceArrayFromPowerDetailListResponse(powerListResp), err
 }
 
 // For ResourceManager
