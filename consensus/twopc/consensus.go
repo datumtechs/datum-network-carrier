@@ -3,6 +3,7 @@ package twopc
 import (
 	"bytes"
 	"fmt"
+	"github.com/Metisnetwork/Metis-Carrier/blacklist"
 	"github.com/Metisnetwork/Metis-Carrier/common"
 	"github.com/Metisnetwork/Metis-Carrier/common/bytesutil"
 	"github.com/Metisnetwork/Metis-Carrier/common/rlputil"
@@ -19,6 +20,7 @@ import (
 	"github.com/Metisnetwork/Metis-Carrier/types"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -26,9 +28,13 @@ const (
 	//defaultCleanExpireProposalInterval  = 30 * time.Millisecond
 	defaultRefreshProposalStateInternal = 300 * time.Millisecond
 )
+const thresholdCount = 10
 
-type ConsensusStateInfo struct {
-	State *state
+type OrganizationTaskInfo struct {
+	taskId     string
+	nodeId     string
+	proposalId string
+	partyId    string
 }
 
 type Twopc struct {
@@ -43,6 +49,9 @@ type Twopc struct {
 	taskConsResultCh         chan *types.TaskConsResult
 	wal                      *walDB
 	Errs                     []error
+	orgBlacklistLock		 sync.RWMutex
+	orgBlacklistCache		 map[string][]*OrganizationTaskInfo
+	identityBlackListCache   *blacklist.IdentityBackListCache
 }
 
 func New(
@@ -52,6 +61,7 @@ func New(
 	needReplayScheduleTaskCh chan *types.NeedReplayScheduleTask,
 	needExecuteTaskCh chan *types.NeedExecuteTask,
 	taskConsResultCh chan *types.TaskConsResult,
+	identityBlackListCache *blacklist.IdentityBackListCache,
 ) (*Twopc, error) {
 	newWalDB := newWal(conf)
 	state, err := newState(newWalDB)
@@ -70,7 +80,9 @@ func New(
 		taskConsResultCh:         taskConsResultCh,
 		wal:                      newWalDB,
 		Errs:                     make([]error, 0),
+		identityBlackListCache: identityBlackListCache,
 	}
+	identityBlackListCache.SetEngine(engine)
 	return engine, nil
 }
 
@@ -1048,6 +1060,12 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, n
 					} else {
 						// Send consensus result (on task sender)
 						t.replyTaskConsensusResult(types.NewTaskConsResult(orgProposalState.GetTaskId(), types.TaskConsensusFinished, nil))
+						task,err:=t.resourceMng.GetDB().QueryLocalTask(orgProposalState.GetTaskId())
+						if err!=nil{
+							t.identityBlackListCache.CheckConsensusResultOfNoVote(orgProposalState.GetProposalId(),task)
+						}else {
+							log.Warn("not found task ,task id is:",orgProposalState.GetTaskId())
+						}
 					}
 					// Finally, whether the commitmsg is sent successfully or not, the local cache needs to be cleared
 					t.removeOrgProposalStateAndTask(vote.GetMsgOption().GetProposalId(), vote.GetMsgOption().GetReceiverPartyId())
@@ -1477,4 +1495,10 @@ func (t *Twopc) Get2PcProposalConfirm(proposalId string) (*rpcpb.Get2PcProposalC
 		YesVotes:   yesVotes,
 		VoteStatus: voteStatus,
 	}, nil
+}
+func (t *Twopc) HasPrepareVoting(proposalId common.Hash, org *libtypes.TaskOrganization) bool   {
+	return t.state.HasPrepareVoting(proposalId,org)
+}
+func (t *Twopc) HasConfirmVoting(proposalId common.Hash, org *libtypes.TaskOrganization) bool   {
+	return t.state.HasConfirmVoting(proposalId,org)
 }
