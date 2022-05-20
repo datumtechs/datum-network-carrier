@@ -223,7 +223,7 @@ func (m *Manager) loop() {
 							TaskId:     task.GetTaskId(),
 							IdentityId: task.GetTaskSender().GetIdentityId(),
 							PartyId:    task.GetTaskSender().GetPartyId(),
-							Content:    "succeed consensus.",
+							Content:    "succeed consensus",
 							CreateAt:   timeutils.UnixMsecUint64(),
 						})
 					}
@@ -503,7 +503,7 @@ func (m *Manager) onTerminateExecuteTask(taskId, partyId string, task *types.Tas
 			types.TaskTerminate,
 			&types.PrepareVoteResource{},   // zero value
 			&twopcpb.ConfirmTaskPeerInfo{}, // zero value
-			fmt.Errorf("task was terminated."),
+			fmt.Errorf("task was terminated"),
 		))
 
 		if err := m.sendTaskTerminateMsg(task); nil != err {

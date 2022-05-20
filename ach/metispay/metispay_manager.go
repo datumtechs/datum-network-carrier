@@ -386,16 +386,26 @@ func (metisPay *MetisPayManager) Settle(taskID *big.Int, gasUsedPrepay uint64) (
 
 // GetReceipt returns the tx receipt. The caller goroutine will be blocked, and the caller could receive the receipt by channel.
 func (metisPay *MetisPayManager) GetReceipt(ctx context.Context, txHash common.Hash, period time.Duration) *ethereumtypes.Receipt {
-	if period < 0 { // do once only
+
+	fetchReceipt := func(txHash common.Hash) (*ethereumtypes.Receipt, error) {
 		receipt, err := metisPay.client.TransactionReceipt(context.Background(), txHash)
 		if nil != err {
 			//including NotFound
 			log.WithError(err).Warnf("Warning cannot query prepay transaction receipt, txHash: %s", txHash.Hex())
-			return nil
+			return nil, err
 		} else {
-			log.Debugf("txHash:%s, receipt.status: %d", txHash.Hex(), receipt.Status)
-			return receipt
+			log.Debugf("txHash:%s, receipt: %#v", txHash.Hex(), receipt)
+			return receipt, nil
 		}
+	}
+
+	if period < 0 { // do once only
+
+		receipt, err := fetchReceipt(txHash)
+		if nil != err {
+			return nil
+		}
+		return receipt
 
 	} else {
 		ticker := time.NewTicker(period)
@@ -406,12 +416,8 @@ func (metisPay *MetisPayManager) GetReceipt(ctx context.Context, txHash common.H
 				log.Warnf("query prepay transaction receipt timeout, txHash: %s", txHash.Hex())
 				return nil
 			case <-ticker.C:
-				receipt, err := metisPay.client.TransactionReceipt(context.Background(), txHash)
-				if nil != err {
-					//including NotFound
-					log.WithError(err).Warnf("Warning cannot query prepay transaction receipt, txHash: %s", txHash.Hex())
-				} else {
-					log.Debugf("txHash:%s, receipt.status: %d", txHash.Hex(), receipt.Status)
+
+				if receipt, err := fetchReceipt(txHash); nil == err {
 					return receipt
 				}
 			}
