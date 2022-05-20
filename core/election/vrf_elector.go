@@ -79,10 +79,10 @@ func (s *VrfElector) ElectionNode(taskId, partyId string, mem, bandwidth, disk u
 	return jobNode, nil
 }
 
-func (s *VrfElector) EnoughAvailableOrganization(taskId string, calculateCount int, mem, bandwidth, disk uint64, processor uint32) (bool, error) {
+func (s *VrfElector) EnoughAvailableOrganization(taskId string, calculateCount int, mem, bandwidth, disk uint64, processor uint32,blackOrgList map[string]struct{}) (bool, error) {
 
 	// Find valid global power resources
-	globalpowerSummarys, err := s.queryValidGlobalPowerList("EnoughAvailableOrganization()", taskId)
+	globalpowerSummarys, err := s.queryValidGlobalPowerList("EnoughAvailableOrganization()", taskId,blackOrgList)
 	if nil != err {
 		return false, err
 	}
@@ -125,12 +125,14 @@ func (s *VrfElector) ElectionOrganization(
 	skipIdentityIdCache map[string]struct{},
 	mem, bandwidth, disk uint64, processor uint32,
 	extra []byte,
+	blackOrgList map[string]struct{},
+
 ) ([]*libtypes.TaskOrganization, []*libtypes.TaskPowerResourceOption, []byte, [][]byte, error) {
 
 	calculateCount := len(partyIds)
 
 
-	globalpowerSummarys, err := s.queryValidGlobalPowerList("ElectionOrganization()", taskId)
+	globalpowerSummarys, err := s.queryValidGlobalPowerList("ElectionOrganization()", taskId,blackOrgList)
 	if nil != err {
 		return nil, nil, nil, nil, err
 	}
@@ -190,7 +192,7 @@ func (s *VrfElector) ElectionOrganization(
 	return orgs, resources, nonce, weights, nil
 }
 
-func (s *VrfElector) VerifyElectionOrganization(taskId string, powerSuppliers []*libtypes.TaskOrganization, powerResources []*libtypes.TaskPowerResourceOption, nodeIdStr string, extra, nonce []byte, weights [][]byte) error {
+func (s *VrfElector) VerifyElectionOrganization(taskId string, powerSuppliers []*libtypes.TaskOrganization, powerResources []*libtypes.TaskPowerResourceOption, nodeIdStr string, extra, nonce []byte, weights [][]byte,blackOrgList map[string]struct{}) error {
 
 	if len(powerSuppliers) != len(weights) {
 		return fmt.Errorf("powerSuppliers count is invalid, powerSuppliers count : %d, weights count: %d", len(powerSuppliers), len(weights))
@@ -240,7 +242,7 @@ func (s *VrfElector) VerifyElectionOrganization(taskId string, powerSuppliers []
 	}
 
 	// Find global power resources
-	globalpowerSummarys, err := s.queryValidGlobalPowerList("VerifyElectionOrganization()", taskId)
+	globalpowerSummarys, err := s.queryValidGlobalPowerList("VerifyElectionOrganization()", taskId,blackOrgList)
 	if nil != err {
 		return err
 	}
@@ -304,7 +306,7 @@ func (s *VrfElector) vrfElectionOrganizationResourceQueue(resources types.Resour
 }
 
 
-func (s *VrfElector) queryValidGlobalPowerList (logkeyword, taskId string) (types.ResourceArray, error) {
+func (s *VrfElector) queryValidGlobalPowerList (logkeyword, taskId string,blackOrgList map[string]struct{}) (types.ResourceArray, error) {
 
 	// Find global identitys
 	identityInfoArr, err := s.resourceMng.GetDB().QueryIdentityList(timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
@@ -317,6 +319,10 @@ func (s *VrfElector) queryValidGlobalPowerList (logkeyword, taskId string) (type
 	identityInfoCache := make(map[string]struct{}, len(identityInfoArr))
 
 	for _, identityInfo := range identityInfoArr {
+		// Filter black org
+		if _,ok:=blackOrgList[identityInfo.GetIdentityId()];ok{
+			continue
+		}
 		// Skip the invalid organization
 		if identityInfo.GetStatus() == libtypes.CommonStatus_CommonStatus_Invalid || identityInfo.GetDataStatus() == libtypes.DataStatus_DataStatus_Invalid {
 			continue

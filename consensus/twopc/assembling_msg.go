@@ -31,6 +31,7 @@ func makePrepareMsg(
 		Evidence:  []byte(nonConsTaks.GetEvidence()),
 		CreateAt:  startTime,
 		Sign:      nil,
+		BlackOrg: []byte(nonConsTaks.GetBlackOrg()),
 	}, nil
 }
 
@@ -127,6 +128,7 @@ func fetchPrepareMsg(msg *types.PrepareMsgWrap) (*types.PrepareMsg, error) {
 			Evidence:  string(msg.GetEvidence()),
 			CreateAt:  msg.GetCreateAt(),
 			Sign:      msg.GetSign(),
+			BlackOrg: string(msg.GetBlackOrg()),
 		},
 		nil
 }

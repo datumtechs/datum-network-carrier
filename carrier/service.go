@@ -76,11 +76,11 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 	log.Debugf("Get some chan size value from config when carrier NewService, NeedReplayScheduleTaskChanSize: %d, NeedExecuteTaskChanSize: %d, TaskConsResultChanSize: %d",
 		config.TaskManagerConfig.NeedReplayScheduleTaskChanSize, config.TaskManagerConfig.NeedExecuteTaskChanSize, config.TaskManagerConfig.TaskConsResultChanSize)
 
+	identityBlackListCache := blacklist.NewIdentityBackListCache()
 	resourceClientSet := grpclient.NewInternalResourceNodeSet()
 	resourceMng := resource.NewResourceManager(config.CarrierDB, resourceClientSet, mockIdentityIdsFile)
 	authManager := auth.NewAuthorityManager(config.CarrierDB)
-	scheduler := schedule.NewSchedulerStarveFIFO(election.NewVrfElector(config.P2P.PirKey(), resourceMng), eventEngine, resourceMng, authManager)
-	identityBlackListCache := blacklist.NewIdentityBackListCache()
+	scheduler := schedule.NewSchedulerStarveFIFO(election.NewVrfElector(config.P2P.PirKey(), resourceMng), eventEngine, resourceMng, authManager,identityBlackListCache)
 
 	twopcEngine, err := twopc.New(
 		&twopc.Config{

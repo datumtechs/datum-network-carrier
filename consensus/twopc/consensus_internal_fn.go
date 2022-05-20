@@ -406,6 +406,7 @@ func (t *Twopc) sendPrepareMsg(proposalId common.Hash, nonConsTask *types.NeedCo
 		TaskInfo:  task,
 		Evidence:  string(prepareMsg.GetEvidence()),
 		CreateAt:  prepareMsg.GetCreateAt(),
+		BlackOrg: string(prepareMsg.GetBlackOrg()),
 	}
 
 	// signature the msg and fill sign field of prepareMsg

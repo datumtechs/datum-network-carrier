@@ -82,7 +82,7 @@ func New(
 		Errs:                     make([]error, 0),
 		identityBlackListCache: identityBlackListCache,
 	}
-	identityBlackListCache.SetEngine(engine)
+	identityBlackListCache.SetEngineAndWal(engine,newWalDB)
 	return engine, nil
 }
 
@@ -340,7 +340,7 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 			t.wal.StoreProposalTask(msg.GetMsgOption().GetReceiverPartyId(), proposalTask)
 
 			// Send task to Scheduler to replay sched.
-			needReplayScheduleTask := types.NewNeedReplayScheduleTask(msg.GetMsgOption().GetReceiverRole(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetTask(), msg.GetEvidence())
+			needReplayScheduleTask := types.NewNeedReplayScheduleTask(msg.GetMsgOption().GetReceiverRole(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetTask(), msg.GetEvidence(),msg.GetBlackOrg())
 			t.sendNeedReplayScheduleTask(needReplayScheduleTask)
 			replayTaskResult := needReplayScheduleTask.ReceiveResult()
 

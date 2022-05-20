@@ -13,7 +13,7 @@ func (p *PrepareMsg) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the PrepareMsg object to a target array
 func (p *PrepareMsg) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(24)
+	offset := int(28)
 
 	// Offset (0) 'MsgOption'
 	dst = ssz.WriteOffset(dst, offset)
@@ -36,6 +36,10 @@ func (p *PrepareMsg) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	// Offset (4) 'Sign'
 	dst = ssz.WriteOffset(dst, offset)
 	offset += len(p.Sign)
+
+	// Offset (5) 'BlackOrg'
+	dst = ssz.WriteOffset(dst, offset)
+	offset += len(p.BlackOrg)
 
 	// Field (0) 'MsgOption'
 	if dst, err = p.MsgOption.MarshalSSZTo(dst); err != nil {
@@ -63,6 +67,13 @@ func (p *PrepareMsg) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	}
 	dst = append(dst, p.Sign...)
 
+	// Field (5) 'BlackOrg'
+	if len(p.BlackOrg) > 16777216 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	dst = append(dst, p.BlackOrg...)
+
 	return
 }
 
@@ -70,19 +81,19 @@ func (p *PrepareMsg) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 func (p *PrepareMsg) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
-	if size < 24 {
+	if size < 28 {
 		return ssz.ErrSize
 	}
 
 	tail := buf
-	var o0, o1, o2, o4 uint64
+	var o0, o1, o2, o4, o5 uint64
 
 	// Offset (0) 'MsgOption'
 	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
 		return ssz.ErrOffset
 	}
 
-	if o0 < 24 {
+	if o0 < 28 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
@@ -101,6 +112,11 @@ func (p *PrepareMsg) UnmarshalSSZ(buf []byte) error {
 
 	// Offset (4) 'Sign'
 	if o4 = ssz.ReadOffset(buf[20:24]); o4 > size || o2 > o4 {
+		return ssz.ErrOffset
+	}
+
+	// Offset (5) 'BlackOrg'
+	if o5 = ssz.ReadOffset(buf[24:28]); o5 > size || o4 > o5 {
 		return ssz.ErrOffset
 	}
 
@@ -141,7 +157,7 @@ func (p *PrepareMsg) UnmarshalSSZ(buf []byte) error {
 
 	// Field (4) 'Sign'
 	{
-		buf = tail[o4:]
+		buf = tail[o4:o5]
 		if len(buf) > 1024 {
 			return ssz.ErrBytesLength
 		}
@@ -150,12 +166,24 @@ func (p *PrepareMsg) UnmarshalSSZ(buf []byte) error {
 		}
 		p.Sign = append(p.Sign, buf...)
 	}
+
+	// Field (5) 'BlackOrg'
+	{
+		buf = tail[o5:]
+		if len(buf) > 16777216 {
+			return ssz.ErrBytesLength
+		}
+		if cap(p.BlackOrg) == 0 {
+			p.BlackOrg = make([]byte, 0, len(buf))
+		}
+		p.BlackOrg = append(p.BlackOrg, buf...)
+	}
 	return err
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the PrepareMsg object
 func (p *PrepareMsg) SizeSSZ() (size int) {
-	size = 24
+	size = 28
 
 	// Field (0) 'MsgOption'
 	if p.MsgOption == nil {
@@ -171,6 +199,9 @@ func (p *PrepareMsg) SizeSSZ() (size int) {
 
 	// Field (4) 'Sign'
 	size += len(p.Sign)
+
+	// Field (5) 'BlackOrg'
+	size += len(p.BlackOrg)
 
 	return
 }
@@ -212,6 +243,13 @@ func (p *PrepareMsg) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 		return
 	}
 	hh.PutBytes(p.Sign)
+
+	// Field (5) 'BlackOrg'
+	if len(p.BlackOrg) > 16777216 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	hh.PutBytes(p.BlackOrg)
 
 	hh.Merkleize(indx)
 	return
