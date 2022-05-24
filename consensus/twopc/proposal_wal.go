@@ -22,7 +22,7 @@ var (
 	prepareVotesPrefix          = []byte("prepareVotes:")          //  proposalId -> partyId -> prepareVote
 	confirmVotesPrefix          = []byte("confirmVotes:")          //  proposalId -> partyId -> confirmVote
 	proposalPeerInfoCachePrefix = []byte("proposalPeerInfoCache:") //  proposalId -> ConfirmTaskPeerInfo
-	orgBlacklistCachePrefix     = []byte("orgBlacklistCache:identity:4d7b5f1f114b43b682d9c73d6d2bc18e")     // identityId  -> map[string][]*organizationTaskInfo
+	orgBlacklistCachePrefix     = []byte("orgBlacklistCache:")     // identityId  -> map[string][]*organizationTaskInfo
 )
 
 type jsonFile struct {

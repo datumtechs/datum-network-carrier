@@ -28,9 +28,9 @@ type WalDB interface {
 }
 
 type OrganizationTaskInfo struct {
-	taskId     string
-	nodeId     string
-	proposalId string
+	TaskId     string
+	NodeId     string
+	ProposalId string
 }
 
 type IdentityBackListCache struct {
@@ -47,7 +47,7 @@ func NewIdentityBackListCache() *IdentityBackListCache {
 func (iBlc *IdentityBackListCache) SetEngineAndWal(engine BackListEngineAPI, db WalDB) {
 	iBlc.engine = engine
 	iBlc.db = db
-	iBlc.orgBlacklistCache =iBlc.FindBlackOrgByWalPrefix()
+	iBlc.orgBlacklistCache = iBlc.FindBlackOrgByWalPrefix()
 }
 
 func (iBlc *IdentityBackListCache) CheckConsensusResultOfNoVote(proposalId common.Hash, task *types.Task) {
@@ -92,9 +92,9 @@ func (iBlc *IdentityBackListCache) CheckConsensusResultOfNoVote(proposalId commo
 			if len(taskOrgArr) == tempCount && tempCount != 0 {
 				if len(orgBlacklistCache) < thresholdCount {
 					orgBlacklistCache = append(orgBlacklistCache, &OrganizationTaskInfo{
-						taskId:     taskId,
-						nodeId:     taskOrg.GetNodeId(),
-						proposalId: proposalId.String(),
+						TaskId:     taskId,
+						NodeId:     taskOrg.GetNodeId(),
+						ProposalId: proposalId.String(),
 					})
 					iBlc.orgBlacklistCache[identityId] = orgBlacklistCache
 					iBlc.db.StoreBlackTaskOrg(identityId, orgBlacklistCache)
@@ -137,11 +137,15 @@ func (iBlc *IdentityBackListCache) FindBlackOrgByWalPrefix() map[string][]*Organ
 	if err := iBlc.db.ForEachKVWithPrefix(prefix, func(key, value []byte) error {
 		identityId := string(key[prefixLength:])
 		orgBlacklist := make([]*OrganizationTaskInfo, 0)
-		err:=json.Unmarshal(value, &orgBlacklist)
+		err := json.Unmarshal(value, &orgBlacklist)
 		orgBlacklistCache[identityId] = orgBlacklist
 		return err
 	}); err != nil {
 		log.WithError(err).Errorf("FindBlackOrgByWalPrefix ->ForEachKVWithPrefix fail")
 	}
 	return orgBlacklistCache
+}
+
+func (iBlc *IdentityBackListCache) HasVoting(proposalId common.Hash, taskOrg *libtypes.TaskOrganization) bool {
+	return iBlc.engine.HasPrepareVoting(proposalId, taskOrg) && iBlc.engine.HasConfirmVoting(proposalId, taskOrg)
 }
