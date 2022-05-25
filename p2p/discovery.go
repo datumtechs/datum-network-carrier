@@ -81,7 +81,17 @@ func (s *Service) listenForNewNodes() {
 		go func(info *peer.AddrInfo) {
 			if err := s.connectWithPeer(s.ctx, *info); err != nil {
 				log.WithError(err).Tracef("Could not connect with peer %s", info.String())
+				return
 			}
+			go func() {
+				for identityId,v:=range s.blackList.FindBlackOrgByWalPrefix(){
+					pid, _ := HexPeerID((*v[0]).NodeId)
+					if pid==info.ID {
+						s.blackList.RemoveBlackOrgByIdentity(identityId)
+						break
+					}
+				}
+			}()
 		}(peerInfo)
 	}
 }

@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/Metisnetwork/Metis-Carrier/blacklist"
 	"github.com/Metisnetwork/Metis-Carrier/common"
 	"github.com/Metisnetwork/Metis-Carrier/common/feed"
 	statefeed "github.com/Metisnetwork/Metis-Carrier/common/feed/state"
@@ -77,6 +78,7 @@ type Service struct {
 	genesisTime           time.Time
 	genesisValidatorsRoot []byte
 	activeValidatorCount  uint64
+	blackList  			  *blacklist.IdentityBackListCache
 }
 
 // NewService initializes a new p2p service compatible with Service interface. No
@@ -94,6 +96,7 @@ func NewService(ctx context.Context, cfg *Config) (*Service, error) {
 		isPreGenesis:  true,
 		joinedTopics:  make(map[string]*pubsub.Topic, len(GossipTopicMappings)),
 		subnetsLock:   make(map[uint64]*sync.RWMutex),
+		blackList:     cfg.BlackList,
 	}
 	dv5Nodes := parseBootStrapAddrs(s.cfg.BootstrapNodeAddr)
 	dbdv5Nodes := parseBootStrapAddrs(s.cfg.LocalBootstrapAddr)

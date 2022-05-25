@@ -210,7 +210,8 @@ func (node *CarrierNode) registerP2P(cliCtx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-
+	//blackList
+	blackList := node.fetchBlackList()
 	// load local seed node.
 	seedNodeList, err := node.db.QuerySeedNodeList()
 	localBootstrapAddr := make([]string, 0)
@@ -241,6 +242,7 @@ func (node *CarrierNode) registerP2P(cliCtx *cli.Context) error {
 		EnableUPnP:         cliCtx.Bool(flags.EnableUPnPFlag.Name),
 		DisableDiscv5:      cliCtx.Bool(flags.DisableDiscv5.Name),
 		StateNotifier:      node,
+		BlackList:          blackList,
 	})
 	if err != nil {
 		return err
