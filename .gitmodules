@@ -1,4 +1,4 @@
 [submodule "proto/armada"]
 	path = proto/armada
-	url = git@github.com:Metisnetwork/Metis-Armada-Common.git
+	url = git@github.com:datumtechs/datum-network-armada-common.git
 	branch = v0.4.0-restructure

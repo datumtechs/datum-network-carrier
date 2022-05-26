@@ -1,6 +1,6 @@
-## Metis Carrier
+## datum-network-carrier
 
-Official Golang implementation of the Metis-Carrier protocol.
+Official Golang implementation of the datum-network-carrier protocol.
 
 ## Building the source
 
@@ -19,11 +19,11 @@ make all
 
 ## Executables
 
-The Metis-Carrier project comes with several wrappers/executables found in the `cmd` directory.
+The datum-network-carrier project comes with several wrappers/executables found in the `cmd` directory.
 
 |    Command    | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | :-----------: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-|  **`carrier`**   | Our main Metis-Carrier CLI client. It is the entry point into the Metis-Carrier network, capable of running as a full node (default). `carrier --help` |
+|  **`carrier`**   | Our main datum-network-carrier CLI client. It is the entry point into the datum-network-carrier network, capable of running as a full node (default). `carrier --help` |
 |   `keytool`    | Stand-alone signing tool, which can be used to generate a key pair.  |
 |  `enr-calculator`   | ENR generator tool, which can be used to generate the address record information of the corresponding node。 |                                                                                                                                                                                                                                                                 |
 
@@ -46,7 +46,7 @@ Docker:
 ```shell
 docker run -d --name carrier-node -v /Users/alice/carrier:/root \
            -p 3500:3500 -p 13000:13000 -p 12000:12000 \
-           carrier/metis-carrier
+           carrier/datum-network-carrier
 ```
 
 This will start `carrier` with a DB memory allowance of 1GB just as the
@@ -82,11 +82,11 @@ $ carrier --datadir=path/to/custom/data/folder --bootstrap-node=<bootnode-enode-
 
 ## License
 
-The Metis-Carrier library (i.e. all code outside of the `cmd` directory) is licensed under the
+The datum-network-carrier library (i.e. all code outside of the `cmd` directory) is licensed under the
 [GNU Lesser General Public License v3.0](https://www.gnu.org/licenses/lgpl-3.0.en.html),
 also included in our repository in the `COPYING.LESSER` file.
 
-The Metis-Carrier binaries (i.e. all code inside of the `cmd` directory) is licensed under the
+The datum-network-carrier binaries (i.e. all code inside of the `cmd` directory) is licensed under the
 [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html), also
 included in our repository in the `COPYING` file.
 

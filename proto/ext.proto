@@ -4,7 +4,7 @@ package ext;
 
 import "google/protobuf/descriptor.proto";
 
-option go_package = "github.com/Metisnetwork/Metis-Carrier/proto/ext";
+option go_package = "github.com/datumtechs/datum-network-carrier/proto/ext";
 
 extend google.protobuf.MessageOptions {
     optional bool xml_tags = 74001;

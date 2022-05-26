@@ -60,7 +60,7 @@ func (s *Service) initServicesWithDiscoveryCenter() error {
 	configArr := strings.Split(datacenterIpAndPort, discovery.ConsulServiceIdSeparator)
 
 	// datacenter address config in consul server
-	// 	key: metis/dataCenter_ip_port
+	// 	key: datum-network/dataCenter_ip_port
 	//  value: pi_port
 	if len(configArr) != 2 {
 		return fmt.Errorf("datacenter IP and PORT lack one on KVconfig from discovery center")
@@ -117,7 +117,7 @@ func (s *Service) refreshResourceNodes() error {
 	configArr := strings.Split(taskGateWayIpAndPort, discovery.ConsulServiceIdSeparator)
 
 	// taskGateWay address config in consul server
-	// 	key: metis/glacier2_ip_port
+	// 	key: datum-network/glacier2_ip_port
 	//  value: pi_port
 	if len(configArr) != 2 {
 		return fmt.Errorf("taskGateWay IP and PORT lack one on KVconfig from discovery center")
