@@ -331,7 +331,26 @@ func NewMetadataMessageFromRequest(req *pb.PublishMetadataRequest) *MetadataMsg 
 
 func (msg *MetadataMsg) ToDataCenter(identity *libtypes.Organization) *Metadata {
 	return NewMetadata(&libtypes.MetadataPB{
-
+		/**
+		MetadataId           string
+		Owner                *Organization
+		DataId               string
+		DataStatus           DataStatus
+		MetadataName         string
+		MetadataType         MetadataType
+		DataHash             string
+		Desc                 string
+		LocationType         DataLocationType
+		DataType             OrigindataType
+		Industry             string
+		State                MetadataState
+		PublishAt            uint64
+		UpdateAt             uint64
+		Nonce                uint64
+		MetadataOption       string
+		AllowExpose          bool
+		TokenAddress         string
+		*/
 		MetadataId:     msg.GetMetadataId(),
 		Owner:          identity,
 		DataId:         msg.GetMetadataId(),
@@ -340,6 +359,7 @@ func (msg *MetadataMsg) ToDataCenter(identity *libtypes.Organization) *Metadata 
 		MetadataType:   msg.GetMetadataType(),
 		DataHash:       msg.GetDataHash(),
 		Desc:           msg.GetDesc(),
+		LocationType:   msg.GetLocationType(),
 		DataType:       msg.GetDataType(),
 		Industry:       msg.GetIndustry(),
 		State:          libtypes.MetadataState_MetadataState_Released, // metaData status, eg: create/release/revoke
