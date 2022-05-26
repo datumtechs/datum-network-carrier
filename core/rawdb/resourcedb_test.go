@@ -221,7 +221,6 @@ func TestStoreMessageCache(t *testing.T) {
 	}
 
 	err = StoreMessageCache(database, &types.MetadataMsg{
-		MetadataId: "MetadataId",
 		MetadataSummary: &libtypes.MetadataSummary{
 			MetadataId: "MetadataId",
 			Desc:       "",
