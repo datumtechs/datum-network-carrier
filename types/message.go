@@ -331,7 +331,26 @@ func NewMetadataMessageFromRequest(req *pb.PublishMetadataRequest) *MetadataMsg 
 
 func (msg *MetadataMsg) ToDataCenter(identity *libtypes.Organization) *Metadata {
 	return NewMetadata(&libtypes.MetadataPB{
-
+		/**
+		MetadataId           string
+		Owner                *Organization
+		DataId               string
+		DataStatus           DataStatus
+		MetadataName         string
+		MetadataType         MetadataType
+		DataHash             string
+		Desc                 string
+		LocationType         DataLocationType
+		DataType             OrigindataType
+		Industry             string
+		State                MetadataState
+		PublishAt            uint64
+		UpdateAt             uint64
+		Nonce                uint64
+		MetadataOption       string
+		AllowExpose          bool
+		TokenAddress         string
+		*/
 		MetadataId:     msg.GetMetadataId(),
 		Owner:          identity,
 		DataId:         msg.GetMetadataId(),
@@ -340,6 +359,7 @@ func (msg *MetadataMsg) ToDataCenter(identity *libtypes.Organization) *Metadata 
 		MetadataType:   msg.GetMetadataType(),
 		DataHash:       msg.GetDataHash(),
 		Desc:           msg.GetDesc(),
+		LocationType:   msg.GetLocationType(),
 		DataType:       msg.GetDataType(),
 		Industry:       msg.GetIndustry(),
 		State:          libtypes.MetadataState_MetadataState_Released, // metaData status, eg: create/release/revoke
@@ -825,6 +845,12 @@ func (msg *TaskMsg) GetPowerPolicyTypes() []uint32 {
 func (msg *TaskMsg) GetPowerPolicyOptions() []string {
 	return msg.Data.GetTaskData().GetPowerPolicyOptions()
 }
+func (msg *TaskMsg) GetReceiverPolicyTypes() []uint32 {
+	return msg.Data.GetTaskData().GetReceiverPolicyTypes()
+}
+func (msg *TaskMsg) GetReceiverPolicyOptions() []string {
+	return msg.Data.GetTaskData().GetReceiverPolicyOptions()
+}
 func (msg *TaskMsg) GetDataFlowPolicyTypes() []uint32 {
 	return msg.Data.GetTaskData().GetDataFlowPolicyTypes()
 }
@@ -877,12 +903,14 @@ func (msg *TaskMsg) Hash() common.Hash {
 	len DataSuppliers            []*TaskOrganization
 	len PowerSuppliers           []*TaskOrganization
 	len Receivers                []*TaskOrganization
-	DataPolicyType           uint32
-	DataPolicyOption         string
-	PowerPolicyType          uint32
-	PowerPolicyOption        string
-	DataFlowPolicyType       uint32
-	DataFlowPolicyOption     string
+	len DataPolicyTypes          uint32
+	len DataPolicyOptions        string
+	len PowerPolicyTypes         uint32
+	len PowerPolicyOptions       string
+	len ReceiverPolicyTypes      uint32
+	len ReceiverPolicyOptions    string
+	len DataFlowPolicyTypes      uint32
+	len DataFlowPolicyOptions    string
 	OperationCost.Processor
 	OperationCost.Bandwidth
 	OperationCost.Memory
@@ -915,6 +943,8 @@ func (msg *TaskMsg) Hash() common.Hash {
 	buf.Write(bytesutil.Uint32ToBytes(uint32(len(msg.GetDataPolicyOptions()))))
 	buf.Write(bytesutil.Uint32ToBytes(uint32(len(msg.GetPowerPolicyTypes()))))
 	buf.Write(bytesutil.Uint32ToBytes(uint32(len(msg.GetPowerPolicyOptions()))))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(len(msg.GetReceiverPolicyTypes()))))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(len(msg.GetReceiverPolicyOptions()))))
 	buf.Write(bytesutil.Uint32ToBytes(uint32(len(msg.GetDataFlowPolicyTypes()))))
 	buf.Write(bytesutil.Uint32ToBytes(uint32(len(msg.GetDataFlowPolicyOptions()))))
 	buf.Write(bytesutil.Uint32ToBytes(msg.GetOperationCost().GetProcessor()))
@@ -955,6 +985,8 @@ func (msg *TaskMsg) HashByCreateTime() common.Hash {
 	buf.Write(bytesutil.Uint32ToBytes(uint32(len(msg.GetDataPolicyOptions()))))
 	buf.Write(bytesutil.Uint32ToBytes(uint32(len(msg.GetPowerPolicyTypes()))))
 	buf.Write(bytesutil.Uint32ToBytes(uint32(len(msg.GetPowerPolicyOptions()))))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(len(msg.GetReceiverPolicyTypes()))))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(len(msg.GetReceiverPolicyOptions()))))
 	buf.Write(bytesutil.Uint32ToBytes(uint32(len(msg.GetDataFlowPolicyTypes()))))
 	buf.Write(bytesutil.Uint32ToBytes(uint32(len(msg.GetDataFlowPolicyOptions()))))
 	buf.Write(bytesutil.Uint32ToBytes(msg.GetOperationCost().GetProcessor()))
