@@ -1,9 +1,9 @@
 package scorers
 
 import (
-	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
-	pb "github.com/Metisnetwork/Metis-Carrier/lib/p2p/v1"
-	"github.com/Metisnetwork/Metis-Carrier/p2p/peers/peerdata"
+	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	pb "github.com/datumtechs/datum-network-carrier/lib/p2p/v1"
+	"github.com/datumtechs/datum-network-carrier/p2p/peers/peerdata"
 	"github.com/libp2p/go-libp2p-core/peer"
 	types "github.com/prysmaticlabs/eth2-types"
 	"math"

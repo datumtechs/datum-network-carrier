@@ -5,17 +5,17 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/common/bytesutil"
-	"github.com/Metisnetwork/Metis-Carrier/common/rlputil"
-	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
-	"github.com/Metisnetwork/Metis-Carrier/core/rawdb"
-	"github.com/Metisnetwork/Metis-Carrier/grpclient"
-	pb "github.com/Metisnetwork/Metis-Carrier/lib/api"
-	"github.com/Metisnetwork/Metis-Carrier/lib/fighter/computesvc"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/params"
-	"github.com/Metisnetwork/Metis-Carrier/policy"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/datumtechs/datum-network-carrier/common/bytesutil"
+	"github.com/datumtechs/datum-network-carrier/common/rlputil"
+	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	"github.com/datumtechs/datum-network-carrier/core/rawdb"
+	"github.com/datumtechs/datum-network-carrier/grpclient"
+	pb "github.com/datumtechs/datum-network-carrier/lib/api"
+	"github.com/datumtechs/datum-network-carrier/lib/fighter/computesvc"
+	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/params"
+	"github.com/datumtechs/datum-network-carrier/policy"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"math/big"
@@ -85,7 +85,7 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 		nodeInfo.LocalMultiAddr = selfMultiAddrs[0].String()
 	}
 
-	if addr, err := s.carrier.metisPayManager.QueryOrgWallet(); err == nil {
+	if addr, err := s.carrier.token20PayManager.QueryOrgWallet(); err == nil {
 		nodeInfo.ObserverProxyWalletAddress = addr.Hex()
 	} else {
 		log.WithError(err).Errorf("cannot load organization wallet of node info: %v", err)
@@ -615,8 +615,8 @@ func (s *CarrierAPIBackend) ReportTaskResourceUsage(nodeType pb.NodeType, ip, po
 }
 
 func (s *CarrierAPIBackend) GenerateObServerProxyWalletAddress() (string, error) {
-	if s.carrier.metisPayManager != nil {
-		if addr, err := s.carrier.metisPayManager.GenerateOrgWallet(); nil != err {
+	if s.carrier.token20PayManager != nil {
+		if addr, err := s.carrier.token20PayManager.GenerateOrgWallet(); nil != err {
 			log.WithError(err).Error("Failed to call GenerateOrgWallet() on CarrierAPIBackend.GenerateObServerProxyWalletAddress()")
 			return "", err
 		} else {
@@ -624,7 +624,7 @@ func (s *CarrierAPIBackend) GenerateObServerProxyWalletAddress() (string, error)
 			return addr.Hex(), nil
 		}
 	} else {
-		return "", errors.New("MetisPay manager not initialized properly")
+		return "", errors.New("token20Pay manager not initialized properly")
 	}
 }
 
@@ -1537,13 +1537,13 @@ func (s *CarrierAPIBackend) QueryTaskResultFileSummaryList() (types.TaskResultFi
 }
 
 func (s *CarrierAPIBackend) EstimateTaskGas(taskSponsorAddress string, dataTokenAddressList []string) (gasLimit uint64, gasPrice *big.Int, err error) {
-	gasLimit, gasPrice, err = s.carrier.metisPayManager.EstimateTaskGas(taskSponsorAddress, dataTokenAddressList)
+	gasLimit, gasPrice, err = s.carrier.token20PayManager.EstimateTaskGas(taskSponsorAddress, dataTokenAddressList)
 	if err != nil {
 		log.WithError(err).Error("Failed to call EstimateTaskGas() on CarrierAPIBackend.EstimateTaskGas()")
 	}
 	return
 
-	/*if gasLimit, gasPrice, err = s.carrier.metisPayManager.EstimateTaskGas(dataTokenTransferList); nil != err {
+	/*if gasLimit, gasPrice, err = s.carrier.token20PayManager.EstimateTaskGas(dataTokenTransferList); nil != err {
 		log.WithError(err).Error("Failed to call EstimateTaskGas() on CarrierAPIBackend.EstimateTaskGas()")
 		return 0, nil, err
 	} else {

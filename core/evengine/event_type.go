@@ -2,7 +2,7 @@ package evengine
 
 import (
 	"errors"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
 )
 
 type EventSysCode string

@@ -2,8 +2,8 @@ package handler
 
 import (
 	"context"
-	libp2ppb "github.com/Metisnetwork/Metis-Carrier/lib/rpc/debug/v1"
-	p2ptypes "github.com/Metisnetwork/Metis-Carrier/p2p/types"
+	libp2ppb "github.com/datumtechs/datum-network-carrier/lib/rpc/debug/v1"
+	p2ptypes "github.com/datumtechs/datum-network-carrier/p2p/types"
 	libp2pcore "github.com/libp2p/go-libp2p-core"
 	"github.com/pkg/errors"
 	"github.com/prysmaticlabs/prysm/shared/traceutil"

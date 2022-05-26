@@ -1,9 +1,9 @@
 package core
 
 import (
-	"github.com/Metisnetwork/Metis-Carrier/common/traceutil"
-	"github.com/Metisnetwork/Metis-Carrier/lib/netmsg/common"
-	taskmngpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/taskmng"
+	"github.com/datumtechs/datum-network-carrier/common/traceutil"
+	"github.com/datumtechs/datum-network-carrier/lib/netmsg/common"
+	taskmngpb "github.com/datumtechs/datum-network-carrier/lib/netmsg/taskmng"
 	"testing"
 )
 

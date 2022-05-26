@@ -2,9 +2,9 @@ package node
 
 import (
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/carrier"
-	"github.com/Metisnetwork/Metis-Carrier/common/flags"
-	"github.com/Metisnetwork/Metis-Carrier/params"
+	"github.com/datumtechs/datum-network-carrier/carrier"
+	"github.com/datumtechs/datum-network-carrier/common/flags"
+	"github.com/datumtechs/datum-network-carrier/params"
 	"github.com/ethereum/go-ethereum/common/fdlimit"
 	"github.com/urfave/cli/v2"
 	"path/filepath"

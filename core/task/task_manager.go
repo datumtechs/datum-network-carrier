@@ -3,25 +3,25 @@ package task
 import (
 	"context"
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/ach/auth"
-	"github.com/Metisnetwork/Metis-Carrier/ach/metispay"
-	"github.com/Metisnetwork/Metis-Carrier/common"
-	"github.com/Metisnetwork/Metis-Carrier/common/bytesutil"
-	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
-	"github.com/Metisnetwork/Metis-Carrier/common/traceutil"
-	"github.com/Metisnetwork/Metis-Carrier/consensus"
-	ev "github.com/Metisnetwork/Metis-Carrier/core/evengine"
-	"github.com/Metisnetwork/Metis-Carrier/core/rawdb"
-	"github.com/Metisnetwork/Metis-Carrier/core/resource"
-	"github.com/Metisnetwork/Metis-Carrier/core/schedule"
-	msgcommonpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/common"
-	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
-	taskmngpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/taskmng"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/p2p"
-	"github.com/Metisnetwork/Metis-Carrier/params"
-	"github.com/Metisnetwork/Metis-Carrier/policy"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/datumtechs/datum-network-carrier/ach/auth"
+	"github.com/datumtechs/datum-network-carrier/ach/token"
+	"github.com/datumtechs/datum-network-carrier/common"
+	"github.com/datumtechs/datum-network-carrier/common/bytesutil"
+	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	"github.com/datumtechs/datum-network-carrier/common/traceutil"
+	"github.com/datumtechs/datum-network-carrier/consensus"
+	ev "github.com/datumtechs/datum-network-carrier/core/evengine"
+	"github.com/datumtechs/datum-network-carrier/core/rawdb"
+	"github.com/datumtechs/datum-network-carrier/core/resource"
+	"github.com/datumtechs/datum-network-carrier/core/schedule"
+	msgcommonpb "github.com/datumtechs/datum-network-carrier/lib/netmsg/common"
+	twopcpb "github.com/datumtechs/datum-network-carrier/lib/netmsg/consensus/twopc"
+	taskmngpb "github.com/datumtechs/datum-network-carrier/lib/netmsg/taskmng"
+	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/p2p"
+	"github.com/datumtechs/datum-network-carrier/params"
+	"github.com/datumtechs/datum-network-carrier/policy"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"strings"
@@ -41,7 +41,7 @@ type Manager struct {
 	eventEngine     *ev.EventEngine
 	resourceMng     *resource.Manager
 	authMng         *auth.AuthorityManager
-	metisPayMng     *metispay.MetisPayManager
+	token20PayMng   *token.Token20PayManager
 	parser          *TaskParser
 	validator       *TaskValidator
 	eventCh         chan *libtypes.TaskEvent
@@ -65,7 +65,7 @@ func NewTaskManager(
 	eventEngine *ev.EventEngine,
 	resourceMng *resource.Manager,
 	authMng *auth.AuthorityManager,
-	metisPayMng *metispay.MetisPayManager,
+	token20PayMng *token.Token20PayManager,
 	needReplayScheduleTaskCh chan *types.NeedReplayScheduleTask,
 	needExecuteTaskCh chan *types.NeedExecuteTask,
 	taskConsResultCh chan *types.TaskConsResult,
@@ -79,7 +79,7 @@ func NewTaskManager(
 		eventEngine:              eventEngine,
 		resourceMng:              resourceMng,
 		authMng:                  authMng,
-		metisPayMng:              metisPayMng,
+		token20PayMng:            token20PayMng,
 		parser:                   newTaskParser(resourceMng),
 		validator:                newTaskValidator(resourceMng, authMng),
 		eventCh:                  make(chan *libtypes.TaskEvent, 800),

@@ -1,7 +1,7 @@
 package p2p
 
 import (
-	"github.com/Metisnetwork/Metis-Carrier/params"
+	"github.com/datumtechs/datum-network-carrier/params"
 	"github.com/libp2p/go-libp2p-core/peer"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	"github.com/pkg/errors"

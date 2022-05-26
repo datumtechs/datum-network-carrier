@@ -2,11 +2,11 @@ package rawdb
 
 import (
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
-	"github.com/Metisnetwork/Metis-Carrier/db"
-	pb "github.com/Metisnetwork/Metis-Carrier/lib/api"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	"github.com/datumtechs/datum-network-carrier/db"
+	pb "github.com/datumtechs/datum-network-carrier/lib/api"
+	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/stretchr/testify/require"
 	"gotest.tools/assert"
 	"math/rand"

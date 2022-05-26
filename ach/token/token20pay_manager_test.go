@@ -1,13 +1,13 @@
-package metispay
+package token
 
 import (
 	"context"
 	"encoding/hex"
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/ach/metispay/contracts"
-	"github.com/Metisnetwork/Metis-Carrier/core"
-	"github.com/Metisnetwork/Metis-Carrier/db"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/datumtechs/datum-network-carrier/ach/token/contracts"
+	"github.com/datumtechs/datum-network-carrier/core"
+	"github.com/datumtechs/datum-network-carrier/db"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind/backends"
 	"github.com/ethereum/go-ethereum/common"
@@ -33,7 +33,7 @@ var (
 	tokenAddress = ethcrypto.PubkeyToAddress(tokenKey.PublicKey) //0xC00b0635a7660f1e7AA3Cfe789Eb04311c3A6E40
 )
 
-var metisManager *MetisPayManager
+var token20Manager *Token20PayManager
 
 func init() {
 	database := db.NewMemoryDatabase()
@@ -50,7 +50,7 @@ func init() {
 		walletAddress: walletAddress,
 		privateKey:    walletKey,
 	}
-	metisManager = NewMetisPayManager(carrierDB, config, nil)
+	token20Manager = NewToken20PayManager(carrierDB, config, nil)
 }
 
 func Test_getChainID(t *testing.T) {
@@ -81,7 +81,7 @@ func Test_genKey(t *testing.T) {
 }
 
 //在SimulatedBackend部署合约
-func TestMetisPay_DeployMetisPay(t *testing.T) {
+func TestToken20Pay_DeployToken20Pay(t *testing.T) {
 	var genAlloc ethcore.GenesisAlloc
 	var gasLimit uint64 = 8000029
 	var sim *backends.SimulatedBackend
@@ -99,11 +99,11 @@ func TestMetisPay_DeployMetisPay(t *testing.T) {
 	txOpts.GasPrice = new(big.Int).SetUint64(1)
 
 	// Deploy a token contract on the simulated blockchain
-	addr, _, token, err := contracts.DeployMetisPay(txOpts, sim)
+	addr, _, token, err := contracts.DeployToken20Pay(txOpts, sim)
 	if err != nil {
 		t.Fatalf("Failed to deploy new token contract: %v", err)
 	}
-	t.Logf("MetisPay address: %s", addr.Hex())
+	t.Logf("Token20Pay address: %s", addr.Hex())
 	// Commit all pending transactions in the simulator and print the names again
 	sim.Commit()
 	taskID := new(big.Int).SetUint64(111)
@@ -117,34 +117,34 @@ func TestMetisPay_DeployMetisPay(t *testing.T) {
 }
 
 //增加白名单, 需要在https://devnetopenapi2.platon.network/rpc开发链上， walletAddress上有LAT
-func TestMetisPay_AddWhiteList(t *testing.T) {
-	opts, err := metisManager.buildTxOpts(500000)
+func TestToken20Pay_AddWhiteList(t *testing.T) {
+	opts, err := token20Manager.buildTxOpts(500000)
 	if err != nil {
 		t.Fatalf("failed to build transact options: %v", err)
 	}
 
-	tx, err := metisManager.contractMetisPayInstance.AddWhitelist(opts, walletAddress)
+	tx, err := token20Manager.contractToken20PayInstance.AddWhitelist(opts, walletAddress)
 	if err != nil {
 		t.Fatalf("failed to AddWhitelist : %v", err)
 	}
 	timeout := time.Duration(10) * time.Second
 	ctx, cancelFn := context.WithTimeout(context.Background(), timeout)
 	defer cancelFn()
-	receipt := metisManager.GetReceipt(ctx, tx.Hash(), time.Duration(1000)*time.Millisecond)
+	receipt := token20Manager.GetReceipt(ctx, tx.Hash(), time.Duration(1000)*time.Millisecond)
 	t.Logf("AddWhitelist receipt: %v", receipt)
 }
 
 //任务gas预估，需要在https://devnetopenapi2.platon.network/rpc开发链上，walletAddress上有LAT，并兑换有wLAT， tokenAddress上有token
-func TestMetisPay_EstimateTaskGas(t *testing.T) {
+func TestToken20Pay_EstimateTaskGas(t *testing.T) {
 	dataTokenTransferItemList := []string{tokenAddress.Hex()}
-	gasLimit, gasPrice, err := metisManager.EstimateTaskGas(walletAddress.Hex(), dataTokenTransferItemList)
+	gasLimit, gasPrice, err := token20Manager.EstimateTaskGas(walletAddress.Hex(), dataTokenTransferItemList)
 	if err != nil {
 		t.Fatalf("Failed to EstimateTaskGas : %v", err)
 	}
 	t.Logf("gasLimit: %d, gasPrice: %d", gasLimit, gasPrice)
 }
 
-func TestMetisPay_Prepay(t *testing.T) {
+func TestToken20Pay_Prepay(t *testing.T) {
 	database := db.NewMemoryDatabase()
 	carrierDB := core.NewDataCenter(context.Background(), database)
 
@@ -159,7 +159,7 @@ func TestMetisPay_Prepay(t *testing.T) {
 		walletAddress: addr,
 		privateKey:    key,
 	}
-	metisManager = NewMetisPayManager(carrierDB, config, nil)
+	token20Manager = NewToken20PayManager(carrierDB, config, nil)
 
 	taskIdBytes, _ := hex.DecodeString("9977f8c9962d4eb67815022b7a079ba67382afd1bd3ed5d2df65d995d2ca6c41")
 
@@ -172,7 +172,7 @@ func TestMetisPay_Prepay(t *testing.T) {
 	token2 := common.HexToAddress("0xE88695D3a3BA03ee6bB2130Ffd7869a8E368a0b4")
 	tokenList := []common.Address{token1, token2}
 
-	txHash, err := metisManager.Prepay(taskID, taskSponsor, tokenList)
+	txHash, err := token20Manager.Prepay(taskID, taskSponsor, tokenList)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -184,7 +184,7 @@ func TestMetisPay_Prepay(t *testing.T) {
 	ctx, cancelFn := context.WithTimeout(context.Background(), timeout)
 	//ctx, cancelFn := context.WithCancel(context.Background())
 	defer cancelFn()
-	receipt := metisManager.GetReceipt(ctx, txHash, time.Duration(500)*time.Millisecond)
+	receipt := token20Manager.GetReceipt(ctx, txHash, time.Duration(500)*time.Millisecond)
 	t.Logf("receipt.status: %d", receipt.Status)
 }
 

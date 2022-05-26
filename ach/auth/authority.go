@@ -2,12 +2,12 @@ package auth
 
 import (
 	"fmt"
-	metadata2 "github.com/Metisnetwork/Metis-Carrier/ach/auth/metadata"
-	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
-	"github.com/Metisnetwork/Metis-Carrier/core"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/rpc/backend"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	metadata2 "github.com/datumtechs/datum-network-carrier/ach/auth/metadata"
+	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	"github.com/datumtechs/datum-network-carrier/core"
+	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/rpc/backend"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"time"
 )
 

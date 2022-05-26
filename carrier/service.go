@@ -3,26 +3,26 @@ package carrier
 import (
 	"context"
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/ach/auth"
-	"github.com/Metisnetwork/Metis-Carrier/ach/metispay"
-	"github.com/Metisnetwork/Metis-Carrier/ach/metispay/kms"
-	"github.com/Metisnetwork/Metis-Carrier/common/flags"
-	"github.com/Metisnetwork/Metis-Carrier/consensus/chaincons"
-	"github.com/Metisnetwork/Metis-Carrier/consensus/twopc"
-	"github.com/Metisnetwork/Metis-Carrier/core"
-	"github.com/Metisnetwork/Metis-Carrier/core/election"
-	"github.com/Metisnetwork/Metis-Carrier/core/evengine"
-	"github.com/Metisnetwork/Metis-Carrier/core/message"
-	"github.com/Metisnetwork/Metis-Carrier/core/resource"
-	"github.com/Metisnetwork/Metis-Carrier/core/schedule"
-	"github.com/Metisnetwork/Metis-Carrier/core/task"
-	"github.com/Metisnetwork/Metis-Carrier/db"
-	"github.com/Metisnetwork/Metis-Carrier/grpclient"
-	"github.com/Metisnetwork/Metis-Carrier/handler"
-	pb "github.com/Metisnetwork/Metis-Carrier/lib/api"
-	"github.com/Metisnetwork/Metis-Carrier/p2p"
-	"github.com/Metisnetwork/Metis-Carrier/service/discovery"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/datumtechs/datum-network-carrier/ach/auth"
+	"github.com/datumtechs/datum-network-carrier/ach/token"
+	"github.com/datumtechs/datum-network-carrier/ach/token/kms"
+	"github.com/datumtechs/datum-network-carrier/common/flags"
+	"github.com/datumtechs/datum-network-carrier/consensus/chaincons"
+	"github.com/datumtechs/datum-network-carrier/consensus/twopc"
+	"github.com/datumtechs/datum-network-carrier/core"
+	"github.com/datumtechs/datum-network-carrier/core/election"
+	"github.com/datumtechs/datum-network-carrier/core/evengine"
+	"github.com/datumtechs/datum-network-carrier/core/message"
+	"github.com/datumtechs/datum-network-carrier/core/resource"
+	"github.com/datumtechs/datum-network-carrier/core/schedule"
+	"github.com/datumtechs/datum-network-carrier/core/task"
+	"github.com/datumtechs/datum-network-carrier/db"
+	"github.com/datumtechs/datum-network-carrier/grpclient"
+	"github.com/datumtechs/datum-network-carrier/handler"
+	pb "github.com/datumtechs/datum-network-carrier/lib/api"
+	"github.com/datumtechs/datum-network-carrier/p2p"
+	"github.com/datumtechs/datum-network-carrier/service/discovery"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/urfave/cli/v2"
 	"strconv"
 	"sync"
@@ -43,15 +43,15 @@ type Service struct {
 	APIBackend *CarrierAPIBackend
 	DebugAPIBackend *CarrierDebugAPIBackend
 
-	resourceManager *resource.Manager
-	messageManager  *message.MessageHandler
-	TaskManager     handler.TaskManager
-	authManager     *auth.AuthorityManager
-	scheduler       schedule.Scheduler
-	consulManager   *discovery.ConnectConsul
-	runError        error
-	metisPayManager *metispay.MetisPayManager
-	quit            chan struct{}
+	resourceManager   *resource.Manager
+	messageManager    *message.MessageHandler
+	TaskManager       handler.TaskManager
+	authManager       *auth.AuthorityManager
+	scheduler         schedule.Scheduler
+	consulManager     *discovery.ConnectConsul
+	runError          error
+	token20PayManager *token.Token20PayManager
+	quit              chan struct{}
 }
 
 // NewService creates a new CarrierServer object (including the
@@ -98,11 +98,11 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 		taskConsResultCh,
 	)
 
-	var metisPayManager *metispay.MetisPayManager
+	var token20PayManager *token.Token20PayManager
 
 	if cliCtx.IsSet(flags.BlockChain.Name) {
-		var metispayConfig *metispay.Config
-		metispayConfig = &metispay.Config{URL: cliCtx.String(flags.BlockChain.Name)}
+		var token20payConfig *token.Config
+		token20payConfig = &token.Config{URL: cliCtx.String(flags.BlockChain.Name)}
 
 		var kmsConfig *kms.Config
 		if cliCtx.IsSet(flags.KMSKeyId.Name) && cliCtx.IsSet(flags.KMSRegionId.Name) && cliCtx.IsSet(flags.KMSAccessKeyId.Name) && cliCtx.IsSet(flags.KMSAccessKeySecret.Name) {
@@ -113,7 +113,7 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 				AccessKeySecret: cliCtx.String(flags.KMSAccessKeySecret.Name),
 			}
 		}
-		metisPayManager = metispay.NewMetisPayManager(config.CarrierDB, metispayConfig, kmsConfig)
+		token20PayManager = token.NewToken20PayManager(config.CarrierDB, token20payConfig, kmsConfig)
 	}
 
 	taskManager := task.NewTaskManager(
@@ -123,7 +123,7 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 		eventEngine,
 		resourceMng,
 		authManager,
-		metisPayManager,
+		token20PayManager,
 		needReplayScheduleTaskCh,
 		needExecuteTaskCh,
 		taskConsResultCh,
@@ -131,17 +131,17 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 	)
 
 	s := &Service{
-		ctx:             ctx,
-		cancel:          cancel,
-		config:          config,
-		carrierDB:       config.CarrierDB,
-		mempool:         pool,
-		resourceManager: resourceMng,
-		messageManager:  message.NewHandler(pool, resourceMng, taskManager, authManager),
-		TaskManager:     taskManager,
-		authManager:     authManager,
-		metisPayManager: metisPayManager,
-		scheduler:       scheduler,
+		ctx:               ctx,
+		cancel:            cancel,
+		config:            config,
+		carrierDB:         config.CarrierDB,
+		mempool:           pool,
+		resourceManager:   resourceMng,
+		messageManager:    message.NewHandler(pool, resourceMng, taskManager, authManager),
+		TaskManager:       taskManager,
+		authManager:       authManager,
+		token20PayManager: token20PayManager,
+		scheduler:         scheduler,
 		consulManager: discovery.NewConsulClient(&discovery.ConsulService{
 			ServiceIP:   p2p.IpAddr().String(),
 			ServicePort: strconv.Itoa(cliCtx.Int(flags.RPCPort.Name)),

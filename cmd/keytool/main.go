@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/cmd/utils"
+	"github.com/datumtechs/datum-network-carrier/cmd/utils"
 	"github.com/urfave/cli/v2"
 	"os"
 )

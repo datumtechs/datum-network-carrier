@@ -2,12 +2,12 @@ package metadata
 
 import (
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
-	"github.com/Metisnetwork/Metis-Carrier/core"
-	"github.com/Metisnetwork/Metis-Carrier/core/rawdb"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/rpc/backend"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	"github.com/datumtechs/datum-network-carrier/core"
+	"github.com/datumtechs/datum-network-carrier/core/rawdb"
+	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/rpc/backend"
+	"github.com/datumtechs/datum-network-carrier/types"
 )
 
 type MetadataAuthority struct {

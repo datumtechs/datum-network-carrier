@@ -2,8 +2,8 @@ package handler
 
 import (
 	"context"
-	pb "github.com/Metisnetwork/Metis-Carrier/lib/p2p/v1"
-	"github.com/Metisnetwork/Metis-Carrier/p2p"
+	pb "github.com/datumtechs/datum-network-carrier/lib/p2p/v1"
+	"github.com/datumtechs/datum-network-carrier/p2p"
 	libp2pcore "github.com/libp2p/go-libp2p-core"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/pkg/errors"

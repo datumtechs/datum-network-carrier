@@ -2,9 +2,9 @@ package signsuite
 
 import (
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/common"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/params"
+	"github.com/datumtechs/datum-network-carrier/common"
+	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/params"
 )
 
 func Sender (userType libtypes.UserType, hash common.Hash, sig []byte) (string, error) {

@@ -4,15 +4,15 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/common"
-	"github.com/Metisnetwork/Metis-Carrier/common/bytesutil"
-	"github.com/Metisnetwork/Metis-Carrier/common/rlputil"
-	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
-	"github.com/Metisnetwork/Metis-Carrier/db"
-	dbtype "github.com/Metisnetwork/Metis-Carrier/lib/db"
-	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/datumtechs/datum-network-carrier/common"
+	"github.com/datumtechs/datum-network-carrier/common/bytesutil"
+	"github.com/datumtechs/datum-network-carrier/common/rlputil"
+	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	"github.com/datumtechs/datum-network-carrier/db"
+	dbtype "github.com/datumtechs/datum-network-carrier/lib/db"
+	twopcpb "github.com/datumtechs/datum-network-carrier/lib/netmsg/consensus/twopc"
+	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -318,8 +318,8 @@ func TestOrgWallet(t *testing.T) {
 	keyHex := hex.EncodeToString(crypto.FromECDSA(key))
 	addr := crypto.PubkeyToAddress(key.PublicKey)
 
-	/*if metisPay.Kms != nil {
-		if cipher, err := metisPay.Kms.Encrypt(keyHex); err != nil {
+	/*if token20Pay.Kms != nil {
+		if cipher, err := token20Pay.Kms.Encrypt(keyHex); err != nil {
 			return "", errors.New("cannot encrypt organization wallet private key")
 		} else {
 			keyHex = cipher

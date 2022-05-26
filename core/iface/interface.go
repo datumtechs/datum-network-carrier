@@ -1,9 +1,9 @@
 package iface
 
 import (
-	libapipb "github.com/Metisnetwork/Metis-Carrier/lib/api"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	libapipb "github.com/datumtechs/datum-network-carrier/lib/api"
+	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/types"
 )
 
 type LocalStoreCarrierDB interface {

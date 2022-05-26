@@ -1,8 +1,8 @@
 package core
 
 import (
-	"github.com/Metisnetwork/Metis-Carrier/core/iface"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/datumtechs/datum-network-carrier/core/iface"
+	"github.com/datumtechs/datum-network-carrier/types"
 )
 
 type CarrierDB interface {

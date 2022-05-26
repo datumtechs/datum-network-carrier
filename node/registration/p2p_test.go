@@ -2,8 +2,8 @@ package registration
 
 import (
 	"flag"
-	"github.com/Metisnetwork/Metis-Carrier/common/flags"
-	"github.com/Metisnetwork/Metis-Carrier/params"
+	"github.com/datumtechs/datum-network-carrier/common/flags"
+	"github.com/datumtechs/datum-network-carrier/params"
 	"github.com/stretchr/testify/require"
 	"github.com/urfave/cli/v2"
 	"gotest.tools/assert"

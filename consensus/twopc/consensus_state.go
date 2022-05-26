@@ -1,11 +1,11 @@
 package twopc
 
 import (
-	"github.com/Metisnetwork/Metis-Carrier/common"
-	ctypes "github.com/Metisnetwork/Metis-Carrier/consensus/twopc/types"
-	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/datumtechs/datum-network-carrier/common"
+	ctypes "github.com/datumtechs/datum-network-carrier/consensus/twopc/types"
+	twopcpb "github.com/datumtechs/datum-network-carrier/lib/netmsg/consensus/twopc"
+	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"sync"
 	"time"
 )

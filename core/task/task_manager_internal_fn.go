@@ -4,27 +4,27 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	carriercommon "github.com/Metisnetwork/Metis-Carrier/common"
-	"github.com/Metisnetwork/Metis-Carrier/common/hexutil"
-	"github.com/Metisnetwork/Metis-Carrier/common/runutil"
-	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
-	"github.com/Metisnetwork/Metis-Carrier/common/traceutil"
-	ev "github.com/Metisnetwork/Metis-Carrier/core/evengine"
-	"github.com/Metisnetwork/Metis-Carrier/core/rawdb"
-	"github.com/Metisnetwork/Metis-Carrier/core/resource"
-	"github.com/Metisnetwork/Metis-Carrier/core/schedule"
+	carriercommon "github.com/datumtechs/datum-network-carrier/common"
+	"github.com/datumtechs/datum-network-carrier/common/hexutil"
+	"github.com/datumtechs/datum-network-carrier/common/runutil"
+	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	"github.com/datumtechs/datum-network-carrier/common/traceutil"
+	ev "github.com/datumtechs/datum-network-carrier/core/evengine"
+	"github.com/datumtechs/datum-network-carrier/core/rawdb"
+	"github.com/datumtechs/datum-network-carrier/core/resource"
+	"github.com/datumtechs/datum-network-carrier/core/schedule"
 	ethereumcommon "github.com/ethereum/go-ethereum/common"
 	"math/big"
 
-	libapipb "github.com/Metisnetwork/Metis-Carrier/lib/api"
-	fightercommon "github.com/Metisnetwork/Metis-Carrier/lib/fighter/common"
-	msgcommonpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/common"
-	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
-	taskmngpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/taskmng"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/p2p"
-	"github.com/Metisnetwork/Metis-Carrier/policy"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	libapipb "github.com/datumtechs/datum-network-carrier/lib/api"
+	fightercommon "github.com/datumtechs/datum-network-carrier/lib/fighter/common"
+	msgcommonpb "github.com/datumtechs/datum-network-carrier/lib/netmsg/common"
+	twopcpb "github.com/datumtechs/datum-network-carrier/lib/netmsg/consensus/twopc"
+	taskmngpb "github.com/datumtechs/datum-network-carrier/lib/netmsg/taskmng"
+	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/p2p"
+	"github.com/datumtechs/datum-network-carrier/policy"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"strconv"
 	"strings"
@@ -242,13 +242,13 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 
 		user := ethereumcommon.HexToAddress(localTask.GetTaskData().GetUser())
 
-		log.Debugf("Start call metisPayManager.prepay(), taskId: {%s}, partyId: {%s}, call params{taskIdBigInt: %d, taskSponsorAccount: %s, dataTokenAaddresses: %s}",
+		log.Debugf("Start call token20PayManager.prepay(), taskId: {%s}, partyId: {%s}, call params{taskIdBigInt: %d, taskSponsorAccount: %s, dataTokenAaddresses: %s}",
 			task.GetTaskId(), partyId, taskIdBigInt, user.String(), "["+strings.Join(addrs, ",")+"]")
 
 		// start prepay dataToken
-		txHash, err := m.metisPayMng.Prepay(taskIdBigInt, user, dataTokenAaddresses)
+		txHash, err := m.token20PayMng.Prepay(taskIdBigInt, user, dataTokenAaddresses)
 		if nil != err {
-			return fmt.Errorf("cannot call metisPay to prepay datatoken on beginConsumeByDataToken(), %s", err)
+			return fmt.Errorf("cannot call token20Pay to prepay datatoken on beginConsumeByDataToken(), %s", err)
 		}
 
 		log.Debugf("Succeed send `contract prepay()` tx to blockchain on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}, txHash: {%s}",
@@ -260,7 +260,7 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		//ctx, cancelFn := context.WithCancel(context.Background())
 		defer cancelFn()
 
-		receipt := m.metisPayMng.GetReceipt(ctx, txHash, time.Duration(500)*time.Millisecond) // period 500 ms
+		receipt := m.token20PayMng.GetReceipt(ctx, txHash, time.Duration(500)*time.Millisecond) // period 500 ms
 		if nil == receipt {
 			return fmt.Errorf("prepay dataToken failed, the transaction had not receipt on beginConsumeByDataToken(), txHash: {%s}", txHash.String())
 		}
@@ -270,10 +270,10 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		}
 
 		// query task state
-		state, err := m.metisPayMng.GetTaskState(taskIdBigInt)
+		state, err := m.token20PayMng.GetTaskState(taskIdBigInt)
 		if nil != err {
 			//including NotFound
-			return fmt.Errorf("query task state of metisPay failed, %s on beginConsumeByDataToken()", err)
+			return fmt.Errorf("query task state of token20Pay failed, %s on beginConsumeByDataToken()", err)
 		}
 		// task state in contract
 		// constant int8 private NOTEXIST = -1;
@@ -282,7 +282,7 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		// constant int8 private SETTLE = 2;
 		// constant int8 private END = 3;
 		if state == -1 { //  We need to know if the task status value is 1.
-			return fmt.Errorf("task state is not existing in MetisPay contract on beginConsumeByDataToken()")
+			return fmt.Errorf("task state is not existing in token20Pay contract on beginConsumeByDataToken()")
 		}
 
 		log.Debugf("Succeed execute `contract prepay()` tx on blockchain on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}, txHash: {%s}, task.state: {%d}",
@@ -341,15 +341,15 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 
 					end := timeutils.UnixMsec()
 					// time.Unix(end/1000, 0)
-					log.Warnf("Warning query task state of metisPay time out on blockchain on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}, startTime: {%d <==> %s}, endTime: {%d <==> %s}, duration: %d ms",
+					log.Warnf("Warning query task state of token20Pay time out on blockchain on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}, startTime: {%d <==> %s}, endTime: {%d <==> %s}, duration: %d ms",
 						task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt, start, time.Unix(start/1000, 0).Format("2006-01-02 15:04:05"), end, time.Unix(end/1000, 0).Format("2006-01-02 15:04:05"), end-start)
 
-					return 0, fmt.Errorf("query task state of metisPay time out")
+					return 0, fmt.Errorf("query task state of token20Pay time out")
 				case <-ticker.C:
-					state, err := m.metisPayMng.GetTaskState(taskIdBigInt)
+					state, err := m.token20PayMng.GetTaskState(taskIdBigInt)
 					if nil != err {
 						//including NotFound
-						log.WithError(err).Warnf("Warning cannot query task state of metisPay on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}",
+						log.WithError(err).Warnf("Warning cannot query task state of token20Pay on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}",
 							task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt)
 						continue
 					}
@@ -440,13 +440,13 @@ func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *
 			return fmt.Errorf("cannot decode taskId to big.Int on endConsumeByDataToken(), %s", err)
 		}
 
-		log.Debugf("Start call metisPayManager.settle(), taskId: {%s}, partyId: {%s}, call params{taskIdBigInt: %d, gasUsedPrepay: %d}",
+		log.Debugf("Start call token20Pay.settle(), taskId: {%s}, partyId: {%s}, call params{taskIdBigInt: %d, gasUsedPrepay: %d}",
 			task.GetTaskId(), partyId, taskIdBigInt, consumeSpec.GetGasUsed())
 
 		// start prepay dataToken
-		txHash, err := m.metisPayMng.Settle(taskIdBigInt, consumeSpec.GetGasUsed())
+		txHash, err := m.token20PayMng.Settle(taskIdBigInt, consumeSpec.GetGasUsed())
 		if nil != err {
-			return fmt.Errorf("cannot call metisPay to settle datatoken on endConsumeByDataToken(), %s", err)
+			return fmt.Errorf("cannot call token20Pay to settle datatoken on endConsumeByDataToken(), %s", err)
 		}
 
 		log.Debugf("Succeed send `contract settle()` tx to blockchain on endConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}, txHash: {%s}",
@@ -458,7 +458,7 @@ func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *
 		//ctx, cancelFn := context.WithCancel(context.Background())
 		defer cancelFn()
 
-		receipt := m.metisPayMng.GetReceipt(ctx, txHash, time.Duration(500)*time.Millisecond) // period 500 ms
+		receipt := m.token20PayMng.GetReceipt(ctx, txHash, time.Duration(500)*time.Millisecond) // period 500 ms
 		if nil == receipt {
 			return fmt.Errorf("settle dataToken failed, the transaction had not receipt on endConsumeByDataToken(), txHash: {%s}", txHash.String())
 		}

@@ -1,9 +1,9 @@
 package backend
 
 import (
-	pb "github.com/Metisnetwork/Metis-Carrier/lib/api"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	pb "github.com/datumtechs/datum-network-carrier/lib/api"
+	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"math/big"
 )
 

@@ -5,7 +5,7 @@ package fileutil
 import (
 	"bufio"
 	"bytes"
-	"github.com/Metisnetwork/Metis-Carrier/common/params"
+	"github.com/datumtechs/datum-network-carrier/common/params"
 	"github.com/stretchr/testify/require"
 	"gotest.tools/assert"
 	"io/ioutil"

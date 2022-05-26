@@ -5,7 +5,7 @@ package db
 
 import (
 	fmt "fmt"
-	types "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	types "github.com/datumtechs/datum-network-carrier/lib/types"
 	proto "github.com/gogo/protobuf/proto"
 	io "io"
 	math "math"

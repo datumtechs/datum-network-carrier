@@ -3,9 +3,9 @@
 package rawdb
 
 import (
-	"github.com/Metisnetwork/Metis-Carrier/common"
-	dbtype "github.com/Metisnetwork/Metis-Carrier/lib/db"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/datumtechs/datum-network-carrier/common"
+	dbtype "github.com/datumtechs/datum-network-carrier/lib/db"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/sirupsen/logrus"
 	"strings"
 )

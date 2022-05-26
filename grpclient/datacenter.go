@@ -3,8 +3,8 @@ package grpclient
 import (
 	"context"
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/lib/center/api"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/lib/center/api"
+	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"time"

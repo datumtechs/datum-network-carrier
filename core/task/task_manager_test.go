@@ -3,8 +3,8 @@ package task
 import (
 	"context"
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"gotest.tools/assert"
 	"math"
 	"sync/atomic"

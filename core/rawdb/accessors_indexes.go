@@ -3,8 +3,8 @@
 package rawdb
 
 import (
-	"github.com/Metisnetwork/Metis-Carrier/common"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/common"
+	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
 )
 
 // ReadDataLookupEntry retrieves the positional metadata associated with a metadata/resource/identity/task

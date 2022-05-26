@@ -3,11 +3,11 @@ package yarn
 import (
 	"context"
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/core/rawdb"
-	pb "github.com/Metisnetwork/Metis-Carrier/lib/api"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/rpc/backend"
-	"github.com/Metisnetwork/Metis-Carrier/service/discovery"
+	"github.com/datumtechs/datum-network-carrier/core/rawdb"
+	pb "github.com/datumtechs/datum-network-carrier/lib/api"
+	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/rpc/backend"
+	"github.com/datumtechs/datum-network-carrier/service/discovery"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"strings"
 )

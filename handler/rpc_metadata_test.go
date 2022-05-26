@@ -2,9 +2,9 @@ package handler
 
 import (
 	"context"
-	pb "github.com/Metisnetwork/Metis-Carrier/lib/p2p/v1"
-	"github.com/Metisnetwork/Metis-Carrier/p2p"
-	p2ptest "github.com/Metisnetwork/Metis-Carrier/p2p/testing"
+	pb "github.com/datumtechs/datum-network-carrier/lib/p2p/v1"
+	"github.com/datumtechs/datum-network-carrier/p2p"
+	p2ptest "github.com/datumtechs/datum-network-carrier/p2p/testing"
 	"github.com/kevinms/leakybucket-go"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/protocol"

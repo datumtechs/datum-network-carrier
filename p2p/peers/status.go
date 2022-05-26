@@ -2,12 +2,12 @@ package peers
 
 import (
 	"context"
-	"github.com/Metisnetwork/Metis-Carrier/common/rand"
-	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
-	pb "github.com/Metisnetwork/Metis-Carrier/lib/p2p/v1"
-	"github.com/Metisnetwork/Metis-Carrier/p2p/peers/peerdata"
-	"github.com/Metisnetwork/Metis-Carrier/p2p/peers/scorers"
-	"github.com/Metisnetwork/Metis-Carrier/params"
+	"github.com/datumtechs/datum-network-carrier/common/rand"
+	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	pb "github.com/datumtechs/datum-network-carrier/lib/p2p/v1"
+	"github.com/datumtechs/datum-network-carrier/p2p/peers/peerdata"
+	"github.com/datumtechs/datum-network-carrier/p2p/peers/scorers"
+	"github.com/datumtechs/datum-network-carrier/params"
 	"github.com/ethereum/go-ethereum/p2p/enr"
 	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/network"

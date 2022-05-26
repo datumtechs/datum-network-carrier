@@ -2,9 +2,9 @@ package types
 
 import (
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/common"
-	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/common"
+	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
 	"strings"
 	"sync"
 	"time"

@@ -2,10 +2,10 @@ package carrier
 
 import (
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/core/rawdb"
-	pb "github.com/Metisnetwork/Metis-Carrier/lib/api"
-	"github.com/Metisnetwork/Metis-Carrier/service/discovery"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/datumtechs/datum-network-carrier/core/rawdb"
+	pb "github.com/datumtechs/datum-network-carrier/lib/api"
+	"github.com/datumtechs/datum-network-carrier/service/discovery"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"strconv"
 	"strings"
 	"time"

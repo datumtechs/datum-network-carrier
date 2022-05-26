@@ -2,8 +2,8 @@ package traceutil
 
 import (
 	"bytes"
-	"github.com/Metisnetwork/Metis-Carrier/common/hashutil"
-	"github.com/Metisnetwork/Metis-Carrier/p2p/encoder"
+	"github.com/datumtechs/datum-network-carrier/common/hashutil"
+	"github.com/datumtechs/datum-network-carrier/p2p/encoder"
 	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/peer"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"

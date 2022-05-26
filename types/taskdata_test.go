@@ -2,9 +2,9 @@ package types
 
 import (
 	"bytes"
-	"github.com/Metisnetwork/Metis-Carrier/common"
-	"github.com/Metisnetwork/Metis-Carrier/lib/types"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/common"
+	"github.com/datumtechs/datum-network-carrier/lib/types"
+	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
 	"testing"
 )
 

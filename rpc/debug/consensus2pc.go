@@ -2,7 +2,7 @@ package debug
 
 import (
 	"context"
-	rpcpb "github.com/Metisnetwork/Metis-Carrier/lib/rpc/debug/v1"
+	rpcpb "github.com/datumtechs/datum-network-carrier/lib/rpc/debug/v1"
 )
 
 func (ds *Server) Get2PcProposalStateByTaskId(_ context.Context, req *rpcpb.Get2PcProposalStateByTaskIdRequest) (*rpcpb.Get2PcProposalStateResponse, error) {

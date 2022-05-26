@@ -1,9 +1,9 @@
 package rawdb
 
 import (
-	"github.com/Metisnetwork/Metis-Carrier/db"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/datumtechs/datum-network-carrier/db"
+	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"gotest.tools/assert"
 	"strings"
 	"testing"

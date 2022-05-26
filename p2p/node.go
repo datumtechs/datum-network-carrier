@@ -29,7 +29,7 @@ import (
 	"math/rand"
 	"strings"
 
-	"github.com/Metisnetwork/Metis-Carrier/common"
+	"github.com/datumtechs/datum-network-carrier/common"
 )
 
 const nodeIDBits = 512

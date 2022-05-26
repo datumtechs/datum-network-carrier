@@ -1,9 +1,9 @@
 package evengine
 
 import (
-	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
-	"github.com/Metisnetwork/Metis-Carrier/core/iface"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	"github.com/datumtechs/datum-network-carrier/core/iface"
+	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
 )
 
 type EventEngine struct {

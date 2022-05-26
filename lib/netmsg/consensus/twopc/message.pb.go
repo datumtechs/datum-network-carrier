@@ -5,7 +5,7 @@ package twopc
 
 import (
 	fmt "fmt"
-	common "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/common"
+	common "github.com/datumtechs/datum-network-carrier/lib/netmsg/common"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 	io "io"

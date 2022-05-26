@@ -11,9 +11,9 @@ import (
 
 	"github.com/btcsuite/btcutil/bech32"
 
-	"github.com/Metisnetwork/Metis-Carrier/common/bech32util"
-	"github.com/Metisnetwork/Metis-Carrier/common/hexutil"
-	"github.com/Metisnetwork/Metis-Carrier/crypto/sha3"
+	"github.com/datumtechs/datum-network-carrier/common/bech32util"
+	"github.com/datumtechs/datum-network-carrier/common/hexutil"
+	"github.com/datumtechs/datum-network-carrier/crypto/sha3"
 )
 
 const (

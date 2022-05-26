@@ -6,7 +6,7 @@ package api
 import (
 	context "context"
 	fmt "fmt"
-	types "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	types "github.com/datumtechs/datum-network-carrier/lib/types"
 	proto "github.com/gogo/protobuf/proto"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"

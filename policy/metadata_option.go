@@ -3,8 +3,8 @@ package policy
 import (
 	"encoding/json"
 	"fmt"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/types"
 )
 
 func FetchOriginId (dataType libtypes.OrigindataType, metadataOption string) (string, error) {

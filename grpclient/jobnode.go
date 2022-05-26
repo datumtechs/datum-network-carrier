@@ -2,10 +2,10 @@ package grpclient
 
 import (
 	"context"
-	"github.com/Metisnetwork/Metis-Carrier/common/runutil"
-	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
-	"github.com/Metisnetwork/Metis-Carrier/lib/fighter/common"
-	"github.com/Metisnetwork/Metis-Carrier/lib/fighter/computesvc"
+	"github.com/datumtechs/datum-network-carrier/common/runutil"
+	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	"github.com/datumtechs/datum-network-carrier/lib/fighter/common"
+	"github.com/datumtechs/datum-network-carrier/lib/fighter/computesvc"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"

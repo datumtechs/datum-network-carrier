@@ -2,8 +2,8 @@ package handler
 
 import (
 	"bytes"
-	p2ptest "github.com/Metisnetwork/Metis-Carrier/p2p/testing"
-	"github.com/Metisnetwork/Metis-Carrier/p2p/types"
+	p2ptest "github.com/datumtechs/datum-network-carrier/p2p/testing"
+	"github.com/datumtechs/datum-network-carrier/p2p/types"
 	"github.com/stretchr/testify/require"
 	"gotest.tools/assert"
 	"testing"

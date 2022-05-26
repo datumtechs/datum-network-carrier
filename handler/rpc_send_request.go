@@ -2,10 +2,10 @@ package handler
 
 import (
 	"context"
-	libp2ptypes "github.com/Metisnetwork/Metis-Carrier/lib/p2p/v1"
-	libp2ppb "github.com/Metisnetwork/Metis-Carrier/lib/rpc/debug/v1"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/p2p"
+	libp2ptypes "github.com/datumtechs/datum-network-carrier/lib/p2p/v1"
+	libp2ppb "github.com/datumtechs/datum-network-carrier/lib/rpc/debug/v1"
+	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/p2p"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/pkg/errors"
 	"io"

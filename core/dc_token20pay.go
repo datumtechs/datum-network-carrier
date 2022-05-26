@@ -1,8 +1,8 @@
 package core
 
 import (
-	"github.com/Metisnetwork/Metis-Carrier/core/rawdb"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/datumtechs/datum-network-carrier/core/rawdb"
+	"github.com/datumtechs/datum-network-carrier/types"
 )
 
 func (dc *DataCenter) StoreOrgWallet(sysWallet *types.OrgWallet) error {

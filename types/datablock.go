@@ -2,9 +2,9 @@ package types
 
 import (
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/common"
-	"github.com/Metisnetwork/Metis-Carrier/crypto/sha3"
-	"github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/common"
+	"github.com/datumtechs/datum-network-carrier/crypto/sha3"
+	"github.com/datumtechs/datum-network-carrier/lib/types"
 	"math/big"
 	"sort"
 	"sync/atomic"

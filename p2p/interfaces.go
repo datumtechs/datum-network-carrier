@@ -3,9 +3,9 @@ package p2p
 import (
 	"context"
 	"crypto/ecdsa"
-	pb "github.com/Metisnetwork/Metis-Carrier/lib/p2p/v1"
-	"github.com/Metisnetwork/Metis-Carrier/p2p/encoder"
-	"github.com/Metisnetwork/Metis-Carrier/p2p/peers"
+	pb "github.com/datumtechs/datum-network-carrier/lib/p2p/v1"
+	"github.com/datumtechs/datum-network-carrier/p2p/encoder"
+	"github.com/datumtechs/datum-network-carrier/p2p/peers"
 	"github.com/ethereum/go-ethereum/p2p/enr"
 	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/connmgr"

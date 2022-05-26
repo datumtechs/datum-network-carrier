@@ -2,8 +2,8 @@ package types
 
 import (
 	"encoding/json"
-	pb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/taskmng"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	pb "github.com/datumtechs/datum-network-carrier/lib/netmsg/taskmng"
+	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
 )
 
 const (

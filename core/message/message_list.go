@@ -2,7 +2,7 @@ package message
 
 import (
 	"container/heap"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"sort"
 )
 

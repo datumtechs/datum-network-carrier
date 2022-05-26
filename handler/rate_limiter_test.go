@@ -2,9 +2,9 @@ package handler
 
 import (
 	"context"
-	"github.com/Metisnetwork/Metis-Carrier/p2p"
-	p2ptest "github.com/Metisnetwork/Metis-Carrier/p2p/testing"
-	p2ptypes "github.com/Metisnetwork/Metis-Carrier/p2p/types"
+	"github.com/datumtechs/datum-network-carrier/p2p"
+	p2ptest "github.com/datumtechs/datum-network-carrier/p2p/testing"
+	p2ptypes "github.com/datumtechs/datum-network-carrier/p2p/types"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/protocol"
 	"github.com/stretchr/testify/require"

@@ -1,9 +1,9 @@
 package carrier
 
 import (
-	"github.com/Metisnetwork/Metis-Carrier/core"
-	"github.com/Metisnetwork/Metis-Carrier/p2p"
-	"github.com/Metisnetwork/Metis-Carrier/params"
+	"github.com/datumtechs/datum-network-carrier/core"
+	"github.com/datumtechs/datum-network-carrier/p2p"
+	"github.com/datumtechs/datum-network-carrier/params"
 )
 
 // DefaultConfig contains default settings for use on the Carrier main.
@@ -37,5 +37,5 @@ type Config struct {
 	DefaultConsensusWal   string
 	DiscoverServiceConfig *params.DiscoverServiceConfig
 	TaskManagerConfig     *params.TaskManagerConfig
-	//MetisPayConfig    // TODO 将 metispay  添加到这里 不可以么
+	//Token20PayConfig    // TODO 将 token  添加到这里 不可以么
 }

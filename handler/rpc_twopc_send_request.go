@@ -3,8 +3,8 @@ package handler
 import (
 	"context"
 	"errors"
-	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
-	"github.com/Metisnetwork/Metis-Carrier/p2p"
+	twopcpb "github.com/datumtechs/datum-network-carrier/lib/netmsg/consensus/twopc"
+	"github.com/datumtechs/datum-network-carrier/p2p"
 	"github.com/libp2p/go-libp2p-core/peer"
 )
 

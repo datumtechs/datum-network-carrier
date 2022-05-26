@@ -2,7 +2,7 @@ package encoder
 
 import (
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/params"
+	"github.com/datumtechs/datum-network-carrier/params"
 	"io"
 	"math"
 	"sync"

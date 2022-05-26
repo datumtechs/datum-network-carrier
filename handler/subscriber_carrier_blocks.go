@@ -2,7 +2,7 @@ package handler
 
 import (
 	"context"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
 	"github.com/gogo/protobuf/proto"
 	"github.com/pkg/errors"
 )

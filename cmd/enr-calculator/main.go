@@ -5,7 +5,7 @@ import (
 	"crypto/ecdsa"
 	"encoding/hex"
 	"flag"
-	"github.com/Metisnetwork/Metis-Carrier/common/fileutil"
+	"github.com/datumtechs/datum-network-carrier/common/fileutil"
 	"net"
 
 	"github.com/ethereum/go-ethereum/p2p/enode"

@@ -1,7 +1,7 @@
 package types
 
 import (
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
 	"github.com/mohae/deepcopy"
 	types "github.com/prysmaticlabs/eth2-types"
 	"math/big"

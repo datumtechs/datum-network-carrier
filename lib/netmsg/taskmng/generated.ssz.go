@@ -3,7 +3,7 @@
 package taskmng
 
 import (
-	"github.com/Metisnetwork/Metis-Carrier/lib/netmsg/common"
+	"github.com/datumtechs/datum-network-carrier/lib/netmsg/common"
 	ssz "github.com/ferranbt/fastssz"
 )
 

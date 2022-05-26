@@ -6,8 +6,8 @@ package datasvc
 import (
 	context "context"
 	fmt "fmt"
-	common "github.com/Metisnetwork/Metis-Carrier/lib/fighter/common"
-	types "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	common "github.com/datumtechs/datum-network-carrier/lib/fighter/common"
+	types "github.com/datumtechs/datum-network-carrier/lib/types"
 	proto "github.com/gogo/protobuf/proto"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"

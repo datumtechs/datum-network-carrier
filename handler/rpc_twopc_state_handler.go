@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	twopcpb "github.com/datumtechs/datum-network-carrier/lib/netmsg/consensus/twopc"
+	"github.com/datumtechs/datum-network-carrier/types"
 	libp2pcore "github.com/libp2p/go-libp2p-core"
 	"github.com/libp2p/go-libp2p-core/peer"
 )

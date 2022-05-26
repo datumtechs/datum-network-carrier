@@ -2,9 +2,9 @@ package core
 
 import (
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/core/rawdb"
-	"github.com/Metisnetwork/Metis-Carrier/lib/center/api"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/datumtechs/datum-network-carrier/core/rawdb"
+	"github.com/datumtechs/datum-network-carrier/lib/center/api"
+	"github.com/datumtechs/datum-network-carrier/types"
 )
 
 // on local

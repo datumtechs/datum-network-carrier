@@ -2,7 +2,7 @@ package rawdb
 
 import (
 	"encoding/binary"
-	"github.com/Metisnetwork/Metis-Carrier/common"
+	"github.com/datumtechs/datum-network-carrier/common"
 )
 
 // The fields below define the low level database schema prefixing.

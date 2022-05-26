@@ -2,8 +2,8 @@ package types
 
 import (
 	"fmt"
-	taskmngpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/taskmng"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	taskmngpb "github.com/datumtechs/datum-network-carrier/lib/netmsg/taskmng"
+	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
 )
 
 type TaskResultMsg struct {

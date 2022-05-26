@@ -1,7 +1,7 @@
 package types
 
 import (
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
 	"strings"
 )
 

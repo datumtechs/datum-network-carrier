@@ -2,9 +2,9 @@ package message
 
 import (
 	"errors"
-	"github.com/Metisnetwork/Metis-Carrier/common/feed"
-	"github.com/Metisnetwork/Metis-Carrier/event"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/datumtechs/datum-network-carrier/common/feed"
+	"github.com/datumtechs/datum-network-carrier/event"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"sync"
 )
 

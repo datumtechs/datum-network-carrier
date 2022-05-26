@@ -3,12 +3,12 @@ package types
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/Metisnetwork/Metis-Carrier/common"
-	"github.com/Metisnetwork/Metis-Carrier/common/bytesutil"
-	"github.com/Metisnetwork/Metis-Carrier/common/rlputil"
-	"github.com/Metisnetwork/Metis-Carrier/crypto/sha3"
-	commonpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/common"
-	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
+	"github.com/datumtechs/datum-network-carrier/common"
+	"github.com/datumtechs/datum-network-carrier/common/bytesutil"
+	"github.com/datumtechs/datum-network-carrier/common/rlputil"
+	"github.com/datumtechs/datum-network-carrier/crypto/sha3"
+	commonpb "github.com/datumtechs/datum-network-carrier/lib/netmsg/common"
+	twopcpb "github.com/datumtechs/datum-network-carrier/lib/netmsg/consensus/twopc"
 	"github.com/ethereum/go-ethereum/rlp"
 	"sync/atomic"
 )

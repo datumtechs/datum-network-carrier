@@ -3,8 +3,8 @@ package peerdata
 import (
 	"context"
 	"errors"
-	pb "github.com/Metisnetwork/Metis-Carrier/lib/p2p/v1"
-	pbrpc "github.com/Metisnetwork/Metis-Carrier/lib/rpc/debug/v1"
+	pb "github.com/datumtechs/datum-network-carrier/lib/p2p/v1"
+	pbrpc "github.com/datumtechs/datum-network-carrier/lib/rpc/debug/v1"
 	"github.com/ethereum/go-ethereum/p2p/enr"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"

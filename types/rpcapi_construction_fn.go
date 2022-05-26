@@ -1,8 +1,8 @@
 package types
 
 import (
-	"github.com/Metisnetwork/Metis-Carrier/lib/center/api"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/lib/center/api"
+	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
 )
 
 // NewMetadataSaveRequest converts Metadata object to SaveMetadataRequest object.

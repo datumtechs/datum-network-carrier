@@ -1,9 +1,9 @@
 package api
 
 import (
-	"github.com/Metisnetwork/Metis-Carrier/common"
-	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
-	"github.com/Metisnetwork/Metis-Carrier/crypto/sha3"
+	"github.com/datumtechs/datum-network-carrier/common"
+	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	"github.com/datumtechs/datum-network-carrier/crypto/sha3"
 	"github.com/ethereum/go-ethereum/rlp"
 )
 

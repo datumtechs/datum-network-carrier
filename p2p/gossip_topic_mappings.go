@@ -1,9 +1,9 @@
 package p2p
 
 import (
-	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
-	taskmngpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/taskmng"
-	librpcpb "github.com/Metisnetwork/Metis-Carrier/lib/rpc/debug/v1"
+	twopcpb "github.com/datumtechs/datum-network-carrier/lib/netmsg/consensus/twopc"
+	taskmngpb "github.com/datumtechs/datum-network-carrier/lib/netmsg/taskmng"
+	librpcpb "github.com/datumtechs/datum-network-carrier/lib/rpc/debug/v1"
 	"github.com/gogo/protobuf/proto"
 	"reflect"
 )

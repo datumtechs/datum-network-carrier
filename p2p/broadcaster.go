@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/common/traceutil"
+	"github.com/datumtechs/datum-network-carrier/common/traceutil"
 	"github.com/gogo/protobuf/proto"
 	"github.com/pkg/errors"
 	"go.opencensus.io/trace"

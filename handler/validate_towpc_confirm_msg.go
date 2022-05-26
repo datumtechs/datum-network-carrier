@@ -2,8 +2,8 @@ package handler
 
 import (
 	"context"
-	"github.com/Metisnetwork/Metis-Carrier/common/traceutil"
-	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
+	"github.com/datumtechs/datum-network-carrier/common/traceutil"
+	twopcpb "github.com/datumtechs/datum-network-carrier/lib/netmsg/consensus/twopc"
 	"github.com/libp2p/go-libp2p-core/peer"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	"go.opencensus.io/trace"

@@ -2,9 +2,9 @@ package scorers_test
 
 import (
 	"context"
-	"github.com/Metisnetwork/Metis-Carrier/p2p/peers"
-	"github.com/Metisnetwork/Metis-Carrier/p2p/peers/peerdata"
-	"github.com/Metisnetwork/Metis-Carrier/p2p/peers/scorers"
+	"github.com/datumtechs/datum-network-carrier/p2p/peers"
+	"github.com/datumtechs/datum-network-carrier/p2p/peers/peerdata"
+	"github.com/datumtechs/datum-network-carrier/p2p/peers/scorers"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/stretchr/testify/require"

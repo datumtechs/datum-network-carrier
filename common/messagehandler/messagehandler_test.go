@@ -2,7 +2,7 @@ package messagehandler
 
 import (
 	"context"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
 	"github.com/gogo/protobuf/proto"
 	logTest "github.com/sirupsen/logrus/hooks/test"
 	"testing"

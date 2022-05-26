@@ -2,7 +2,7 @@
 
 package rawdb
 
-import "github.com/Metisnetwork/Metis-Carrier/db"
+import "github.com/datumtechs/datum-network-carrier/db"
 
 type DatabaseReader interface {
 	Has(key []byte) (bool, error)

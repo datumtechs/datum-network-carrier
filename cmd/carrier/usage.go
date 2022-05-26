@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/Metisnetwork/Metis-Carrier/common/debug"
-	"github.com/Metisnetwork/Metis-Carrier/common/flags"
+	"github.com/datumtechs/datum-network-carrier/common/debug"
+	"github.com/datumtechs/datum-network-carrier/common/flags"
 	"github.com/urfave/cli/v2"
 	"io"
 	"sort"

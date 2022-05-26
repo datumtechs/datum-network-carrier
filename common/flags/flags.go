@@ -1,8 +1,8 @@
 package flags
 
 import (
-	"github.com/Metisnetwork/Metis-Carrier/common/fileutil"
-	"github.com/Metisnetwork/Metis-Carrier/params"
+	"github.com/datumtechs/datum-network-carrier/common/fileutil"
+	"github.com/datumtechs/datum-network-carrier/params"
 	"github.com/urfave/cli/v2"
 	"github.com/urfave/cli/v2/altsrc"
 	"path/filepath"

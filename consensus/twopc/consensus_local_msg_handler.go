@@ -1,8 +1,8 @@
 package twopc
 
 import (
-	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	twopcpb "github.com/datumtechs/datum-network-carrier/lib/netmsg/consensus/twopc"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/libp2p/go-libp2p-core/peer"
 )
 

@@ -2,12 +2,12 @@ package handler
 
 import (
 	"context"
-	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
-	"github.com/Metisnetwork/Metis-Carrier/lib/netmsg/common"
-	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
-	"github.com/Metisnetwork/Metis-Carrier/p2p"
-	p2ptest "github.com/Metisnetwork/Metis-Carrier/p2p/testing"
-	twopctypes "github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	"github.com/datumtechs/datum-network-carrier/lib/netmsg/common"
+	twopcpb "github.com/datumtechs/datum-network-carrier/lib/netmsg/consensus/twopc"
+	"github.com/datumtechs/datum-network-carrier/p2p"
+	p2ptest "github.com/datumtechs/datum-network-carrier/p2p/testing"
+	twopctypes "github.com/datumtechs/datum-network-carrier/types"
 	"github.com/kevinms/leakybucket-go"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/protocol"

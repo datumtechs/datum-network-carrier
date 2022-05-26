@@ -2,11 +2,11 @@ package peers_test
 
 import (
 	"context"
-	pb "github.com/Metisnetwork/Metis-Carrier/lib/p2p/v1"
-	"github.com/Metisnetwork/Metis-Carrier/p2p/peers"
-	"github.com/Metisnetwork/Metis-Carrier/p2p/peers/peerdata"
-	"github.com/Metisnetwork/Metis-Carrier/p2p/peers/scorers"
-	"github.com/Metisnetwork/Metis-Carrier/params"
+	pb "github.com/datumtechs/datum-network-carrier/lib/p2p/v1"
+	"github.com/datumtechs/datum-network-carrier/p2p/peers"
+	"github.com/datumtechs/datum-network-carrier/p2p/peers/peerdata"
+	"github.com/datumtechs/datum-network-carrier/p2p/peers/scorers"
+	"github.com/datumtechs/datum-network-carrier/params"
 	"github.com/ethereum/go-ethereum/p2p/enr"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"

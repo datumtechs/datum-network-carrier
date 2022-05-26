@@ -3,8 +3,8 @@ package types
 import (
 	"bytes"
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/common"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/common"
+	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
 	"io"
 	"sync/atomic"
 )

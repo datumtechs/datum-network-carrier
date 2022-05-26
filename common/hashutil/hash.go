@@ -3,7 +3,7 @@ package hashutil
 
 import (
 	"errors"
-	"github.com/Metisnetwork/Metis-Carrier/common/bytesutil"
+	"github.com/datumtechs/datum-network-carrier/common/bytesutil"
 	"hash"
 	"reflect"
 	"sync"

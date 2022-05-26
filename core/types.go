@@ -1,7 +1,7 @@
 package core
 
 import (
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/datumtechs/datum-network-carrier/types"
 )
 
 // Processor is an interface for processing blocks.

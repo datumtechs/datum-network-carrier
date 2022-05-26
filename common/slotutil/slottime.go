@@ -1,8 +1,8 @@
 package slotutil
 
 import (
-	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
-	"github.com/Metisnetwork/Metis-Carrier/params"
+	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	"github.com/datumtechs/datum-network-carrier/params"
 	types "github.com/prysmaticlabs/eth2-types"
 	"time"
 )

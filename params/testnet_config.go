@@ -1,7 +1,7 @@
 package params
 
 import (
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"math/big"
 )
 

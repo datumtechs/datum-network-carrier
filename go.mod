@@ -1,4 +1,4 @@
-module github.com/Metisnetwork/Metis-Carrier
+module github.com/datumtechs/datum-network-carrier
 
 go 1.16
 

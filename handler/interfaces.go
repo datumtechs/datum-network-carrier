@@ -1,9 +1,9 @@
 package handler
 
 import (
-	taskmngpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/taskmng"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	taskmngpb "github.com/datumtechs/datum-network-carrier/lib/netmsg/taskmng"
+	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/libp2p/go-libp2p-core/peer"
 )
 

@@ -9,7 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto/secp256k1"
 	"math/big"
 
-	"github.com/Metisnetwork/Metis-Carrier/crypto/rfc6979"
+	"github.com/datumtechs/datum-network-carrier/crypto/rfc6979"
 
 )
 

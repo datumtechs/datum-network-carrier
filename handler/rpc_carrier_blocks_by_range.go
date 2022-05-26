@@ -2,7 +2,7 @@ package handler
 
 import (
 	"context"
-	pb "github.com/Metisnetwork/Metis-Carrier/lib/p2p/v1"
+	pb "github.com/datumtechs/datum-network-carrier/lib/p2p/v1"
 	libp2pcore "github.com/libp2p/go-libp2p-core"
 	"github.com/pkg/errors"
 	types "github.com/prysmaticlabs/eth2-types"

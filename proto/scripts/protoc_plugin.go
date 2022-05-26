@@ -10,7 +10,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/Metisnetwork/Metis-Carrier/proto/ext"
+	"github.com/datumtechs/datum-network-carrier/proto/ext"
 
 	"github.com/gogo/protobuf/gogoproto"
 	"github.com/gogo/protobuf/proto"
@@ -33,7 +33,7 @@ func main() {
 	vanity.ForEachFile(files, vanity.TurnOnMarshalerAll)
 	vanity.ForEachFile(files, vanity.TurnOnUnmarshalerAll)
 	vanity.ForEachEnumInFiles(files, HandleCustomEnumExtensions)
-	vanity.ForEachFile(files, SetPackagePrefix("github.com/Metisnetwork/Metis-Carrier"))
+	vanity.ForEachFile(files, SetPackagePrefix("github.com/datumtechs/datum-network-carrier"))
 	vanity.ForEachFile(files, HandleFile)
 	vanity.ForEachFieldInFilesExcludingExtensions(files, TurnOffNullableForMessages)
 
@@ -236,8 +236,8 @@ func HandleCustomExtensions(file *descriptor.FileDescriptorProto) func(msg *desc
 			}
 
 			if val, ok := GetFieldBooleanExtension(field, ext.E_DeviceId); ok && val {
-				if *file.Options.GoPackage != "github.com/Metisnetwork/Metis-Carrier/lib/protocol" {
-					SetStringFieldOption(field, gogoproto.E_Customtype, "github.com/Metisnetwork/Metis-Carrier/lib/protocol.DeviceID")
+				if *file.Options.GoPackage != "github.com/datumtechs/datum-network-carrier/lib/protocol" {
+					SetStringFieldOption(field, gogoproto.E_Customtype, "github.com/datumtechs/datum-network-carrier/lib/protocol.DeviceID")
 				} else {
 					SetStringFieldOption(field, gogoproto.E_Customtype, "DeviceID")
 				}

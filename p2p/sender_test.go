@@ -2,8 +2,8 @@ package p2p
 
 import (
 	"context"
-	librpcpb "github.com/Metisnetwork/Metis-Carrier/lib/rpc/debug/v1"
-	testp2p "github.com/Metisnetwork/Metis-Carrier/p2p/testing"
+	librpcpb "github.com/datumtechs/datum-network-carrier/lib/rpc/debug/v1"
+	testp2p "github.com/datumtechs/datum-network-carrier/p2p/testing"
 	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/stretchr/testify/assert"
