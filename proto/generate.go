@@ -21,7 +21,7 @@ import (
 
 // Inception, go generate calls the script itself that then deals with generation.
 // This is only done because go:generate does not support wildcards in paths.
-//go:generate go run generate.go pb/carrier/db pb/carrier/types pb/carrier/api pb/datacenter/api pb/carrier/p2p/v1 pb/carrier/rpc/debug/v1 pb/carrier/netmsg/common pb/carrier/netmsg/consensus/twopc pb/carrier/netmsg/taskmng pb/fighter/api/computesvc pb/fighter/api/datasvc pb/fighter/common
+//go:generate go run generate.go armada-common/carrier/db armada-common/carrier/types armada-common/carrier/api armada-common/carrier/p2p/v1 armada-common/carrier/rpc/debug/v1 armada-common/carrier/netmsg/common armada-common/carrier/netmsg/consensus/twopc armada-common/carrier/netmsg/taskmng armada-common/datacenter/api armada-common/fighter/api/ armada-common/fighter/common
 
 // final, generate grpc gateway stub.
 //go:generate protoc -I ../ -I . -I ../repos/grpc-gateway/third_party/googleapis --grpc-gateway_out=logtostderr=true:./.. ./lib/rpc/debug/v1/debug.proto
