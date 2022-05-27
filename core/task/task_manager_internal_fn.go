@@ -848,7 +848,10 @@ func (m *Manager) sendTaskResultMsgToTaskSender(task *types.NeedExecuteTask, loc
 	log.Debugf("Start sendTaskResultMsgToTaskSender, taskId: {%s}, partyId: {%s}, remote pid: {%s}",
 		task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID())
 
-	var option resource.ReleaseResourceOption
+	var (
+		option resource.ReleaseResourceOption
+		taskResultMsg *taskmngpb.TaskResultMsg
+	)
 
 	// when other task partner and task sender is same identity,
 	// we don't need to removed local task and local eventList
@@ -857,16 +860,7 @@ func (m *Manager) sendTaskResultMsgToTaskSender(task *types.NeedExecuteTask, loc
 	} else {
 		option = resource.SetAllReleaseResourceOption() // unlock local resource and remove local task and events
 		// broadcast `task result msg` to reply remote peer
-		taskResultMsg := m.makeTaskResultMsgWithEventList(task)
-		if nil != taskResultMsg {
-			if err := m.p2p.Broadcast(context.TODO(), taskResultMsg); nil != err {
-				log.WithError(err).Errorf("failed to call `SendTaskResultMsg` on sendTaskResultMsgToTaskSender(), taskId: {%s}, partyId: {%s}, remote pid: {%s}",
-					task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID())
-			} else {
-				log.WithField("traceId", traceutil.GenerateTraceID(taskResultMsg)).Debugf("Succeed broadcast taskResultMsg to taskSender on sendTaskResultMsgToTaskSender(), taskId: {%s}, partyId: {%s}, remote pid: {%s}",
-					task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID())
-			}
-		}
+		taskResultMsg = m.makeTaskResultMsgWithEventList(task)
 	}
 
 	// 3、clear up all cache of task
@@ -874,8 +868,18 @@ func (m *Manager) sendTaskResultMsgToTaskSender(task *types.NeedExecuteTask, loc
 		task.GetLocalTaskOrganization().GetPartyId(), option, false); nil != err {
 		log.WithError(err).Errorf("Failed to call RemoveExecuteTaskStateAfterExecuteTask() on sendTaskResultMsgToTaskSender(), taskId: {%s}, partyId: {%s}, remote pid: {%s}",
 			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID())
-		return
 	}
+
+	if nil != taskResultMsg {
+		if err := m.p2p.Broadcast(context.TODO(), taskResultMsg); nil != err {
+			log.WithError(err).Errorf("failed to call `SendTaskResultMsg` on sendTaskResultMsgToTaskSender(), taskId: {%s}, partyId: {%s}, remote pid: {%s}",
+				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID())
+		} else {
+			log.WithField("traceId", traceutil.GenerateTraceID(taskResultMsg)).Debugf("Succeed broadcast taskResultMsg to taskSender on sendTaskResultMsgToTaskSender(), taskId: {%s}, partyId: {%s}, remote pid: {%s}",
+				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID())
+		}
+	}
+
 	log.Debugf("Finished sendTaskResultMsgToTaskSender, taskId: {%s}, partyId: {%s}, remote pid: {%s}",
 		task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID())
 }
