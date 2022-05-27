@@ -66,7 +66,7 @@ func (sche *SchedulerStarveFIFO) removeTaskBullet(taskId string) error {
 	// traversal the queue to remove task bullet, first.
 	i := 0
 	for {
-		if i == sche.queue.Len() {
+		if i >= sche.queue.Len() {
 			break
 		}
 		bullet := (*(sche.queue))[i]
@@ -82,7 +82,7 @@ func (sche *SchedulerStarveFIFO) removeTaskBullet(taskId string) error {
 	// otherwise, traversal the starveQueue to remove task bullet, second.
 	i = 0
 	for {
-		if i == sche.starveQueue.Len() {
+		if i >= sche.starveQueue.Len() {
 			break
 		}
 		bullet := (*(sche.starveQueue))[i]
@@ -128,7 +128,7 @@ func (sche *SchedulerStarveFIFO) increaseTotalTaskTerm() {
 	// handle queue
 	i := 0
 	for {
-		if i == sche.queue.Len() {
+		if i >= sche.queue.Len() {
 			return
 		}
 		bullet := (*(sche.queue))[i]
