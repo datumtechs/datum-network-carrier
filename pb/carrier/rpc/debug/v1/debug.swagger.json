@@ -312,6 +312,57 @@
       ],
       "default": "INFO"
     },
+    "commonMsgOption": {
+      "type": "object",
+      "properties": {
+        "proposal_id": {
+          "type": "string",
+          "format": "byte"
+        },
+        "sender_role": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "sender_party_id": {
+          "type": "string",
+          "format": "byte"
+        },
+        "receiver_role": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "receiver_party_id": {
+          "type": "string",
+          "format": "byte"
+        },
+        "msg_owner": {
+          "$ref": "#/definitions/commonTaskOrganizationIdentityInfo"
+        }
+      },
+      "title": "消息选项"
+    },
+    "commonTaskOrganizationIdentityInfo": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "format": "byte"
+        },
+        "node_id": {
+          "type": "string",
+          "format": "byte"
+        },
+        "identity_id": {
+          "type": "string",
+          "format": "byte"
+        },
+        "party_id": {
+          "type": "string",
+          "format": "byte"
+        }
+      },
+      "title": "组织(节点)唯一标识抽象"
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -345,15 +396,15 @@
         }
       }
     },
-    "typesConfirmVote": {
+    "twopcConfirmVote": {
       "type": "object",
       "properties": {
         "msg_option": {
-          "$ref": "#/definitions/typesMsgOption"
+          "$ref": "#/definitions/commonMsgOption"
         },
         "vote_option": {
-          "type": "integer",
-          "format": "int64"
+          "type": "string",
+          "format": "byte"
         },
         "create_at": {
           "type": "string",
@@ -362,105 +413,50 @@
         "sign": {
           "type": "string",
           "format": "byte"
-        }
-      }
-    },
-    "typesMsgOption": {
-      "type": "object",
-      "properties": {
-        "proposal_id": {
-          "type": "string"
-        },
-        "sender_role": {
-          "$ref": "#/definitions/typesTaskRole"
-        },
-        "sender_party_id": {
-          "type": "string"
-        },
-        "receiver_role": {
-          "$ref": "#/definitions/typesTaskRole"
-        },
-        "receiver_party_id": {
-          "type": "string"
-        },
-        "owner": {
-          "$ref": "#/definitions/typesTaskOrganization"
-        }
-      }
-    },
-    "typesPrepareVote": {
-      "type": "object",
-      "properties": {
-        "msg_option": {
-          "$ref": "#/definitions/typesMsgOption"
-        },
-        "vote_option": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "peer_info": {
-          "$ref": "#/definitions/typesPrepareVoteResource"
-        },
-        "create_at": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "sign": {
-          "type": "string",
-          "format": "byte"
-        }
-      }
-    },
-    "typesPrepareVoteResource": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "ip": {
-          "type": "string"
-        },
-        "port": {
-          "type": "string"
-        },
-        "party_id": {
-          "type": "string"
-        }
-      }
-    },
-    "typesTaskOrganization": {
-      "type": "object",
-      "properties": {
-        "party_id": {
-          "type": "string"
-        },
-        "node_name": {
-          "type": "string",
-          "title": "org name"
-        },
-        "node_id": {
-          "type": "string",
-          "title": "the node_id for org"
-        },
-        "identity_id": {
-          "type": "string",
-          "title": "the identity for org"
         }
       },
-      "title": "任务下的组织信息"
+      "title": "2pc confirmVote"
     },
-    "typesTaskRole": {
-      "type": "string",
-      "enum": [
-        "TaskRole_Unknown",
-        "TaskRole_Sender",
-        "TaskRole_DataSupplier",
-        "TaskRole_PowerSupplier",
-        "TaskRole_Receiver",
-        "TaskRole_AlgoSupplier"
-      ],
-      "default": "TaskRole_Unknown",
-      "title": "本组织在task中的角色"
+    "twopcPrepareVote": {
+      "type": "object",
+      "properties": {
+        "msg_option": {
+          "$ref": "#/definitions/commonMsgOption"
+        },
+        "vote_option": {
+          "type": "string",
+          "format": "byte"
+        },
+        "peer_info": {
+          "$ref": "#/definitions/twopcTaskPeerInfo"
+        },
+        "create_at": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "sign": {
+          "type": "string",
+          "format": "byte"
+        }
+      },
+      "title": "2pc prepareVote"
+    },
+    "twopcTaskPeerInfo": {
+      "type": "object",
+      "properties": {
+        "ip": {
+          "type": "string",
+          "format": "byte"
+        },
+        "port": {
+          "type": "string",
+          "format": "byte"
+        },
+        "party_id": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
     },
     "v1ConnectionState": {
       "type": "string",
@@ -552,7 +548,7 @@
         "votes": {
           "type": "object",
           "additionalProperties": {
-            "$ref": "#/definitions/typesConfirmVote"
+            "$ref": "#/definitions/twopcConfirmVote"
           }
         },
         "yesVotes": {
@@ -577,7 +573,7 @@
         "votes": {
           "type": "object",
           "additionalProperties": {
-            "$ref": "#/definitions/typesPrepareVote"
+            "$ref": "#/definitions/twopcPrepareVote"
           }
         },
         "yesVotes": {

@@ -9,6 +9,7 @@ import (
 	io "io"
 	math "math"
 	math_bits "math/bits"
+	constant "pb/common/constant"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -28,27 +29,27 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 // todo 是否支持 serving_metadata ? 可能不支持
 // Metadata body data struct.
 type MetadataPB struct {
-	MetadataId           string           `protobuf:"bytes,1,opt,name=metadata_id,json=metadataId,proto3" json:"metadata_id,omitempty"`
-	Owner                *Organization    `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
-	DataId               string           `protobuf:"bytes,3,opt,name=data_id,json=dataId,proto3" json:"data_id,omitempty"`
-	DataStatus           DataStatus       `protobuf:"varint,4,opt,name=data_status,json=dataStatus,proto3,enum=carrier.types.DataStatus" json:"data_status,omitempty"`
-	MetadataName         string           `protobuf:"bytes,5,opt,name=metadata_name,json=metadataName,proto3" json:"metadata_name,omitempty"`
-	MetadataType         MetadataType     `protobuf:"varint,6,opt,name=metadata_type,json=metadataType,proto3,enum=carrier.types.MetadataType" json:"metadata_type,omitempty"`
-	DataHash             string           `protobuf:"bytes,7,opt,name=data_hash,json=dataHash,proto3" json:"data_hash,omitempty"`
-	Desc                 string           `protobuf:"bytes,8,opt,name=desc,proto3" json:"desc,omitempty"`
-	LocationType         DataLocationType `protobuf:"varint,9,opt,name=location_type,json=locationType,proto3,enum=carrier.types.DataLocationType" json:"location_type,omitempty"`
-	DataType             OrigindataType   `protobuf:"varint,10,opt,name=data_type,json=dataType,proto3,enum=carrier.types.OrigindataType" json:"data_type,omitempty"`
-	Industry             string           `protobuf:"bytes,11,opt,name=industry,proto3" json:"industry,omitempty"`
-	State                MetadataState    `protobuf:"varint,12,opt,name=state,proto3,enum=carrier.types.MetadataState" json:"state,omitempty"`
-	PublishAt            uint64           `protobuf:"varint,13,opt,name=publish_at,json=publishAt,proto3" json:"publish_at,omitempty"`
-	UpdateAt             uint64           `protobuf:"varint,14,opt,name=update_at,json=updateAt,proto3" json:"update_at,omitempty"`
-	Nonce                uint64           `protobuf:"varint,15,opt,name=nonce,proto3" json:"nonce,omitempty"`
-	MetadataOption       string           `protobuf:"bytes,16,opt,name=metadata_option,json=metadataOption,proto3" json:"metadata_option,omitempty"`
-	AllowExpose          bool             `protobuf:"varint,17,opt,name=allow_expose,json=allowExpose,proto3" json:"allow_expose,omitempty"`
-	TokenAddress         string           `protobuf:"bytes,18,opt,name=token_address,json=tokenAddress,proto3" json:"token_address,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}         `json:"-"`
-	XXX_unrecognized     []byte           `json:"-"`
-	XXX_sizecache        int32            `json:"-"`
+	MetadataId           string                    `protobuf:"bytes,1,opt,name=metadata_id,json=metadataId,proto3" json:"metadata_id,omitempty"`
+	Owner                *Organization             `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
+	DataId               string                    `protobuf:"bytes,3,opt,name=data_id,json=dataId,proto3" json:"data_id,omitempty"`
+	DataStatus           constant.DataStatus       `protobuf:"varint,4,opt,name=data_status,json=dataStatus,proto3,enum=common.constant.DataStatus" json:"data_status,omitempty"`
+	MetadataName         string                    `protobuf:"bytes,5,opt,name=metadata_name,json=metadataName,proto3" json:"metadata_name,omitempty"`
+	MetadataType         constant.MetadataType     `protobuf:"varint,6,opt,name=metadata_type,json=metadataType,proto3,enum=common.constant.MetadataType" json:"metadata_type,omitempty"`
+	DataHash             string                    `protobuf:"bytes,7,opt,name=data_hash,json=dataHash,proto3" json:"data_hash,omitempty"`
+	Desc                 string                    `protobuf:"bytes,8,opt,name=desc,proto3" json:"desc,omitempty"`
+	LocationType         constant.DataLocationType `protobuf:"varint,9,opt,name=location_type,json=locationType,proto3,enum=common.constant.DataLocationType" json:"location_type,omitempty"`
+	DataType             constant.OrigindataType   `protobuf:"varint,10,opt,name=data_type,json=dataType,proto3,enum=common.constant.OrigindataType" json:"data_type,omitempty"`
+	Industry             string                    `protobuf:"bytes,11,opt,name=industry,proto3" json:"industry,omitempty"`
+	State                constant.MetadataState    `protobuf:"varint,12,opt,name=state,proto3,enum=common.constant.MetadataState" json:"state,omitempty"`
+	PublishAt            uint64                    `protobuf:"varint,13,opt,name=publish_at,json=publishAt,proto3" json:"publish_at,omitempty"`
+	UpdateAt             uint64                    `protobuf:"varint,14,opt,name=update_at,json=updateAt,proto3" json:"update_at,omitempty"`
+	Nonce                uint64                    `protobuf:"varint,15,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	MetadataOption       string                    `protobuf:"bytes,16,opt,name=metadata_option,json=metadataOption,proto3" json:"metadata_option,omitempty"`
+	AllowExpose          bool                      `protobuf:"varint,17,opt,name=allow_expose,json=allowExpose,proto3" json:"allow_expose,omitempty"`
+	TokenAddress         string                    `protobuf:"bytes,18,opt,name=token_address,json=tokenAddress,proto3" json:"token_address,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                  `json:"-"`
+	XXX_unrecognized     []byte                    `json:"-"`
+	XXX_sizecache        int32                     `json:"-"`
 }
 
 func (m *MetadataPB) Reset()         { *m = MetadataPB{} }
@@ -105,11 +106,11 @@ func (m *MetadataPB) GetDataId() string {
 	return ""
 }
 
-func (m *MetadataPB) GetDataStatus() DataStatus {
+func (m *MetadataPB) GetDataStatus() constant.DataStatus {
 	if m != nil {
 		return m.DataStatus
 	}
-	return DataStatus_DataStatus_Unknown
+	return constant.DataStatus_DataStatus_Unknown
 }
 
 func (m *MetadataPB) GetMetadataName() string {
@@ -119,11 +120,11 @@ func (m *MetadataPB) GetMetadataName() string {
 	return ""
 }
 
-func (m *MetadataPB) GetMetadataType() MetadataType {
+func (m *MetadataPB) GetMetadataType() constant.MetadataType {
 	if m != nil {
 		return m.MetadataType
 	}
-	return MetadataType_MetadataType_Unknown
+	return constant.MetadataType_MetadataType_Unknown
 }
 
 func (m *MetadataPB) GetDataHash() string {
@@ -140,18 +141,18 @@ func (m *MetadataPB) GetDesc() string {
 	return ""
 }
 
-func (m *MetadataPB) GetLocationType() DataLocationType {
+func (m *MetadataPB) GetLocationType() constant.DataLocationType {
 	if m != nil {
 		return m.LocationType
 	}
-	return DataLocationType_DataLocationType_Unknown
+	return constant.DataLocationType_DataLocationType_Unknown
 }
 
-func (m *MetadataPB) GetDataType() OrigindataType {
+func (m *MetadataPB) GetDataType() constant.OrigindataType {
 	if m != nil {
 		return m.DataType
 	}
-	return OrigindataType_OrigindataType_Unknown
+	return constant.OrigindataType_OrigindataType_Unknown
 }
 
 func (m *MetadataPB) GetIndustry() string {
@@ -161,11 +162,11 @@ func (m *MetadataPB) GetIndustry() string {
 	return ""
 }
 
-func (m *MetadataPB) GetState() MetadataState {
+func (m *MetadataPB) GetState() constant.MetadataState {
 	if m != nil {
 		return m.State
 	}
-	return MetadataState_MetadataState_Unknown
+	return constant.MetadataState_MetadataState_Unknown
 }
 
 func (m *MetadataPB) GetPublishAt() uint64 {
@@ -212,25 +213,25 @@ func (m *MetadataPB) GetTokenAddress() string {
 
 // 元数据申请记录实体
 type MetadataAuthorityPB struct {
-	MetadataAuthId       string                 `protobuf:"bytes,1,opt,name=metadata_auth_id,json=metadataAuthId,proto3" json:"metadata_auth_id,omitempty"`
-	User                 string                 `protobuf:"bytes,2,opt,name=user,proto3" json:"user,omitempty"`
-	DataId               string                 `protobuf:"bytes,3,opt,name=data_id,json=dataId,proto3" json:"data_id,omitempty"`
-	DataStatus           DataStatus             `protobuf:"varint,4,opt,name=data_status,json=dataStatus,proto3,enum=carrier.types.DataStatus" json:"data_status,omitempty"`
-	UserType             UserType               `protobuf:"varint,5,opt,name=user_type,json=userType,proto3,enum=carrier.types.UserType" json:"user_type,omitempty"`
-	Auth                 *MetadataAuthority     `protobuf:"bytes,6,opt,name=auth,proto3" json:"auth,omitempty"`
-	AuditOption          AuditMetadataOption    `protobuf:"varint,7,opt,name=audit_option,json=auditOption,proto3,enum=carrier.types.AuditMetadataOption" json:"audit_option,omitempty"`
-	AuditSuggestion      string                 `protobuf:"bytes,8,opt,name=audit_suggestion,json=auditSuggestion,proto3" json:"audit_suggestion,omitempty"`
-	UsedQuo              *MetadataUsedQuo       `protobuf:"bytes,9,opt,name=used_quo,json=usedQuo,proto3" json:"used_quo,omitempty"`
-	ApplyAt              uint64                 `protobuf:"varint,10,opt,name=apply_at,json=applyAt,proto3" json:"apply_at,omitempty"`
-	AuditAt              uint64                 `protobuf:"varint,11,opt,name=audit_at,json=auditAt,proto3" json:"audit_at,omitempty"`
-	State                MetadataAuthorityState `protobuf:"varint,12,opt,name=state,proto3,enum=carrier.types.MetadataAuthorityState" json:"state,omitempty"`
-	Sign                 []byte                 `protobuf:"bytes,13,opt,name=sign,proto3" json:"sign,omitempty"`
-	PublishAt            uint64                 `protobuf:"varint,14,opt,name=publish_at,json=publishAt,proto3" json:"publish_at,omitempty"`
-	UpdateAt             uint64                 `protobuf:"varint,15,opt,name=update_at,json=updateAt,proto3" json:"update_at,omitempty"`
-	Nonce                uint64                 `protobuf:"varint,16,opt,name=nonce,proto3" json:"nonce,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}               `json:"-"`
-	XXX_unrecognized     []byte                 `json:"-"`
-	XXX_sizecache        int32                  `json:"-"`
+	MetadataAuthId       string                          `protobuf:"bytes,1,opt,name=metadata_auth_id,json=metadataAuthId,proto3" json:"metadata_auth_id,omitempty"`
+	User                 string                          `protobuf:"bytes,2,opt,name=user,proto3" json:"user,omitempty"`
+	DataId               string                          `protobuf:"bytes,3,opt,name=data_id,json=dataId,proto3" json:"data_id,omitempty"`
+	DataStatus           constant.DataStatus             `protobuf:"varint,4,opt,name=data_status,json=dataStatus,proto3,enum=common.constant.DataStatus" json:"data_status,omitempty"`
+	UserType             constant.UserType               `protobuf:"varint,5,opt,name=user_type,json=userType,proto3,enum=common.constant.UserType" json:"user_type,omitempty"`
+	Auth                 *MetadataAuthority              `protobuf:"bytes,6,opt,name=auth,proto3" json:"auth,omitempty"`
+	AuditOption          constant.AuditMetadataOption    `protobuf:"varint,7,opt,name=audit_option,json=auditOption,proto3,enum=common.constant.AuditMetadataOption" json:"audit_option,omitempty"`
+	AuditSuggestion      string                          `protobuf:"bytes,8,opt,name=audit_suggestion,json=auditSuggestion,proto3" json:"audit_suggestion,omitempty"`
+	UsedQuo              *MetadataUsedQuo                `protobuf:"bytes,9,opt,name=used_quo,json=usedQuo,proto3" json:"used_quo,omitempty"`
+	ApplyAt              uint64                          `protobuf:"varint,10,opt,name=apply_at,json=applyAt,proto3" json:"apply_at,omitempty"`
+	AuditAt              uint64                          `protobuf:"varint,11,opt,name=audit_at,json=auditAt,proto3" json:"audit_at,omitempty"`
+	State                constant.MetadataAuthorityState `protobuf:"varint,12,opt,name=state,proto3,enum=common.constant.MetadataAuthorityState" json:"state,omitempty"`
+	Sign                 []byte                          `protobuf:"bytes,13,opt,name=sign,proto3" json:"sign,omitempty"`
+	PublishAt            uint64                          `protobuf:"varint,14,opt,name=publish_at,json=publishAt,proto3" json:"publish_at,omitempty"`
+	UpdateAt             uint64                          `protobuf:"varint,15,opt,name=update_at,json=updateAt,proto3" json:"update_at,omitempty"`
+	Nonce                uint64                          `protobuf:"varint,16,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                        `json:"-"`
+	XXX_unrecognized     []byte                          `json:"-"`
+	XXX_sizecache        int32                           `json:"-"`
 }
 
 func (m *MetadataAuthorityPB) Reset()         { *m = MetadataAuthorityPB{} }
@@ -287,18 +288,18 @@ func (m *MetadataAuthorityPB) GetDataId() string {
 	return ""
 }
 
-func (m *MetadataAuthorityPB) GetDataStatus() DataStatus {
+func (m *MetadataAuthorityPB) GetDataStatus() constant.DataStatus {
 	if m != nil {
 		return m.DataStatus
 	}
-	return DataStatus_DataStatus_Unknown
+	return constant.DataStatus_DataStatus_Unknown
 }
 
-func (m *MetadataAuthorityPB) GetUserType() UserType {
+func (m *MetadataAuthorityPB) GetUserType() constant.UserType {
 	if m != nil {
 		return m.UserType
 	}
-	return UserType_User_Unknown
+	return constant.UserType_User_Unknown
 }
 
 func (m *MetadataAuthorityPB) GetAuth() *MetadataAuthority {
@@ -308,11 +309,11 @@ func (m *MetadataAuthorityPB) GetAuth() *MetadataAuthority {
 	return nil
 }
 
-func (m *MetadataAuthorityPB) GetAuditOption() AuditMetadataOption {
+func (m *MetadataAuthorityPB) GetAuditOption() constant.AuditMetadataOption {
 	if m != nil {
 		return m.AuditOption
 	}
-	return AuditMetadataOption_Audit_Pending
+	return constant.AuditMetadataOption_Audit_Pending
 }
 
 func (m *MetadataAuthorityPB) GetAuditSuggestion() string {
@@ -343,11 +344,11 @@ func (m *MetadataAuthorityPB) GetAuditAt() uint64 {
 	return 0
 }
 
-func (m *MetadataAuthorityPB) GetState() MetadataAuthorityState {
+func (m *MetadataAuthorityPB) GetState() constant.MetadataAuthorityState {
 	if m != nil {
 		return m.State
 	}
-	return MetadataAuthorityState_MAState_Unknown
+	return constant.MetadataAuthorityState_MAState_Unknown
 }
 
 func (m *MetadataAuthorityPB) GetSign() []byte {
@@ -381,24 +382,24 @@ func (m *MetadataAuthorityPB) GetNonce() uint64 {
 // =============================== For API =========================
 // 元数据的摘要内容 (不包含详细 列描述)
 type MetadataSummary struct {
-	MetadataId           string           `protobuf:"bytes,1,opt,name=metadata_id,json=metadataId,proto3" json:"metadata_id,omitempty"`
-	MetadataName         string           `protobuf:"bytes,2,opt,name=metadata_name,json=metadataName,proto3" json:"metadata_name,omitempty"`
-	MetadataType         MetadataType     `protobuf:"varint,3,opt,name=metadata_type,json=metadataType,proto3,enum=carrier.types.MetadataType" json:"metadata_type,omitempty"`
-	DataHash             string           `protobuf:"bytes,4,opt,name=data_hash,json=dataHash,proto3" json:"data_hash,omitempty"`
-	Desc                 string           `protobuf:"bytes,5,opt,name=desc,proto3" json:"desc,omitempty"`
-	LocationType         DataLocationType `protobuf:"varint,6,opt,name=location_type,json=locationType,proto3,enum=carrier.types.DataLocationType" json:"location_type,omitempty"`
-	DataType             OrigindataType   `protobuf:"varint,7,opt,name=data_type,json=dataType,proto3,enum=carrier.types.OrigindataType" json:"data_type,omitempty"`
-	Industry             string           `protobuf:"bytes,8,opt,name=industry,proto3" json:"industry,omitempty"`
-	State                MetadataState    `protobuf:"varint,9,opt,name=state,proto3,enum=carrier.types.MetadataState" json:"state,omitempty"`
-	PublishAt            uint64           `protobuf:"varint,10,opt,name=publish_at,json=publishAt,proto3" json:"publish_at,omitempty"`
-	UpdateAt             uint64           `protobuf:"varint,11,opt,name=update_at,json=updateAt,proto3" json:"update_at,omitempty"`
-	Nonce                uint64           `protobuf:"varint,12,opt,name=nonce,proto3" json:"nonce,omitempty"`
-	MetadataOption       string           `protobuf:"bytes,13,opt,name=metadata_option,json=metadataOption,proto3" json:"metadata_option,omitempty"`
-	AllowExpose          bool             `protobuf:"varint,14,opt,name=allow_expose,json=allowExpose,proto3" json:"allow_expose,omitempty"`
-	TokenAddress         string           `protobuf:"bytes,15,opt,name=token_address,json=tokenAddress,proto3" json:"token_address,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}         `json:"-"`
-	XXX_unrecognized     []byte           `json:"-"`
-	XXX_sizecache        int32            `json:"-"`
+	MetadataId           string                    `protobuf:"bytes,1,opt,name=metadata_id,json=metadataId,proto3" json:"metadata_id,omitempty"`
+	MetadataName         string                    `protobuf:"bytes,2,opt,name=metadata_name,json=metadataName,proto3" json:"metadata_name,omitempty"`
+	MetadataType         constant.MetadataType     `protobuf:"varint,3,opt,name=metadata_type,json=metadataType,proto3,enum=common.constant.MetadataType" json:"metadata_type,omitempty"`
+	DataHash             string                    `protobuf:"bytes,4,opt,name=data_hash,json=dataHash,proto3" json:"data_hash,omitempty"`
+	Desc                 string                    `protobuf:"bytes,5,opt,name=desc,proto3" json:"desc,omitempty"`
+	LocationType         constant.DataLocationType `protobuf:"varint,6,opt,name=location_type,json=locationType,proto3,enum=common.constant.DataLocationType" json:"location_type,omitempty"`
+	DataType             constant.OrigindataType   `protobuf:"varint,7,opt,name=data_type,json=dataType,proto3,enum=common.constant.OrigindataType" json:"data_type,omitempty"`
+	Industry             string                    `protobuf:"bytes,8,opt,name=industry,proto3" json:"industry,omitempty"`
+	State                constant.MetadataState    `protobuf:"varint,9,opt,name=state,proto3,enum=common.constant.MetadataState" json:"state,omitempty"`
+	PublishAt            uint64                    `protobuf:"varint,10,opt,name=publish_at,json=publishAt,proto3" json:"publish_at,omitempty"`
+	UpdateAt             uint64                    `protobuf:"varint,11,opt,name=update_at,json=updateAt,proto3" json:"update_at,omitempty"`
+	Nonce                uint64                    `protobuf:"varint,12,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	MetadataOption       string                    `protobuf:"bytes,13,opt,name=metadata_option,json=metadataOption,proto3" json:"metadata_option,omitempty"`
+	AllowExpose          bool                      `protobuf:"varint,14,opt,name=allow_expose,json=allowExpose,proto3" json:"allow_expose,omitempty"`
+	TokenAddress         string                    `protobuf:"bytes,15,opt,name=token_address,json=tokenAddress,proto3" json:"token_address,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                  `json:"-"`
+	XXX_unrecognized     []byte                    `json:"-"`
+	XXX_sizecache        int32                     `json:"-"`
 }
 
 func (m *MetadataSummary) Reset()         { *m = MetadataSummary{} }
@@ -448,11 +449,11 @@ func (m *MetadataSummary) GetMetadataName() string {
 	return ""
 }
 
-func (m *MetadataSummary) GetMetadataType() MetadataType {
+func (m *MetadataSummary) GetMetadataType() constant.MetadataType {
 	if m != nil {
 		return m.MetadataType
 	}
-	return MetadataType_MetadataType_Unknown
+	return constant.MetadataType_MetadataType_Unknown
 }
 
 func (m *MetadataSummary) GetDataHash() string {
@@ -469,18 +470,18 @@ func (m *MetadataSummary) GetDesc() string {
 	return ""
 }
 
-func (m *MetadataSummary) GetLocationType() DataLocationType {
+func (m *MetadataSummary) GetLocationType() constant.DataLocationType {
 	if m != nil {
 		return m.LocationType
 	}
-	return DataLocationType_DataLocationType_Unknown
+	return constant.DataLocationType_DataLocationType_Unknown
 }
 
-func (m *MetadataSummary) GetDataType() OrigindataType {
+func (m *MetadataSummary) GetDataType() constant.OrigindataType {
 	if m != nil {
 		return m.DataType
 	}
-	return OrigindataType_OrigindataType_Unknown
+	return constant.OrigindataType_OrigindataType_Unknown
 }
 
 func (m *MetadataSummary) GetIndustry() string {
@@ -490,11 +491,11 @@ func (m *MetadataSummary) GetIndustry() string {
 	return ""
 }
 
-func (m *MetadataSummary) GetState() MetadataState {
+func (m *MetadataSummary) GetState() constant.MetadataState {
 	if m != nil {
 		return m.State
 	}
-	return MetadataState_MetadataState_Unknown
+	return constant.MetadataState_MetadataState_Unknown
 }
 
 func (m *MetadataSummary) GetPublishAt() uint64 {
@@ -597,13 +598,13 @@ func (m *MetadataDetail) GetTotalTaskCount() uint32 {
 
 // 元数据的使用方式定义
 type MetadataUsageRule struct {
-	UsageType            MetadataUsageType `protobuf:"varint,1,opt,name=usage_type,json=usageType,proto3,enum=carrier.types.MetadataUsageType" json:"usage_type,omitempty"`
-	StartAt              uint64            `protobuf:"varint,2,opt,name=start_at,json=startAt,proto3" json:"start_at,omitempty"`
-	EndAt                uint64            `protobuf:"varint,3,opt,name=end_at,json=endAt,proto3" json:"end_at,omitempty"`
-	Times                uint32            `protobuf:"varint,4,opt,name=times,proto3" json:"times,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
-	XXX_unrecognized     []byte            `json:"-"`
-	XXX_sizecache        int32             `json:"-"`
+	UsageType            constant.MetadataUsageType `protobuf:"varint,1,opt,name=usage_type,json=usageType,proto3,enum=common.constant.MetadataUsageType" json:"usage_type,omitempty"`
+	StartAt              uint64                     `protobuf:"varint,2,opt,name=start_at,json=startAt,proto3" json:"start_at,omitempty"`
+	EndAt                uint64                     `protobuf:"varint,3,opt,name=end_at,json=endAt,proto3" json:"end_at,omitempty"`
+	Times                uint32                     `protobuf:"varint,4,opt,name=times,proto3" json:"times,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                   `json:"-"`
+	XXX_unrecognized     []byte                     `json:"-"`
+	XXX_sizecache        int32                      `json:"-"`
 }
 
 func (m *MetadataUsageRule) Reset()         { *m = MetadataUsageRule{} }
@@ -639,11 +640,11 @@ func (m *MetadataUsageRule) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MetadataUsageRule proto.InternalMessageInfo
 
-func (m *MetadataUsageRule) GetUsageType() MetadataUsageType {
+func (m *MetadataUsageRule) GetUsageType() constant.MetadataUsageType {
 	if m != nil {
 		return m.UsageType
 	}
-	return MetadataUsageType_Usage_Unknown
+	return constant.MetadataUsageType_Usage_Unknown
 }
 
 func (m *MetadataUsageRule) GetStartAt() uint64 {
@@ -733,12 +734,12 @@ func (m *MetadataAuthority) GetUsageRule() *MetadataUsageRule {
 
 // 对应授权信息中元数据的使用实况定义 (配合数据授权使用)
 type MetadataUsedQuo struct {
-	UsageType            MetadataUsageType `protobuf:"varint,1,opt,name=usage_type,json=usageType,proto3,enum=carrier.types.MetadataUsageType" json:"usage_type,omitempty"`
-	Expire               bool              `protobuf:"varint,2,opt,name=expire,proto3" json:"expire,omitempty"`
-	UsedTimes            uint32            `protobuf:"varint,3,opt,name=used_times,json=usedTimes,proto3" json:"used_times,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
-	XXX_unrecognized     []byte            `json:"-"`
-	XXX_sizecache        int32             `json:"-"`
+	UsageType            constant.MetadataUsageType `protobuf:"varint,1,opt,name=usage_type,json=usageType,proto3,enum=common.constant.MetadataUsageType" json:"usage_type,omitempty"`
+	Expire               bool                       `protobuf:"varint,2,opt,name=expire,proto3" json:"expire,omitempty"`
+	UsedTimes            uint32                     `protobuf:"varint,3,opt,name=used_times,json=usedTimes,proto3" json:"used_times,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                   `json:"-"`
+	XXX_unrecognized     []byte                     `json:"-"`
+	XXX_sizecache        int32                      `json:"-"`
 }
 
 func (m *MetadataUsedQuo) Reset()         { *m = MetadataUsedQuo{} }
@@ -774,11 +775,11 @@ func (m *MetadataUsedQuo) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MetadataUsedQuo proto.InternalMessageInfo
 
-func (m *MetadataUsedQuo) GetUsageType() MetadataUsageType {
+func (m *MetadataUsedQuo) GetUsageType() constant.MetadataUsageType {
 	if m != nil {
 		return m.UsageType
 	}
-	return MetadataUsageType_Usage_Unknown
+	return constant.MetadataUsageType_Usage_Unknown
 }
 
 func (m *MetadataUsedQuo) GetExpire() bool {
@@ -797,22 +798,22 @@ func (m *MetadataUsedQuo) GetUsedTimes() uint32 {
 
 // 当前组织的某个用户对单个元数据的授权申请及审核结果详情
 type MetadataAuthorityDetail struct {
-	MetadataAuthId       string                 `protobuf:"bytes,1,opt,name=metadata_auth_id,json=metadataAuthId,proto3" json:"metadata_auth_id,omitempty"`
-	User                 string                 `protobuf:"bytes,2,opt,name=user,proto3" json:"user,omitempty"`
-	UserType             UserType               `protobuf:"varint,3,opt,name=user_type,json=userType,proto3,enum=carrier.types.UserType" json:"user_type,omitempty"`
-	Auth                 *MetadataAuthority     `protobuf:"bytes,4,opt,name=auth,proto3" json:"auth,omitempty"`
-	AuditOption          AuditMetadataOption    `protobuf:"varint,5,opt,name=audit_option,json=auditOption,proto3,enum=carrier.types.AuditMetadataOption" json:"audit_option,omitempty"`
-	AuditSuggestion      string                 `protobuf:"bytes,6,opt,name=audit_suggestion,json=auditSuggestion,proto3" json:"audit_suggestion,omitempty"`
-	UsedQuo              *MetadataUsedQuo       `protobuf:"bytes,7,opt,name=used_quo,json=usedQuo,proto3" json:"used_quo,omitempty"`
-	ApplyAt              uint64                 `protobuf:"varint,8,opt,name=apply_at,json=applyAt,proto3" json:"apply_at,omitempty"`
-	AuditAt              uint64                 `protobuf:"varint,9,opt,name=audit_at,json=auditAt,proto3" json:"audit_at,omitempty"`
-	State                MetadataAuthorityState `protobuf:"varint,10,opt,name=state,proto3,enum=carrier.types.MetadataAuthorityState" json:"state,omitempty"`
-	PublishAt            uint64                 `protobuf:"varint,11,opt,name=publish_at,json=publishAt,proto3" json:"publish_at,omitempty"`
-	UpdateAt             uint64                 `protobuf:"varint,12,opt,name=update_at,json=updateAt,proto3" json:"update_at,omitempty"`
-	Nonce                uint64                 `protobuf:"varint,13,opt,name=nonce,proto3" json:"nonce,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}               `json:"-"`
-	XXX_unrecognized     []byte                 `json:"-"`
-	XXX_sizecache        int32                  `json:"-"`
+	MetadataAuthId       string                          `protobuf:"bytes,1,opt,name=metadata_auth_id,json=metadataAuthId,proto3" json:"metadata_auth_id,omitempty"`
+	User                 string                          `protobuf:"bytes,2,opt,name=user,proto3" json:"user,omitempty"`
+	UserType             constant.UserType               `protobuf:"varint,3,opt,name=user_type,json=userType,proto3,enum=common.constant.UserType" json:"user_type,omitempty"`
+	Auth                 *MetadataAuthority              `protobuf:"bytes,4,opt,name=auth,proto3" json:"auth,omitempty"`
+	AuditOption          constant.AuditMetadataOption    `protobuf:"varint,5,opt,name=audit_option,json=auditOption,proto3,enum=common.constant.AuditMetadataOption" json:"audit_option,omitempty"`
+	AuditSuggestion      string                          `protobuf:"bytes,6,opt,name=audit_suggestion,json=auditSuggestion,proto3" json:"audit_suggestion,omitempty"`
+	UsedQuo              *MetadataUsedQuo                `protobuf:"bytes,7,opt,name=used_quo,json=usedQuo,proto3" json:"used_quo,omitempty"`
+	ApplyAt              uint64                          `protobuf:"varint,8,opt,name=apply_at,json=applyAt,proto3" json:"apply_at,omitempty"`
+	AuditAt              uint64                          `protobuf:"varint,9,opt,name=audit_at,json=auditAt,proto3" json:"audit_at,omitempty"`
+	State                constant.MetadataAuthorityState `protobuf:"varint,10,opt,name=state,proto3,enum=common.constant.MetadataAuthorityState" json:"state,omitempty"`
+	PublishAt            uint64                          `protobuf:"varint,11,opt,name=publish_at,json=publishAt,proto3" json:"publish_at,omitempty"`
+	UpdateAt             uint64                          `protobuf:"varint,12,opt,name=update_at,json=updateAt,proto3" json:"update_at,omitempty"`
+	Nonce                uint64                          `protobuf:"varint,13,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                        `json:"-"`
+	XXX_unrecognized     []byte                          `json:"-"`
+	XXX_sizecache        int32                           `json:"-"`
 }
 
 func (m *MetadataAuthorityDetail) Reset()         { *m = MetadataAuthorityDetail{} }
@@ -862,11 +863,11 @@ func (m *MetadataAuthorityDetail) GetUser() string {
 	return ""
 }
 
-func (m *MetadataAuthorityDetail) GetUserType() UserType {
+func (m *MetadataAuthorityDetail) GetUserType() constant.UserType {
 	if m != nil {
 		return m.UserType
 	}
-	return UserType_User_Unknown
+	return constant.UserType_User_Unknown
 }
 
 func (m *MetadataAuthorityDetail) GetAuth() *MetadataAuthority {
@@ -876,11 +877,11 @@ func (m *MetadataAuthorityDetail) GetAuth() *MetadataAuthority {
 	return nil
 }
 
-func (m *MetadataAuthorityDetail) GetAuditOption() AuditMetadataOption {
+func (m *MetadataAuthorityDetail) GetAuditOption() constant.AuditMetadataOption {
 	if m != nil {
 		return m.AuditOption
 	}
-	return AuditMetadataOption_Audit_Pending
+	return constant.AuditMetadataOption_Audit_Pending
 }
 
 func (m *MetadataAuthorityDetail) GetAuditSuggestion() string {
@@ -911,11 +912,11 @@ func (m *MetadataAuthorityDetail) GetAuditAt() uint64 {
 	return 0
 }
 
-func (m *MetadataAuthorityDetail) GetState() MetadataAuthorityState {
+func (m *MetadataAuthorityDetail) GetState() constant.MetadataAuthorityState {
 	if m != nil {
 		return m.State
 	}
-	return MetadataAuthorityState_MAState_Unknown
+	return constant.MetadataAuthorityState_MAState_Unknown
 }
 
 func (m *MetadataAuthorityDetail) GetPublishAt() uint64 {
@@ -953,71 +954,74 @@ func init() {
 func init() { proto.RegisterFile("carrier/types/metadata.proto", fileDescriptor_2496986bd64f5890) }
 
 var fileDescriptor_2496986bd64f5890 = []byte{
-	// 1019 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x57, 0xcb, 0x72, 0xe3, 0x44,
-	0x17, 0x2e, 0x25, 0x92, 0x2d, 0x1d, 0xf9, 0x36, 0xfd, 0xff, 0x10, 0xcd, 0xcd, 0x63, 0x4c, 0x51,
-	0x98, 0x4d, 0x52, 0x98, 0xd9, 0x30, 0x2c, 0xc0, 0x21, 0x53, 0x45, 0xaa, 0x18, 0x66, 0xd0, 0x64,
-	0x36, 0x6c, 0x5c, 0x1d, 0xab, 0xcb, 0x56, 0x45, 0x96, 0x84, 0xba, 0xbb, 0x66, 0xcc, 0x9e, 0x05,
-	0xaf, 0x40, 0xf1, 0x00, 0xbc, 0x00, 0xef, 0xc0, 0x92, 0x37, 0x80, 0xca, 0x93, 0x50, 0x7d, 0x5a,
-	0x92, 0x2f, 0x19, 0x39, 0x21, 0x86, 0x5d, 0x9f, 0x4b, 0x9f, 0x3e, 0xd7, 0xef, 0x48, 0xf0, 0x60,
-	0x42, 0xb3, 0x2c, 0x64, 0xd9, 0x91, 0x58, 0xa4, 0x8c, 0x1f, 0xcd, 0x99, 0xa0, 0x01, 0x15, 0xf4,
-	0x30, 0xcd, 0x12, 0x91, 0x90, 0x66, 0x2e, 0x3d, 0x44, 0xe9, 0x3d, 0x6f, 0x5d, 0xf9, 0x9c, 0x72,
-	0xa6, 0x15, 0xfb, 0x97, 0x16, 0xc0, 0xb3, 0xfc, 0xee, 0x8b, 0x63, 0xf2, 0x08, 0xdc, 0xc2, 0xd2,
-	0x38, 0x0c, 0x3c, 0xa3, 0x67, 0x0c, 0x1c, 0x1f, 0x0a, 0xd6, 0x69, 0x40, 0x3e, 0x06, 0x2b, 0x79,
-	0x1d, 0xb3, 0xcc, 0xdb, 0xeb, 0x19, 0x03, 0x77, 0x78, 0xff, 0x70, 0xed, 0xa1, 0xc3, 0xe7, 0xd9,
-	0x94, 0xc6, 0xe1, 0x0f, 0x54, 0x84, 0x49, 0xec, 0x6b, 0x4d, 0x72, 0x00, 0xf5, 0xc2, 0xde, 0x3e,
-	0xda, 0xab, 0xe5, 0xb6, 0x9e, 0x80, 0x8b, 0x02, 0x2e, 0xa8, 0x90, 0xdc, 0x33, 0x7b, 0xc6, 0xa0,
-	0x35, 0xbc, 0xbb, 0x61, 0xf1, 0x84, 0x0a, 0xfa, 0x12, 0x15, 0x7c, 0x08, 0xca, 0x33, 0x79, 0x1f,
-	0x9a, 0xa5, 0xa3, 0x31, 0x9d, 0x33, 0xcf, 0x42, 0xd3, 0x8d, 0x82, 0xf9, 0x0d, 0x9d, 0x33, 0xf2,
-	0xc5, 0x8a, 0x92, 0xb2, 0xe6, 0xd5, 0xf0, 0x89, 0x4d, 0xa7, 0x8b, 0xf8, 0xcf, 0x16, 0x29, 0x5b,
-	0x5a, 0x50, 0x14, 0xb9, 0x0f, 0x0e, 0xde, 0x9e, 0x51, 0x3e, 0xf3, 0xea, 0xf8, 0x84, 0xad, 0x18,
-	0x5f, 0x51, 0x3e, 0x23, 0x04, 0xcc, 0x80, 0xf1, 0x89, 0x67, 0x23, 0x1f, 0xcf, 0xe4, 0x04, 0x9a,
-	0x51, 0x32, 0xc1, 0xf8, 0xf5, 0x93, 0x0e, 0x3e, 0xf9, 0xe8, 0x2d, 0x51, 0x7d, 0x9d, 0xeb, 0xe9,
-	0x67, 0xa3, 0x15, 0x8a, 0x3c, 0xc9, 0x9f, 0x45, 0x0b, 0x80, 0x16, 0x1e, 0x5e, 0xc9, 0x74, 0x38,
-	0x0d, 0xe3, 0xd2, 0x6d, 0xbb, 0x74, 0xf9, 0x1e, 0xd8, 0x61, 0x1c, 0x48, 0x2e, 0xb2, 0x85, 0xe7,
-	0x6a, 0x8f, 0x0b, 0x9a, 0x0c, 0xc1, 0x52, 0xc9, 0x66, 0x5e, 0x03, 0x6d, 0x3e, 0xa8, 0x48, 0x84,
-	0xca, 0x31, 0xf3, 0xb5, 0x2a, 0x79, 0x08, 0x90, 0xca, 0xf3, 0x28, 0xe4, 0xb3, 0x31, 0x15, 0x5e,
-	0xb3, 0x67, 0x0c, 0x4c, 0xdf, 0xc9, 0x39, 0x23, 0xa1, 0x32, 0x24, 0xd3, 0x80, 0x0a, 0xa6, 0xa4,
-	0x2d, 0x94, 0xda, 0x9a, 0x31, 0x12, 0xe4, 0xff, 0x60, 0xc5, 0x49, 0x3c, 0x61, 0x5e, 0x1b, 0x05,
-	0x9a, 0x20, 0x1f, 0x42, 0xbb, 0x2c, 0x4b, 0x92, 0xaa, 0xa0, 0xbd, 0x0e, 0x3a, 0xda, 0x2a, 0xd8,
-	0xcf, 0x91, 0x4b, 0xde, 0x83, 0x06, 0x8d, 0xa2, 0xe4, 0xf5, 0x98, 0xbd, 0x49, 0x13, 0xce, 0xbc,
-	0x3b, 0x3d, 0x63, 0x60, 0xfb, 0x2e, 0xf2, 0x9e, 0x22, 0x4b, 0xf5, 0x81, 0x48, 0x2e, 0x58, 0x3c,
-	0xa6, 0x41, 0x90, 0x31, 0xce, 0x3d, 0xa2, 0xfb, 0x00, 0x99, 0x23, 0xcd, 0xeb, 0xff, 0x6c, 0xc1,
-	0xff, 0x8a, 0xd8, 0x46, 0x52, 0xcc, 0x92, 0x2c, 0x14, 0x8b, 0x17, 0xc7, 0x64, 0x00, 0x9d, 0xd2,
-	0x11, 0x2a, 0xc5, 0x6c, 0xd9, 0xf2, 0xa5, 0x27, 0x4a, 0xfd, 0x34, 0x50, 0xa5, 0x96, 0x3c, 0xef,
-	0x7a, 0xc7, 0xc7, 0xf3, 0x7f, 0xd3, 0xd7, 0x8f, 0xc1, 0x51, 0xc6, 0x75, 0xe5, 0x2d, 0xbc, 0x79,
-	0xb0, 0x71, 0xf3, 0x15, 0x67, 0x99, 0xae, 0xb9, 0xcc, 0x4f, 0xe4, 0x31, 0x98, 0xca, 0x7f, 0xec,
-	0x6f, 0x77, 0xd8, 0xab, 0x28, 0x6b, 0x19, 0xba, 0x8f, 0xda, 0xe4, 0x29, 0x34, 0xa8, 0x0c, 0x42,
-	0x51, 0x14, 0xa1, 0x8e, 0xcf, 0xf5, 0x37, 0x6e, 0x8f, 0x94, 0xca, 0xb3, 0xb5, 0xc2, 0xf8, 0x2e,
-	0xde, 0xcb, 0xab, 0xf4, 0x11, 0x74, 0xb4, 0x19, 0x2e, 0xa7, 0x53, 0xc6, 0xd1, 0x94, 0x1e, 0x89,
-	0x36, 0xf2, 0x5f, 0x96, 0x6c, 0xf2, 0x29, 0x28, 0x9f, 0x83, 0xf1, 0xf7, 0x32, 0xc1, 0xc1, 0x70,
-	0x87, 0xdd, 0x0a, 0x5f, 0x5f, 0x71, 0x16, 0x7c, 0x2b, 0x13, 0xbf, 0x2e, 0xf5, 0x81, 0xdc, 0x05,
-	0x9b, 0xa6, 0x69, 0xb4, 0x50, 0x6d, 0x06, 0xd8, 0x4d, 0x75, 0xa4, 0x47, 0x02, 0x45, 0xe8, 0x00,
-	0x15, 0xd8, 0xf1, 0x4a, 0xa4, 0xe8, 0x91, 0x20, 0x9f, 0xad, 0x37, 0xfc, 0x07, 0xd7, 0x65, 0x66,
-	0xad, 0xf3, 0x09, 0x98, 0x3c, 0x9c, 0xc6, 0xd8, 0xf3, 0x0d, 0x1f, 0xcf, 0x1b, 0xd3, 0xd0, 0xda,
-	0x3a, 0x0d, 0xed, 0xaa, 0x69, 0xe8, 0xac, 0x4c, 0x43, 0xff, 0x4f, 0x13, 0xda, 0xe5, 0xe0, 0xc9,
-	0xf9, 0x9c, 0x66, 0x8b, 0xeb, 0x61, 0xf8, 0x0a, 0xfc, 0xed, 0xdd, 0x04, 0xfe, 0xf6, 0x77, 0x82,
-	0x3f, 0xb3, 0x02, 0xfe, 0xac, 0x6d, 0xf0, 0x57, 0xdb, 0x19, 0xfe, 0xea, 0xb7, 0x87, 0x3f, 0xbb,
-	0x0a, 0xfe, 0x9c, 0xdb, 0xc2, 0x1f, 0x6c, 0x2d, 0xb8, 0x5b, 0x55, 0xf0, 0xc6, 0x35, 0xf0, 0xd7,
-	0xbc, 0x11, 0xfc, 0xb5, 0x6e, 0x00, 0x7f, 0xed, 0xb7, 0xc0, 0xdf, 0x8f, 0x06, 0xb4, 0x8a, 0xd8,
-	0x4e, 0x98, 0xa0, 0x61, 0x44, 0x4e, 0x57, 0x90, 0x8f, 0xeb, 0xa6, 0xc3, 0x2e, 0xab, 0x1e, 0xc8,
-	0xbc, 0x35, 0xfd, 0xd2, 0xf7, 0xa2, 0x57, 0x07, 0xd0, 0x11, 0x89, 0xa0, 0xd1, 0x58, 0x50, 0x7e,
-	0x31, 0x9e, 0x24, 0x32, 0x16, 0xd8, 0x68, 0x4d, 0xbf, 0x85, 0xfc, 0x33, 0xca, 0x2f, 0xbe, 0x54,
-	0xdc, 0xfe, 0x2f, 0x06, 0xdc, 0x59, 0xce, 0x37, 0x9d, 0x32, 0x5f, 0x46, 0x8c, 0x7c, 0x0e, 0x20,
-	0x15, 0xa1, 0xab, 0x6d, 0x60, 0x65, 0x7a, 0x95, 0xa8, 0x40, 0xa7, 0x0c, 0x0b, 0xee, 0xc8, 0xe2,
-	0xa8, 0xc6, 0x9f, 0x0b, 0x9a, 0xe1, 0xf8, 0xef, 0xe9, 0xf1, 0x47, 0x7a, 0x24, 0xc8, 0x3b, 0x50,
-	0x63, 0x71, 0xa0, 0x04, 0xfb, 0xba, 0x02, 0x2c, 0x0e, 0x74, 0x5d, 0x44, 0x38, 0x67, 0x1a, 0x9a,
-	0x9b, 0xbe, 0x26, 0xfa, 0xbf, 0xae, 0xb8, 0x57, 0x02, 0xc2, 0xf2, 0x83, 0xc7, 0xb8, 0xf1, 0x07,
-	0xcf, 0xc6, 0xf4, 0xee, 0x5d, 0x99, 0xde, 0x32, 0xe4, 0x4c, 0x46, 0x7a, 0x2a, 0xdd, 0xed, 0x21,
-	0xab, 0x44, 0xe5, 0x21, 0xab, 0x63, 0xff, 0x27, 0x63, 0x89, 0x19, 0x39, 0x52, 0xee, 0x9e, 0xc7,
-	0x77, 0xa1, 0xc6, 0xde, 0xa4, 0x61, 0xa6, 0xc1, 0xc4, 0xf6, 0x73, 0x4a, 0x4d, 0x00, 0x82, 0xb6,
-	0x4e, 0x99, 0x2e, 0xad, 0x5a, 0x52, 0xc1, 0x19, 0xa6, 0xed, 0x37, 0x13, 0x0e, 0xae, 0xa4, 0x2d,
-	0x6f, 0xb3, 0xdd, 0x16, 0xec, 0xda, 0x2e, 0xdc, 0xff, 0xa7, 0xbb, 0xd0, 0xdc, 0x69, 0x17, 0x5a,
-	0xff, 0xde, 0x2e, 0xac, 0x5d, 0xbf, 0x0b, 0xeb, 0xb7, 0xdf, 0x85, 0x76, 0xf5, 0x2e, 0x74, 0x2a,
-	0x76, 0x21, 0xdc, 0x62, 0x17, 0xae, 0xc3, 0xa0, 0xbb, 0x15, 0x06, 0x1b, 0x55, 0x30, 0xd8, 0x5c,
-	0x81, 0xc1, 0xe3, 0xee, 0xef, 0x97, 0x5d, 0xe3, 0x8f, 0xcb, 0xae, 0xf1, 0xd7, 0x65, 0xd7, 0xf8,
-	0xae, 0x93, 0x9e, 0x1f, 0xad, 0xfd, 0xa4, 0x9c, 0xd7, 0xf0, 0x07, 0xe5, 0x93, 0xbf, 0x03, 0x00,
-	0x00, 0xff, 0xff, 0xfe, 0xd9, 0x9b, 0x3e, 0xe9, 0x0c, 0x00, 0x00,
+	// 1057 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x57, 0xcd, 0x6e, 0xdb, 0x46,
+	0x10, 0x06, 0x6d, 0xfd, 0x50, 0x43, 0xfd, 0x65, 0xfb, 0x13, 0xc6, 0x69, 0x1c, 0x45, 0x2d, 0x10,
+	0xf5, 0x22, 0xa1, 0x69, 0x50, 0xa0, 0x40, 0x8a, 0x42, 0x6e, 0xfa, 0x63, 0xa0, 0xa9, 0x53, 0xc6,
+	0xb9, 0xf4, 0x22, 0xac, 0xc5, 0x85, 0x44, 0x98, 0xe4, 0xb2, 0xdc, 0x5d, 0x24, 0xea, 0xbd, 0xa7,
+	0xbe, 0x43, 0x0f, 0x3d, 0xf5, 0x1d, 0xfa, 0x02, 0x3d, 0xf6, 0x11, 0x0a, 0x5f, 0x7a, 0xe9, 0x43,
+	0x14, 0x3b, 0x4b, 0x52, 0x92, 0x65, 0xda, 0xae, 0xed, 0xdc, 0x76, 0x66, 0x76, 0xe7, 0x7f, 0xbe,
+	0x21, 0xe1, 0xbd, 0x29, 0x4d, 0xd3, 0x80, 0xa5, 0x23, 0xb9, 0x48, 0x98, 0x18, 0x45, 0x4c, 0x52,
+	0x9f, 0x4a, 0x3a, 0x4c, 0x52, 0x2e, 0x39, 0x69, 0x65, 0xd2, 0x21, 0x4a, 0x77, 0xfa, 0x53, 0x1e,
+	0x45, 0x3c, 0x1e, 0x4d, 0x79, 0x2c, 0x24, 0x8d, 0xe5, 0x28, 0x13, 0x4f, 0x58, 0xac, 0x22, 0xf3,
+	0x64, 0xa7, 0xb7, 0xae, 0x30, 0xf0, 0x59, 0x2c, 0x03, 0xb9, 0x58, 0x2a, 0xed, 0xff, 0x5b, 0x05,
+	0x78, 0x96, 0xd9, 0x79, 0xbe, 0x47, 0xee, 0x83, 0x93, 0x5b, 0x9d, 0x04, 0xbe, 0x6b, 0xf5, 0xac,
+	0x41, 0xc3, 0x83, 0x9c, 0xb5, 0xef, 0x93, 0x8f, 0xa0, 0xca, 0x5f, 0xc5, 0x2c, 0x75, 0xb7, 0x7a,
+	0xd6, 0xc0, 0x79, 0x74, 0x77, 0xb8, 0xe6, 0xd4, 0xf0, 0x20, 0x9d, 0xd1, 0x38, 0xf8, 0x89, 0xca,
+	0x80, 0xc7, 0x9e, 0xb9, 0x49, 0x6e, 0x43, 0x3d, 0xd7, 0xb7, 0x8d, 0xfa, 0x6a, 0x99, 0xae, 0x27,
+	0xe0, 0xa0, 0x40, 0x48, 0x2a, 0x95, 0x70, 0x2b, 0x3d, 0x6b, 0xd0, 0xd6, 0x1a, 0x31, 0xae, 0x61,
+	0x1e, 0xd7, 0xf0, 0x29, 0x95, 0xf4, 0x05, 0x5e, 0xf1, 0xc0, 0x2f, 0xce, 0xe4, 0x7d, 0x68, 0x15,
+	0xae, 0xc6, 0x34, 0x62, 0x6e, 0x15, 0x95, 0x37, 0x73, 0xe6, 0x77, 0x34, 0x62, 0x64, 0x6f, 0xe5,
+	0x92, 0xf6, 0xd0, 0xad, 0xa1, 0x91, 0x7b, 0x1b, 0x46, 0xf2, 0x1c, 0x1c, 0x2e, 0x12, 0xb6, 0xd4,
+	0xa1, 0x29, 0x72, 0x17, 0x1a, 0xf8, 0x7e, 0x4e, 0xc5, 0xdc, 0xad, 0xa3, 0x11, 0x5b, 0x33, 0xbe,
+	0xa1, 0x62, 0x4e, 0x08, 0x54, 0x7c, 0x26, 0xa6, 0xae, 0x8d, 0x7c, 0x3c, 0x93, 0xaf, 0xa0, 0x15,
+	0xf2, 0x29, 0xe6, 0xc0, 0x18, 0x6d, 0xa0, 0xd1, 0x07, 0x67, 0x46, 0xf6, 0x6d, 0x76, 0xd3, 0x18,
+	0x0e, 0x57, 0x28, 0xf2, 0x24, 0x33, 0x8c, 0x3a, 0x00, 0x75, 0xdc, 0xdf, 0xd0, 0x71, 0x90, 0x06,
+	0xb3, 0x20, 0x2e, 0x5c, 0xb7, 0x0b, 0xb7, 0x77, 0xc0, 0x0e, 0x62, 0x5f, 0x09, 0x99, 0x2e, 0x5c,
+	0xc7, 0x78, 0x9d, 0xd3, 0xe4, 0x31, 0x54, 0x75, 0xd2, 0x99, 0xdb, 0x44, 0xad, 0xbb, 0xa5, 0xe9,
+	0xd0, 0xb9, 0x66, 0x9e, 0xb9, 0x4c, 0xee, 0x01, 0x24, 0xea, 0x28, 0x0c, 0xc4, 0x7c, 0x42, 0xa5,
+	0xdb, 0xea, 0x59, 0x83, 0x8a, 0xd7, 0xc8, 0x38, 0x63, 0xa9, 0xf3, 0xa4, 0x12, 0x9f, 0x4a, 0xa6,
+	0xa5, 0x6d, 0x94, 0xda, 0x86, 0x31, 0x96, 0xe4, 0x6d, 0xa8, 0xc6, 0x3c, 0x9e, 0x32, 0xb7, 0x83,
+	0x02, 0x43, 0x90, 0x87, 0xd0, 0x29, 0xca, 0xc3, 0x13, 0x1d, 0xb8, 0xdb, 0x45, 0x57, 0xdb, 0x39,
+	0xfb, 0x00, 0xb9, 0xe4, 0x01, 0x34, 0x69, 0x18, 0xf2, 0x57, 0x13, 0xf6, 0x3a, 0xe1, 0x82, 0xb9,
+	0xb7, 0x7a, 0xd6, 0xc0, 0xf6, 0x1c, 0xe4, 0x7d, 0x89, 0x2c, 0xdd, 0x0f, 0x92, 0x1f, 0xb3, 0x78,
+	0x42, 0x7d, 0x3f, 0x65, 0x42, 0xb8, 0xc4, 0xf4, 0x03, 0x32, 0xc7, 0x86, 0xd7, 0xff, 0xad, 0x0a,
+	0x6f, 0xe5, 0xb1, 0x8d, 0x95, 0x9c, 0xf3, 0x34, 0x90, 0x8b, 0xe7, 0x7b, 0x64, 0x00, 0xdd, 0xc2,
+	0x11, 0xaa, 0xe4, 0x7c, 0xd9, 0xfc, 0x85, 0x27, 0xfa, 0xfa, 0xbe, 0xaf, 0x0b, 0xae, 0x44, 0xd6,
+	0xff, 0x0d, 0x0f, 0xcf, 0x6f, 0xaa, 0xc3, 0x3f, 0x81, 0x86, 0x56, 0x6f, 0xea, 0x5f, 0xc5, 0xb7,
+	0x77, 0x36, 0xde, 0xbe, 0x14, 0x2c, 0x35, 0x95, 0x57, 0xd9, 0x89, 0x3c, 0x86, 0x8a, 0x8e, 0x01,
+	0x7b, 0xdd, 0x79, 0xd4, 0x3b, 0x35, 0xa2, 0x1b, 0xe1, 0x7b, 0x78, 0x9b, 0x7c, 0x0d, 0x4d, 0xaa,
+	0xfc, 0x40, 0xe6, 0x85, 0xa8, 0xa3, 0xc1, 0x0f, 0x36, 0x0c, 0x8e, 0xf5, 0xa5, 0x67, 0x6b, 0xe5,
+	0xf1, 0x1c, 0x7c, 0x99, 0xd5, 0xea, 0x43, 0xe8, 0x1a, 0x45, 0x42, 0xcd, 0x66, 0x4c, 0xa0, 0x32,
+	0x33, 0x1e, 0x1d, 0xe4, 0xbf, 0x28, 0xd8, 0xe4, 0x53, 0xd0, 0x5e, 0xfb, 0x93, 0x1f, 0x15, 0xc7,
+	0x21, 0x71, 0x74, 0x2b, 0x9e, 0xe9, 0xed, 0x4b, 0xc1, 0xfc, 0xef, 0x15, 0xf7, 0xea, 0xca, 0x1c,
+	0xc8, 0x1d, 0xb0, 0x69, 0x92, 0x84, 0x0b, 0xdd, 0x6c, 0x80, 0x3d, 0x55, 0x47, 0x7a, 0x2c, 0x51,
+	0x84, 0x0e, 0x50, 0x89, 0x9d, 0xaf, 0x45, 0x9a, 0x1e, 0x4b, 0xf2, 0xd9, 0x7a, 0xe3, 0x3f, 0x2c,
+	0x6d, 0xfc, 0x22, 0x3b, 0x6b, 0x13, 0x40, 0xa0, 0x22, 0x82, 0x59, 0x8c, 0xbd, 0xdf, 0xf4, 0xf0,
+	0x7c, 0x6a, 0x2a, 0xda, 0xe7, 0x4e, 0x45, 0xa7, 0x6c, 0x2a, 0xba, 0x2b, 0x53, 0xd1, 0xff, 0xa7,
+	0x02, 0x9d, 0x62, 0x00, 0x55, 0x14, 0xd1, 0x74, 0x71, 0x31, 0x30, 0x6f, 0xc0, 0xe1, 0xd6, 0x65,
+	0xe0, 0x70, 0xfb, 0x9a, 0x70, 0x58, 0x29, 0x81, 0xc3, 0xea, 0x79, 0x70, 0x58, 0xbb, 0x01, 0x38,
+	0xac, 0x5f, 0x07, 0x0e, 0xed, 0x32, 0x38, 0x6c, 0x5c, 0x1d, 0x0e, 0xe1, 0xdc, 0xc2, 0x3b, 0x65,
+	0x85, 0x6f, 0x5e, 0x00, 0x87, 0xad, 0x4b, 0xc1, 0x61, 0xfb, 0x12, 0x70, 0xd8, 0x39, 0x03, 0x0e,
+	0x7f, 0xb6, 0xa0, 0x9d, 0xc7, 0xf6, 0x94, 0x49, 0x1a, 0x84, 0x64, 0x7f, 0x05, 0x09, 0x85, 0x69,
+	0x3e, 0xec, 0xb6, 0xf2, 0xd1, 0xcc, 0x5a, 0xd4, 0x2b, 0x7c, 0xcf, 0x7b, 0x76, 0x00, 0x5d, 0xc9,
+	0x25, 0x0d, 0x27, 0x92, 0x8a, 0xe3, 0xc9, 0x94, 0xab, 0x58, 0x62, 0xc3, 0xb5, 0xbc, 0x36, 0xf2,
+	0x0f, 0xa9, 0x38, 0xfe, 0x42, 0x73, 0xfb, 0xbf, 0x5a, 0x70, 0x6b, 0x39, 0xe9, 0x74, 0xc6, 0x3c,
+	0x15, 0x32, 0x32, 0x06, 0x50, 0x9a, 0x30, 0x15, 0xb7, 0xb0, 0x36, 0xfd, 0xd2, 0xda, 0xe0, 0x3b,
+	0x2c, 0x7a, 0x43, 0xe5, 0x47, 0x0d, 0x05, 0x42, 0xd2, 0x14, 0xa1, 0x60, 0xcb, 0x40, 0x01, 0xd2,
+	0x63, 0x49, 0xde, 0x81, 0x1a, 0x8b, 0x7d, 0x2d, 0xd8, 0x36, 0x35, 0x60, 0xb1, 0x6f, 0x2a, 0x23,
+	0x83, 0x88, 0x19, 0xb0, 0x6e, 0x79, 0x86, 0xe8, 0xff, 0xbe, 0xe2, 0x60, 0x01, 0x0d, 0xcb, 0x8f,
+	0x21, 0xeb, 0xd2, 0x1f, 0x43, 0xa7, 0xe6, 0x78, 0x6b, 0x63, 0x8e, 0x3f, 0xcf, 0x83, 0x4e, 0x55,
+	0x68, 0xe6, 0xb3, 0x1c, 0xc2, 0x8b, 0x54, 0x65, 0x21, 0xeb, 0x63, 0xff, 0x17, 0x6b, 0x89, 0x1e,
+	0x19, 0x6a, 0xde, 0x44, 0x26, 0xdf, 0x85, 0x1a, 0x7b, 0x9d, 0x04, 0xa9, 0x01, 0x16, 0xdb, 0xcb,
+	0x28, 0x3d, 0x05, 0x08, 0xe1, 0x26, 0x69, 0xa6, 0xbc, 0x7a, 0x6d, 0xf9, 0x87, 0x98, 0xb8, 0x3f,
+	0x2a, 0x70, 0x7b, 0x23, 0x71, 0x59, 0xab, 0x5d, 0x6f, 0xe9, 0xae, 0x6d, 0xc7, 0xed, 0xff, 0xbf,
+	0x1d, 0x2b, 0xd7, 0xda, 0x8e, 0xd5, 0x9b, 0xdc, 0x8e, 0xb5, 0x8b, 0xb7, 0x63, 0xfd, 0xea, 0xdb,
+	0xd1, 0x2e, 0xdf, 0x8e, 0x8d, 0x92, 0xed, 0x08, 0x57, 0xda, 0x8e, 0xeb, 0x80, 0xe8, 0x9c, 0x0b,
+	0x88, 0xcd, 0x32, 0x40, 0x6c, 0xad, 0x00, 0xe2, 0xde, 0xee, 0x9f, 0x27, 0xbb, 0xd6, 0x5f, 0x27,
+	0xbb, 0xd6, 0xdf, 0x27, 0xbb, 0xd6, 0x0f, 0xdd, 0xe4, 0x68, 0xb4, 0xf6, 0x43, 0x73, 0x54, 0xc3,
+	0x9f, 0x98, 0x8f, 0xff, 0x0b, 0x00, 0x00, 0xff, 0xff, 0xe6, 0x57, 0xc5, 0x83, 0x39, 0x0d, 0x00,
+	0x00,
 }
 
 func (m *MetadataPB) Marshal() (dAtA []byte, err error) {
@@ -2243,7 +2247,7 @@ func (m *MetadataPB) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.DataStatus |= DataStatus(b&0x7F) << shift
+				m.DataStatus |= constant.DataStatus(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -2294,7 +2298,7 @@ func (m *MetadataPB) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.MetadataType |= MetadataType(b&0x7F) << shift
+				m.MetadataType |= constant.MetadataType(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -2377,7 +2381,7 @@ func (m *MetadataPB) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.LocationType |= DataLocationType(b&0x7F) << shift
+				m.LocationType |= constant.DataLocationType(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -2396,7 +2400,7 @@ func (m *MetadataPB) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.DataType |= OrigindataType(b&0x7F) << shift
+				m.DataType |= constant.OrigindataType(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -2447,7 +2451,7 @@ func (m *MetadataPB) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.State |= MetadataState(b&0x7F) << shift
+				m.State |= constant.MetadataState(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -2754,7 +2758,7 @@ func (m *MetadataAuthorityPB) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.DataStatus |= DataStatus(b&0x7F) << shift
+				m.DataStatus |= constant.DataStatus(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -2773,7 +2777,7 @@ func (m *MetadataAuthorityPB) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.UserType |= UserType(b&0x7F) << shift
+				m.UserType |= constant.UserType(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -2828,7 +2832,7 @@ func (m *MetadataAuthorityPB) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.AuditOption |= AuditMetadataOption(b&0x7F) << shift
+				m.AuditOption |= constant.AuditMetadataOption(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -2953,7 +2957,7 @@ func (m *MetadataAuthorityPB) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.State |= MetadataAuthorityState(b&0x7F) << shift
+				m.State |= constant.MetadataAuthorityState(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -3178,7 +3182,7 @@ func (m *MetadataSummary) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.MetadataType |= MetadataType(b&0x7F) << shift
+				m.MetadataType |= constant.MetadataType(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -3261,7 +3265,7 @@ func (m *MetadataSummary) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.LocationType |= DataLocationType(b&0x7F) << shift
+				m.LocationType |= constant.DataLocationType(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -3280,7 +3284,7 @@ func (m *MetadataSummary) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.DataType |= OrigindataType(b&0x7F) << shift
+				m.DataType |= constant.OrigindataType(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -3331,7 +3335,7 @@ func (m *MetadataSummary) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.State |= MetadataState(b&0x7F) << shift
+				m.State |= constant.MetadataState(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -3648,7 +3652,7 @@ func (m *MetadataUsageRule) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.UsageType |= MetadataUsageType(b&0x7F) << shift
+				m.UsageType |= constant.MetadataUsageType(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -3930,7 +3934,7 @@ func (m *MetadataUsedQuo) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.UsageType |= MetadataUsageType(b&0x7F) << shift
+				m.UsageType |= constant.MetadataUsageType(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -4103,7 +4107,7 @@ func (m *MetadataAuthorityDetail) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.UserType |= UserType(b&0x7F) << shift
+				m.UserType |= constant.UserType(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -4158,7 +4162,7 @@ func (m *MetadataAuthorityDetail) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.AuditOption |= AuditMetadataOption(b&0x7F) << shift
+				m.AuditOption |= constant.AuditMetadataOption(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -4283,7 +4287,7 @@ func (m *MetadataAuthorityDetail) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.State |= MetadataAuthorityState(b&0x7F) << shift
+				m.State |= constant.MetadataAuthorityState(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
