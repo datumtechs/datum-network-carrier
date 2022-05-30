@@ -216,7 +216,7 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 
 	// the prepareMsg is future msg.
 	now := timeutils.UnixMsecUint64()
-	if now < msg.GetCreateAt() {
+	if now+100 < msg.GetCreateAt() {  // maybe it be allowed to overflow 100ms for timewindows
 		log.Errorf("received the prepareMsg is future msg when received prepareMsg, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, now: {%d}, msgCreateAt: {%d}",
 			msg.GetMsgOption().GetProposalId().String(), msg.GetTask().GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), now, msg.GetCreateAt())
 		return fmt.Errorf("%s when received prepareMsg", ctypes.ErrProposalIllegal)
