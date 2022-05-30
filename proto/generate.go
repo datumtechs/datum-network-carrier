@@ -24,8 +24,8 @@ import (
 //go:generate go run generate.go armada-common/carrier/db armada-common/carrier/types armada-common/carrier/api armada-common/carrier/p2p/v1 armada-common/carrier/rpc/debug/v1 armada-common/carrier/netmsg/common armada-common/carrier/netmsg/consensus/twopc armada-common/carrier/netmsg/taskmng armada-common/datacenter/api armada-common/fighter/api/ armada-common/fighter/common
 
 // final, generate grpc gateway stub.
-// go:generate protoc -I ../ -I ./armada-common -I . -I ../repos/grpc-gateway/third_party/googleapis --grpc-gateway_out=logtostderr=true:./.. ./armada-common/carrier/rpc/debug/v1/debug.proto
-// go:generate protoc -I ../ -I ./armada-common -I . -I ../repos/grpc-gateway/third_party/googleapis --swagger_out=logtostderr=true:./.. ./armada-common/carrier/rpc/debug/v1/debug.proto
+//go:generate protoc -I ../ -I ./armada-common -I . -I ../repos/grpc-gateway/third_party/googleapis --grpc-gateway_out=logtostderr=true:./../pb ./armada-common/carrier/rpc/debug/v1/debug.proto
+//go:generate protoc -I ../ -I ./armada-common -I . -I ../repos/grpc-gateway/third_party/googleapis --swagger_out=logtostderr=true:./../pb ./armada-common/carrier/rpc/debug/v1/debug.proto
 
 // go:generate protoc -I ../ -I ./armada-common -I . -I ../repos/grpc-gateway/third_party/googleapis --grpc-gateway_out=logtostderr=true:./.. ./lib/api/*.proto
 // go:generate protoc -I ../ -I ./armada-common -I . -I ../repos/grpc-gateway/third_party/googleapis --swagger_out=logtostderr=true:./.. ./lib/api/*.proto
@@ -45,7 +45,7 @@ func main() {
 			"-I", "../repos/grpc-gateway/third_party/googleapis",
 			//"--plugin=protoc-gen-gorosetta=scripts/protoc-gen-gorosetta",
 			//"--gorosetta_out=paths=source_relative:..",
-			"--gogofast_out=plugins=grpc,paths=source_relative:../lib",
+			"--gogofast_out=plugins=grpc,paths=source_relative:../pb",
 		}
 		args = append(args, matches...)
 		cmd := exec.Command("protoc", args...)
