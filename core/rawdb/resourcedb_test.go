@@ -9,9 +9,9 @@ import (
 	"github.com/datumtechs/datum-network-carrier/common/rlputil"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
 	"github.com/datumtechs/datum-network-carrier/db"
-	dbtype "github.com/datumtechs/datum-network-carrier/lib/db"
-	twopcpb "github.com/datumtechs/datum-network-carrier/lib/netmsg/consensus/twopc"
-	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	dbtype "github.com/datumtechs/datum-network-carrier/pb/carrier/db"
+	twopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/gogo/protobuf/proto"
@@ -69,20 +69,20 @@ func NeedExecuteTask() (KeyValueStore, dbtype.TaskArrayPB) {
 	database := db.NewMemoryDatabase()
 	var taskList dbtype.TaskArrayPB
 	for _, taskId := range taskIds {
-		taskPB := &libtypes.TaskPB{
+		taskPB := &carriertypespb.TaskPB{
 			TaskId: taskId,
 		}
 		task := types.NewTask(taskPB)
 		taskList.TaskList = append(taskList.TaskList, taskPB)
 		for _, partyId := range partyIds {
 			remotepid := "remotepid"
-			localTaskOrganization := &libtypes.TaskOrganization{
+			localTaskOrganization := &carriertypespb.TaskOrganization{
 				PartyId:    partyId,
 				NodeName:   "NodeName",
 				NodeId:     "NodeId_0001",
 				IdentityId: "IdentityId_0001",
 			}
-			remoteTaskOrganization := &libtypes.TaskOrganization{
+			remoteTaskOrganization := &carriertypespb.TaskOrganization{
 				PartyId:    partyId,
 				NodeName:   "NodeName",
 				NodeId:     "NodeId_0002",
@@ -149,7 +149,7 @@ func TestRecoveryNeedExecuteTask(t *testing.T) {
 				return fmt.Errorf("query local task failed on recover needExecuteTask from db, %s, taskId: {%s}", err, taskId)
 			}
 
-			var res libtypes.NeedExecuteTask
+			var res carriertypespb.NeedExecuteTask
 
 			if err := proto.Unmarshal(value, &res); nil != err {
 				return fmt.Errorf("Unmarshal needExecuteTask failed, %s", err)
@@ -221,7 +221,7 @@ func TestStoreMessageCache(t *testing.T) {
 	}
 
 	err = StoreMessageCache(database, &types.MetadataMsg{
-		MetadataSummary: &libtypes.MetadataSummary{
+		MetadataSummary: &carriertypespb.MetadataSummary{
 			MetadataId: "MetadataId",
 			Desc:       "",
 			Industry:   "",
@@ -238,7 +238,7 @@ func TestStoreMessageCache(t *testing.T) {
 		MetadataAuthId: "MetadataAuthId",
 		User:           "user1",
 		UserType:       2,
-		Auth:           &libtypes.MetadataAuthority{},
+		Auth:           &carriertypespb.MetadataAuthority{},
 		Sign:           []byte("sign"),
 		CreateAt:       9988,
 	})
@@ -247,7 +247,7 @@ func TestStoreMessageCache(t *testing.T) {
 	}
 
 	err = StoreMessageCache(database, &types.TaskMsg{
-		Data: types.NewTask(&libtypes.TaskPB{
+		Data: types.NewTask(&carriertypespb.TaskPB{
 			TaskId: "task:0xe7bdb5af4de9d851351c680fb0a9bfdff72bdc4ea86da3c2006d6a7a7d335e65",
 		}),
 	})
@@ -263,7 +263,7 @@ func TestQueryRemoveMetadataAuthorityMsgArr(t *testing.T) {
 		MetadataAuthId: "MetadataAuthId",
 		User:           "user1",
 		UserType:       2,
-		Auth:           &libtypes.MetadataAuthority{},
+		Auth:           &carriertypespb.MetadataAuthority{},
 		Sign:           []byte("sign"),
 		CreateAt:       9988,
 	})

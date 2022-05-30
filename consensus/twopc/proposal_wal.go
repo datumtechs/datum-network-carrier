@@ -6,8 +6,8 @@ import (
 	ctypes "github.com/datumtechs/datum-network-carrier/consensus/twopc/types"
 	"github.com/datumtechs/datum-network-carrier/core/rawdb"
 	"github.com/datumtechs/datum-network-carrier/db"
-	twopcpb "github.com/datumtechs/datum-network-carrier/lib/netmsg/consensus/twopc"
-	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	twopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/gogo/protobuf/proto"
 	"os"
@@ -90,7 +90,7 @@ func (w *walDB) GetProposalPeerInfoCacheKey(proposalId common.Hash) []byte {
 }
 
 func (w *walDB) StoreProposalTask(partyId string, task *ctypes.ProposalTask) {
-	data, err := proto.Marshal(&libtypes.ProposalTask{
+	data, err := proto.Marshal(&carriertypespb.ProposalTask{
 		ProposalId: task.GetProposalId().String(),
 		TaskId: task.GetTaskId(),
 		CreateAt: task.GetCreateAt(),
@@ -106,7 +106,7 @@ func (w *walDB) StoreProposalTask(partyId string, task *ctypes.ProposalTask) {
 }
 
 func (w *walDB) StoreOrgProposalState(orgState *ctypes.OrgProposalState) {
-	data, err := proto.Marshal(&libtypes.OrgProposalState{
+	data, err := proto.Marshal(&carriertypespb.OrgProposalState{
 		TaskId:             orgState.GetTaskId(),
 		TaskSender:         orgState.GetTaskSender(),
 		StartAt:            orgState.GetStartAt(),
@@ -127,8 +127,8 @@ func (w *walDB) StoreOrgProposalState(orgState *ctypes.OrgProposalState) {
 }
 
 func (w *walDB) StorePrepareVote(vote *types.PrepareVote) {
-	data, err := proto.Marshal(&libtypes.PrepareVote{
-		MsgOption: &libtypes.MsgOption{
+	data, err := proto.Marshal(&carriertypespb.PrepareVote{
+		MsgOption: &carriertypespb.MsgOption{
 			ProposalId:      vote.MsgOption.ProposalId.String(),
 			SenderRole:      vote.MsgOption.SenderRole,
 			SenderPartyId:   vote.MsgOption.SenderPartyId,
@@ -137,7 +137,7 @@ func (w *walDB) StorePrepareVote(vote *types.PrepareVote) {
 			Owner:           vote.MsgOption.Owner,
 		},
 		VoteOption: uint32(vote.VoteOption),
-		PeerInfo: &libtypes.PrepareVoteResource{
+		PeerInfo: &carriertypespb.PrepareVoteResource{
 			Id:      vote.PeerInfo.Id,
 			Ip:      vote.PeerInfo.Ip,
 			Port:    vote.PeerInfo.Port,
@@ -157,8 +157,8 @@ func (w *walDB) StorePrepareVote(vote *types.PrepareVote) {
 }
 
 func (w *walDB) StoreConfirmVote(vote *types.ConfirmVote) {
-	data, err := proto.Marshal(&libtypes.ConfirmVote{
-		MsgOption: &libtypes.MsgOption{
+	data, err := proto.Marshal(&carriertypespb.ConfirmVote{
+		MsgOption: &carriertypespb.MsgOption{
 			ProposalId:      vote.MsgOption.ProposalId.String(),
 			SenderRole:      vote.MsgOption.SenderRole,
 			SenderPartyId:   vote.MsgOption.SenderPartyId,

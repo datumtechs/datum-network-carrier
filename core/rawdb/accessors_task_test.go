@@ -2,7 +2,7 @@ package rawdb
 
 import (
 	"github.com/datumtechs/datum-network-carrier/db"
-	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"gotest.tools/assert"
 	"strings"
@@ -11,18 +11,18 @@ import (
 
 func TestRunningTask(t *testing.T) {
 	database := db.NewMemoryDatabase()
-	task := types.NewTask(&libtypes.TaskPB{
-		Sender: &libtypes.TaskOrganization{
+	task := types.NewTask(&carriertypespb.TaskPB{
+		Sender: &carriertypespb.TaskOrganization{
 			PartyId:    "p0",
 			IdentityId: "identity-task",
 			NodeId:     "nodeId-task",
 			NodeName:   "nodeName",
 		},
 		DataId:     "",
-		DataStatus: libtypes.DataStatus_DataStatus_Valid,
+		DataStatus: carriertypespb.DataStatus_DataStatus_Valid,
 		TaskId:     "taskID-01",
 		TaskName:   "taskName-01",
-		State:      libtypes.TaskState_TaskState_Succeed,
+		State:      carriertypespb.TaskState_TaskState_Succeed,
 		Reason:     "",
 		Desc:       "",
 		CreateAt:   0,

@@ -2,13 +2,13 @@ package types
 
 import (
 	"fmt"
-	taskmngpb "github.com/datumtechs/datum-network-carrier/lib/netmsg/taskmng"
-	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	taskmngpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/taskmng"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 )
 
 type TaskResultMsg struct {
 	MsgOption     *MsgOption
-	TaskEventList []*libtypes.TaskEvent
+	TaskEventList []*carriertypespb.TaskEvent
 	CreateAt      uint64
 	Sign          []byte
 }
@@ -19,7 +19,7 @@ func (msg *TaskResultMsg) String() string {
 }
 
 func (msg *TaskResultMsg) GetMsgOption() *MsgOption                { return msg.MsgOption }
-func (msg *TaskResultMsg) GetTaskEventList() []*libtypes.TaskEvent { return msg.TaskEventList }
+func (msg *TaskResultMsg) GetTaskEventList() []*carriertypespb.TaskEvent { return msg.TaskEventList }
 func (msg *TaskResultMsg) GetCreateAt() uint64                     { return msg.CreateAt }
 func (msg *TaskResultMsg) GetSign() []byte                         { return msg.Sign }
 

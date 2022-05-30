@@ -3,8 +3,8 @@ package types
 import (
 	"bytes"
 	"github.com/datumtechs/datum-network-carrier/common"
-	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
-	"github.com/datumtechs/datum-network-carrier/lib/types"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	"github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"testing"
 )
 
@@ -13,8 +13,8 @@ var identities = NewIdentity(&types.IdentityPB{
 	NodeId:     "",
 	NodeName:   "",
 	DataId:     "",
-	DataStatus: libtypes.DataStatus_DataStatus_Unknown,
-	Status:     libtypes.CommonStatus_CommonStatus_Unknown,
+	DataStatus: carriertypespb.DataStatus_DataStatus_Unknown,
+	Status:     carriertypespb.CommonStatus_CommonStatus_Unknown,
 	Credential: "",
 })
 

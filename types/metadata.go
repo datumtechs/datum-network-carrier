@@ -4,25 +4,25 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/datumtechs/datum-network-carrier/common"
-	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"io"
 	"sync/atomic"
 )
 
 type Metadata struct {
-	data *libtypes.MetadataPB
+	data *carriertypespb.MetadataPB
 
 	// caches
 	hash atomic.Value
 	size atomic.Value
 }
 
-func NewMetadata(data *libtypes.MetadataPB) *Metadata {
+func NewMetadata(data *carriertypespb.MetadataPB) *Metadata {
 	return &Metadata{data: data}
 }
 
 func NewMetadataWithoutParam() *Metadata {
-	return &Metadata{data: new(libtypes.MetadataPB)}
+	return &Metadata{data: new(carriertypespb.MetadataPB)}
 }
 
 func (m *Metadata) EncodePb(w io.Writer) error {
@@ -43,7 +43,7 @@ func MetadataToJson(meta *Metadata) string {
 
 func (m *Metadata) DecodePb(data []byte) error {
 	if m.data == nil {
-		m.data = new(libtypes.MetadataPB)
+		m.data = new(carriertypespb.MetadataPB)
 	}
 	m.size.Store(common.StorageSize(len(data)))
 	return m.data.Unmarshal(data)
@@ -60,7 +60,7 @@ func (m *Metadata) Hash() common.Hash {
 	return v
 }
 
-func (m *Metadata) GetData() *libtypes.MetadataPB { return m.data }
+func (m *Metadata) GetData() *carriertypespb.MetadataPB { return m.data }
 // MetadataArray is a Transaction slice type for basic sorting.
 type MetadataArray []*Metadata
 
@@ -76,7 +76,7 @@ func (s MetadataArray) GetPb(i int) []byte {
 	return buffer.Bytes()
 }
 
-func NewMetadataArray(metaData []*libtypes.MetadataPB) MetadataArray {
+func NewMetadataArray(metaData []*carriertypespb.MetadataPB) MetadataArray {
 	var s MetadataArray
 	for _, v := range metaData {
 		s = append(s, NewMetadata(v))
@@ -84,8 +84,8 @@ func NewMetadataArray(metaData []*libtypes.MetadataPB) MetadataArray {
 	return s
 }
 
-func (s MetadataArray) To() []*libtypes.MetadataPB {
-	arr := make([]*libtypes.MetadataPB, 0, s.Len())
+func (s MetadataArray) To() []*carriertypespb.MetadataPB {
+	arr := make([]*carriertypespb.MetadataPB, 0, s.Len())
 	for _, v := range s {
 		arr = append(arr, v.data)
 	}

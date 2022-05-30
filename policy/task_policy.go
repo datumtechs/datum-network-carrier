@@ -3,7 +3,7 @@ package policy
 import (
 	"encoding/json"
 	"fmt"
-	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/types"
 )
 
@@ -28,8 +28,8 @@ func FetchMetedataIdByPartyIdFromDataPolicy(partyId string, policyTypes []uint32
 }
 
 func FetchMetedataIdByPartyIdAndOptionFromDataPolicy(partyId string, policyType uint32, policyOption string) (string, error) {
-	switch libtypes.OrigindataType(policyType) {
-	case libtypes.OrigindataType_OrigindataType_CSV:
+	switch carriertypespb.OrigindataType(policyType) {
+	case carriertypespb.OrigindataType_OrigindataType_CSV:
 		var policy *types.TaskMetadataPolicyCSV
 		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
 			return "", err
@@ -37,7 +37,7 @@ func FetchMetedataIdByPartyIdAndOptionFromDataPolicy(partyId string, policyType 
 		if policy.GetPartyId() == partyId {
 			return policy.GetMetadataId(), nil
 		}
-	case libtypes.OrigindataType_OrigindataType_DIR:
+	case carriertypespb.OrigindataType_OrigindataType_DIR:
 		var policy *types.TaskMetadataPolicyDIR
 		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
 			return "", err
@@ -45,7 +45,7 @@ func FetchMetedataIdByPartyIdAndOptionFromDataPolicy(partyId string, policyType 
 		if policy.GetPartyId() == partyId {
 			return policy.GetMetadataId(), nil
 		}
-	case libtypes.OrigindataType_OrigindataType_BINARY:
+	case carriertypespb.OrigindataType_OrigindataType_BINARY:
 		var policy *types.TaskMetadataPolicyBINARY
 		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
 			return "", err
@@ -78,22 +78,22 @@ func FetchAllMetedataIdsFromDataPolicy(policyTypes []uint32, policyOptions []str
 }
 
 func FetchAllMetedataIdByOptionFromDataPolicy(policyType uint32, policyOption string) (string, error) {
-	switch libtypes.OrigindataType(policyType) {
-	case libtypes.OrigindataType_OrigindataType_CSV:
+	switch carriertypespb.OrigindataType(policyType) {
+	case carriertypespb.OrigindataType_OrigindataType_CSV:
 		var policy *types.TaskMetadataPolicyCSV
 		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
 			return "", err
 		}
 
 		return policy.GetMetadataId(), nil
-	case libtypes.OrigindataType_OrigindataType_DIR:
+	case carriertypespb.OrigindataType_OrigindataType_DIR:
 		var policy *types.TaskMetadataPolicyDIR
 		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
 			return "", err
 		}
 
 		return policy.GetMetadataId(), nil
-	case libtypes.OrigindataType_OrigindataType_BINARY:
+	case carriertypespb.OrigindataType_OrigindataType_BINARY:
 		var policy *types.TaskMetadataPolicyBINARY
 		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
 			return "", err
@@ -125,8 +125,8 @@ func FetchMetedataNameByPartyIdFromDataPolicy(partyId string, policyTypes []uint
 }
 
 func FetchMetedataNameByPartyIdAndOptionFromDataPolicy(partyId string, policyType uint32, policyOption string) (string, error) {
-	switch libtypes.OrigindataType(policyType) {
-	case libtypes.OrigindataType_OrigindataType_CSV:
+	switch carriertypespb.OrigindataType(policyType) {
+	case carriertypespb.OrigindataType_OrigindataType_CSV:
 		var policy *types.TaskMetadataPolicyCSV
 		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
 			return "", err
@@ -134,7 +134,7 @@ func FetchMetedataNameByPartyIdAndOptionFromDataPolicy(partyId string, policyTyp
 		if policy.GetPartyId() == partyId {
 			return policy.GetMetadataName(), nil
 		}
-	case libtypes.OrigindataType_OrigindataType_DIR:
+	case carriertypespb.OrigindataType_OrigindataType_DIR:
 		var policy *types.TaskMetadataPolicyDIR
 		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
 			return "", err
@@ -142,7 +142,7 @@ func FetchMetedataNameByPartyIdAndOptionFromDataPolicy(partyId string, policyTyp
 		if policy.GetPartyId() == partyId {
 			return policy.GetMetadataName(), nil
 		}
-	case libtypes.OrigindataType_OrigindataType_BINARY:
+	case carriertypespb.OrigindataType_OrigindataType_BINARY:
 		var policy *types.TaskMetadataPolicyBINARY
 		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
 			return "", err

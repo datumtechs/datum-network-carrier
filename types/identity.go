@@ -4,21 +4,22 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/datumtechs/datum-network-carrier/common"
-	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"io"
 	"strings"
 	"sync/atomic"
 )
 
 type Identity struct {
-	data *libtypes.IdentityPB
+	data *carriertypespb.IdentityPB
 
 	// caches
 	hash atomic.Value
 	size atomic.Value
 }
 
-func NewIdentity(data *libtypes.IdentityPB) *Identity {
+func NewIdentity(data *carriertypespb.IdentityPB) *Identity {
 	return &Identity{data: data}
 }
 
@@ -40,7 +41,7 @@ func IdentityDataTojson(identity *Identity) string {
 
 func (m *Identity) DecodePb(data []byte) error {
 	if m.data == nil {
-		m.data = new(libtypes.IdentityPB)
+		m.data = new(carriertypespb.IdentityPB)
 	}
 	m.size.Store(common.StorageSize(len(data)))
 	return m.data.Unmarshal(data)
@@ -64,8 +65,8 @@ func (m *Identity) GetImageUrl() string { return m.data.GetImageUrl() }
 func (m *Identity) GetDetails() string { return m.data.GetDetails() }
 func (m *Identity) GetCredential() string { return m.data.GetCredential() }
 func (m *Identity) GetUpdateAt() uint64 { return m.data.GetUpdateAt() }
-func (m *Identity) GetStatus() libtypes.CommonStatus { return m.data.GetStatus() }
-func (m *Identity) GetDataStatus() libtypes.DataStatus { return m.data.GetDataStatus() }
+func (m *Identity) GetStatus() commonconstantpb.CommonStatus { return m.data.GetStatus() }
+func (m *Identity) GetDataStatus() commonconstantpb.DataStatus { return m.data.GetDataStatus() }
 func (m *Identity) GetDataId() string { return m.data.GetDataId() }
 
 func (m *Identity) String() string {
@@ -89,7 +90,7 @@ func (s IdentityArray) GetPb(i int) []byte {
 	return buffer.Bytes()
 }
 
-func NewIdentityArray(metaData []*libtypes.IdentityPB) IdentityArray {
+func NewIdentityArray(metaData []*carriertypespb.IdentityPB) IdentityArray {
 	var s IdentityArray
 	for _, v := range metaData {
 		s = append(s, NewIdentity(v))
@@ -97,8 +98,8 @@ func NewIdentityArray(metaData []*libtypes.IdentityPB) IdentityArray {
 	return s
 }
 
-func (s IdentityArray) To() []*libtypes.IdentityPB {
-	arr := make([]*libtypes.IdentityPB, 0, s.Len())
+func (s IdentityArray) To() []*carriertypespb.IdentityPB {
+	arr := make([]*carriertypespb.IdentityPB, 0, s.Len())
 	for _, v := range s {
 		arr = append(arr, v.data)
 	}

@@ -19,7 +19,7 @@ import (
 	"github.com/datumtechs/datum-network-carrier/db"
 	"github.com/datumtechs/datum-network-carrier/grpclient"
 	"github.com/datumtechs/datum-network-carrier/handler"
-	pb "github.com/datumtechs/datum-network-carrier/lib/api"
+	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	"github.com/datumtechs/datum-network-carrier/p2p"
 	"github.com/datumtechs/datum-network-carrier/service/discovery"
 	"github.com/datumtechs/datum-network-carrier/types"

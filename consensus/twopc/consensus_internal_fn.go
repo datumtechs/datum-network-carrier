@@ -9,8 +9,8 @@ import (
 	ctypes "github.com/datumtechs/datum-network-carrier/consensus/twopc/types"
 	"github.com/datumtechs/datum-network-carrier/core/evengine"
 	"github.com/datumtechs/datum-network-carrier/core/resource"
-	twopcpb "github.com/datumtechs/datum-network-carrier/lib/netmsg/consensus/twopc"
-	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	twopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/p2p"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/gogo/protobuf/proto"
@@ -160,7 +160,7 @@ func (t *Twopc) addmonitor(orgState *ctypes.OrgProposalState) {
 				_, err = t.resourceMng.GetDB().QueryLocalTask(orgState.GetTaskId())
 				if nil == err {
 					// release local resource and clean some data  (on task partenr)
-					t.resourceMng.GetDB().StoreTaskEvent(&libtypes.TaskEvent{
+					t.resourceMng.GetDB().StoreTaskEvent(&carriertypespb.TaskEvent{
 						Type:       evengine.TaskProposalStateDeadline.GetType(),
 						IdentityId: identity.GetIdentityId(),
 						PartyId:    orgState.GetTaskOrg().GetPartyId(),
@@ -173,8 +173,8 @@ func (t *Twopc) addmonitor(orgState *ctypes.OrgProposalState) {
 						orgState.GetProposalId(),
 						orgState.GetTaskId(),
 						orgState.GetTaskRole(),
-						libtypes.TaskRole_TaskRole_Sender,
-						&libtypes.TaskOrganization{
+						carriertypespb.TaskRole_TaskRole_Sender,
+						&carriertypespb.TaskOrganization{
 							PartyId:    orgState.GetTaskOrg().GetPartyId(),
 							NodeName:   identity.GetNodeName(),
 							NodeId:     identity.GetNodeId(),
@@ -225,13 +225,13 @@ func (t *Twopc) makeConfirmTaskPeerDesc(proposalId common.Hash) *twopcpb.Confirm
 
 	for _, vote := range t.state.GetPrepareVoteArr(proposalId) {
 
-		if vote.GetMsgOption().GetSenderRole() == libtypes.TaskRole_TaskRole_DataSupplier && nil != vote.GetPeerInfo() {
+		if vote.GetMsgOption().GetSenderRole() == carriertypespb.TaskRole_TaskRole_DataSupplier && nil != vote.GetPeerInfo() {
 			dataSuppliers = append(dataSuppliers, types.ConvertTaskPeerInfo(vote.GetPeerInfo()))
 		}
-		if vote.GetMsgOption().GetSenderRole() == libtypes.TaskRole_TaskRole_PowerSupplier && nil != vote.GetPeerInfo() {
+		if vote.GetMsgOption().GetSenderRole() == carriertypespb.TaskRole_TaskRole_PowerSupplier && nil != vote.GetPeerInfo() {
 			powerSuppliers = append(powerSuppliers, types.ConvertTaskPeerInfo(vote.GetPeerInfo()))
 		}
-		if vote.GetMsgOption().GetSenderRole() == libtypes.TaskRole_TaskRole_Receiver && nil != vote.GetPeerInfo() {
+		if vote.GetMsgOption().GetSenderRole() == carriertypespb.TaskRole_TaskRole_Receiver && nil != vote.GetPeerInfo() {
 			receivers = append(receivers, types.ConvertTaskPeerInfo(vote.GetPeerInfo()))
 		}
 	}
@@ -258,15 +258,15 @@ func (t *Twopc) stopTaskConsensus(
 	reason string,
 	proposalId common.Hash,
 	taskId string,
-	senderRole, receiverRole libtypes.TaskRole,
-	sender, receiver *libtypes.TaskOrganization,
+	senderRole, receiverRole carriertypespb.TaskRole,
+	sender, receiver *carriertypespb.TaskOrganization,
 	taskActionStatus types.TaskActionStatus,
 ) {
 
 	log.Debugf("Call stopTaskConsensus() to interrupt consensus msg %s with role is %s, proposalId: {%s}, taskId: {%s}, partyId: {%s}, remote partyId: {%s}, taskActionStatus: {%s}",
 		reason, senderRole, proposalId.String(), taskId, sender.GetPartyId(), receiver.GetPartyId(), taskActionStatus.String())
 	// Send consensus result to interrupt consensus epoch and clean some data (on task sender)
-	if senderRole == libtypes.TaskRole_TaskRole_Sender {
+	if senderRole == carriertypespb.TaskRole_TaskRole_Sender {
 		t.replyTaskConsensusResult(types.NewTaskConsResult(taskId, taskActionStatus, fmt.Errorf(reason)))
 	} else {
 
@@ -300,10 +300,10 @@ func (t *Twopc) stopTaskConsensus(
 func (t *Twopc) driveTask(
 	remotePid peer.ID,
 	proposalId common.Hash,
-	localTaskRole libtypes.TaskRole,
-	localTaskOrganization *libtypes.TaskOrganization,
-	remoteTaskRole libtypes.TaskRole,
-	remoteTaskOrganization *libtypes.TaskOrganization,
+	localTaskRole carriertypespb.TaskRole,
+	localTaskOrganization *carriertypespb.TaskOrganization,
+	remoteTaskRole carriertypespb.TaskRole,
+	remoteTaskOrganization *carriertypespb.TaskOrganization,
 	taskId string,
 ) {
 
@@ -349,7 +349,7 @@ func (t *Twopc) sendPrepareMsg(proposalId common.Hash, nonConsTask *types.NeedCo
 	task := nonConsTask.GetTask()
 	sender := task.GetTaskSender()
 
-	sendTaskFn := func(wg *sync.WaitGroup, sender, receiver *libtypes.TaskOrganization, senderRole, receiverRole libtypes.TaskRole, errCh chan<- error) {
+	sendTaskFn := func(wg *sync.WaitGroup, sender, receiver *carriertypespb.TaskOrganization, senderRole, receiverRole carriertypespb.TaskRole, errCh chan<- error) {
 
 		defer wg.Done()
 
@@ -398,7 +398,7 @@ func (t *Twopc) sendPrepareMsg(proposalId common.Hash, nonConsTask *types.NeedCo
 		wg.Add(1)
 		dataSupplier := task.GetTaskData().GetDataSuppliers()[i]
 		receiver := dataSupplier
-		go sendTaskFn(&wg, sender, receiver, libtypes.TaskRole_TaskRole_Sender, libtypes.TaskRole_TaskRole_DataSupplier, errCh)
+		go sendTaskFn(&wg, sender, receiver, carriertypespb.TaskRole_TaskRole_Sender, carriertypespb.TaskRole_TaskRole_DataSupplier, errCh)
 
 	}
 	for i := 0; i < len(task.GetTaskData().GetPowerSuppliers()); i++ {
@@ -406,7 +406,7 @@ func (t *Twopc) sendPrepareMsg(proposalId common.Hash, nonConsTask *types.NeedCo
 		wg.Add(1)
 		powerSupplier := task.GetTaskData().GetPowerSuppliers()[i]
 		receiver := powerSupplier
-		go sendTaskFn(&wg, sender, receiver, libtypes.TaskRole_TaskRole_Sender, libtypes.TaskRole_TaskRole_PowerSupplier, errCh)
+		go sendTaskFn(&wg, sender, receiver, carriertypespb.TaskRole_TaskRole_Sender, carriertypespb.TaskRole_TaskRole_PowerSupplier, errCh)
 
 	}
 
@@ -414,7 +414,7 @@ func (t *Twopc) sendPrepareMsg(proposalId common.Hash, nonConsTask *types.NeedCo
 
 		wg.Add(1)
 		receiver := task.GetTaskData().GetReceivers()[i]
-		go sendTaskFn(&wg, sender, receiver, libtypes.TaskRole_TaskRole_Sender, libtypes.TaskRole_TaskRole_Receiver, errCh)
+		go sendTaskFn(&wg, sender, receiver, carriertypespb.TaskRole_TaskRole_Sender, carriertypespb.TaskRole_TaskRole_Receiver, errCh)
 	}
 
 	wg.Wait()
@@ -453,7 +453,7 @@ func (t *Twopc) sendNeedExecuteTask(task *types.NeedExecuteTask) {
 	}(task)
 }
 
-func (t *Twopc) sendPrepareVote(pid peer.ID, sender, receiver *libtypes.TaskOrganization, req *twopcpb.PrepareVote) error {
+func (t *Twopc) sendPrepareVote(pid peer.ID, sender, receiver *carriertypespb.TaskOrganization, req *twopcpb.PrepareVote) error {
 	if types.IsNotSameTaskOrg(sender, receiver) {
 		//return handler.SendTwoPcPrepareVote(context.TODO(), t.p2p, pid, req)
 		return t.p2p.Broadcast(context.TODO(), req)
@@ -466,7 +466,7 @@ func (t *Twopc) sendConfirmMsg(proposalId common.Hash, task *types.Task, peers *
 
 	sender := task.GetTaskSender()
 
-	sendConfirmMsgFn := func(wg *sync.WaitGroup, sender, receiver *libtypes.TaskOrganization, senderRole, receiverRole libtypes.TaskRole, errCh chan<- error) {
+	sendConfirmMsgFn := func(wg *sync.WaitGroup, sender, receiver *carriertypespb.TaskOrganization, senderRole, receiverRole carriertypespb.TaskRole, errCh chan<- error) {
 
 		defer wg.Done()
 
@@ -512,7 +512,7 @@ func (t *Twopc) sendConfirmMsg(proposalId common.Hash, task *types.Task, peers *
 		wg.Add(1)
 		dataSupplier := task.GetTaskData().GetDataSuppliers()[i]
 		receiver := dataSupplier
-		go sendConfirmMsgFn(&wg, sender, receiver, libtypes.TaskRole_TaskRole_Sender, libtypes.TaskRole_TaskRole_DataSupplier, errCh)
+		go sendConfirmMsgFn(&wg, sender, receiver, carriertypespb.TaskRole_TaskRole_Sender, carriertypespb.TaskRole_TaskRole_DataSupplier, errCh)
 
 	}
 	for i := 0; i < len(task.GetTaskData().GetPowerSuppliers()); i++ {
@@ -520,7 +520,7 @@ func (t *Twopc) sendConfirmMsg(proposalId common.Hash, task *types.Task, peers *
 		wg.Add(1)
 		powerSupplier := task.GetTaskData().GetPowerSuppliers()[i]
 		receiver := powerSupplier
-		go sendConfirmMsgFn(&wg, sender, receiver, libtypes.TaskRole_TaskRole_Sender, libtypes.TaskRole_TaskRole_PowerSupplier, errCh)
+		go sendConfirmMsgFn(&wg, sender, receiver, carriertypespb.TaskRole_TaskRole_Sender, carriertypespb.TaskRole_TaskRole_PowerSupplier, errCh)
 
 	}
 
@@ -528,7 +528,7 @@ func (t *Twopc) sendConfirmMsg(proposalId common.Hash, task *types.Task, peers *
 
 		wg.Add(1)
 		receiver := task.GetTaskData().GetReceivers()[i]
-		go sendConfirmMsgFn(&wg, sender, receiver, libtypes.TaskRole_TaskRole_Sender, libtypes.TaskRole_TaskRole_Receiver, errCh)
+		go sendConfirmMsgFn(&wg, sender, receiver, carriertypespb.TaskRole_TaskRole_Sender, carriertypespb.TaskRole_TaskRole_Receiver, errCh)
 	}
 
 	wg.Wait()
@@ -549,7 +549,7 @@ func (t *Twopc) sendConfirmMsg(proposalId common.Hash, task *types.Task, peers *
 	return nil
 }
 
-func (t *Twopc) sendConfirmVote(pid peer.ID, sender, receiver *libtypes.TaskOrganization, req *twopcpb.ConfirmVote) error {
+func (t *Twopc) sendConfirmVote(pid peer.ID, sender, receiver *carriertypespb.TaskOrganization, req *twopcpb.ConfirmVote) error {
 	if types.IsNotSameTaskOrg(sender, receiver) {
 		//return handler.SendTwoPcConfirmVote(context.TODO(), t.p2p, pid, req)
 		return t.p2p.Broadcast(context.TODO(), req)
@@ -562,7 +562,7 @@ func (t *Twopc) sendCommitMsg(proposalId common.Hash, task *types.Task, option t
 
 	sender := task.GetTaskSender()
 
-	sendCommitMsgFn := func(wg *sync.WaitGroup, sender, receiver *libtypes.TaskOrganization, senderRole, receiverRole libtypes.TaskRole, errCh chan<- error) {
+	sendCommitMsgFn := func(wg *sync.WaitGroup, sender, receiver *carriertypespb.TaskOrganization, senderRole, receiverRole carriertypespb.TaskRole, errCh chan<- error) {
 
 		defer wg.Done()
 
@@ -608,7 +608,7 @@ func (t *Twopc) sendCommitMsg(proposalId common.Hash, task *types.Task, option t
 		wg.Add(1)
 		dataSupplier := task.GetTaskData().GetDataSuppliers()[i]
 		receiver := dataSupplier
-		go sendCommitMsgFn(&wg, sender, receiver, libtypes.TaskRole_TaskRole_Sender, libtypes.TaskRole_TaskRole_DataSupplier, errCh)
+		go sendCommitMsgFn(&wg, sender, receiver, carriertypespb.TaskRole_TaskRole_Sender, carriertypespb.TaskRole_TaskRole_DataSupplier, errCh)
 
 	}
 	for i := 0; i < len(task.GetTaskData().GetPowerSuppliers()); i++ {
@@ -616,7 +616,7 @@ func (t *Twopc) sendCommitMsg(proposalId common.Hash, task *types.Task, option t
 		wg.Add(1)
 		powerSupplier := task.GetTaskData().GetPowerSuppliers()[i]
 		receiver := powerSupplier
-		go sendCommitMsgFn(&wg, sender, receiver, libtypes.TaskRole_TaskRole_Sender, libtypes.TaskRole_TaskRole_PowerSupplier, errCh)
+		go sendCommitMsgFn(&wg, sender, receiver, carriertypespb.TaskRole_TaskRole_Sender, carriertypespb.TaskRole_TaskRole_PowerSupplier, errCh)
 
 	}
 
@@ -624,7 +624,7 @@ func (t *Twopc) sendCommitMsg(proposalId common.Hash, task *types.Task, option t
 
 		wg.Add(1)
 		receiver := task.GetTaskData().GetReceivers()[i]
-		go sendCommitMsgFn(&wg, sender, receiver, libtypes.TaskRole_TaskRole_Sender, libtypes.TaskRole_TaskRole_Receiver, errCh)
+		go sendCommitMsgFn(&wg, sender, receiver, carriertypespb.TaskRole_TaskRole_Sender, carriertypespb.TaskRole_TaskRole_Receiver, errCh)
 	}
 
 	wg.Wait()
@@ -645,26 +645,26 @@ func (t *Twopc) sendCommitMsg(proposalId common.Hash, task *types.Task, option t
 	return nil
 }
 
-func verifyPartyRole(partyId string, role libtypes.TaskRole, task *types.Task) bool {
+func verifyPartyRole(partyId string, role carriertypespb.TaskRole, task *types.Task) bool {
 
 	switch role {
-	case libtypes.TaskRole_TaskRole_Sender:
+	case carriertypespb.TaskRole_TaskRole_Sender:
 		if partyId == task.GetTaskSender().GetPartyId() {
 			return true
 		}
-	case libtypes.TaskRole_TaskRole_DataSupplier:
+	case carriertypespb.TaskRole_TaskRole_DataSupplier:
 		for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
 			if partyId == dataSupplier.GetPartyId() {
 				return true
 			}
 		}
-	case libtypes.TaskRole_TaskRole_PowerSupplier:
+	case carriertypespb.TaskRole_TaskRole_PowerSupplier:
 		for _, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
 			if partyId == powerSupplier.GetPartyId() {
 				return true
 			}
 		}
-	case libtypes.TaskRole_TaskRole_Receiver:
+	case carriertypespb.TaskRole_TaskRole_Receiver:
 		for _, receiver := range task.GetTaskData().GetReceivers() {
 			if partyId == receiver.GetPartyId() {
 				return true
@@ -674,7 +674,7 @@ func verifyPartyRole(partyId string, role libtypes.TaskRole, task *types.Task) b
 	return false
 }
 
-func fetchLocalIdentityAndOriganizationFromMsg(resourceMng *resource.Manager, option *types.MsgOption, task *types.Task) (*libtypes.Organization, *libtypes.TaskOrganization, *libtypes.TaskOrganization, error) {
+func fetchLocalIdentityAndOriganizationFromMsg(resourceMng *resource.Manager, option *types.MsgOption, task *types.Task) (*carriertypespb.Organization, *carriertypespb.TaskOrganization, *carriertypespb.TaskOrganization, error) {
 	identity, err := resourceMng.GetDB().QueryIdentity()
 	if nil != err {
 		//log.WithError(err).Errorf("Failed to call `QueryIdentity()` %s, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
@@ -699,26 +699,26 @@ func fetchLocalIdentityAndOriganizationFromMsg(resourceMng *resource.Manager, op
 	return identity, sender, receiver, nil
 }
 
-func fetchOrgByPartyRole(partyId string, role libtypes.TaskRole, task *types.Task) *libtypes.TaskOrganization {
+func fetchOrgByPartyRole(partyId string, role carriertypespb.TaskRole, task *types.Task) *carriertypespb.TaskOrganization {
 
 	switch role {
-	case libtypes.TaskRole_TaskRole_Sender:
+	case carriertypespb.TaskRole_TaskRole_Sender:
 		if partyId == task.GetTaskSender().GetPartyId() {
 			return task.GetTaskSender()
 		}
-	case libtypes.TaskRole_TaskRole_DataSupplier:
+	case carriertypespb.TaskRole_TaskRole_DataSupplier:
 		for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
 			if partyId == dataSupplier.GetPartyId() {
 				return dataSupplier
 			}
 		}
-	case libtypes.TaskRole_TaskRole_PowerSupplier:
+	case carriertypespb.TaskRole_TaskRole_PowerSupplier:
 		for _, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
 			if partyId == powerSupplier.GetPartyId() {
 				return powerSupplier
 			}
 		}
-	case libtypes.TaskRole_TaskRole_Receiver:
+	case carriertypespb.TaskRole_TaskRole_Receiver:
 		for _, receiver := range task.GetTaskData().GetReceivers() {
 			if partyId == receiver.GetPartyId() {
 				return receiver
@@ -728,10 +728,10 @@ func fetchOrgByPartyRole(partyId string, role libtypes.TaskRole, task *types.Tas
 	return nil
 }
 
-func (t *Twopc) verifyPrepareVoteRoleIsTaskPartner(identityId, partyId string, role libtypes.TaskRole, task *types.Task) (bool, error) {
+func (t *Twopc) verifyPrepareVoteRoleIsTaskPartner(identityId, partyId string, role carriertypespb.TaskRole, task *types.Task) (bool, error) {
 	var find bool
 	switch role {
-	case libtypes.TaskRole_TaskRole_DataSupplier:
+	case carriertypespb.TaskRole_TaskRole_DataSupplier:
 		for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
 			// identity + partyId
 			if dataSupplier.GetIdentityId() == identityId && dataSupplier.GetPartyId() == partyId {
@@ -739,7 +739,7 @@ func (t *Twopc) verifyPrepareVoteRoleIsTaskPartner(identityId, partyId string, r
 				break
 			}
 		}
-	case libtypes.TaskRole_TaskRole_PowerSupplier:
+	case carriertypespb.TaskRole_TaskRole_PowerSupplier:
 		for _, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
 			// identity + partyId
 			if powerSupplier.GetIdentityId() == identityId && powerSupplier.GetPartyId() == partyId {
@@ -747,7 +747,7 @@ func (t *Twopc) verifyPrepareVoteRoleIsTaskPartner(identityId, partyId string, r
 				break
 			}
 		}
-	case libtypes.TaskRole_TaskRole_Receiver:
+	case carriertypespb.TaskRole_TaskRole_Receiver:
 		for _, receiver := range task.GetTaskData().GetReceivers() {
 			// identity + partyId
 			if receiver.GetIdentityId() == identityId && receiver.GetPartyId() == partyId {
@@ -762,10 +762,10 @@ func (t *Twopc) verifyPrepareVoteRoleIsTaskPartner(identityId, partyId string, r
 	}
 	return find, nil
 }
-func (t *Twopc) verifyConfirmVoteRoleIsTaskPartner(identityId, partyId string, role libtypes.TaskRole, task *types.Task) (bool, error) {
+func (t *Twopc) verifyConfirmVoteRoleIsTaskPartner(identityId, partyId string, role carriertypespb.TaskRole, task *types.Task) (bool, error) {
 	var identityValid bool
 	switch role {
-	case libtypes.TaskRole_TaskRole_DataSupplier:
+	case carriertypespb.TaskRole_TaskRole_DataSupplier:
 
 		for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
 			// identity + partyId
@@ -774,7 +774,7 @@ func (t *Twopc) verifyConfirmVoteRoleIsTaskPartner(identityId, partyId string, r
 				break
 			}
 		}
-	case libtypes.TaskRole_TaskRole_PowerSupplier:
+	case carriertypespb.TaskRole_TaskRole_PowerSupplier:
 
 		for _, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
 			// identity + partyId
@@ -783,7 +783,7 @@ func (t *Twopc) verifyConfirmVoteRoleIsTaskPartner(identityId, partyId string, r
 				break
 			}
 		}
-	case libtypes.TaskRole_TaskRole_Receiver:
+	case carriertypespb.TaskRole_TaskRole_Receiver:
 
 		for _, receiver := range task.GetTaskData().GetReceivers() {
 			// identity + partyId
@@ -843,7 +843,7 @@ func (t *Twopc) recoverCache() {
 
 			if len(key) != 0 && len(value) != 0 {
 				taskId, partyId := string(key[prefixLength:prefixLength+71]), string(key[prefixLength+71:])
-				proposalTaskPB := &libtypes.ProposalTask{}
+				proposalTaskPB := &carriertypespb.ProposalTask{}
 				if err := proto.Unmarshal(value, proposalTaskPB); err != nil {
 					t.wal.DeleteState(key)
 					return fmt.Errorf("unmarshal proposalTask failed, %s", err)
@@ -876,7 +876,7 @@ func (t *Twopc) recoverCache() {
 				// prefix + len(common.Hash) == prefix + len(proposalId)
 				proposalId := common.BytesToHash(key[prefixLength : prefixLength+32])
 
-				libOrgProposalState := &libtypes.OrgProposalState{}
+				libOrgProposalState := &carriertypespb.OrgProposalState{}
 				if err := proto.Unmarshal(value, libOrgProposalState); err != nil {
 					return fmt.Errorf("unmarshal org proposalState failed, %s", err)
 				}
@@ -914,7 +914,7 @@ func (t *Twopc) recoverCache() {
 			if len(key) != 0 && len(value) != 0 {
 				proposalId, partyId := common.BytesToHash(key[prefixLength:prefixLength+33]), string(key[prefixLength+34:])
 
-				vote := &libtypes.PrepareVote{}
+				vote := &carriertypespb.PrepareVote{}
 				if err := proto.Unmarshal(value, vote); err != nil {
 					return fmt.Errorf("unmarshal org prepareVote failed, %s", err)
 				}
@@ -962,7 +962,7 @@ func (t *Twopc) recoverCache() {
 			if len(key) != 0 && len(value) != 0 {
 				proposalId, partyId := common.BytesToHash(key[prefixLength:prefixLength+32]), string(key[prefixLength+32:])
 
-				vote := &libtypes.ConfirmVote{}
+				vote := &carriertypespb.ConfirmVote{}
 				if err := proto.Unmarshal(value, vote); err != nil {
 					return fmt.Errorf("unmarshal org confirmVote failed, %s", err)
 				}

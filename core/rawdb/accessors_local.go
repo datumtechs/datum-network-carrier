@@ -6,9 +6,9 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/common/bytesutil"
-	pb "github.com/datumtechs/datum-network-carrier/lib/api"
-	dbtype "github.com/datumtechs/datum-network-carrier/lib/db"
-	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
+	dbtype "github.com/datumtechs/datum-network-carrier/pb/carrier/db"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/gogo/protobuf/proto"
@@ -20,8 +20,8 @@ const seedNodeToKeep = 50
 const registeredNodeToKeep = 50
 
 // QueryLocalIdentity retrieves the identity of local.
-func QueryLocalIdentity(db DatabaseReader) (*libtypes.Organization, error) {
-	var blob libtypes.Organization
+func QueryLocalIdentity(db DatabaseReader) (*carriertypespb.Organization, error) {
+	var blob carriertypespb.Organization
 	enc, err := db.Get(localIdentityKey)
 	if nil != err {
 		return nil, err
@@ -33,7 +33,7 @@ func QueryLocalIdentity(db DatabaseReader) (*libtypes.Organization, error) {
 }
 
 // StoreLocalIdentity stores the local identity.
-func StoreLocalIdentity(db DatabaseWriter, identity *libtypes.Organization) error {
+func StoreLocalIdentity(db DatabaseWriter, identity *carriertypespb.Organization) error {
 	enc, err := identity.Marshal()
 	if nil != err {
 		return err
@@ -337,7 +337,7 @@ func QueryLocalResource(db DatabaseReader, jobNodeId string) (*types.LocalResour
 		log.WithError(err).Errorf("Failed to read local resource")
 		return nil, err
 	}
-	localResource := new(libtypes.LocalResourcePB)
+	localResource := new(carriertypespb.LocalResourcePB)
 	if err := localResource.Unmarshal(blob); nil != err {
 		log.WithError(err).Errorf("Failed to unmarshal local resource")
 		return nil, err
@@ -357,7 +357,7 @@ func QueryAllLocalResource(db KeyValueStore) (types.LocalResourceArray, error) {
 			if nil != err {
 				continue
 			}
-			localResource := new(libtypes.LocalResourcePB)
+			localResource := new(carriertypespb.LocalResourcePB)
 			if err := localResource.Unmarshal(blob); nil != err {
 				continue
 			}
@@ -441,7 +441,7 @@ func QueryLocalTask(db DatabaseReader, taskId string) (*types.Task, error) {
 	if nil != err {
 		return nil, err
 	}
-	task := &libtypes.TaskPB{}
+	task := &carriertypespb.TaskPB{}
 	if err := task.Unmarshal(blob); nil != err {
 		log.WithError(err).Errorf("local task decode failed")
 		return nil, err
@@ -459,7 +459,7 @@ func QueryLocalTaskByIds(db KeyValueStore, taskIds []string) (types.TaskDataArra
 			log.WithError(err).Warnf("Warning load local task failed")
 			continue
 		}
-		task := &libtypes.TaskPB{}
+		task := &carriertypespb.TaskPB{}
 		if err := task.Unmarshal(blob); nil != err {
 			log.WithError(err).Warnf("Warning local task decode failed")
 			continue
@@ -481,7 +481,7 @@ func QueryAllLocalTasks(db KeyValueStore) (types.TaskDataArray, error) {
 	arr := make(types.TaskDataArray, 0)
 	for it.Next() {
 		if blob := it.Value(); len(blob) != 0 {
-			task := &libtypes.TaskPB{}
+			task := &carriertypespb.TaskPB{}
 			if err := task.Unmarshal(blob); nil != err {
 				log.WithError(err).Warnf("Warning local task decode failed")
 				continue
@@ -497,12 +497,12 @@ func QueryAllLocalTasks(db KeyValueStore) (types.TaskDataArray, error) {
 }
 
 // QueryTaskEvent retrieves the evengine of task with the corresponding taskId for all partyIds.
-func QueryTaskEvent(db KeyValueStore, taskId string) ([]*libtypes.TaskEvent, error) {
+func QueryTaskEvent(db KeyValueStore, taskId string) ([]*carriertypespb.TaskEvent, error) {
 
 	it := db.NewIteratorWithPrefixAndStart(append(taskEventPrefix, []byte(taskId)...), nil)
 	defer it.Release()
 
-	result := make([]*libtypes.TaskEvent, 0)
+	result := make([]*carriertypespb.TaskEvent, 0)
 
 	for it.Next() {
 		if key := it.Key(); len(key) != 0 {
@@ -523,7 +523,7 @@ func QueryTaskEvent(db KeyValueStore, taskId string) ([]*libtypes.TaskEvent, err
 }
 
 // QueryTaskEventByPartyId retrieves the events of task with the corresponding taskId and partyId.
-func QueryTaskEventByPartyId(db DatabaseReader, taskId, partyId string) ([]*libtypes.TaskEvent, error) {
+func QueryTaskEventByPartyId(db DatabaseReader, taskId, partyId string) ([]*carriertypespb.TaskEvent, error) {
 
 	key := taskEventKey(taskId, partyId)
 
@@ -540,12 +540,12 @@ func QueryTaskEventByPartyId(db DatabaseReader, taskId, partyId string) ([]*libt
 }
 
 // QueryAllTaskEvents retrieves the task event with all (all taskIds and all partyIds).
-func QueryAllTaskEvents(db KeyValueStore) ([]*libtypes.TaskEvent, error) {
+func QueryAllTaskEvents(db KeyValueStore) ([]*carriertypespb.TaskEvent, error) {
 
 	it := db.NewIteratorWithPrefixAndStart(taskEventPrefix, nil)
 	defer it.Release()
 
-	result := make([]*libtypes.TaskEvent, 0)
+	result := make([]*carriertypespb.TaskEvent, 0)
 
 	for it.Next() {
 		if key := it.Key(); len(key) != 0 {
@@ -566,7 +566,7 @@ func QueryAllTaskEvents(db KeyValueStore) ([]*libtypes.TaskEvent, error) {
 }
 
 // StoreTaskEvent serializes the task evengine into the database.
-func StoreTaskEvent(db KeyValueStore, taskEvent *libtypes.TaskEvent) error {
+func StoreTaskEvent(db KeyValueStore, taskEvent *carriertypespb.TaskEvent) error {
 	key := taskEventKey(taskEvent.GetTaskId(), taskEvent.GetPartyId())
 	val, err := db.Get(key)
 	if IsNoDBNotFoundErr(err) {
@@ -636,7 +636,7 @@ func StoreNeedExecuteTask(db KeyValueStore, task *types.NeedExecuteTask) error {
 	if nil != task.GetErr() {
 		errStr = task.GetErr().Error()
 	}
-	val, err := proto.Marshal(&libtypes.NeedExecuteTask{
+	val, err := proto.Marshal(&carriertypespb.NeedExecuteTask{
 		RemotePid:              task.GetRemotePID().String(),
 		LocalTaskRole:          task.GetLocalTaskRole(),
 		LocalTaskOrganization:  task.GetLocalTaskOrganization(),
@@ -644,7 +644,7 @@ func StoreNeedExecuteTask(db KeyValueStore, task *types.NeedExecuteTask) error {
 		RemoteTaskOrganization: task.GetRemoteTaskOrganization(),
 		TaskId:                 task.GetTaskId(),
 		ConsStatus:             bytesutil.Uint16ToBytes(uint16(task.GetConsStatus())),
-		LocalResource: &libtypes.PrepareVoteResource{
+		LocalResource: &carriertypespb.PrepareVoteResource{
 			Id:      task.GetLocalResource().GetId(),
 			Ip:      task.GetLocalResource().GetIp(),
 			Port:    task.GetLocalResource().GetPort(),
@@ -756,7 +756,7 @@ func QueryLocalMetadata(db DatabaseReader, metadataId string) (*types.Metadata, 
 		log.WithError(err).Warnf("Warning query local metadata not found")
 		return nil, err
 	}
-	localMetadata := new(libtypes.MetadataPB)
+	localMetadata := new(carriertypespb.MetadataPB)
 	if err := localMetadata.Unmarshal(blob); nil != err {
 		log.WithError(err).Error("Failed to unmarshal local metadata")
 		return nil, err
@@ -776,7 +776,7 @@ func QueryAllLocalMetadata(db KeyValueStore) (types.MetadataArray, error) {
 			if nil != err {
 				continue
 			}
-			localMetadata := new(libtypes.MetadataPB)
+			localMetadata := new(carriertypespb.MetadataPB)
 			if err := localMetadata.Unmarshal(blob); nil != err {
 				continue
 			}

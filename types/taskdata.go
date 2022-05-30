@@ -3,26 +3,26 @@ package types
 import (
 	"bytes"
 	"github.com/datumtechs/datum-network-carrier/common"
-	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"io"
 	"sync/atomic"
 )
 
 type Task struct {
-	data *libtypes.TaskPB
+	data *carriertypespb.TaskPB
 
 	// caches
 	hash atomic.Value
 	size atomic.Value
 }
 
-func NewTask(data *libtypes.TaskPB) *Task {
+func NewTask(data *carriertypespb.TaskPB) *Task {
 	return &Task{data: data}
 }
 
 func (m *Task) EncodePb(w io.Writer) error {
 	if m.data == nil {
-		m.data = new(libtypes.TaskPB)
+		m.data = new(carriertypespb.TaskPB)
 	}
 	data, err := m.data.Marshal()
 	if err == nil {
@@ -51,27 +51,27 @@ func (m *Task) GetTaskId() string {
 	return m.data.GetTaskId()
 }
 
-func (m *Task) GetTaskData() *libtypes.TaskPB {
+func (m *Task) GetTaskData() *carriertypespb.TaskPB {
 	return m.data
 }
 
-func (m *Task) GetTaskSender() *libtypes.TaskOrganization {
+func (m *Task) GetTaskSender() *carriertypespb.TaskOrganization {
 	return m.data.GetSender()
 }
 
-func (m *Task) SetEventList(eventList []*libtypes.TaskEvent) {
+func (m *Task) SetEventList(eventList []*carriertypespb.TaskEvent) {
 	m.data.TaskEvents = eventList
 }
-func (m *Task) SetPowerSuppliers(arr []*libtypes.TaskOrganization) {
+func (m *Task) SetPowerSuppliers(arr []*carriertypespb.TaskOrganization) {
 	m.data.PowerSuppliers = arr
 }
-func (m *Task) SetPowerResources(arr []*libtypes.TaskPowerResourceOption) {
+func (m *Task) SetPowerResources(arr []*carriertypespb.TaskPowerResourceOption) {
 	m.data.PowerResourceOptions = arr
 }
 func (m *Task) RemovePowerSuppliers() {
-	m.data.PowerSuppliers = make([]*libtypes.TaskOrganization, 0)
+	m.data.PowerSuppliers = make([]*carriertypespb.TaskOrganization, 0)
 }
-func (m *Task) SetReceivers(arr []*libtypes.TaskOrganization) {
+func (m *Task) SetReceivers(arr []*carriertypespb.TaskOrganization) {
 	m.data.Receivers = arr
 }
 
@@ -90,7 +90,7 @@ func (s TaskDataArray) GetPb(i int) []byte {
 	return buffer.Bytes()
 }
 
-func NewTaskDataArray(metaData []*libtypes.TaskPB) TaskDataArray {
+func NewTaskDataArray(metaData []*carriertypespb.TaskPB) TaskDataArray {
 	var s TaskDataArray
 	for _, v := range metaData {
 		s = append(s, NewTask(v))
@@ -98,8 +98,8 @@ func NewTaskDataArray(metaData []*libtypes.TaskPB) TaskDataArray {
 	return s
 }
 
-func (s TaskDataArray) To() []*libtypes.TaskPB {
-	arr := make([]*libtypes.TaskPB, 0, s.Len())
+func (s TaskDataArray) To() []*carriertypespb.TaskPB {
+	arr := make([]*carriertypespb.TaskPB, 0, s.Len())
 	for _, v := range s {
 		arr = append(arr, v.data)
 	}

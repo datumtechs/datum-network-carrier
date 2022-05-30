@@ -1,8 +1,8 @@
 package iface
 
 import (
-	libapipb "github.com/datumtechs/datum-network-carrier/lib/api"
-	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	libapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/types"
 )
 
@@ -45,10 +45,10 @@ type LocalStoreCarrierDB interface {
 	RemoveDataResourceDiskUsed(metaDataId string) error
 	QueryDataResourceDiskUsed(metaDataId string) (*types.DataResourceDiskUsed, error)
 	// v 0.2.0  about user metadataAuthUsed by metadataId (userType + user + metadataId -> metadataAuthId)
-	StoreUserMetadataAuthIdByMetadataId(userType libtypes.UserType, user, metadataId, metadataAuthId string) error
-	QueryUserMetadataAuthIdByMetadataId(userType libtypes.UserType, user, metadataId string) (string, error)
-	HasUserMetadataAuthIdByMetadataId(userType libtypes.UserType, user, metadataId string) (bool, error)
-	RemoveUserMetadataAuthIdByMetadataId(userType libtypes.UserType, user, metadataId string) error
+	StoreUserMetadataAuthIdByMetadataId(userType carriertypespb.UserType, user, metadataId, metadataAuthId string) error
+	QueryUserMetadataAuthIdByMetadataId(userType carriertypespb.UserType, user, metadataId string) (string, error)
+	HasUserMetadataAuthIdByMetadataId(userType carriertypespb.UserType, user, metadataId string) (bool, error)
+	RemoveUserMetadataAuthIdByMetadataId(userType carriertypespb.UserType, user, metadataId string) error
 	// v 0.2.0 about metadata used taskId    (metadataId -> [taskId, taskId, ..., taskId])
 	StoreMetadataHistoryTaskId(metadataId, taskId string) error
 	HasMetadataHistoryTaskId(metadataId, taskId string) (bool, error)
@@ -111,11 +111,11 @@ type IdentityCarrierDB interface {
 	QueryIdentityList(lastUpdate, pageSize uint64) (types.IdentityArray, error)
 	//QueryIdentityListByIds(identityIds []string) (types.IdentityArray, error)
 	// about local identity
-	HasIdentity(identity *libtypes.Organization) (bool, error)
-	StoreIdentity(identity *libtypes.Organization) error
+	HasIdentity(identity *carriertypespb.Organization) (bool, error)
+	StoreIdentity(identity *carriertypespb.Organization) error
 	RemoveIdentity() error
 	QueryIdentityId() (string, error)
-	QueryIdentity() (*libtypes.Organization, error)
+	QueryIdentity() (*carriertypespb.Organization, error)
 }
 
 type MetadataAuthorityCarrierDB interface {
@@ -140,9 +140,9 @@ type TaskCarrierDB interface {
 	QueryLocalTaskAndEventsListByIds(taskIds []string) (types.TaskDataArray, error)
 	QueryLocalTaskAndEventsList() (types.TaskDataArray, error)
 	// about local task event
-	StoreTaskEvent(event *libtypes.TaskEvent) error
-	QueryTaskEventList(taskId string) ([]*libtypes.TaskEvent, error)
-	QueryTaskEventListByPartyId(taskId, partyId string) ([]*libtypes.TaskEvent, error)
+	StoreTaskEvent(event *carriertypespb.TaskEvent) error
+	QueryTaskEventList(taskId string) ([]*carriertypespb.TaskEvent, error)
+	QueryTaskEventListByPartyId(taskId, partyId string) ([]*carriertypespb.TaskEvent, error)
 	RemoveTaskEventList(taskId string) error
 	RemoveTaskEventListByPartyId(taskId, partyId string) error
 	// about global task on datacenter
@@ -150,8 +150,8 @@ type TaskCarrierDB interface {
 	QueryGlobalTaskList(lastUpdate, pageSize uint64) (types.TaskDataArray, error)
 	QueryTaskListByIdentityId(identityId string, lastUpdate, pageSize uint64) (types.TaskDataArray, error)
 	QueryTaskListByTaskIds(taskIds []string) (types.TaskDataArray, error)
-	QueryTaskEventListByTaskId(taskId string) ([]*libtypes.TaskEvent, error)
-	QueryTaskEventListByTaskIds(taskIds []string) ([]*libtypes.TaskEvent, error)
+	QueryTaskEventListByTaskId(taskId string) ([]*carriertypespb.TaskEvent, error)
+	QueryTaskEventListByTaskIds(taskIds []string) ([]*carriertypespb.TaskEvent, error)
 	// v 1.0 about TaskPowerUsed  (prefix + taskId + partyId -> {taskId, partId, jobNodeId, slotCount})
 	StoreLocalTaskPowerUsed(taskPowerUsed *types.LocalTaskPowerUsed) error
 	StoreLocalTaskPowerUseds(taskPowerUseds []*types.LocalTaskPowerUsed) error

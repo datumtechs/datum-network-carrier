@@ -1,7 +1,7 @@
 package p2p
 
 import (
-	libp2ppb "github.com/datumtechs/datum-network-carrier/lib/p2p/v1"
+	libp2ppb "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

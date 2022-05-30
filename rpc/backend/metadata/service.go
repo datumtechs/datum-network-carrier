@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
-	pb "github.com/datumtechs/datum-network-carrier/lib/api"
-	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/rpc/backend"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -95,16 +95,16 @@ func (svr *Server) PublishMetadata(ctx context.Context, req *pb.PublishMetadataR
 	}, nil
 }
 
-func (svr *Server) RevokeMetadata(ctx context.Context, req *pb.RevokeMetadataRequest) (*libtypes.SimpleResponse, error) {
+func (svr *Server) RevokeMetadata(ctx context.Context, req *pb.RevokeMetadataRequest) (*carriertypespb.SimpleResponse, error) {
 
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:RevokeMetadata failed, query local identity failed, can not revoke metadata")
-		return &libtypes.SimpleResponse{Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
+		return &carriertypespb.SimpleResponse{Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
 	}
 
 	if "" == strings.Trim(req.GetMetadataId(), "") {
-		return &libtypes.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require metadataId"}, nil
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require metadataId"}, nil
 	}
 
 	metadataRevokeMsg := types.NewMetadataRevokeMessageFromRequest(req)
@@ -113,10 +113,10 @@ func (svr *Server) RevokeMetadata(ctx context.Context, req *pb.RevokeMetadataReq
 		log.WithError(err).Error("RPC-API:RevokeMetadata failed")
 
 		errMsg := fmt.Sprintf("%s, metadataId: {%s}", backend.ErrRevokeMetadataMsg.Error(), req.GetMetadataId())
-		return &libtypes.SimpleResponse{Status: backend.ErrRevokeMetadataMsg.ErrCode(), Msg: errMsg}, nil
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRevokeMetadataMsg.ErrCode(), Msg: errMsg}, nil
 	}
 	log.Debugf("RPC-API:RevokeMetadata succeed, metadataId: {%s}", req.GetMetadataId())
-	return &libtypes.SimpleResponse{
+	return &carriertypespb.SimpleResponse{
 		Status: 0,
 		Msg:    backend.OK,
 	}, nil
@@ -140,19 +140,19 @@ func (svr *Server) GetMetadataUsedTaskIdList(ctx context.Context, req *pb.GetMet
 	}, nil
 }
 
-func (svr *Server) BindDataTokenAddress(ctx context.Context, req *pb.BindDataTokenAddressRequest) (*libtypes.SimpleResponse, error) {
+func (svr *Server) BindDataTokenAddress(ctx context.Context, req *pb.BindDataTokenAddressRequest) (*carriertypespb.SimpleResponse, error) {
 
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:BindDataTokenAddress failed, query local identity failed, can not publish metadata")
-		return &libtypes.SimpleResponse{Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
+		return &carriertypespb.SimpleResponse{Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
 	}
 
 	if "" == strings.Trim(req.GetMetadataId(), "") {
-		return &libtypes.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require metadataId"}, nil
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require metadataId"}, nil
 	}
 	if "" == strings.Trim(req.GetTokenAddress(), "") {
-		return &libtypes.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require dataToken address"}, nil
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require dataToken address"}, nil
 	}
 
 	metadataId := strings.Trim(req.GetMetadataId(), "")
@@ -162,35 +162,35 @@ func (svr *Server) BindDataTokenAddress(ctx context.Context, req *pb.BindDataTok
 	metadata, err = svr.B.GetInternalMetadataDetail(metadataId)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:BindDataTokenAddress failed, check is internal metadata failed, metadataId: {%s}, dataTokenAddress: {%s}", req.GetMetadataId(), req.GetTokenAddress())
-		return &libtypes.SimpleResponse{Status: backend.ErrBindDataTokenAddress.ErrCode(), Msg: fmt.Sprintf("%s, check is internal metadata failed", backend.ErrBindDataTokenAddress.Error())}, nil
+		return &carriertypespb.SimpleResponse{Status: backend.ErrBindDataTokenAddress.ErrCode(), Msg: fmt.Sprintf("%s, check is internal metadata failed", backend.ErrBindDataTokenAddress.Error())}, nil
 	}
 	if nil != metadata {
 		log.Errorf("RPC-API:BindDataTokenAddress failed, internal metadata be not able to bind datatoken address, metadataId: {%s}, dataTokenAddress: {%s}", req.GetMetadataId(), req.GetTokenAddress())
-		return &libtypes.SimpleResponse{Status: backend.ErrBindDataTokenAddress.ErrCode(), Msg: fmt.Sprintf("%s, internal metadata be not able to bind datatoken address", backend.ErrBindDataTokenAddress.Error())}, nil
+		return &carriertypespb.SimpleResponse{Status: backend.ErrBindDataTokenAddress.ErrCode(), Msg: fmt.Sprintf("%s, internal metadata be not able to bind datatoken address", backend.ErrBindDataTokenAddress.Error())}, nil
 	}
 
 	metadata, err = svr.B.GetMetadataDetail(metadataId)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:BindDataTokenAddress failed, query metadata failed, metadataId: {%s}, dataTokenAddress: {%s}", req.GetMetadataId(), req.GetTokenAddress())
-		return &libtypes.SimpleResponse{Status: backend.ErrBindDataTokenAddress.ErrCode(), Msg: fmt.Sprintf("%s, query metadata failed", backend.ErrBindDataTokenAddress.Error())}, nil
+		return &carriertypespb.SimpleResponse{Status: backend.ErrBindDataTokenAddress.ErrCode(), Msg: fmt.Sprintf("%s, query metadata failed", backend.ErrBindDataTokenAddress.Error())}, nil
 	}
 	if nil == metadata {
 		log.Errorf("RPC-API:BindDataTokenAddress failed, not found metadata")
-		return &libtypes.SimpleResponse{Status: backend.ErrBindDataTokenAddress.ErrCode(), Msg: fmt.Sprintf("%s, not found metadata", backend.ErrBindDataTokenAddress.Error())}, nil
+		return &carriertypespb.SimpleResponse{Status: backend.ErrBindDataTokenAddress.ErrCode(), Msg: fmt.Sprintf("%s, not found metadata", backend.ErrBindDataTokenAddress.Error())}, nil
 	}
 	if "" != metadata.GetData().GetTokenAddress() {
 		log.Errorf("RPC-API:BindDataTokenAddress failed, the metadata had tokenAddress already")
-		return &libtypes.SimpleResponse{Status: backend.ErrBindDataTokenAddress.ErrCode(), Msg: fmt.Sprintf("%s, the metadata had tokenAddress already", backend.ErrBindDataTokenAddress.Error())}, nil
+		return &carriertypespb.SimpleResponse{Status: backend.ErrBindDataTokenAddress.ErrCode(), Msg: fmt.Sprintf("%s, the metadata had tokenAddress already", backend.ErrBindDataTokenAddress.Error())}, nil
 
 	}
 
 	metadata.GetData().TokenAddress = strings.Trim(req.GetTokenAddress(), "")
 	if err := svr.B.UpdateGlobalMetadata(metadata); nil != err {
 		log.WithError(err).Errorf("RPC-API:BindDataTokenAddress failed, update global metadata failed, metadataId: {%s}, dataTokenAddress: {%s}", req.GetMetadataId(), req.GetTokenAddress())
-		return &libtypes.SimpleResponse{Status: backend.ErrBindDataTokenAddress.ErrCode(), Msg: fmt.Sprintf("%s, update global metadata failed", backend.ErrBindDataTokenAddress.Error())}, nil
+		return &carriertypespb.SimpleResponse{Status: backend.ErrBindDataTokenAddress.ErrCode(), Msg: fmt.Sprintf("%s, update global metadata failed", backend.ErrBindDataTokenAddress.Error())}, nil
 	}
 	log.Debugf("RPC-API:BindDataTokenAddress succeed, metadataId: {%s}, dataTokenAddress: {%s}", req.GetMetadataId(), req.GetTokenAddress())
-	return &libtypes.SimpleResponse{
+	return &carriertypespb.SimpleResponse{
 		Status: 0,
 		Msg:    backend.OK,
 	}, nil
@@ -213,17 +213,17 @@ func (svr *Server) PublishMetadataByInteranlMetadata(ctx context.Context, req *p
 	if "" == strings.Trim(req.GetInformation().GetMetadataName(), "") {
 		return &pb.PublishMetadataResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require metadataName"}, nil
 	}
-	if req.GetInformation().GetMetadataType() == libtypes.MetadataType_MetadataType_Unknown {
+	if req.GetInformation().GetMetadataType() == carriertypespb.MetadataType_MetadataType_Unknown {
 		return &pb.PublishMetadataResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown metadataType"}, nil
 	}
 	// DataHash
 	if "" == strings.Trim(req.GetInformation().GetDesc(), "") {
 		return &pb.PublishMetadataResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require desc"}, nil
 	}
-	if req.GetInformation().GetLocationType() == libtypes.DataLocationType_DataLocationType_Unknown {
+	if req.GetInformation().GetLocationType() == carriertypespb.DataLocationType_DataLocationType_Unknown {
 		return &pb.PublishMetadataResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown locationType"}, nil
 	}
-	if req.GetInformation().GetDataType() == libtypes.OrigindataType_OrigindataType_Unknown {
+	if req.GetInformation().GetDataType() == carriertypespb.OrigindataType_OrigindataType_Unknown {
 		return &pb.PublishMetadataResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown dataType"}, nil
 	}
 	if "" == strings.Trim(req.GetInformation().GetIndustry(), "") {
@@ -249,7 +249,7 @@ func (svr *Server) PublishMetadataByInteranlMetadata(ctx context.Context, req *p
 
 	// build metadata msg
 	metadataMsg := &types.MetadataMsg{
-		MetadataSummary: &libtypes.MetadataSummary{
+		MetadataSummary: &carriertypespb.MetadataSummary{
 			/**
 			MetadataId           string
 			MetadataName         string
@@ -320,17 +320,17 @@ func (svr *Server) PublishMetadataByTaskResultFile(ctx context.Context, req *pb.
 	if "" == strings.Trim(req.GetInformation().GetMetadataName(), "") {
 		return &pb.PublishMetadataResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require metadataName"}, nil
 	}
-	if req.GetInformation().GetMetadataType() == libtypes.MetadataType_MetadataType_Unknown {
+	if req.GetInformation().GetMetadataType() == carriertypespb.MetadataType_MetadataType_Unknown {
 		return &pb.PublishMetadataResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown metadataType"}, nil
 	}
 	// DataHash
 	if "" == strings.Trim(req.GetInformation().GetDesc(), "") {
 		return &pb.PublishMetadataResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require desc"}, nil
 	}
-	if req.GetInformation().GetLocationType() == libtypes.DataLocationType_DataLocationType_Unknown {
+	if req.GetInformation().GetLocationType() == carriertypespb.DataLocationType_DataLocationType_Unknown {
 		return &pb.PublishMetadataResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown locationType"}, nil
 	}
-	if req.GetInformation().GetDataType() == libtypes.OrigindataType_OrigindataType_Unknown {
+	if req.GetInformation().GetDataType() == carriertypespb.OrigindataType_OrigindataType_Unknown {
 		return &pb.PublishMetadataResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown dataType"}, nil
 	}
 	if "" == strings.Trim(req.GetInformation().GetIndustry(), "") {
@@ -363,7 +363,7 @@ func (svr *Server) PublishMetadataByTaskResultFile(ctx context.Context, req *pb.
 
 	// build metadata msg
 	metadataMsg := &types.MetadataMsg{
-		MetadataSummary: &libtypes.MetadataSummary{
+		MetadataSummary: &carriertypespb.MetadataSummary{
 			/**
 			MetadataId           string
 			MetadataName         string

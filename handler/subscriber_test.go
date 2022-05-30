@@ -3,7 +3,7 @@ package handler
 import (
 	"context"
 	"github.com/datumtechs/datum-network-carrier/common/abool"
-	libp2ppb "github.com/datumtechs/datum-network-carrier/lib/rpc/debug/v1"
+	libp2ppb "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
 	"github.com/datumtechs/datum-network-carrier/p2p"
 	p2ptest "github.com/datumtechs/datum-network-carrier/p2p/testing"
 	"github.com/gogo/protobuf/proto"

@@ -3,7 +3,7 @@ package handler
 import (
 	"context"
 	"github.com/datumtechs/datum-network-carrier/common/traceutil"
-	librpcpb "github.com/datumtechs/datum-network-carrier/lib/rpc/debug/v1"
+	librpcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
 	"github.com/libp2p/go-libp2p-core/peer"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	"go.opencensus.io/trace"

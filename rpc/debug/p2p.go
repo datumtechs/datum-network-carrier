@@ -2,7 +2,7 @@ package debug
 
 import (
 	context "context"
-	rpcpb "github.com/datumtechs/datum-network-carrier/lib/rpc/debug/v1"
+	rpcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
 	"github.com/datumtechs/datum-network-carrier/p2p"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/libp2p/go-libp2p-core/network"

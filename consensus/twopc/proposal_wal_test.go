@@ -8,8 +8,8 @@ import (
 	"github.com/datumtechs/datum-network-carrier/common/rlputil"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
 	ctypes "github.com/datumtechs/datum-network-carrier/consensus/twopc/types"
-	twopcpb "github.com/datumtechs/datum-network-carrier/lib/netmsg/consensus/twopc"
-	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	twopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/gogo/protobuf/proto"
 	"gotest.tools/assert"
@@ -70,13 +70,13 @@ func TestUpdateOrgProposalState(t *testing.T) {
 			generateProposalId(),
 			"TASK001",
 			3,
-			&libtypes.TaskOrganization{
+			&carriertypespb.TaskOrganization{
 				PartyId:    value + "",
 				NodeName:   value + "NodeName",
 				NodeId:     value + "NodeId",
 				IdentityId: value + "IdentityId",
 			},
-			&libtypes.TaskOrganization{
+			&carriertypespb.TaskOrganization{
 				PartyId:    value + "P2",
 				NodeName:   value + "NodeName",
 				NodeId:     value + "NodeId",
@@ -127,7 +127,7 @@ func TestUpdatePrepareVotes(t *testing.T) {
 				SenderPartyId:   value + "",
 				ReceiverRole:    2,
 				ReceiverPartyId: "P2",
-				Owner: &libtypes.TaskOrganization{
+				Owner: &carriertypespb.TaskOrganization{
 					PartyId:    "P1",
 					NodeName:   "NodeName",
 					NodeId:     "NodeId",
@@ -159,7 +159,7 @@ func TestUpdateConfirmVotes(t *testing.T) {
 				SenderPartyId:   value + "",
 				ReceiverRole:    2,
 				ReceiverPartyId: "P2",
-				Owner: &libtypes.TaskOrganization{
+				Owner: &carriertypespb.TaskOrganization{
 					PartyId:    "P1",
 					NodeName:   "NodeName",
 					NodeId:     "NodeId",
@@ -210,7 +210,7 @@ func TestRecoveryState(t *testing.T) {
 			if len(key) != 0 && len(value) != 0 {
 				proposalId := common.BytesToHash(key[prefixLength : prefixLength+32])
 
-				libOrgProposalState := &libtypes.OrgProposalState{}
+				libOrgProposalState := &carriertypespb.OrgProposalState{}
 				if err := proto.Unmarshal(value, libOrgProposalState); err != nil {
 					return fmt.Errorf("unmarshal org proposalState failed, %s", err)
 				}

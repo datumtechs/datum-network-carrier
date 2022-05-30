@@ -6,8 +6,8 @@ import (
 	"github.com/datumtechs/datum-network-carrier/core/rawdb"
 	"github.com/datumtechs/datum-network-carrier/db"
 	"github.com/datumtechs/datum-network-carrier/event"
-	pb "github.com/datumtechs/datum-network-carrier/lib/api"
-	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/types"
 	lru "github.com/hashicorp/golang-lru"
 	"sync"
@@ -110,9 +110,9 @@ func (dc *DataChain) GetBodyPb(hash common.Hash) []byte {
 }
 
 // GetBody retrieves a block body (metadata/resource/identity/task) from database by hash, caching it if found.
-func (dc *DataChain) GetBody(hash common.Hash) *libtypes.BodyData {
+func (dc *DataChain) GetBody(hash common.Hash) *carriertypespb.BodyData {
 	if cached, ok := dc.bodyCache.Get(hash); ok {
-		body := cached.(*libtypes.BodyData)
+		body := cached.(*carriertypespb.BodyData)
 		return body
 	}
 	number := rawdb.ReadHeaderNumber(dc.db, hash)
@@ -170,13 +170,13 @@ func (dc *DataChain) InsertData(blocks types.Blocks) (int, error) {
 }
 
 // TODO 本地存储event事件
-func (dc *DataChain) StoreTaskEvent(event *libtypes.TaskEvent) error {
+func (dc *DataChain) StoreTaskEvent(event *carriertypespb.TaskEvent) error {
 	// todo:
 	return nil
 }
 
 // TODO 本地存储当前调度服务自身的  identity
-func (dc *DataChain) StoreIdentity(identity *libtypes.Organization) error {return nil}
+func (dc *DataChain) StoreIdentity(identity *carriertypespb.Organization) error {return nil}
 func (dc *DataChain) DelIdentity() error                                     {return nil}
 
 func (dc *DataChain) GetYarnName() (string, error) {
@@ -189,7 +189,7 @@ func (dc *DataChain) GetIdentityId() (string, error) {
 	return "", nil
 }
 
-func (dc *DataChain) GetIdentity() (*libtypes.Organization, error) {
+func (dc *DataChain) GetIdentity() (*carriertypespb.Organization, error) {
 	// todo: implements by datacenter
 	return nil, nil
 }

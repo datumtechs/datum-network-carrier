@@ -6,8 +6,8 @@ import (
 	"github.com/datumtechs/datum-network-carrier/core/rawdb"
 	"github.com/datumtechs/datum-network-carrier/db"
 	"github.com/datumtechs/datum-network-carrier/grpclient"
-	pb "github.com/datumtechs/datum-network-carrier/lib/api"
-	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/sirupsen/logrus"
 	"sync"
@@ -245,25 +245,25 @@ func (dc *DataCenter) QueryDataResourceDiskUsed(metadataId string) (*types.DataR
 	return rawdb.QueryDataResourceDiskUsed(dc.db, metadataId)
 }
 
-func (dc *DataCenter) StoreUserMetadataAuthIdByMetadataId (userType libtypes.UserType, user, metadataId, metadataAuthId string) error {
+func (dc *DataCenter) StoreUserMetadataAuthIdByMetadataId (userType carriertypespb.UserType, user, metadataId, metadataAuthId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.StoreUserMetadataAuthIdByMetadataId(dc.db, userType, user, metadataId, metadataAuthId)
 }
 
-func (dc *DataCenter) QueryUserMetadataAuthIdByMetadataId (userType libtypes.UserType, user, metadataId string) (string, error) {
+func (dc *DataCenter) QueryUserMetadataAuthIdByMetadataId (userType carriertypespb.UserType, user, metadataId string) (string, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.QueryUserMetadataAuthIdByMetadataId(dc.db, userType, user, metadataId)
 }
 
-func (dc *DataCenter) HasUserMetadataAuthIdByMetadataId (userType libtypes.UserType, user, metadataId string) (bool, error) {
+func (dc *DataCenter) HasUserMetadataAuthIdByMetadataId (userType carriertypespb.UserType, user, metadataId string) (bool, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.HasUserMetadataAuthIdByMetadataId(dc.db, userType, user, metadataId)
 }
 
-func (dc *DataCenter) RemoveUserMetadataAuthIdByMetadataId (userType libtypes.UserType, user, metadataId string) error {
+func (dc *DataCenter) RemoveUserMetadataAuthIdByMetadataId (userType carriertypespb.UserType, user, metadataId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.RemoveUserMetadataAuthIdByMetadataId(dc.db, userType, user, metadataId)

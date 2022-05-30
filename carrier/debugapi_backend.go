@@ -2,7 +2,7 @@ package carrier
 
 import (
 	"github.com/datumtechs/datum-network-carrier/consensus/twopc"
-	rpcpb "github.com/datumtechs/datum-network-carrier/lib/rpc/debug/v1"
+	rpcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
 )
 
 // CarrierDebugAPIBackend implements rpc.Backend for Carrier

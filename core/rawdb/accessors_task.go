@@ -4,7 +4,7 @@ package rawdb
 
 import (
 	"github.com/datumtechs/datum-network-carrier/common"
-	dbtype "github.com/datumtechs/datum-network-carrier/lib/db"
+	dbtype "github.com/datumtechs/datum-network-carrier/pb/carrier/db"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/sirupsen/logrus"
 	"strings"

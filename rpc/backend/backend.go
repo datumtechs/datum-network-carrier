@@ -1,8 +1,9 @@
 package backend
 
 import (
-	pb "github.com/datumtechs/datum-network-carrier/lib/api"
-	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"math/big"
 )
@@ -14,20 +15,20 @@ type Backend interface {
 	SendMsg(msg types.Msg) error
 
 	// system (the yarn node self info)
-	GetNodeInfo() (*pb.YarnNodeInfo, error)
+	GetNodeInfo() (*carrierapipb.YarnNodeInfo, error)
 
 	// local node resource api
 
-	SetSeedNode(seed *pb.SeedPeer) (pb.ConnState, error)
+	SetSeedNode(seed *carrierapipb.SeedPeer) (carrierapipb.ConnState, error)
 	DeleteSeedNode(addr string) error
-	GetSeedNodeList() ([]*pb.SeedPeer, error)
-	SetRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRegisteredPeerDetail) (pb.ConnState, error)
-	UpdateRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRegisteredPeerDetail) (pb.ConnState, error)
-	DeleteRegisterNode(typ pb.RegisteredNodeType, id string) error
-	GetRegisterNode(typ pb.RegisteredNodeType, id string) (*pb.YarnRegisteredPeerDetail, error)
-	GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*pb.YarnRegisteredPeerDetail, error)
+	GetSeedNodeList() ([]*carrierapipb.SeedPeer, error)
+	SetRegisterNode(typ carrierapipb.RegisteredNodeType, node *carrierapipb.YarnRegisteredPeerDetail) (carrierapipb.ConnState, error)
+	UpdateRegisterNode(typ carrierapipb.RegisteredNodeType, node *carrierapipb.YarnRegisteredPeerDetail) (carrierapipb.ConnState, error)
+	DeleteRegisterNode(typ carrierapipb.RegisteredNodeType, id string) error
+	GetRegisterNode(typ carrierapipb.RegisteredNodeType, id string) (*carrierapipb.YarnRegisteredPeerDetail, error)
+	GetRegisterNodeList(typ carrierapipb.RegisteredNodeType) ([]*carrierapipb.YarnRegisteredPeerDetail, error)
 
-	SendTaskEvent(event *libtypes.TaskEvent) error
+	SendTaskEvent(event *carriertypespb.TaskEvent) error
 
 	// v 2.0
 	ReportTaskResourceUsage(nodeType pb.NodeType, ip, port string, usage *types.TaskResuorceUsage) error
@@ -47,10 +48,10 @@ type Backend interface {
 	UpdateGlobalMetadata(metadata *types.Metadata) error // add by v 0.4.0
 
 	// metadataAuthority api
-	AuditMetadataAuthority(audit *types.MetadataAuthAudit) (libtypes.AuditMetadataOption, error)
+	AuditMetadataAuthority(audit *types.MetadataAuthAudit) (carriertypespb.AuditMetadataOption, error)
 	GetLocalMetadataAuthorityList(lastUpdate, pageSize uint64) (types.MetadataAuthArray, error)
 	GetGlobalMetadataAuthorityList(lastUpdate, pageSize uint64) (types.MetadataAuthArray, error)
-	HasValidMetadataAuth(userType libtypes.UserType, user, identityId, metadataId string) (bool, error)
+	HasValidMetadataAuth(userType carriertypespb.UserType, user, identityId, metadataId string) (bool, error)
 
 	// power api
 	GetGlobalPowerSummaryList() ([]*pb.GetGlobalPowerSummary, error)
@@ -63,12 +64,12 @@ type Backend interface {
 	GetIdentityList(lastUpdate, pageSize uint64) ([]*types.Identity, error)
 
 	// task api
-	GetLocalTask(taskId string) (*libtypes.TaskDetail, error)
-	GetLocalTaskDetailList(lastUpdate, pageSize uint64) ([]*libtypes.TaskDetail, error)
-	GetGlobalTaskDetailList(lastUpdate, pageSize uint64) ([]*libtypes.TaskDetail, error)
-	GetTaskDetailListByTaskIds(taskIds []string) ([]*libtypes.TaskDetail, error) // v3.0
-	GetTaskEventList(taskId string) ([]*libtypes.TaskEvent, error)
-	GetTaskEventListByTaskIds(taskIds []string) ([]*libtypes.TaskEvent, error)
+	GetLocalTask(taskId string) (*carriertypespb.TaskDetail, error)
+	GetLocalTaskDetailList(lastUpdate, pageSize uint64) ([]*carriertypespb.TaskDetail, error)
+	GetGlobalTaskDetailList(lastUpdate, pageSize uint64) ([]*carriertypespb.TaskDetail, error)
+	GetTaskDetailListByTaskIds(taskIds []string) ([]*carriertypespb.TaskDetail, error) // v3.0
+	GetTaskEventList(taskId string) ([]*carriertypespb.TaskEvent, error)
+	GetTaskEventListByTaskIds(taskIds []string) ([]*carriertypespb.TaskEvent, error)
 	HasLocalTask() (bool, error)
 
 	// about jobResource
@@ -89,7 +90,7 @@ type Backend interface {
 	QueryDataResourceFileUploads() ([]*types.DataResourceFileUpload, error)
 
 	// about task result file
-	StoreTaskResultFileSummary(taskId, originId, dataHash, metadataOption, dataNodeId, extra string, dataType libtypes.OrigindataType) error
+	StoreTaskResultFileSummary(taskId, originId, dataHash, metadataOption, dataNodeId, extra string, dataType carriertypespb.OrigindataType) error
 	QueryTaskResultFileSummary(taskId string) (*types.TaskResultFileSummary, error)
 	QueryTaskResultFileSummaryList() (types.TaskResultFileSummaryArr, error)
 

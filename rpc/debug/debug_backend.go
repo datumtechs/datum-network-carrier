@@ -1,6 +1,6 @@
 package debug
 
-import rpcpb "github.com/datumtechs/datum-network-carrier/lib/rpc/debug/v1"
+import rpcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
 
 type TwopcBackend interface {
 	// 2pc consensus debug

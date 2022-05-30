@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/common"
 	"github.com/datumtechs/datum-network-carrier/common/hashutil"
-	twopcpb "github.com/datumtechs/datum-network-carrier/lib/netmsg/consensus/twopc"
-	taskmngpb "github.com/datumtechs/datum-network-carrier/lib/netmsg/taskmng"
+	twopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
+	taskmngpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/taskmng"
 
-	rpcpb "github.com/datumtechs/datum-network-carrier/lib/rpc/debug/v1"
+	rpcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
 	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/peer"
 )

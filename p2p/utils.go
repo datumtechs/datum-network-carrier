@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/common/fileutil"
 	"github.com/datumtechs/datum-network-carrier/common/iputils"
-	pbp2p "github.com/datumtechs/datum-network-carrier/lib/p2p/v1"
+	pbp2p "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
 	gcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/p2p/enode"
 	"github.com/ethereum/go-ethereum/p2p/enr"

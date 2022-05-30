@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/core/rawdb"
-	pb "github.com/datumtechs/datum-network-carrier/lib/api"
-	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/rpc/backend"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -132,19 +132,19 @@ func (svr *Server) PublishPower(ctx context.Context, req *pb.PublishPowerRequest
 	}, nil
 }
 
-func (svr *Server) RevokePower(ctx context.Context, req *pb.RevokePowerRequest) (*libtypes.SimpleResponse, error) {
+func (svr *Server) RevokePower(ctx context.Context, req *pb.RevokePowerRequest) (*carriertypespb.SimpleResponse, error) {
 
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:RevokePower failed, query local identity failed, can not revoke power")
-		return &libtypes.SimpleResponse{ Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
+		return &carriertypespb.SimpleResponse{ Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
 	}
 
 	if nil == req {
-		return &libtypes.SimpleResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: backend.ErrRequireParams.Error()}, nil
+		return &carriertypespb.SimpleResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: backend.ErrRequireParams.Error()}, nil
 	}
 	if "" == strings.Trim(req.GetPowerId(), "") {
-		return &libtypes.SimpleResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "require powerId"}, nil
+		return &carriertypespb.SimpleResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "require powerId"}, nil
 	}
 
 	// First check whether there is a task being executed on jobNode
@@ -152,12 +152,12 @@ func (svr *Server) RevokePower(ctx context.Context, req *pb.RevokePowerRequest) 
 	if rawdb.IsNoDBNotFoundErr(err) {
 		log.WithError(err).Errorf("RPC-API:RevokePower failed, query local running taskIdList failed, powerId: {%s}", req.GetPowerId())
 		errMsg := fmt.Sprintf("query local running taskIdList failed, powerId:{%s}", req.GetPowerId())
-		return &libtypes.SimpleResponse{ Status: backend.ErrRevokePowerMsg.ErrCode(), Msg: errMsg}, nil
+		return &carriertypespb.SimpleResponse{ Status: backend.ErrRevokePowerMsg.ErrCode(), Msg: errMsg}, nil
 	}
 	if len(taskIdList) > 0 {
 		log.WithError(err).Errorf("RPC-API:RevokePower failed, the old jobNode have been running {%d} task current, don't revoke it, powerId: {%s}", len(taskIdList), req.GetPowerId())
 		errMsg := fmt.Sprintf("the old jobNode have been running {%d} task current, don't revoke it, powerId: {%s}", len(taskIdList), req.GetPowerId())
-		return &libtypes.SimpleResponse{ Status: backend.ErrRevokePowerMsg.ErrCode(), Msg: errMsg}, nil
+		return &carriertypespb.SimpleResponse{ Status: backend.ErrRevokePowerMsg.ErrCode(), Msg: errMsg}, nil
 	}
 
 	powerRevokeMsg := types.NewPowerRevokeMessageFromRequest(req)
@@ -165,10 +165,10 @@ func (svr *Server) RevokePower(ctx context.Context, req *pb.RevokePowerRequest) 
 	if err = svr.B.SendMsg(powerRevokeMsg); nil != err {
 		log.WithError(err).Errorf("RPC-API:RevokePower failed, powerId: {%s}", req.GetPowerId())
 		errMsg := fmt.Sprintf("%s, powerId:{%s}", backend.ErrRevokePowerMsg.Error(), req.GetPowerId())
-		return &libtypes.SimpleResponse{ Status: backend.ErrRevokePowerMsg.ErrCode(), Msg: errMsg}, nil
+		return &carriertypespb.SimpleResponse{ Status: backend.ErrRevokePowerMsg.ErrCode(), Msg: errMsg}, nil
 	}
 	log.Debugf("RPC-API:RevokePower succeed, powerId: {%s}", req.GetPowerId())
-	return &libtypes.SimpleResponse{
+	return &carriertypespb.SimpleResponse{
 		Status: 0,
 		Msg:    backend.OK,
 	}, nil

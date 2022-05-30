@@ -3,7 +3,7 @@ package handler
 import (
 	"context"
 	"errors"
-	taskmngpb "github.com/datumtechs/datum-network-carrier/lib/netmsg/taskmng"
+	taskmngpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/taskmng"
 	"github.com/datumtechs/datum-network-carrier/p2p"
 	"github.com/libp2p/go-libp2p-core/peer"
 )

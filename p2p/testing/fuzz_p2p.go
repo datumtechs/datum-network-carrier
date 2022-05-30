@@ -2,7 +2,7 @@ package testing
 
 import (
 	"context"
-	pb "github.com/datumtechs/datum-network-carrier/lib/p2p/v1"
+	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
 	"github.com/datumtechs/datum-network-carrier/p2p/encoder"
 	"github.com/datumtechs/datum-network-carrier/p2p/peers"
 	"github.com/ethereum/go-ethereum/p2p/enr"

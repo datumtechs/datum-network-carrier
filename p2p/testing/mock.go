@@ -4,8 +4,8 @@ import (
 	"errors"
 	"github.com/datumtechs/datum-network-carrier/common/feed"
 	"github.com/datumtechs/datum-network-carrier/event"
-	taskmngpb "github.com/datumtechs/datum-network-carrier/lib/netmsg/taskmng"
-	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	taskmngpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/taskmng"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"sync"
@@ -104,5 +104,5 @@ func (m *MockTaskManager) ValidateTaskTerminateMsg(pid peer.ID, terminateMsg *ta
 	return errors.New("invalid check")
 }
 func (m *MockTaskManager) OnTaskTerminateMsg (pid peer.ID, terminateMsg *taskmngpb.TaskTerminateMsg) error { return nil }
-func (m *MockTaskManager) SendTaskEvent(event *libtypes.TaskEvent) error                  { return nil }
+func (m *MockTaskManager) SendTaskEvent(event *carriertypespb.TaskEvent) error                  { return nil }
 func (m *MockTaskManager) HandleReportResourceUsage(usage *types.TaskResuorceUsage) error { return nil }

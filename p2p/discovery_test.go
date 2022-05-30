@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/common/bytesutil"
 	"github.com/datumtechs/datum-network-carrier/common/iputils"
-	pb "github.com/datumtechs/datum-network-carrier/lib/p2p/v1"
+	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
 	"github.com/datumtechs/datum-network-carrier/p2p/peers"
 	"github.com/datumtechs/datum-network-carrier/p2p/peers/peerdata"
 	"github.com/datumtechs/datum-network-carrier/p2p/peers/scorers"

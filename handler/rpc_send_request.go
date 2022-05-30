@@ -2,9 +2,9 @@ package handler
 
 import (
 	"context"
-	libp2ptypes "github.com/datumtechs/datum-network-carrier/lib/p2p/v1"
-	libp2ppb "github.com/datumtechs/datum-network-carrier/lib/rpc/debug/v1"
-	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	libp2ptypes "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
+	libp2ppb "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/p2p"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/pkg/errors"
@@ -16,13 +16,13 @@ var ErrInvalidFetchedData = errors.New("invalid data returned from peer")
 
 // CarrierBlockProcessor defines a block processing function, which allows to start utilizing
 // blocks even before all blocks are ready.
-type CarrierBlockProcessor func(block *libtypes.BlockData) error
+type CarrierBlockProcessor func(block *carriertypespb.BlockData) error
 
 // SendCarrierBlocksByRangeRequest sends CarrierBlocksByRange and returns fetched blocks, if any.
 func SendCarrierBlocksByRangeRequest(
 	ctx context.Context, p2pProvider p2p.P2P, pid peer.ID,
 	req *libp2ptypes.CarrierBlocksByRangeRequest, blockProcessor CarrierBlockProcessor,
-) ([]*libtypes.BlockData, error) {
+) ([]*carriertypespb.BlockData, error) {
 
 	// send request on the special topic.
 	stream, err := p2pProvider.Send(ctx, req, p2p.RPCBlocksByRangeTopic, pid)
@@ -32,8 +32,8 @@ func SendCarrierBlocksByRangeRequest(
 	defer closeStream(stream, log)
 
 	// Augment block processing function, if non-nil block processor is provided.
-	blocks := make([]*libtypes.BlockData, 0, req.Count)
-	process := func(blk *libtypes.BlockData) error {
+	blocks := make([]*carriertypespb.BlockData, 0, req.Count)
+	process := func(blk *carriertypespb.BlockData) error {
 		blocks = append(blocks, blk)
 		if blockProcessor != nil {
 			return blockProcessor(blk)

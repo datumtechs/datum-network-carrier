@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
-	msgcommonpb "github.com/datumtechs/datum-network-carrier/lib/netmsg/common"
-	twopcpb "github.com/datumtechs/datum-network-carrier/lib/netmsg/consensus/twopc"
-	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	msgcommonpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/common"
+	twopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"strings"
 	"sync"
@@ -89,13 +90,13 @@ func (nct *NeedConsensusTask) String() string {
 // (those that are in the process of consensus and need to be scheduled again after receiving the proposal from the opposite end)
 type NeedReplayScheduleTask struct {
 	partyId  string
-	taskRole libtypes.TaskRole
+	taskRole commonconstantpb.TaskRole
 	task     *Task
 	evidence string
 	resultCh chan *ReplayScheduleResult
 }
 
-func NewNeedReplayScheduleTask(role libtypes.TaskRole, partyId string, task *Task, evidence string) *NeedReplayScheduleTask {
+func NewNeedReplayScheduleTask(role commonconstantpb.TaskRole, partyId string, task *Task, evidence string) *NeedReplayScheduleTask {
 	return &NeedReplayScheduleTask{
 		taskRole: role,
 		partyId:  partyId,
@@ -117,7 +118,7 @@ func (nrst *NeedReplayScheduleTask) SendResult(result *ReplayScheduleResult) {
 func (nrst *NeedReplayScheduleTask) ReceiveResult() *ReplayScheduleResult {
 	return <-nrst.resultCh
 }
-func (nrst *NeedReplayScheduleTask) GetLocalTaskRole() libtypes.TaskRole     { return nrst.taskRole }
+func (nrst *NeedReplayScheduleTask) GetLocalTaskRole() commonconstantpb.TaskRole     { return nrst.taskRole }
 func (nrst *NeedReplayScheduleTask) GetLocalPartyId() string                 { return nrst.partyId }
 func (nrst *NeedReplayScheduleTask) GetTask() *Task                          { return nrst.task }
 func (nrst *NeedReplayScheduleTask) GetEvidence() string                     { return nrst.evidence }
@@ -180,10 +181,10 @@ func (s *DatatokenPaySpec) GetGasUsed() uint64      { return s.GasUsed }
 // Tasks to be executed (local and remote, which have been completed by consensus and can be executed by issuing fighter)
 type NeedExecuteTask struct {
 	remotepid              peer.ID
-	localTaskRole          libtypes.TaskRole
-	localTaskOrganization  *libtypes.TaskOrganization
-	remoteTaskRole         libtypes.TaskRole
-	remoteTaskOrganization *libtypes.TaskOrganization
+	localTaskRole          commonconstantpb.TaskRole
+	localTaskOrganization  *carriertypespb.TaskOrganization
+	remoteTaskRole         commonconstantpb.TaskRole
+	remoteTaskOrganization *carriertypespb.TaskOrganization
 	status                 TaskActionStatus
 	localResource          *PrepareVoteResource
 	resources              *twopcpb.ConfirmTaskPeerInfo
@@ -195,8 +196,8 @@ type NeedExecuteTask struct {
 
 func NewNeedExecuteTask(
 	remotepid peer.ID,
-	localTaskRole, remoteTaskRole libtypes.TaskRole,
-	localTaskOrganization, remoteTaskOrganization *libtypes.TaskOrganization,
+	localTaskRole, remoteTaskRole commonconstantpb.TaskRole,
+	localTaskOrganization, remoteTaskOrganization *carriertypespb.TaskOrganization,
 	taskId string,
 	status TaskActionStatus,
 	localResource *PrepareVoteResource,
@@ -219,12 +220,12 @@ func NewNeedExecuteTask(
 func (net *NeedExecuteTask) HasRemotePID() bool                   { return strings.Trim(string(net.remotepid), "") != "" }
 func (net *NeedExecuteTask) HasEmptyRemotePID() bool              { return !net.HasRemotePID() }
 func (net *NeedExecuteTask) GetRemotePID() peer.ID                { return net.remotepid }
-func (net *NeedExecuteTask) GetLocalTaskRole() libtypes.TaskRole  { return net.localTaskRole }
-func (net *NeedExecuteTask) GetRemoteTaskRole() libtypes.TaskRole { return net.remoteTaskRole }
-func (net *NeedExecuteTask) GetLocalTaskOrganization() *libtypes.TaskOrganization {
+func (net *NeedExecuteTask) GetLocalTaskRole() commonconstantpb.TaskRole  { return net.localTaskRole }
+func (net *NeedExecuteTask) GetRemoteTaskRole() commonconstantpb.TaskRole { return net.remoteTaskRole }
+func (net *NeedExecuteTask) GetLocalTaskOrganization() *carriertypespb.TaskOrganization {
 	return net.localTaskOrganization
 }
-func (net *NeedExecuteTask) GetRemoteTaskOrganization() *libtypes.TaskOrganization {
+func (net *NeedExecuteTask) GetRemoteTaskOrganization() *carriertypespb.TaskOrganization {
 	return net.remoteTaskOrganization
 }
 func (net *NeedExecuteTask) GetTaskId() string                          { return net.taskId }
@@ -596,22 +597,22 @@ func IsNotSameTaskOrgByte(org1, org2 *msgcommonpb.TaskOrganizationIdentityInfo) 
 	return !IsSameTaskOrgByte(org1, org2)
 }
 
-func IsSameTaskOrgParty(org1, org2 *libtypes.TaskOrganization) bool {
+func IsSameTaskOrgParty(org1, org2 *carriertypespb.TaskOrganization) bool {
 	if org1.GetPartyId() == org2.GetPartyId() && org1.GetIdentityId() == org2.GetIdentityId() {
 		return true
 	}
 	return false
 }
-func IsNotSameTaskOrgParty(org1, org2 *libtypes.TaskOrganization) bool {
+func IsNotSameTaskOrgParty(org1, org2 *carriertypespb.TaskOrganization) bool {
 	return !IsSameTaskOrgParty(org1, org2)
 }
 
-func IsSameTaskOrg(org1, org2 *libtypes.TaskOrganization) bool {
+func IsSameTaskOrg(org1, org2 *carriertypespb.TaskOrganization) bool {
 	if org1.GetIdentityId() == org2.GetIdentityId() {
 		return true
 	}
 	return false
 }
-func IsNotSameTaskOrg(org1, org2 *libtypes.TaskOrganization) bool {
+func IsNotSameTaskOrg(org1, org2 *carriertypespb.TaskOrganization) bool {
 	return !IsSameTaskOrg(org1, org2)
 }

@@ -4,8 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/common"
-	rpcpb "github.com/datumtechs/datum-network-carrier/lib/rpc/debug/v1"
-	rpcapipb "github.com/datumtechs/datum-network-carrier/lib/api"
+	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	gwruntime "github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
@@ -86,14 +85,14 @@ func (g *Gateway) Start() error {
 		),
 	)
 	handlers := []func(context.Context, *gwruntime.ServeMux, *grpc.ClientConn) error {
-		rpcapipb.RegisterAuthServiceHandler,
-		rpcapipb.RegisterMetadataServiceHandler,
-		rpcapipb.RegisterPowerServiceHandler,
-		rpcapipb.RegisterYarnServiceHandler,
-		rpcapipb.RegisterTaskServiceHandler,
+		carrierapipb.RegisterAuthServiceHandler,
+		carrierapipb.RegisterMetadataServiceHandler,
+		carrierapipb.RegisterPowerServiceHandler,
+		carrierapipb.RegisterYarnServiceHandler,
+		carrierapipb.RegisterTaskServiceHandler,
 	}
 	if g.enableDebugRPCEndpoints {
-		handlers = append(handlers, rpcpb.RegisterDebugHandler)
+		handlers = append(handlers, carrierapipb.RegisterDebugHandler)
 	}
 	for _, f := range handlers {
 		if err := f(ctx, gwmux, conn); err != nil {

@@ -2,7 +2,7 @@ package scorers
 
 import (
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
-	pb "github.com/datumtechs/datum-network-carrier/lib/p2p/v1"
+	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
 	"github.com/datumtechs/datum-network-carrier/p2p/peers/peerdata"
 	"github.com/libp2p/go-libp2p-core/peer"
 	types "github.com/prysmaticlabs/eth2-types"

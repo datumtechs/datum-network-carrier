@@ -3,7 +3,7 @@ package carrier
 import (
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/core/rawdb"
-	pb "github.com/datumtechs/datum-network-carrier/lib/api"
+	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	"github.com/datumtechs/datum-network-carrier/service/discovery"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"strconv"

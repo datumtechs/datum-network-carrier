@@ -2,7 +2,7 @@ package handler
 
 import (
 	"bytes"
-	libp2ppb "github.com/datumtechs/datum-network-carrier/lib/rpc/debug/v1"
+	libp2ppb "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
 	"github.com/datumtechs/datum-network-carrier/p2p"
 	p2ptesting "github.com/datumtechs/datum-network-carrier/p2p/testing"
 	"github.com/d4l3k/messagediff"

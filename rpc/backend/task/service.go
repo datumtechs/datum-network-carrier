@@ -3,8 +3,8 @@ package task
 import (
 	"context"
 	"fmt"
-	pb "github.com/datumtechs/datum-network-carrier/lib/api"
-	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/policy"
 	"github.com/datumtechs/datum-network-carrier/rpc/backend"
 	"github.com/datumtechs/datum-network-carrier/signsuite"
@@ -124,7 +124,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 		log.Errorf("RPC-API:PublishTaskDeclare failed, check taskName failed, taskName is empty")
 		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require taskName"}, nil
 	}
-	if req.GetUserType() == libtypes.UserType_User_Unknown {
+	if req.GetUserType() == carriertypespb.UserType_User_Unknown {
 		log.Errorf("RPC-API:PublishTaskDeclare failed, check userType failed, wrong userType: {%s}", req.GetUserType().String())
 		return &pb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown userType"}, nil
 	}
@@ -327,25 +327,25 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 	}, nil
 }
 
-func (svr *Server) TerminateTask(ctx context.Context, req *pb.TerminateTaskRequest) (*libtypes.SimpleResponse, error) {
+func (svr *Server) TerminateTask(ctx context.Context, req *pb.TerminateTaskRequest) (*carriertypespb.SimpleResponse, error) {
 
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:TerminateTask failed, query local identity failed")
-		return &libtypes.SimpleResponse{Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
+		return &carriertypespb.SimpleResponse{Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
 	}
 
-	if req.GetUserType() == libtypes.UserType_User_Unknown {
-		return &libtypes.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown userType"}, nil
+	if req.GetUserType() == carriertypespb.UserType_User_Unknown {
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown userType"}, nil
 	}
 	if "" == req.GetUser() {
-		return &libtypes.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require user"}, nil
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require user"}, nil
 	}
 	if "" == req.GetTaskId() {
-		return &libtypes.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require taskId"}, nil
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require taskId"}, nil
 	}
 	if len(req.GetSign()) == 0 {
-		return &libtypes.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require sign"}, nil
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require sign"}, nil
 	}
 
 	taskTerminateMsg := types.NewTaskTerminateMsg(req.GetUserType(), req.GetUser(), req.GetTaskId(), req.GetSign())
@@ -353,18 +353,18 @@ func (svr *Server) TerminateTask(ctx context.Context, req *pb.TerminateTaskReque
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:TerminateTask failed, cannot fetch sender from sign, userType: {%s}, user: {%s}",
 			req.GetUserType().String(), req.GetUser())
-		return &libtypes.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "cannot fetch sender from sign"}, nil
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "cannot fetch sender from sign"}, nil
 	}
 	if from != req.GetUser() {
 		log.WithError(err).Errorf("RPC-API:TerminateTask failed, sender from sign and user is not sameone, userType: {%s}, user: {%s}, sender of sign: {%s}",
 			req.GetUserType().String(), req.GetUser(), from)
-		return &libtypes.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "the user sign is invalid"}, nil
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "the user sign is invalid"}, nil
 	}
 
 	task, err := svr.B.GetLocalTask(req.GetTaskId())
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:TerminateTask failed, query local task failed")
-		return &libtypes.SimpleResponse{Status: backend.ErrTerminateTaskMsg.ErrCode(), Msg: "query local task failed"}, nil
+		return &carriertypespb.SimpleResponse{Status: backend.ErrTerminateTaskMsg.ErrCode(), Msg: "query local task failed"}, nil
 	}
 
 	// check user
@@ -372,7 +372,7 @@ func (svr *Server) TerminateTask(ctx context.Context, req *pb.TerminateTaskReque
 		task.GetInformation().GetUserType() != req.GetUserType() {
 		log.WithError(err).Errorf("terminate task user and publish task user must be same, taskId: {%s}",
 			task.GetInformation().GetTaskId())
-		return &libtypes.SimpleResponse{Status: backend.ErrTerminateTaskMsg.ErrCode(), Msg: fmt.Sprintf("terminate task user and publish task user must be same, taskId: {%s}",
+		return &carriertypespb.SimpleResponse{Status: backend.ErrTerminateTaskMsg.ErrCode(), Msg: fmt.Sprintf("terminate task user and publish task user must be same, taskId: {%s}",
 			task.GetInformation().GetTaskId())}, nil
 	}
 
@@ -381,10 +381,10 @@ func (svr *Server) TerminateTask(ctx context.Context, req *pb.TerminateTaskReque
 			req.GetTaskId())
 
 		errMsg := fmt.Sprintf("%s, taskId: {%s}", backend.ErrTerminateTaskMsg.Error(), req.GetTaskId())
-		return &libtypes.SimpleResponse{Status: backend.ErrTerminateTaskMsg.ErrCode(), Msg: errMsg}, nil
+		return &carriertypespb.SimpleResponse{Status: backend.ErrTerminateTaskMsg.ErrCode(), Msg: errMsg}, nil
 	}
 	log.Debugf("RPC-API:TerminateTask succeed, userType: {%s}, user: {%s}, taskId: {%s}", req.GetUserType(), req.GetUser(), req.GetTaskId())
-	return &libtypes.SimpleResponse{
+	return &carriertypespb.SimpleResponse{
 		Status: 0,
 		Msg:    backend.OK,
 	}, nil

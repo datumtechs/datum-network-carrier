@@ -3,7 +3,7 @@ package core
 import (
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/core/rawdb"
-	"github.com/datumtechs/datum-network-carrier/lib/center/api"
+	"github.com/datumtechs/datum-network-carrier/pb/datacenter/api"
 	"github.com/datumtechs/datum-network-carrier/types"
 )
 

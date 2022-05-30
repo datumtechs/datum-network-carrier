@@ -7,7 +7,7 @@ package twopc
 //	"github.com/datumtechs/datum-network-carrier/common"
 //	"github.com/datumtechs/datum-network-carrier/common/timeutils"
 //	ctypes "github.com/datumtechs/datum-network-carrier/consensus/twopc/types"
-//	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+//	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 //	"github.com/datumtechs/datum-network-carrier/p2p"
 //	"github.com/datumtechs/datum-network-carrier/types"
 //	"github.com/ethereum/go-ethereum/crypto"
@@ -317,7 +317,7 @@ package twopc
 //	return nil
 //}
 //
-//func (t *Twopc) validateOrganizationIdentity(identityInfo *libtypes.TaskOrganization) error {
+//func (t *Twopc) validateOrganizationIdentity(identityInfo *carriertypespb.TaskOrganization) error {
 //	if "" == identityInfo.GetNodeName() {
 //		return ctypes.ErrOrganizationIdentity
 //	}
@@ -325,7 +325,7 @@ package twopc
 //	if nil != err {
 //		return ctypes.ErrOrganizationIdentity
 //	}
-//	has, err := t.resourceMng.GetDB().HasIdentity(&libtypes.Organization{
+//	has, err := t.resourceMng.GetDB().HasIdentity(&carriertypespb.Organization{
 //		NodeName:   identityInfo.GetNodeName(),
 //		NodeId:     identityInfo.GetNodeId(),
 //		IdentityId: identityInfo.QueryIdentityId(),

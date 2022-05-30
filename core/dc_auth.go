@@ -5,15 +5,15 @@ import (
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
 	"github.com/datumtechs/datum-network-carrier/core/rawdb"
-	"github.com/datumtechs/datum-network-carrier/lib/center/api"
-	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/pb/datacenter/api"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/rpc/backend"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"strings"
 )
 
 // about identity on local
-func (dc *DataCenter) StoreIdentity(identity *libtypes.Organization) error {
+func (dc *DataCenter) StoreIdentity(identity *carriertypespb.Organization) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.StoreLocalIdentity(dc.db, identity)
@@ -35,14 +35,14 @@ func (dc *DataCenter) QueryIdentityId() (string, error) {
 	return identity.GetIdentityId(), nil
 }
 
-func (dc *DataCenter) QueryIdentity() (*libtypes.Organization, error) {
+func (dc *DataCenter) QueryIdentity() (*carriertypespb.Organization, error) {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.QueryLocalIdentity(dc.db)
 }
 
 // about identity on datacenter
-func (dc *DataCenter) HasIdentity(identity *libtypes.Organization) (bool, error) {
+func (dc *DataCenter) HasIdentity(identity *carriertypespb.Organization) (bool, error) {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
 	responses, err := dc.client.GetIdentityList(dc.ctx, &api.ListIdentityRequest{

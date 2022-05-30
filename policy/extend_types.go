@@ -2,13 +2,13 @@ package policy
 
 import (
 	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
-	libtypes "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/types"
 )
 
-func NewTaskDetailShowFromTaskData(input *types.Task) *libtypes.TaskDetail {
-	return &libtypes.TaskDetail{
-		Information: &libtypes.TaskDetailSummary{
+func NewTaskDetailShowFromTaskData(input *types.Task) *carriertypespb.TaskDetail {
+	return &carriertypespb.TaskDetail{
+		Information: &carriertypespb.TaskDetailSummary{
 
 			TaskId:                   input.GetTaskData().GetTaskId(),
 			TaskName:                 input.GetTaskData().GetTaskName(),
@@ -48,8 +48,8 @@ func NewTaskDetailShowFromTaskData(input *types.Task) *libtypes.TaskDetail {
 func NewGlobalMetadataInfoFromMetadata(input *types.Metadata) *pb.GetGlobalMetadataDetail {
 	response := &pb.GetGlobalMetadataDetail{
 		Owner: input.GetData().GetOwner(),
-		Information: &libtypes.MetadataDetail{
-			MetadataSummary: &libtypes.MetadataSummary{
+		Information: &carriertypespb.MetadataDetail{
+			MetadataSummary: &carriertypespb.MetadataSummary{
 				/**
 				MetadataId           string
 				MetadataName         string
@@ -91,8 +91,8 @@ func NewGlobalMetadataInfoFromMetadata(input *types.Metadata) *pb.GetGlobalMetad
 func NewLocalMetadataInfoFromMetadata(isInternal bool, input *types.Metadata) *pb.GetLocalMetadataDetail {
 	response := &pb.GetLocalMetadataDetail{
 		Owner: input.GetData().GetOwner(),
-		Information: &libtypes.MetadataDetail{
-			MetadataSummary: &libtypes.MetadataSummary{
+		Information: &carriertypespb.MetadataDetail{
+			MetadataSummary: &carriertypespb.MetadataSummary{
 				/**
 				MetadataId           string
 				MetadataName         string

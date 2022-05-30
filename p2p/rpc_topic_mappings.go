@@ -1,12 +1,12 @@
 package p2p
 
 import (
-	libp2ppb "github.com/datumtechs/datum-network-carrier/lib/rpc/debug/v1"
+	libp2ppb "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
 	"reflect"
 
-	twopcpb "github.com/datumtechs/datum-network-carrier/lib/netmsg/consensus/twopc"
-	taskmngpb "github.com/datumtechs/datum-network-carrier/lib/netmsg/taskmng"
-	p2ppb "github.com/datumtechs/datum-network-carrier/lib/p2p/v1"
+	twopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
+	taskmngpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/taskmng"
+	p2ppb "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
 	"github.com/pkg/errors"
 	types "github.com/prysmaticlabs/eth2-types"
 )

@@ -12,7 +12,7 @@ import (
 	"github.com/datumtechs/datum-network-carrier/grpclient"
 	carrierapi "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	fighterapi "github.com/datumtechs/datum-network-carrier/pb/fighter/api"
-	libtypes "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/params"
 	"github.com/datumtechs/datum-network-carrier/policy"
 	"github.com/datumtechs/datum-network-carrier/types"
@@ -193,16 +193,16 @@ func (s *CarrierAPIBackend) GetSeedNodeList() ([]*carrierapi.SeedPeer, error) {
 	return seeds, nil
 }
 
-func (s *CarrierAPIBackend) storeLocalResource(identity *libtypes.Organization, jobNodeId string, jobNodeStatus *computesvc.GetStatusReply) error {
+func (s *CarrierAPIBackend) storeLocalResource(identity *carriertypespb.Organization, jobNodeId string, jobNodeStatus *computesvc.GetStatusReply) error {
 
 	// store into local db
-	if err := s.carrier.carrierDB.StoreLocalResource(types.NewLocalResource(&libtypes.LocalResourcecarrierapi{
+	if err := s.carrier.carrierDB.StoreLocalResource(types.NewLocalResource(&carriertypespb.LocalResourcecarrierapi{
 		Owner:      identity,
 		JobNodeId:  jobNodeId,
 		DataId:     "", // can not own powerId now, because power have not publish
-		DataStatus: libtypes.DataStatus_DataStatus_Valid,
+		DataStatus: carriertypespb.DataStatus_DataStatus_Valid,
 		// resource status, eg: create/release/revoke
-		State: libtypes.PowerState_PowerState_Created,
+		State: carriertypespb.PowerState_PowerState_Created,
 		// unit: byte
 		TotalMem: jobNodeStatus.GetTotalMemory(),
 		UsedMem:  0,
@@ -436,13 +436,13 @@ func (s *CarrierAPIBackend) DeleteRegisterNode(typ carrierapi.RegisteredNodeType
 			}
 
 			// 3. revoke power about jobNode from global
-			if err := s.carrier.carrierDB.RevokeResource(types.NewResource(&libtypes.Resourcecarrierapi{
+			if err := s.carrier.carrierDB.RevokeResource(types.NewResource(&carriertypespb.Resourcecarrierapi{
 				Owner:  identity,
 				DataId: resourceTable.GetPowerId(),
 				// the status of data, N means normal, D means deleted.
-				DataStatus: libtypes.DataStatus_DataStatus_Invalid,
+				DataStatus: carriertypespb.DataStatus_DataStatus_Invalid,
 				// resource status, eg: create/release/revoke
-				State:    libtypes.PowerState_PowerState_Revoked,
+				State:    carriertypespb.PowerState_PowerState_Revoked,
 				UpdateAt: timeutils.UnixMsecUint64(),
 			})); nil != err {
 				log.WithError(err).Errorf("Failed to remove dataCenter resource on RemoveRegisterNode with revoke power, powerId: {%s}, jobNodeId: {%s}",
@@ -600,7 +600,7 @@ func (s *CarrierAPIBackend) GetRegisterNodeList(typ carrierapi.RegisteredNodeTyp
 	return nodeList, nil
 }
 
-func (s *CarrierAPIBackend) SendTaskEvent(event *libtypes.TaskEvent) error {
+func (s *CarrierAPIBackend) SendTaskEvent(event *carriertypespb.TaskEvent) error {
 	return s.carrier.TaskManager.SendTaskEvent(event)
 }
 
@@ -800,11 +800,11 @@ func (s *CarrierAPIBackend) GetGlobalPowerSummaryList() ([]*carrierapi.GetGlobal
 	for _, resource := range resourceList.To() {
 		powerList = append(powerList, &carrierapi.GetGlobalPowerSummary{
 			Owner: resource.GetOwner(),
-			Information: &libtypes.PowerUsageDetail{
+			Information: &carriertypespb.PowerUsageDetail{
 				TotalTaskCount:   0,
 				CurrentTaskCount: 0,
-				Tasks:            make([]*libtypes.PowerTask, 0),
-				Information: &libtypes.ResourceUsageOverview{
+				Tasks:            make([]*carriertypespb.PowerTask, 0),
+				Information: &carriertypespb.ResourceUsageOverview{
 					TotalMem:       resource.GetTotalMem(),
 					UsedMem:        resource.GetUsedMem(),
 					TotalProcessor: resource.GetTotalProcessor(),
@@ -843,11 +843,11 @@ func (s *CarrierAPIBackend) GetGlobalPowerDetailList(lastUpdate uint64, pageSize
 		powerList = append(powerList, &carrierapi.GetGlobalPowerDetail{
 			Owner:   resource.GetOwner(),
 			PowerId: resource.GetDataId(),
-			Information: &libtypes.PowerUsageDetail{
+			Information: &carriertypespb.PowerUsageDetail{
 				TotalTaskCount:   totalTaskCount,
 				CurrentTaskCount: currentTaskCount,
-				Tasks:            make([]*libtypes.PowerTask, 0),
-				Information: &libtypes.ResourceUsageOverview{
+				Tasks:            make([]*carriertypespb.PowerTask, 0),
+				Information: &carriertypespb.ResourceUsageOverview{
 					TotalMem:       resource.GetTotalMem(),
 					UsedMem:        resource.GetUsedMem(),
 					TotalProcessor: resource.GetTotalProcessor(),
@@ -876,9 +876,9 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*carrierapi.GetLocalPow
 	}
 	log.Debugf("Invoke:GetLocalPowerDetailList, call QueryLocalResourceList, machineList: %s", machineList.String())
 
-	buildPowerTaskList := func(jobNodeId string) []*libtypes.PowerTask {
+	buildPowerTaskList := func(jobNodeId string) []*carriertypespb.PowerTask {
 
-		powerTaskList := make([]*libtypes.PowerTask, 0)
+		powerTaskList := make([]*carriertypespb.PowerTask, 0)
 
 		taskIds, err := s.carrier.carrierDB.QueryJobNodeRunningTaskIdList(jobNodeId)
 		if rawdb.IsNoDBNotFoundErr(err) {
@@ -900,16 +900,16 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*carrierapi.GetLocalPow
 				continue
 			}
 			// build powerTask info
-			powerTask := &libtypes.PowerTask{
+			powerTask := &carriertypespb.PowerTask{
 				TaskId:   taskId,
 				TaskName: task.GetTaskData().TaskName,
-				Owner: &libtypes.Organization{
+				Owner: &carriertypespb.Organization{
 					NodeName:   task.GetTaskSender().GetNodeName(),
 					NodeId:     task.GetTaskSender().GetNodeId(),
 					IdentityId: task.GetTaskSender().GetIdentityId(),
 				},
-				Receivers: make([]*libtypes.Organization, 0),
-				OperationCost: &libtypes.TaskResourceCostDeclare{
+				Receivers: make([]*carriertypespb.Organization, 0),
+				OperationCost: &carriertypespb.TaskResourceCostDeclare{
 					Processor: task.GetTaskData().GetOperationCost().GetProcessor(),
 					Memory:    task.GetTaskData().GetOperationCost().GetMemory(),
 					Bandwidth: task.GetTaskData().GetOperationCost().GetBandwidth(),
@@ -920,7 +920,7 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*carrierapi.GetLocalPow
 			}
 			// build dataSuppliers of task info
 			for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
-				powerTask.Partners = append(powerTask.GetPartners(), &libtypes.Organization{
+				powerTask.Partners = append(powerTask.GetPartners(), &carriertypespb.Organization{
 					NodeName:   dataSupplier.GetNodeName(),
 					NodeId:     dataSupplier.GetNodeId(),
 					IdentityId: dataSupplier.GetIdentityId(),
@@ -928,7 +928,7 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*carrierapi.GetLocalPow
 			}
 			// build receivers of task info
 			for _, receiver := range task.GetTaskData().GetReceivers() {
-				powerTask.Receivers = append(powerTask.GetReceivers(), &libtypes.Organization{
+				powerTask.Receivers = append(powerTask.GetReceivers(), &carriertypespb.Organization{
 					NodeName:   receiver.GetNodeName(),
 					NodeId:     receiver.GetNodeId(),
 					IdentityId: receiver.GetIdentityId(),
@@ -958,7 +958,7 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*carrierapi.GetLocalPow
 			if task.GetTaskData().GetStartAt() != 0 {
 				duration = timeutils.UnixMsecUint64() - task.GetTaskData().GetStartAt()
 			}
-			powerTask.OperationSpend = &libtypes.TaskResourceCostDeclare{
+			powerTask.OperationSpend = &carriertypespb.TaskResourceCostDeclare{
 				Processor: processor,
 				Memory:    memory,
 				Bandwidth: bandwidth,
@@ -997,11 +997,11 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*carrierapi.GetLocalPow
 			JobNodeId: resource.GetJobNodeId(),
 			PowerId:   resource.GetDataId(),
 			Owner:     resource.GetOwner(),
-			Power: &libtypes.PowerUsageDetail{
+			Power: &carriertypespb.PowerUsageDetail{
 				TotalTaskCount:   taskTotalCount(resource.GetJobNodeId()),
 				CurrentTaskCount: taskRunningCount(resource.GetJobNodeId()),
-				Tasks:            make([]*libtypes.PowerTask, 0),
-				Information: &libtypes.ResourceUsageOverview{
+				Tasks:            make([]*carriertypespb.PowerTask, 0),
+				Information: &carriertypespb.ResourceUsageOverview{
 					TotalMem:       resource.GetTotalMem(),
 					UsedMem:        resource.GetUsedMem(),
 					TotalProcessor: resource.GetTotalProcessor(),
@@ -1029,7 +1029,7 @@ func (s *CarrierAPIBackend) GetNodeIdentity() (*types.Identity, error) {
 	if nil != err {
 		return nil, err
 	}
-	return types.NewIdentity(&libtypes.Identitycarrierapi{
+	return types.NewIdentity(&carriertypespb.Identitycarrierapi{
 		IdentityId: nodeAlias.GetIdentityId(),
 		NodeId:     nodeAlias.GetNodeId(),
 		NodeName:   nodeAlias.GetNodeName(),
@@ -1044,7 +1044,7 @@ func (s *CarrierAPIBackend) GetIdentityList(lastUpdate uint64, pageSize uint64) 
 
 // for metadataAuthority
 
-func (s *CarrierAPIBackend) AuditMetadataAuthority(audit *types.MetadataAuthAudit) (libtypes.AuditMetadataOption, error) {
+func (s *CarrierAPIBackend) AuditMetadataAuthority(audit *types.MetadataAuthAudit) (carriertypespb.AuditMetadataOption, error) {
 	return s.carrier.authManager.AuditMetadataAuthority(audit)
 }
 
@@ -1056,12 +1056,12 @@ func (s *CarrierAPIBackend) GetGlobalMetadataAuthorityList(lastUpdate, pageSize 
 	return s.carrier.authManager.GetGlobalMetadataAuthorityList(lastUpdate, pageSize)
 }
 
-func (s *CarrierAPIBackend) HasValidMetadataAuth(userType libtypes.UserType, user, identityId, metadataId string) (bool, error) {
+func (s *CarrierAPIBackend) HasValidMetadataAuth(userType carriertypespb.UserType, user, identityId, metadataId string) (bool, error) {
 	return s.carrier.authManager.HasValidMetadataAuth(userType, user, identityId, metadataId)
 }
 
 // task api
-func (s *CarrierAPIBackend) GetLocalTask(taskId string) (*libtypes.TaskDetail, error) {
+func (s *CarrierAPIBackend) GetLocalTask(taskId string) (*carriertypespb.TaskDetail, error) {
 	// the task is executing.
 	localTask, err := s.carrier.carrierDB.QueryLocalTask(taskId)
 	if nil != err {
@@ -1074,8 +1074,8 @@ func (s *CarrierAPIBackend) GetLocalTask(taskId string) (*libtypes.TaskDetail, e
 		return nil, fmt.Errorf("not found local task")
 	}
 
-	return &libtypes.TaskDetail{
-		Information: &libtypes.TaskDetailSummary{
+	return &carriertypespb.TaskDetail{
+		Information: &carriertypespb.TaskDetailSummary{
 			TaskId:                   localTask.GetTaskData().GetTaskId(),
 			TaskName:                 localTask.GetTaskData().GetTaskName(),
 			UserType:                 localTask.GetTaskData().GetUserType(),
@@ -1109,7 +1109,7 @@ func (s *CarrierAPIBackend) GetLocalTask(taskId string) (*libtypes.TaskDetail, e
 	}, nil
 }
 
-func (s *CarrierAPIBackend) GetLocalTaskDetailList(lastUpdate, pageSize uint64) ([]*libtypes.TaskDetail, error) {
+func (s *CarrierAPIBackend) GetLocalTaskDetailList(lastUpdate, pageSize uint64) ([]*carriertypespb.TaskDetail, error) {
 
 	identity, err := s.carrier.carrierDB.QueryIdentity()
 	if nil != err {
@@ -1128,11 +1128,11 @@ func (s *CarrierAPIBackend) GetLocalTaskDetailList(lastUpdate, pageSize uint64) 
 		return nil, err
 	}
 
-	makeTaskViewFn := func(task *types.Task) *libtypes.TaskDetail {
+	makeTaskViewFn := func(task *types.Task) *carriertypespb.TaskDetail {
 		return policy.NewTaskDetailShowFromTaskData(task)
 	}
 
-	result := make([]*libtypes.TaskDetail, 0)
+	result := make([]*carriertypespb.TaskDetail, 0)
 
 next:
 	for _, task := range localTaskArray {
@@ -1152,7 +1152,7 @@ next:
 
 		// For the initiator's local task, when the task has not started execution
 		// (i.e. the status is still: pending), the 'powersuppliers' of the task should not be returned.
-		if identity.GetIdentityId() == task.GetTaskSender().GetIdentityId() && task.GetTaskData().GetState() == libtypes.TaskState_TaskState_Pending {
+		if identity.GetIdentityId() == task.GetTaskSender().GetIdentityId() && task.GetTaskData().GetState() == carriertypespb.TaskState_TaskState_Pending {
 			task.RemovePowerSuppliers() // clean powerSupplier when before return.
 		}
 
@@ -1169,7 +1169,7 @@ next:
 }
 
 // v0.4.0
-func (s *CarrierAPIBackend) GetGlobalTaskDetailList(lastUpdate, pageSize uint64) ([]*libtypes.TaskDetail, error) {
+func (s *CarrierAPIBackend) GetGlobalTaskDetailList(lastUpdate, pageSize uint64) ([]*carriertypespb.TaskDetail, error) {
 
 	// the task has been executed.
 	networkTaskList, err := s.carrier.carrierDB.QueryGlobalTaskList(lastUpdate, pageSize)
@@ -1177,10 +1177,10 @@ func (s *CarrierAPIBackend) GetGlobalTaskDetailList(lastUpdate, pageSize uint64)
 		return nil, err
 	}
 
-	makeTaskViewFn := func(task *types.Task) *libtypes.TaskDetail {
+	makeTaskViewFn := func(task *types.Task) *carriertypespb.TaskDetail {
 		return policy.NewTaskDetailShowFromTaskData(task)
 	}
-	result := make([]*libtypes.TaskDetail, 0)
+	result := make([]*carriertypespb.TaskDetail, 0)
 
 	for _, networkTask := range networkTaskList {
 		if taskView := makeTaskViewFn(networkTask); nil != taskView {
@@ -1191,7 +1191,7 @@ func (s *CarrierAPIBackend) GetGlobalTaskDetailList(lastUpdate, pageSize uint64)
 }
 
 // v0.3.0
-func (s *CarrierAPIBackend) GetTaskDetailListByTaskIds(taskIds []string) ([]*libtypes.TaskDetail, error) {
+func (s *CarrierAPIBackend) GetTaskDetailListByTaskIds(taskIds []string) ([]*carriertypespb.TaskDetail, error) {
 
 	identity, err := s.carrier.carrierDB.QueryIdentity()
 	if nil != err {
@@ -1230,11 +1230,11 @@ func (s *CarrierAPIBackend) GetTaskDetailListByTaskIds(taskIds []string) ([]*lib
 		return nil, err
 	}
 
-	makeTaskViewFn := func(task *types.Task) *libtypes.TaskDetail {
+	makeTaskViewFn := func(task *types.Task) *carriertypespb.TaskDetail {
 		return policy.NewTaskDetailShowFromTaskData(task)
 	}
 
-	result := make([]*libtypes.TaskDetail, 0)
+	result := make([]*carriertypespb.TaskDetail, 0)
 
 next:
 	for _, task := range localTaskList {
@@ -1258,7 +1258,7 @@ next:
 		//
 		// For the initiator's local task, when the task has not started execution
 		// (i.e. the status is still: pending), the 'powersuppliers' of the task should not be returned.
-		if identity.GetIdentityId() == task.GetTaskSender().GetIdentityId() && task.GetTaskData().GetState() == libtypes.TaskState_TaskState_Pending {
+		if identity.GetIdentityId() == task.GetTaskSender().GetIdentityId() && task.GetTaskData().GetState() == carriertypespb.TaskState_TaskState_Pending {
 			task.RemovePowerSuppliers() // clean powerSupplier when before return.
 		}
 
@@ -1274,7 +1274,7 @@ next:
 	return result, err
 }
 
-func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*libtypes.TaskEvent, error) {
+func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*carriertypespb.TaskEvent, error) {
 
 	// 1、 If it is a local task, first find out the local eventList of the task
 	eventList, err := s.carrier.carrierDB.QueryTaskEventList(taskId)
@@ -1290,9 +1290,9 @@ func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*libtypes.TaskEve
 	return eventList, nil
 }
 
-func (s *CarrierAPIBackend) GetTaskEventListByTaskIds(taskIds []string) ([]*libtypes.TaskEvent, error) {
+func (s *CarrierAPIBackend) GetTaskEventListByTaskIds(taskIds []string) ([]*carriertypespb.TaskEvent, error) {
 
-	evenList := make([]*libtypes.TaskEvent, 0)
+	evenList := make([]*carriertypespb.TaskEvent, 0)
 
 	// 1、 If it is a local task, first find out the local eventList of the task
 	for _, taskId := range taskIds {
@@ -1381,7 +1381,7 @@ func (s *CarrierAPIBackend) QueryDataResourceFileUploads() ([]*types.DataResourc
 	return s.carrier.carrierDB.QueryDataResourceFileUploads()
 }
 
-func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, dataHash, metadataOption, dataNodeId, extra string, dataType libtypes.OrigindataType) error {
+func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, dataHash, metadataOption, dataNodeId, extra string, dataType carriertypespb.OrigindataType) error {
 	// generate metadataId
 	var buf bytes.Buffer
 	buf.Write([]byte(originId))
@@ -1398,7 +1398,7 @@ func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, dataHas
 	}
 
 	// store local metadata (about task result file)
-	metadata := types.NewMetadata(&libtypes.Metadatacarrierapi{
+	metadata := types.NewMetadata(&carriertypespb.Metadatacarrierapi{
 		/**
 		MetadataId           string
 		Owner                *Organization
@@ -1422,15 +1422,15 @@ func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, dataHas
 		MetadataId:     metadataId,
 		Owner:          identity,
 		DataId:         metadataId,
-		DataStatus:     libtypes.DataStatus_DataStatus_Valid,
+		DataStatus:     carriertypespb.DataStatus_DataStatus_Valid,
 		MetadataName:   fmt.Sprintf("task `%s` result file", taskId),
-		MetadataType:   libtypes.MetadataType_MetadataType_Unknown, // It means this is a module or psi result ??? so we don't known it.
+		MetadataType:   carriertypespb.MetadataType_MetadataType_Unknown, // It means this is a module or psi result ??? so we don't known it.
 		DataHash:       dataHash,
 		Desc:           fmt.Sprintf("the task `%s` result file after executed", taskId),
-		LocationType:   libtypes.DataLocationType_DataLocationType_Local,
+		LocationType:   carriertypespb.DataLocationType_DataLocationType_Local,
 		DataType:       dataType,
 		Industry:       "Unknown",
-		State:          libtypes.MetadataState_MetadataState_Created, // metaData status, eg: create/release/revoke
+		State:          carriertypespb.MetadataState_MetadataState_Created, // metaData status, eg: create/release/revoke
 		PublishAt:      0,                                            // have not publish
 		UpdateAt:       timeutils.UnixMsecUint64(),
 		Nonce:          0,

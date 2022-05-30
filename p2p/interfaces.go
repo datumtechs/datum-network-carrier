@@ -3,7 +3,7 @@ package p2p
 import (
 	"context"
 	"crypto/ecdsa"
-	pb "github.com/datumtechs/datum-network-carrier/lib/p2p/v1"
+	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
 	"github.com/datumtechs/datum-network-carrier/p2p/encoder"
 	"github.com/datumtechs/datum-network-carrier/p2p/peers"
 	"github.com/ethereum/go-ethereum/p2p/enr"
@@ -33,7 +33,7 @@ type P2P interface {
 // Broadcaster broadcasts messages to peers over the p2p pubsub protocol.
 type Broadcaster interface {
 	Broadcast(ctx context.Context, message proto.Message) error
-	//BroadcastTask(ctx context.Context, task *libtypes.GetTaskData) error
+	//BroadcastTask(ctx context.Context, task *carriertypespb.GetTaskData) error
 }
 
 // SetStreamHandler configures p2p to handle streams of a certain topic ID.

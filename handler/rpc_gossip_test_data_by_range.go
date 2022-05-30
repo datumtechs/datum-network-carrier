@@ -2,7 +2,7 @@ package handler
 
 import (
 	"context"
-	libp2ppb "github.com/datumtechs/datum-network-carrier/lib/rpc/debug/v1"
+	libp2ppb "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
 	p2ptypes "github.com/datumtechs/datum-network-carrier/p2p/types"
 	libp2pcore "github.com/libp2p/go-libp2p-core"
 	"github.com/pkg/errors"

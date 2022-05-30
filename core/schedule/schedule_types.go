@@ -1,7 +1,7 @@
 package schedule
 
 import (
-	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/types"
 )
 
@@ -41,31 +41,31 @@ type ReScheduleCollecter interface {
 }
 
 type ReScheduleWithSymbolRandomElectionPower struct {
-	suppliers []*libtypes.TaskOrganization
-	resources []*libtypes.TaskPowerResourceOption
+	suppliers []*carriertypespb.TaskOrganization
+	resources []*carriertypespb.TaskPowerResourceOption
 }
 func (r *ReScheduleWithSymbolRandomElectionPower) Name() string { return "ReScheduleWithSymbolRandomElectionPower" }
 func (r *ReScheduleWithSymbolRandomElectionPower) String() string        { return "" }
-func (r *ReScheduleWithSymbolRandomElectionPower) GetSuppliers() []*libtypes.TaskOrganization { return r.suppliers }
-func (r *ReScheduleWithSymbolRandomElectionPower) GetResources() []*libtypes.TaskPowerResourceOption { return r.resources }
-func (r *ReScheduleWithSymbolRandomElectionPower) AppendSupplier(supplier *libtypes.TaskOrganization) {
+func (r *ReScheduleWithSymbolRandomElectionPower) GetSuppliers() []*carriertypespb.TaskOrganization { return r.suppliers }
+func (r *ReScheduleWithSymbolRandomElectionPower) GetResources() []*carriertypespb.TaskPowerResourceOption { return r.resources }
+func (r *ReScheduleWithSymbolRandomElectionPower) AppendSupplier(supplier *carriertypespb.TaskOrganization) {
 	r.suppliers = append(r.suppliers, supplier)
 }
-func (r *ReScheduleWithSymbolRandomElectionPower) AppendResource(resource *libtypes.TaskPowerResourceOption) {
+func (r *ReScheduleWithSymbolRandomElectionPower) AppendResource(resource *carriertypespb.TaskPowerResourceOption) {
 	r.resources = append(r.resources, resource)
 }
 
 
 type ReScheduleWithDataNodeProvidePower struct {
-	suppliers []*libtypes.TaskOrganization
-	//resources  []*libtypes.TaskPowerResourceOption
+	suppliers []*carriertypespb.TaskOrganization
+	//resources  []*carriertypespb.TaskPowerResourceOption
 	provides []*types.TaskPowerPolicyDataNodeProvide
 }
 func (r *ReScheduleWithDataNodeProvidePower) Name() string { return "ReScheduleWithDataNodeProvidePower" }
 func (r *ReScheduleWithDataNodeProvidePower) String() string        { return "" }
-func (r *ReScheduleWithDataNodeProvidePower) GetSuppliers() []*libtypes.TaskOrganization { return r.suppliers }
+func (r *ReScheduleWithDataNodeProvidePower) GetSuppliers() []*carriertypespb.TaskOrganization { return r.suppliers }
 func (r *ReScheduleWithDataNodeProvidePower) GetProvides() []*types.TaskPowerPolicyDataNodeProvide { return r.provides }
-func (r *ReScheduleWithDataNodeProvidePower) AppendSupplier(supplier *libtypes.TaskOrganization) {
+func (r *ReScheduleWithDataNodeProvidePower) AppendSupplier(supplier *carriertypespb.TaskOrganization) {
 	r.suppliers = append(r.suppliers, supplier)
 }
 func (r *ReScheduleWithDataNodeProvidePower) AppendProvide(provide *types.TaskPowerPolicyDataNodeProvide) {

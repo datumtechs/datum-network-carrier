@@ -2,7 +2,7 @@ package handler
 
 import (
 	"context"
-	pb "github.com/datumtechs/datum-network-carrier/lib/p2p/v1"
+	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
 	"github.com/datumtechs/datum-network-carrier/p2p"
 	p2ptest "github.com/datumtechs/datum-network-carrier/p2p/testing"
 	"github.com/kevinms/leakybucket-go"

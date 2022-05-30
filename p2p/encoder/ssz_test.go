@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	librpcpb "github.com/datumtechs/datum-network-carrier/lib/rpc/debug/v1"
-	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	librpcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/p2p/encoder"
 	"github.com/datumtechs/datum-network-carrier/params"
 	"github.com/gogo/protobuf/proto"
@@ -120,7 +120,7 @@ func TestSszNetworkEncoder_MaxInt64(t *testing.T) {
 func TestSszNetworkEncoder_DecodeWithBadSnappyStream(t *testing.T) {
 	st := newBadSnappyStream()
 	e := &encoder.SszNetworkEncoder{}
-	decoded := new(libtypes.BlockData)
+	decoded := new(carriertypespb.BlockData)
 	err := e.DecodeWithMaxLength(st, decoded)
 	//assert.NilError(t, err/*, io.EOF.Error()*/)
 	require.NotNil(t, err)

@@ -3,8 +3,8 @@ package handler
 import (
 	"context"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
-	"github.com/datumtechs/datum-network-carrier/lib/netmsg/common"
-	twopcpb "github.com/datumtechs/datum-network-carrier/lib/netmsg/consensus/twopc"
+	"github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/common"
+	twopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
 	"github.com/datumtechs/datum-network-carrier/p2p"
 	p2ptest "github.com/datumtechs/datum-network-carrier/p2p/testing"
 	twopctypes "github.com/datumtechs/datum-network-carrier/types"

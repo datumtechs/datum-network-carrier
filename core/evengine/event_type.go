@@ -2,7 +2,7 @@ package evengine
 
 import (
 	"errors"
-	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 )
 
 type EventSysCode string
@@ -64,7 +64,7 @@ var ScheduleEvent = map[string]string{
 	TaskFailedConsensus.Type: TaskFailedConsensus.Msg,
 }
 
-func MakeScheduleEventInfo(event *libtypes.TaskEvent) (*libtypes.TaskEvent, error) {
+func MakeScheduleEventInfo(event *carriertypespb.TaskEvent) (*carriertypespb.TaskEvent, error) {
 	if _, ok := ScheduleEvent[event.Type]; ok {
 		event.Content = ScheduleEvent[event.Type]
 		return event, nil

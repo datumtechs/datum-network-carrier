@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/datumtechs/datum-network-carrier/common/runutil"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
-	pb "github.com/datumtechs/datum-network-carrier/lib/p2p/v1"
+	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
 	"github.com/datumtechs/datum-network-carrier/p2p"
 	"github.com/datumtechs/datum-network-carrier/p2p/peers"
 	p2ptypes "github.com/datumtechs/datum-network-carrier/p2p/types"

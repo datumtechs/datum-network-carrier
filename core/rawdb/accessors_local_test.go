@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
 	"github.com/datumtechs/datum-network-carrier/db"
-	pb "github.com/datumtechs/datum-network-carrier/lib/api"
-	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/stretchr/testify/require"
 	"gotest.tools/assert"
@@ -18,12 +18,12 @@ import (
 
 func TestLocalTask(t *testing.T) {
 	database := db.NewMemoryDatabase()
-	data01 := &libtypes.TaskPB{
+	data01 := &carriertypespb.TaskPB{
 		DataId:     "taskId",
-		DataStatus: libtypes.DataStatus_DataStatus_Invalid,
+		DataStatus: carriertypespb.DataStatus_DataStatus_Invalid,
 		TaskId:     "taskID",
 		TaskName:   "taskName",
-		State:      libtypes.TaskState_TaskState_Failed,
+		State:      carriertypespb.TaskState_TaskState_Failed,
 		Reason:     "reason",
 		Desc:       "desc",
 		CreateAt:   timeutils.UnixMsecUint64(),
@@ -35,7 +35,7 @@ func TestLocalTask(t *testing.T) {
 	assert.Assert(t, strings.EqualFold(data01.TaskId, res.GetTaskId()))
 
 	// test update state
-	res.GetTaskData().State = libtypes.TaskState_TaskState_Failed
+	res.GetTaskData().State = carriertypespb.TaskState_TaskState_Failed
 	RemoveLocalTask(database, data01.TaskId)
 	StoreLocalTask(database, res)
 
@@ -122,7 +122,7 @@ func TestRegisteredNode(t *testing.T) {
 
 func TestTaskEvent(t *testing.T) {
 	database := db.NewMemoryDatabase()
-	taskEvent := &libtypes.TaskEvent{
+	taskEvent := &carriertypespb.TaskEvent{
 		Type:       "taskEventType",
 		IdentityId: "taskEventIdentity",
 		TaskId:     "taskEventTaskId",
@@ -131,7 +131,7 @@ func TestTaskEvent(t *testing.T) {
 	}
 	StoreTaskEvent(database, taskEvent)
 
-	taskEvent2 := &libtypes.TaskEvent{
+	taskEvent2 := &carriertypespb.TaskEvent{
 		Type:       "taskEventType-02",
 		IdentityId: "taskEventIdentity",
 		TaskId:     "taskEventTaskId",
@@ -157,7 +157,7 @@ func TestTaskEvent(t *testing.T) {
 
 func TestLocalIdentity(t *testing.T) {
 	database := db.NewMemoryDatabase()
-	nodeAlias := &libtypes.Organization{
+	nodeAlias := &carriertypespb.Organization{
 		NodeName:   "node-name",
 		NodeId:     "node-nodeId",
 		IdentityId: "node-identityId",
@@ -177,11 +177,11 @@ func TestLocalIdentity(t *testing.T) {
 
 func TestLocalResource(t *testing.T) {
 	database := db.NewMemoryDatabase()
-	localResource01 := &libtypes.LocalResourcePB{
+	localResource01 := &carriertypespb.LocalResourcePB{
 		JobNodeId:      "01",
 		DataId:         "01-dataId",
-		DataStatus:     libtypes.DataStatus_DataStatus_Invalid,
-		State:          libtypes.PowerState_PowerState_Created,
+		DataStatus:     carriertypespb.DataStatus_DataStatus_Invalid,
+		State:          carriertypespb.PowerState_PowerState_Created,
 		TotalMem:       111,
 		UsedMem:        222,
 		TotalProcessor: 11,
@@ -193,11 +193,11 @@ func TestLocalResource(t *testing.T) {
 	_ = b
 	StoreLocalResource(database, types.NewLocalResource(localResource01))
 
-	localResource02 := &libtypes.LocalResourcePB{
+	localResource02 := &carriertypespb.LocalResourcePB{
 		JobNodeId:      "02",
 		DataId:         "01-dataId",
-		DataStatus:     libtypes.DataStatus_DataStatus_Valid,
-		State:         libtypes.PowerState_PowerState_Created,
+		DataStatus:     carriertypespb.DataStatus_DataStatus_Valid,
+		State:         carriertypespb.PowerState_PowerState_Created,
 		TotalMem:       111,
 		UsedMem:        222,
 		TotalProcessor: 11,
@@ -220,7 +220,7 @@ func TestLocalResource(t *testing.T) {
 
 func TestLocalMetadata(t *testing.T) {
 	database := db.NewMemoryDatabase()
-	localMetadata01 := &libtypes.MetadataPB{
+	localMetadata01 := &carriertypespb.MetadataPB{
 		MetadataId:           "metadataId",
 		DataId:               "dataId",
 		DataStatus:           0,
@@ -232,7 +232,7 @@ func TestLocalMetadata(t *testing.T) {
 	_ = b
 	StoreLocalMetadata(database, types.NewMetadata(localMetadata01))
 
-	localMetadata02 := &libtypes.MetadataPB{
+	localMetadata02 := &carriertypespb.MetadataPB{
 		MetadataId:           "metadataId-02",
 		DataId:               "dataId",
 		DataStatus:           0,

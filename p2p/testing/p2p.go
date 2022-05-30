@@ -5,7 +5,7 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"fmt"
-	pb "github.com/datumtechs/datum-network-carrier/lib/p2p/v1"
+	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
 	"github.com/datumtechs/datum-network-carrier/p2p/encoder"
 	"github.com/datumtechs/datum-network-carrier/p2p/peers"
 	"github.com/datumtechs/datum-network-carrier/p2p/peers/scorers"

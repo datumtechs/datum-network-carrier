@@ -3,7 +3,7 @@ package handler
 import (
 	"context"
 	"github.com/datumtechs/datum-network-carrier/common/bytesutil"
-	pb "github.com/datumtechs/datum-network-carrier/lib/p2p/v1"
+	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
 	"github.com/datumtechs/datum-network-carrier/p2p/peers"
 	p2ptest "github.com/datumtechs/datum-network-carrier/p2p/testing"
 	p2ptypes "github.com/datumtechs/datum-network-carrier/p2p/types"

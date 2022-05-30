@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/common"
 	"github.com/datumtechs/datum-network-carrier/crypto/sha3"
-	"github.com/datumtechs/datum-network-carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"math/big"
 	"sort"
 	"sync/atomic"

@@ -1,8 +1,8 @@
 package handler
 
 import (
-	taskmngpb "github.com/datumtechs/datum-network-carrier/lib/netmsg/taskmng"
-	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	taskmngpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/taskmng"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/libp2p/go-libp2p-core/peer"
 )
@@ -40,6 +40,6 @@ type TaskManager interface {
 	OnTaskResourceUsageMsg(pid peer.ID, taskResourceUsageMsg *taskmngpb.TaskResourceUsageMsg) error
 	ValidateTaskTerminateMsg(pid peer.ID, terminateMsg *taskmngpb.TaskTerminateMsg) error
 	OnTaskTerminateMsg (pid peer.ID, terminateMsg *taskmngpb.TaskTerminateMsg) error
-	SendTaskEvent(event *libtypes.TaskEvent) error
+	SendTaskEvent(event *carriertypespb.TaskEvent) error
 	HandleReportResourceUsage(usage *types.TaskResuorceUsage) error
 }

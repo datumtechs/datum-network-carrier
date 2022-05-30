@@ -8,7 +8,7 @@ import (
 	statefeed "github.com/datumtechs/datum-network-carrier/common/feed/state"
 	"github.com/datumtechs/datum-network-carrier/common/runutil"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
-	libp2ppb "github.com/datumtechs/datum-network-carrier/lib/rpc/debug/v1"
+	libp2ppb "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
 	"github.com/datumtechs/datum-network-carrier/p2p"
 	"github.com/datumtechs/datum-network-carrier/params"
 	"github.com/datumtechs/datum-network-carrier/types"

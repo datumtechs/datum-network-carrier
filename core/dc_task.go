@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/core/rawdb"
-	"github.com/datumtechs/datum-network-carrier/lib/center/api"
-	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/pb/datacenter/api"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"strings"
 )
@@ -125,19 +125,19 @@ func (dc *DataCenter) QueryLocalTaskAndEventsList() (types.TaskDataArray, error)
 	return tasks, nil
 }
 
-func (dc *DataCenter) StoreTaskEvent(event *libtypes.TaskEvent) error {
+func (dc *DataCenter) StoreTaskEvent(event *carriertypespb.TaskEvent) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.StoreTaskEvent(dc.db, event)
 }
 
-func (dc *DataCenter) QueryTaskEventList(taskId string) ([]*libtypes.TaskEvent, error) {
+func (dc *DataCenter) QueryTaskEventList(taskId string) ([]*carriertypespb.TaskEvent, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.QueryTaskEvent(dc.db, taskId)
 }
 
-func (dc *DataCenter) QueryTaskEventListByPartyId(taskId, partyId string) ([]*libtypes.TaskEvent, error) {
+func (dc *DataCenter) QueryTaskEventListByPartyId(taskId, partyId string) ([]*carriertypespb.TaskEvent, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.QueryTaskEventByPartyId(dc.db, taskId, partyId)
@@ -155,7 +155,7 @@ func (dc *DataCenter) RemoveTaskEventListByPartyId(taskId, partyId string) error
 	return rawdb.RemoveTaskEventByPartyId(dc.db, taskId, partyId)
 }
 
-func sprintPowerOrgs(powers []*libtypes.TaskOrganization) string {
+func sprintPowerOrgs(powers []*carriertypespb.TaskOrganization) string {
 	arr := make([]string, 0)
 	for _, power := range powers {
 		arr = append(arr, power.String())
@@ -166,7 +166,7 @@ func sprintPowerOrgs(powers []*libtypes.TaskOrganization) string {
 	return "[]"
 }
 
-func sprintPowerResources(powers []*libtypes.TaskPowerResourceOption) string {
+func sprintPowerResources(powers []*carriertypespb.TaskPowerResourceOption) string {
 	arr := make([]string, 0)
 	for _, power := range powers {
 		arr = append(arr, power.String())
@@ -224,7 +224,7 @@ func (dc *DataCenter) QueryTaskListByTaskIds(taskIds []string) (types.TaskDataAr
 	return types.NewTaskArrayFromResponse(taskListResponse), err
 }
 
-func (dc *DataCenter) QueryTaskEventListByTaskId(taskId string) ([]*libtypes.TaskEvent, error) {
+func (dc *DataCenter) QueryTaskEventListByTaskId(taskId string) ([]*carriertypespb.TaskEvent, error) {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
 	taskEventResponse, err := dc.client.ListTaskEvent(dc.ctx, &api.ListTaskEventRequest{
@@ -239,11 +239,11 @@ func (dc *DataCenter) QueryTaskEventListByTaskId(taskId string) ([]*libtypes.Tas
 	return taskEventResponse.GetTaskEvents(), nil
 }
 
-func (dc *DataCenter) QueryTaskEventListByTaskIds(taskIds []string) ([]*libtypes.TaskEvent, error) {
+func (dc *DataCenter) QueryTaskEventListByTaskIds(taskIds []string) ([]*carriertypespb.TaskEvent, error) {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
 
-	eventList := make([]*libtypes.TaskEvent, 0)
+	eventList := make([]*carriertypespb.TaskEvent, 0)
 	for _, taskId := range taskIds {
 		taskEventResponse, err := dc.client.ListTaskEvent(dc.ctx, &api.ListTaskEventRequest{
 			TaskId: taskId,

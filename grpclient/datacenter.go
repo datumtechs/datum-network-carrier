@@ -3,8 +3,8 @@ package grpclient
 import (
 	"context"
 	"fmt"
-	"github.com/datumtechs/datum-network-carrier/lib/center/api"
-	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/pb/datacenter/api"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"time"
@@ -59,7 +59,7 @@ func (gc *GrpcClient) GetClientConn() *grpc.ClientConn {
 }
 
 // MetadataSave saves new metadata to database.
-func (gc *GrpcClient) SaveMetadata(ctx context.Context, request *api.SaveMetadataRequest) (*libtypes.SimpleResponse, error) {
+func (gc *GrpcClient) SaveMetadata(ctx context.Context, request *api.SaveMetadataRequest) (*carriertypespb.SimpleResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}
@@ -116,7 +116,7 @@ func (gc *GrpcClient) GetMetadataByIds(ctx context.Context, request *api.FindMet
 	return gc.metadataService.FindMetadataByIds(ctx, request)
 }
 
-func (gc *GrpcClient) RevokeMetadata(ctx context.Context, request *api.RevokeMetadataRequest) (*libtypes.SimpleResponse, error) {
+func (gc *GrpcClient) RevokeMetadata(ctx context.Context, request *api.RevokeMetadataRequest) (*carriertypespb.SimpleResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}
@@ -125,7 +125,7 @@ func (gc *GrpcClient) RevokeMetadata(ctx context.Context, request *api.RevokeMet
 	return gc.metadataService.RevokeMetadata(ctx, request)
 }
 // add by v 0.4.0
-func (gc *GrpcClient) UpdateMetadata(ctx context.Context, request *api.UpdateMetadataRequest) (*libtypes.SimpleResponse, error) {
+func (gc *GrpcClient) UpdateMetadata(ctx context.Context, request *api.UpdateMetadataRequest) (*carriertypespb.SimpleResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}
@@ -136,7 +136,7 @@ func (gc *GrpcClient) UpdateMetadata(ctx context.Context, request *api.UpdateMet
 
 // ************************************** Resource module *******************************************************
 
-func (gc *GrpcClient) SaveResource(ctx context.Context, request *api.PublishPowerRequest) (*libtypes.SimpleResponse, error) {
+func (gc *GrpcClient) SaveResource(ctx context.Context, request *api.PublishPowerRequest) (*carriertypespb.SimpleResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}
@@ -145,7 +145,7 @@ func (gc *GrpcClient) SaveResource(ctx context.Context, request *api.PublishPowe
 	return gc.resourceService.PublishPower(ctx, request)
 }
 
-func (gc *GrpcClient) SyncPower(ctx context.Context, request *api.SyncPowerRequest) (*libtypes.SimpleResponse, error) {
+func (gc *GrpcClient) SyncPower(ctx context.Context, request *api.SyncPowerRequest) (*carriertypespb.SimpleResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}
@@ -154,7 +154,7 @@ func (gc *GrpcClient) SyncPower(ctx context.Context, request *api.SyncPowerReque
 	return gc.resourceService.SyncPower(ctx, request)
 }
 
-func (gc *GrpcClient) RevokeResource(ctx context.Context, request *api.RevokePowerRequest) (*libtypes.SimpleResponse, error) {
+func (gc *GrpcClient) RevokeResource(ctx context.Context, request *api.RevokePowerRequest) (*carriertypespb.SimpleResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}
@@ -194,7 +194,7 @@ func (gc *GrpcClient) GetPowerList(ctx context.Context, request *api.ListPowerRe
 
 // ************************************** Identity module *******************************************************
 
-func (gc *GrpcClient) SaveIdentity(ctx context.Context, request *api.SaveIdentityRequest) (*libtypes.SimpleResponse, error) {
+func (gc *GrpcClient) SaveIdentity(ctx context.Context, request *api.SaveIdentityRequest) (*carriertypespb.SimpleResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}
@@ -203,7 +203,7 @@ func (gc *GrpcClient) SaveIdentity(ctx context.Context, request *api.SaveIdentit
 	return gc.identityService.SaveIdentity(ctx, request)
 }
 
-func (gc *GrpcClient) RevokeIdentityJoin(ctx context.Context, request *api.RevokeIdentityRequest) (*libtypes.SimpleResponse, error) {
+func (gc *GrpcClient) RevokeIdentityJoin(ctx context.Context, request *api.RevokeIdentityRequest) (*carriertypespb.SimpleResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}
@@ -222,7 +222,7 @@ func (gc *GrpcClient) GetIdentityList(ctx context.Context, request *api.ListIden
 }
 
 // Store metadata authentication application records
-func (gc *GrpcClient) SaveMetadataAuthority(ctx context.Context, request *api.MetadataAuthorityRequest) (*libtypes.SimpleResponse, error) {
+func (gc *GrpcClient) SaveMetadataAuthority(ctx context.Context, request *api.MetadataAuthorityRequest) (*carriertypespb.SimpleResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}
@@ -233,7 +233,7 @@ func (gc *GrpcClient) SaveMetadataAuthority(ctx context.Context, request *api.Me
 
 // Data authorization audit, rules:
 // 1. After authorization, the approval result can be bound to the original application record
-func (gc *GrpcClient) UpdateMetadataAuthority(ctx context.Context, request *api.MetadataAuthorityRequest) (*libtypes.SimpleResponse, error) {
+func (gc *GrpcClient) UpdateMetadataAuthority(ctx context.Context, request *api.MetadataAuthorityRequest) (*carriertypespb.SimpleResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}
@@ -266,7 +266,7 @@ func (gc *GrpcClient) FindMetadataAuthority(ctx context.Context, request *api.Fi
 
 // ************************************** GetTask module *******************************************************
 
-func (gc *GrpcClient) SaveTask(ctx context.Context, request *api.SaveTaskRequest) (*libtypes.SimpleResponse, error) {
+func (gc *GrpcClient) SaveTask(ctx context.Context, request *api.SaveTaskRequest) (*carriertypespb.SimpleResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}

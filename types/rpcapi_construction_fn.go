@@ -1,8 +1,9 @@
 package types
 
 import (
-	"github.com/datumtechs/datum-network-carrier/lib/center/api"
-	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/pb/datacenter/api"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 )
 
 // NewMetadataSaveRequest converts Metadata object to SaveMetadataRequest object.
@@ -22,7 +23,7 @@ func NewMetadataUpdateRequest(metadata *Metadata) *api.UpdateMetadataRequest {
 
 func NewMetadataRevokeRequest(metadata *Metadata) *api.RevokeMetadataRequest {
 	request := &api.RevokeMetadataRequest{
-		Owner: &libtypes.Organization{
+		Owner: &carriertypespb.Organization{
 			IdentityId: metadata.GetData().GetOwner().GetIdentityId(),
 			NodeId:     metadata.GetData().GetOwner().GetNodeId(),
 			NodeName:   metadata.GetData().GetOwner().GetNodeName(),
@@ -41,7 +42,7 @@ func NewPublishPowerRequest(resource *Resource) *api.PublishPowerRequest {
 
 func RevokePowerRequest(resource *Resource) *api.RevokePowerRequest {
 	request := &api.RevokePowerRequest{
-		Owner: &libtypes.Organization{
+		Owner: &carriertypespb.Organization{
 			NodeName:   resource.GetNodeName(),
 			NodeId:     resource.GetNodeId(),
 			IdentityId: resource.GetIdentityId(),
@@ -82,7 +83,7 @@ func NewMetadataArrayFromDetailListResponse(response *api.ListMetadataResponse) 
 func NewResourceArrayFromPowerTotalSummaryListResponse(response *api.ListPowerSummaryResponse) ResourceArray {
 	resourceArray := make(ResourceArray, 0, len(response.GetPowers()))
 	for _, v := range response.GetPowers() {
-		resourceArray = append(resourceArray, NewResource(&libtypes.ResourcePB{
+		resourceArray = append(resourceArray, NewResource(&carriertypespb.ResourcePB{
 			/**
 			Owner                *Organization
 			DataId               string
@@ -102,7 +103,7 @@ func NewResourceArrayFromPowerTotalSummaryListResponse(response *api.ListPowerSu
 			*/
 			Owner:          v.GetOwner(),
 			DataId:         "", // todo: to be determined
-			DataStatus:     libtypes.DataStatus_DataStatus_Valid,
+			DataStatus:     commonconstantpb.DataStatus_DataStatus_Valid,
 			State:          v.GetPowerSummary().GetState(),
 			TotalMem:       v.GetPowerSummary().GetInformation().GetTotalMem(),
 			TotalProcessor: v.GetPowerSummary().GetInformation().GetTotalProcessor(),
@@ -128,7 +129,7 @@ func NewResourceArrayFromPowerDetailListResponse(response *api.ListPowerResponse
 
 func NewResourceFromPowerSummaryResponse(response *api.PowerSummaryResponse) ResourceArray {
 	resourceArray := make(ResourceArray, 0)
-	resource := NewResource(&libtypes.ResourcePB{
+	resource := NewResource(&carriertypespb.ResourcePB{
 		/**
 		// todo summary 不需要加上 nonce 字段
 		Owner                *Organization
@@ -149,7 +150,7 @@ func NewResourceFromPowerSummaryResponse(response *api.PowerSummaryResponse) Res
 		*/
 		Owner:          response.GetOwner(),
 		DataId:         "",
-		DataStatus:     libtypes.DataStatus_DataStatus_Valid,
+		DataStatus:     commonconstantpb.DataStatus_DataStatus_Valid,
 		State:          response.GetPowerSummary().GetState(),
 		TotalMem:       response.GetPowerSummary().GetInformation().GetTotalMem(),
 		TotalProcessor: response.GetPowerSummary().GetInformation().GetTotalProcessor(),
@@ -188,7 +189,7 @@ func NewIdentityArrayFromIdentityListResponse(response *api.ListIdentityResponse
 	}
 	var result IdentityArray
 	for _, organization := range response.GetIdentities() {
-		result = append(result, NewIdentity(&libtypes.IdentityPB{
+		result = append(result, NewIdentity(&carriertypespb.IdentityPB{
 
 			/**
 			IdentityId           string
@@ -219,7 +220,7 @@ func NewIdentityArrayFromIdentityListResponse(response *api.ListIdentityResponse
 	return result
 }
 
-func NewMetadataAuthArrayFromResponse(responseList []*libtypes.MetadataAuthorityPB) MetadataAuthArray {
+func NewMetadataAuthArrayFromResponse(responseList []*carriertypespb.MetadataAuthorityPB) MetadataAuthArray {
 	if responseList == nil {
 		return nil
 	}

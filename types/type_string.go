@@ -1,11 +1,11 @@
 package types
 
 import (
-	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"strings"
 )
 
-func UtilOrgPowerArrString(powers []*libtypes.TaskOrganization) string {
+func UtilOrgPowerArrString(powers []*carriertypespb.TaskOrganization) string {
 	arr := make([]string, len(powers))
 	for i, power := range powers {
 		arr[i] = power.String()
@@ -16,7 +16,7 @@ func UtilOrgPowerArrString(powers []*libtypes.TaskOrganization) string {
 	return "[]"
 }
 
-func UtilOrgPowerResourceArrString(powers []*libtypes.TaskPowerResourceOption) string {
+func UtilOrgPowerResourceArrString(powers []*carriertypespb.TaskPowerResourceOption) string {
 	arr := make([]string, len(powers))
 	for i, power := range powers {
 		arr[i] = power.String()

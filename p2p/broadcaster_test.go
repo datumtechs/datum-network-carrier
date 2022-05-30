@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/common/bytesutil"
-	libp2ppb "github.com/datumtechs/datum-network-carrier/lib/rpc/debug/v1"
-	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	libp2ppb "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	p2ptest "github.com/datumtechs/datum-network-carrier/p2p/testing"
 	"github.com/gogo/protobuf/proto"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
@@ -84,5 +84,5 @@ func TestService_Broadcast_ReturnsErr_TopicNotMapped(t *testing.T) {
 		genesisTime:           time.Now(),
 		genesisValidatorsRoot: bytesutil.PadTo([]byte{'A'}, 32),
 	}
-	assert.ErrorContains(t, p.Broadcast(context.Background(), &libtypes.BlockData{}), ErrMessageNotMapped.Error())
+	assert.ErrorContains(t, p.Broadcast(context.Background(), &carriertypespb.BlockData{}), ErrMessageNotMapped.Error())
 }

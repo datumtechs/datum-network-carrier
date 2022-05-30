@@ -2,7 +2,7 @@ package handler
 
 import (
 	"context"
-	pb "github.com/datumtechs/datum-network-carrier/lib/p2p/v1"
+	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
 	p2ptest "github.com/datumtechs/datum-network-carrier/p2p/testing"
 	p2ptypes "github.com/datumtechs/datum-network-carrier/p2p/types"
 	"github.com/ethereum/go-ethereum/p2p/enr"

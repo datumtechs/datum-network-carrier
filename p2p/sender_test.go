@@ -2,7 +2,7 @@ package p2p
 
 import (
 	"context"
-	librpcpb "github.com/datumtechs/datum-network-carrier/lib/rpc/debug/v1"
+	librpcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
 	testp2p "github.com/datumtechs/datum-network-carrier/p2p/testing"
 	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/network"

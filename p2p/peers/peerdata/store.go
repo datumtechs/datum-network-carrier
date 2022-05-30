@@ -3,13 +3,13 @@ package peerdata
 import (
 	"context"
 	"errors"
-	pb "github.com/datumtechs/datum-network-carrier/lib/p2p/v1"
-	pbrpc "github.com/datumtechs/datum-network-carrier/lib/rpc/debug/v1"
+	p2ppbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
+	rpcdebugpbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
 	"github.com/ethereum/go-ethereum/p2p/enr"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
 	ma "github.com/multiformats/go-multiaddr"
-	ethpb "github.com/prysmaticlabs/ethereumapis/eth/v1"
+	ethpbv1 "github.com/prysmaticlabs/ethereumapis/eth/v1"
 	"sync"
 	"time"
 )
@@ -20,7 +20,7 @@ var (
 )
 
 // PeerConnectionState is the state of the connection
-type PeerConnectionState ethpb.ConnectionState
+type PeerConnectionState ethpbv1.ConnectionState
 
 // StoreConfig holds peer store parameters.
 type StoreConfig struct {
@@ -48,8 +48,8 @@ type PeerData struct {
 	Enr           *enr.Record
 	NextValidTime time.Time
 	// Chain related data
-	MetaData                  *pb.MetaData
-	ChainState                *pb.Status
+	MetaData                  *p2ppbv1.MetaData
+	ChainState                *p2ppbv1.Status
 	ChainStateLastUpdated     time.Time
 	ChainStateValidationError error
 	// Scorers internal data.
@@ -57,7 +57,7 @@ type PeerData struct {
 	ProcessedBlocks      uint64
 	BlockProviderUpdated time.Time
 	// Gossip Scoring data.
-	TopicScores      map[string]*pbrpc.TopicScoreSnapshot
+	TopicScores      map[string]*rpcdebugpbv1.TopicScoreSnapshot
 	GossipScore      float64
 	BehaviourPenalty float64
 }

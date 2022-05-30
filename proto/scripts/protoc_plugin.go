@@ -236,8 +236,8 @@ func HandleCustomExtensions(file *descriptor.FileDescriptorProto) func(msg *desc
 			}
 
 			if val, ok := GetFieldBooleanExtension(field, ext.E_DeviceId); ok && val {
-				if *file.Options.GoPackage != "github.com/datumtechs/datum-network-carrier/lib/protocol" {
-					SetStringFieldOption(field, gogoproto.E_Customtype, "github.com/datumtechs/datum-network-carrier/lib/protocol.DeviceID")
+				if *file.Options.GoPackage != "github.com/datumtechs/datum-network-carrier/pb/carrier/protocol" {
+					SetStringFieldOption(field, gogoproto.E_Customtype, "github.com/datumtechs/datum-network-carrier/pb/carrier/protocol.DeviceID")
 				} else {
 					SetStringFieldOption(field, gogoproto.E_Customtype, "DeviceID")
 				}

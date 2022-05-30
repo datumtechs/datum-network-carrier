@@ -2,8 +2,8 @@ package core
 
 import (
 	"github.com/datumtechs/datum-network-carrier/common/traceutil"
-	"github.com/datumtechs/datum-network-carrier/lib/netmsg/common"
-	taskmngpb "github.com/datumtechs/datum-network-carrier/lib/netmsg/taskmng"
+	"github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/common"
+	taskmngpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/taskmng"
 	"testing"
 )
 

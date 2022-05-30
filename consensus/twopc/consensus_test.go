@@ -6,7 +6,7 @@ import (
 	"github.com/datumtechs/datum-network-carrier/common"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
 	ctypes "github.com/datumtechs/datum-network-carrier/consensus/twopc/types"
-	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"gotest.tools/assert"
 	"math"
@@ -78,14 +78,14 @@ func TestProposalStateMonitor(t *testing.T) {
 		t.Log("Start add new one member into 2pc consensus proposalState monitor queue")
 		for i, tm := range arr {
 			orgState := ctypes.NewOrgProposalState(common.Hash{byte(uint8(i))},
-				fmt.Sprintf("taskId:%d", i), libtypes.TaskRole_TaskRole_Unknown,
-				&libtypes.TaskOrganization{
+				fmt.Sprintf("taskId:%d", i), carriertypespb.TaskRole_TaskRole_Unknown,
+				&carriertypespb.TaskOrganization{
 					PartyId:    fmt.Sprintf("senderPartyId:%d", i),
 					NodeName:   fmt.Sprintf("senderNodeName:%d", i),
 					NodeId:     fmt.Sprintf("senderNodeId:%d", i),
 					IdentityId: fmt.Sprintf("senderIdentityId:%d", i),
 				},
-				&libtypes.TaskOrganization{
+				&carriertypespb.TaskOrganization{
 					PartyId:    fmt.Sprintf("partyId:%d", i),
 					NodeName:   fmt.Sprintf("nodeName:%d", i),
 					NodeId:     fmt.Sprintf("nodeId:%d", i),
@@ -127,7 +127,7 @@ func mockTestData() *state {
 		taskId := fmt.Sprintf("%s,%d", "task_00", i)
 		for p := 0; p < 3; p++ {
 			partyId := fmt.Sprintf("%s,%d", "p", i)
-			taskSender := &libtypes.TaskOrganization{
+			taskSender := &carriertypespb.TaskOrganization{
 				PartyId:    partyId,
 				NodeName:   fmt.Sprintf("%s,%d", "NodeName_", i),
 				NodeId:     "",
@@ -138,11 +138,11 @@ func mockTestData() *state {
 		}
 	}
 
-	yesVotes := make(map[libtypes.TaskRole]uint32, 0)
-	voteStatus := make(map[libtypes.TaskRole]uint32, 0)
+	yesVotes := make(map[carriertypespb.TaskRole]uint32, 0)
+	voteStatus := make(map[carriertypespb.TaskRole]uint32, 0)
 	for i := 0; i < 5; i++ {
-		yesVotes[libtypes.TaskRole(i)] = uint32(i + 1)
-		voteStatus[libtypes.TaskRole(i)] = uint32(i + 2)
+		yesVotes[carriertypespb.TaskRole(i)] = uint32(i + 1)
+		voteStatus[carriertypespb.TaskRole(i)] = uint32(i + 2)
 	}
 
 	prepareVotes := make(map[common.Hash]*prepareVoteState, 0)
@@ -153,11 +153,11 @@ func mockTestData() *state {
 			votesP[partyId] = &types.PrepareVote{
 				MsgOption: &types.MsgOption{
 					ProposalId:      proposalIds[i],
-					SenderRole:      libtypes.TaskRole(12),
+					SenderRole:      carriertypespb.TaskRole(12),
 					SenderPartyId:   partyId,
-					ReceiverRole:    libtypes.TaskRole(23),
+					ReceiverRole:    carriertypespb.TaskRole(23),
 					ReceiverPartyId: partyId,
-					Owner: &libtypes.TaskOrganization{
+					Owner: &carriertypespb.TaskOrganization{
 						PartyId:    partyId,
 						NodeName:   "NodeName_" + strconv.Itoa(i),
 						NodeId:     "",
@@ -182,11 +182,11 @@ func mockTestData() *state {
 			votesC[partyId] = &types.ConfirmVote{
 				MsgOption: &types.MsgOption{
 					ProposalId:      proposalIds[i],
-					SenderRole:      libtypes.TaskRole(12),
+					SenderRole:      carriertypespb.TaskRole(12),
 					SenderPartyId:   partyId,
-					ReceiverRole:    libtypes.TaskRole(23),
+					ReceiverRole:    carriertypespb.TaskRole(23),
 					ReceiverPartyId: partyId,
-					Owner: &libtypes.TaskOrganization{
+					Owner: &carriertypespb.TaskOrganization{
 						PartyId:    partyId,
 						NodeName:   "NodeName_" + strconv.Itoa(i),
 						NodeId:     "",

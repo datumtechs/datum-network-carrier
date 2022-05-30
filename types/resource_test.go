@@ -3,15 +3,15 @@ package types
 import (
 	"bytes"
 	"github.com/datumtechs/datum-network-carrier/common"
-	"github.com/datumtechs/datum-network-carrier/lib/types"
-	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"testing"
 )
 
 var resource_test = NewResource(&types.ResourcePB{
 	DataId:               "dataId",
-	DataStatus:           libtypes.DataStatus_DataStatus_Invalid,
-	State:                libtypes.PowerState_PowerState_Created,
+	DataStatus:           carriertypespb.DataStatus_DataStatus_Invalid,
+	State:                carriertypespb.PowerState_PowerState_Created,
 	TotalMem:             1,
 	UsedMem:              2,
 	TotalProcessor:       0,

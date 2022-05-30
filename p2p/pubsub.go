@@ -3,7 +3,7 @@ package p2p
 import (
 	"context"
 	"github.com/datumtechs/datum-network-carrier/common/hashutil"
-	pbrpc "github.com/datumtechs/datum-network-carrier/lib/rpc/debug/v1"
+	pbrpc "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
 	"github.com/datumtechs/datum-network-carrier/p2p/encoder"
 	"github.com/datumtechs/datum-network-carrier/params"
 	"github.com/libp2p/go-libp2p-core/peer"

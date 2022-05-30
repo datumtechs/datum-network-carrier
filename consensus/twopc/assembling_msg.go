@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/common"
 	ctypes "github.com/datumtechs/datum-network-carrier/consensus/twopc/types"
-	twopcpb "github.com/datumtechs/datum-network-carrier/lib/netmsg/consensus/twopc"
-	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	twopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/types"
 )
 
 func makePrepareMsg(
 	proposalId common.Hash,
-	senderRole, receiverRole libtypes.TaskRole,
+	senderRole, receiverRole carriertypespb.TaskRole,
 	senderPartyId, receiverPartyId string,
 	nonConsTaks *types.NeedConsensusTask,
 	startTime uint64,
@@ -36,9 +36,9 @@ func makePrepareMsg(
 
 func makePrepareVote(
 	proposalId common.Hash,
-	senderRole, receiverRole libtypes.TaskRole,
+	senderRole, receiverRole carriertypespb.TaskRole,
 	senderPartyId, receiverPartyId string,
-	owner *libtypes.TaskOrganization,
+	owner *carriertypespb.TaskOrganization,
 	voteOption types.VoteOption,
 	peerInfo *types.PrepareVoteResource,
 	startTime uint64,
@@ -55,9 +55,9 @@ func makePrepareVote(
 
 func makeConfirmMsg(
 	proposalId common.Hash,
-	senderRole, receiverRole libtypes.TaskRole,
+	senderRole, receiverRole carriertypespb.TaskRole,
 	senderPartyId, receiverPartyId string,
-	owner *libtypes.TaskOrganization,
+	owner *carriertypespb.TaskOrganization,
 	peers *twopcpb.ConfirmTaskPeerInfo,
 	option types.TwopcMsgOption,
 	startTime uint64,
@@ -76,9 +76,9 @@ func makeConfirmMsg(
 
 func makeConfirmVote(
 	proposalId common.Hash,
-	senderRole, receiverRole libtypes.TaskRole,
+	senderRole, receiverRole carriertypespb.TaskRole,
 	senderPartyId, receiverPartyId string,
-	owner *libtypes.TaskOrganization,
+	owner *carriertypespb.TaskOrganization,
 	voteOption types.VoteOption,
 	startTime uint64,
 ) *twopcpb.ConfirmVote {
@@ -93,9 +93,9 @@ func makeConfirmVote(
 
 func makeCommitMsg(
 	proposalId common.Hash,
-	senderRole, receiverRole libtypes.TaskRole,
+	senderRole, receiverRole carriertypespb.TaskRole,
 	senderPartyId, receiverPartyId string,
-	owner *libtypes.TaskOrganization,
+	owner *carriertypespb.TaskOrganization,
 	option types.TwopcMsgOption,
 	startTime uint64,
 ) *twopcpb.CommitMsg {
@@ -115,7 +115,7 @@ func fetchPrepareMsg(msg *types.PrepareMsgWrap) (*types.PrepareMsg, error) {
 		return nil, fmt.Errorf("receive nil prepareMsg or nil taskInfo")
 	}
 
-	task := types.NewTask(&libtypes.TaskPB{})
+	task := types.NewTask(&carriertypespb.TaskPB{})
 	err := task.DecodePb(msg.GetTaskInfo())
 	if err != nil {
 		return nil, fmt.Errorf("decode task info failed from prepareMsg, %s", err)

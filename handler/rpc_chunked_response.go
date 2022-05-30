@@ -2,8 +2,8 @@ package handler
 
 import (
 	"errors"
-	libp2ppb "github.com/datumtechs/datum-network-carrier/lib/rpc/debug/v1"
-	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	libp2ppb "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/p2p"
 	"github.com/datumtechs/datum-network-carrier/p2p/encoder"
 	libp2pcore "github.com/libp2p/go-libp2p-core"
@@ -28,12 +28,12 @@ func WriteChunk(stream libp2pcore.Stream, encoding encoder.NetworkEncoding, msg 
 
 // ReadChunkedBlock handles each response chunk that is sent by the
 // peer and converts it into a beacon block.
-func ReadChunkedBlock(stream libp2pcore.Stream, p2p p2p.P2P, isFirstChunk bool) (*libtypes.BlockData, error) {
+func ReadChunkedBlock(stream libp2pcore.Stream, p2p p2p.P2P, isFirstChunk bool) (*carriertypespb.BlockData, error) {
 	// Handle deadlines differently for first chunk
 	if isFirstChunk {
 		return readFirstChunkedBlock(stream, p2p)
 	}
-	blk := &libtypes.BlockData{}
+	blk := &carriertypespb.BlockData{}
 	if err := readResponseChunk(stream, p2p, blk); err != nil {
 		return nil, err
 	}
@@ -42,8 +42,8 @@ func ReadChunkedBlock(stream libp2pcore.Stream, p2p p2p.P2P, isFirstChunk bool) 
 
 // readFirstChunkedBlock reads the first chunked block and applies the appropriate deadlines to
 // it.
-func readFirstChunkedBlock(stream libp2pcore.Stream, p2p p2p.P2P) (*libtypes.BlockData, error) {
-	blk := &libtypes.BlockData{}
+func readFirstChunkedBlock(stream libp2pcore.Stream, p2p p2p.P2P) (*carriertypespb.BlockData, error) {
+	blk := &carriertypespb.BlockData{}
 	code, errMsg, err := ReadStatusCode(stream, p2p.Encoding())
 	if err != nil {
 		return nil, err
