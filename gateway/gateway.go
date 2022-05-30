@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/common"
 	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
+	carrierdebugpb "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
 	gwruntime "github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
@@ -92,7 +93,7 @@ func (g *Gateway) Start() error {
 		carrierapipb.RegisterTaskServiceHandler,
 	}
 	if g.enableDebugRPCEndpoints {
-		handlers = append(handlers, carrierapipb.RegisterDebugHandler)
+		handlers = append(handlers, carrierdebugpb.RegisterDebugHandler)
 	}
 	for _, f := range handlers {
 		if err := f(ctx, gwmux, conn); err != nil {
