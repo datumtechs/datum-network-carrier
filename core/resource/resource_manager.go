@@ -9,6 +9,7 @@ import (
 	"github.com/datumtechs/datum-network-carrier/grpclient"
 	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"github.com/datumtechs/datum-network-carrier/service/discovery"
 	"github.com/datumtechs/datum-network-carrier/types"
 	log "github.com/sirupsen/logrus"
@@ -231,7 +232,7 @@ func (m *Manager) LockLocalResourceWithTask(partyId, jobNodeId string, mem, band
 		log.Debugf("Update jobNode localResource state to `Occupation` state on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, jobNodeTaskCount: {%d}, LocalResource: %s",
 			task.GetTaskId(), partyId, jobNodeId, jobNodeRunningTaskCount, jobNodeResource.GetData().String())
 
-		jobNodeResource.GetData().State = carriertypespb.PowerState_PowerState_Occupation
+		jobNodeResource.GetData().State = commonconstantpb.PowerState_PowerState_Occupation
 	}
 	if err := m.dataCenter.StoreLocalResource(jobNodeResource); nil != err {
 		// rollback useSlot => freeSlot
@@ -380,7 +381,7 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId, partyId string) error {
 		log.Debugf("Update jobNode localResource state to `Released` state on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, jobNodeTaskCount: {%d}, freeMemCount: {%d}, freeBandwidthCount: {%d}, freeDiskCount: {%d}, freeProcessorCount: {%d}, LocalResource: %s",
 			taskId, partyId, jobNodeId, jobNodeRunningTaskCount, freeMemCount, freeBandwidthCount, freeDiskCount, freeProcessorCount, jobNodeResource.GetData().String())
 
-		jobNodeResource.GetData().State = carriertypespb.PowerState_PowerState_Released
+		jobNodeResource.GetData().State = commonconstantpb.PowerState_PowerState_Released
 	}
 	if err := m.dataCenter.StoreLocalResource(jobNodeResource); nil != err {
 		log.WithError(err).Errorf("Failed to update local jobNodeResource on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeMemCount: {%d}, freeBandwidthCount: {%d}, freeDiskCount: {%d}, freeProcessorCount: {%d}, LocalResource: %s",
@@ -685,9 +686,9 @@ func (m *Manager) AddDiscoveryJobNodeResource(identity *carriertypespb.Organizat
 		JobNodeId:  jobNodeId,
 		DataId:     "", // can not own powerId now, because power have not publish
 		// the status of data, N means normal, D means deleted.
-		DataStatus: carriertypespb.DataStatus_DataStatus_Valid,
+		DataStatus: commonconstantpb.DataStatus_DataStatus_Valid,
 		// resource status, eg: create/release/revoke
-		State: carriertypespb.PowerState_PowerState_Created,
+		State: commonconstantpb.PowerState_PowerState_Created,
 		// unit: byte
 		TotalMem: jobNodeStatus.GetTotalMemory(),
 		UsedMem:  0,

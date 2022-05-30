@@ -1,7 +1,7 @@
 package rawdb
 
 import (
-	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 )
 
 var (
@@ -159,7 +159,7 @@ func GetLocalTaskExecuteStatus(taskId, partyId string) []byte {
 	return append(append(localTaskExecuteStatusKeyPrefix, []byte(taskId)...), []byte(partyId)...)
 }
 
-func GetUserMetadataAuthByMetadataIdKey(userType carriertypespb.UserType, user, metadataId string) []byte {
+func GetUserMetadataAuthByMetadataIdKey(userType commonconstantpb.UserType, user, metadataId string) []byte {
 
 	// key: prefix + userType + user + metadataId
 

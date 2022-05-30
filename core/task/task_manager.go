@@ -14,12 +14,13 @@ import (
 	"github.com/datumtechs/datum-network-carrier/core/rawdb"
 	"github.com/datumtechs/datum-network-carrier/core/resource"
 	"github.com/datumtechs/datum-network-carrier/core/schedule"
+	"github.com/datumtechs/datum-network-carrier/p2p"
+	"github.com/datumtechs/datum-network-carrier/params"
 	msgcommonpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/common"
 	twopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
 	taskmngpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/taskmng"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
-	"github.com/datumtechs/datum-network-carrier/p2p"
-	"github.com/datumtechs/datum-network-carrier/params"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"github.com/datumtechs/datum-network-carrier/policy"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/gogo/protobuf/proto"
@@ -235,8 +236,8 @@ func (m *Manager) loop() {
 					}
 					m.sendNeedExecuteTaskByAction(types.NewNeedExecuteTask(
 						"",
-						carriertypespb.TaskRole_TaskRole_Sender,
-						carriertypespb.TaskRole_TaskRole_Sender,
+						commonconstantpb.TaskRole_TaskRole_Sender,
+						commonconstantpb.TaskRole_TaskRole_Sender,
 						task.GetTaskSender(),
 						task.GetTaskSender(),
 						task.GetTaskId(),
@@ -262,8 +263,8 @@ func (m *Manager) loop() {
 						m.scheduler.RemoveTask(task.GetTaskId())
 						m.sendNeedExecuteTaskByAction(types.NewNeedExecuteTask(
 							"",
-							carriertypespb.TaskRole_TaskRole_Sender,
-							carriertypespb.TaskRole_TaskRole_Sender,
+							commonconstantpb.TaskRole_TaskRole_Sender,
+							commonconstantpb.TaskRole_TaskRole_Sender,
 							task.GetTaskSender(),
 							task.GetTaskSender(),
 							task.GetTaskId(),
@@ -364,7 +365,7 @@ func (m *Manager) loop() {
 						task.GetLocalTaskOrganization().GetPartyId(), task.GetErr().Error()))
 
 					switch task.GetLocalTaskRole() {
-					case carriertypespb.TaskRole_TaskRole_Sender:
+					case commonconstantpb.TaskRole_TaskRole_Sender:
 						m.publishFinishedTaskToDataCenter(task, localTask, true)
 					default:
 						m.sendTaskResultMsgToTaskSender(task, localTask)
@@ -454,8 +455,8 @@ func (m *Manager) TerminateTask(terminate *types.TaskTerminateMsg) {
 		if err = m.consensusEngine.OnConsensusMsg(
 			"", types.NewInterruptMsgWrap(task.GetTaskId(),
 				types.MakeMsgOption(common.Hash{},
-					carriertypespb.TaskRole_TaskRole_Sender,
-					carriertypespb.TaskRole_TaskRole_Sender,
+					commonconstantpb.TaskRole_TaskRole_Sender,
+					commonconstantpb.TaskRole_TaskRole_Sender,
 					task.GetTaskSender().GetPartyId(),
 					task.GetTaskSender().GetPartyId(),
 					task.GetTaskSender()))); nil != err {
@@ -495,8 +496,8 @@ func (m *Manager) onTerminateExecuteTask(taskId, partyId string, task *types.Tas
 		// 4、 send a new needExecuteTask(status: types.TaskTerminate) for terminate with sender
 		m.sendNeedExecuteTaskByAction(types.NewNeedExecuteTask(
 			"",
-			carriertypespb.TaskRole_TaskRole_Sender,
-			carriertypespb.TaskRole_TaskRole_Sender,
+			commonconstantpb.TaskRole_TaskRole_Sender,
+			commonconstantpb.TaskRole_TaskRole_Sender,
 			task.GetTaskSender(),
 			task.GetTaskSender(),
 			task.GetTaskId(),

@@ -13,6 +13,7 @@ import (
 	"github.com/datumtechs/datum-network-carrier/core/rawdb"
 	"github.com/datumtechs/datum-network-carrier/core/resource"
 	"github.com/datumtechs/datum-network-carrier/core/schedule"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	ethereumcommon "github.com/ethereum/go-ethereum/common"
 	"math/big"
 
@@ -45,8 +46,8 @@ func (m *Manager) tryScheduleTask() error {
 		log.WithError(err).Errorf("Failed to call scheduler.TrySchedule(), then remove bullet task, taskId: {%s}", taskId)
 		m.sendNeedExecuteTaskByAction(types.NewNeedExecuteTask(
 			"",
-			carriertypespb.TaskRole_TaskRole_Sender,
-			carriertypespb.TaskRole_TaskRole_Sender,
+			commonconstantpb.TaskRole_TaskRole_Sender,
+			commonconstantpb.TaskRole_TaskRole_Sender,
 			nonConsTask.GetTask().GetTaskSender(),
 			nonConsTask.GetTask().GetTaskSender(),
 			nonConsTask.GetTask().GetTaskId(),
@@ -70,8 +71,8 @@ func (m *Manager) tryScheduleTask() error {
 				m.scheduler.RemoveTask(nonConsTask.GetTask().GetTaskId())
 				m.sendNeedExecuteTaskByAction(types.NewNeedExecuteTask(
 					"",
-					carriertypespb.TaskRole_TaskRole_Sender,
-					carriertypespb.TaskRole_TaskRole_Sender,
+					commonconstantpb.TaskRole_TaskRole_Sender,
+					commonconstantpb.TaskRole_TaskRole_Sender,
 					nonConsTask.GetTask().GetTaskSender(),
 					nonConsTask.GetTask().GetTaskSender(),
 					nonConsTask.GetTask().GetTaskId(),
@@ -99,8 +100,8 @@ func (m *Manager) tryScheduleTask() error {
 				m.scheduler.RemoveTask(nonConsTask.GetTask().GetTaskId())
 				m.sendNeedExecuteTaskByAction(types.NewNeedExecuteTask(
 					"",
-					carriertypespb.TaskRole_TaskRole_Sender,
-					carriertypespb.TaskRole_TaskRole_Sender,
+					commonconstantpb.TaskRole_TaskRole_Sender,
+					commonconstantpb.TaskRole_TaskRole_Sender,
 					nonConsTask.GetTask().GetTaskSender(),
 					nonConsTask.GetTask().GetTaskSender(),
 					nonConsTask.GetTask().GetTaskId(),
@@ -144,9 +145,9 @@ func (m *Manager) beginConsumeByMetadataAuth(task *types.NeedExecuteTask, localT
 	partyId := task.GetLocalTaskOrganization().GetPartyId()
 
 	switch task.GetLocalTaskRole() {
-	case carriertypespb.TaskRole_TaskRole_Sender:
+	case commonconstantpb.TaskRole_TaskRole_Sender:
 		return nil // do nothing ...
-	case carriertypespb.TaskRole_TaskRole_DataSupplier:
+	case commonconstantpb.TaskRole_TaskRole_DataSupplier:
 		for _, dataSupplier := range localTask.GetTaskData().GetDataSuppliers() {
 			if partyId == dataSupplier.GetPartyId() {
 
@@ -188,9 +189,9 @@ func (m *Manager) beginConsumeByMetadataAuth(task *types.NeedExecuteTask, localT
 			}
 		}
 		return nil
-	case carriertypespb.TaskRole_TaskRole_PowerSupplier:
+	case commonconstantpb.TaskRole_TaskRole_PowerSupplier:
 		return nil // do nothing ...
-	case carriertypespb.TaskRole_TaskRole_Receiver:
+	case commonconstantpb.TaskRole_TaskRole_Receiver:
 		return nil // do nothing ...
 	default:
 		return fmt.Errorf("unknown task role on beginConsumeByMetadataAuth()")
@@ -202,7 +203,7 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 	partyId := task.GetLocalTaskOrganization().GetPartyId()
 
 	switch task.GetLocalTaskRole() {
-	case carriertypespb.TaskRole_TaskRole_Sender:
+	case commonconstantpb.TaskRole_TaskRole_Sender:
 
 		if partyId != localTask.GetTaskSender().GetPartyId() {
 			return fmt.Errorf("this partyId is not task sender on beginConsumeByDataToken()")
@@ -316,7 +317,7 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		m.updateNeedExecuteTaskCache(task)
 
 		return nil
-	case carriertypespb.TaskRole_TaskRole_DataSupplier, carriertypespb.TaskRole_TaskRole_PowerSupplier, carriertypespb.TaskRole_TaskRole_Receiver:
+	case commonconstantpb.TaskRole_TaskRole_DataSupplier, commonconstantpb.TaskRole_TaskRole_PowerSupplier, commonconstantpb.TaskRole_TaskRole_Receiver:
 
 		taskIdBigInt, err := hexutil.DecodeBig("0x" + strings.TrimLeft(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID+"0x"), "\x00"))
 		if nil != err {
@@ -407,7 +408,7 @@ func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *
 	partyId := task.GetLocalTaskOrganization().GetPartyId()
 
 	switch task.GetLocalTaskRole() {
-	case carriertypespb.TaskRole_TaskRole_Sender:
+	case commonconstantpb.TaskRole_TaskRole_Sender:
 
 		// query consumeSpec of task
 		var consumeSpec *types.DatatokenPaySpec
@@ -472,11 +473,11 @@ func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *
 			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt, txHash.String())
 
 		return nil
-	case carriertypespb.TaskRole_TaskRole_DataSupplier:
+	case commonconstantpb.TaskRole_TaskRole_DataSupplier:
 		return nil // do nothing ...
-	case carriertypespb.TaskRole_TaskRole_PowerSupplier:
+	case commonconstantpb.TaskRole_TaskRole_PowerSupplier:
 		return nil // do nothing ...
-	case carriertypespb.TaskRole_TaskRole_Receiver:
+	case commonconstantpb.TaskRole_TaskRole_Receiver:
 		return nil // do nothing ...
 	default:
 		return fmt.Errorf("unknown task role on endConsumeByDataToken()")
@@ -498,9 +499,9 @@ func (m *Manager) driveTaskForExecute(task *types.NeedExecuteTask, localTask *ty
 	}
 	// 3、 let's task execute
 	switch task.GetLocalTaskRole() {
-	case carriertypespb.TaskRole_TaskRole_DataSupplier, carriertypespb.TaskRole_TaskRole_Receiver:
+	case commonconstantpb.TaskRole_TaskRole_DataSupplier, commonconstantpb.TaskRole_TaskRole_Receiver:
 		return m.executeTaskOnDataNode(task, localTask)
-	case carriertypespb.TaskRole_TaskRole_PowerSupplier:
+	case commonconstantpb.TaskRole_TaskRole_PowerSupplier:
 		return m.executeTaskOnJobNode(task, localTask)
 	default:
 		return nil
@@ -635,9 +636,9 @@ func (m *Manager) driveTaskForTerminate(task *types.NeedExecuteTask) error {
 
 	// annonce fighter processor to terminate this task
 	switch task.GetLocalTaskRole() {
-	case carriertypespb.TaskRole_TaskRole_DataSupplier, carriertypespb.TaskRole_TaskRole_Receiver:
+	case commonconstantpb.TaskRole_TaskRole_DataSupplier, commonconstantpb.TaskRole_TaskRole_Receiver:
 		return m.terminateTaskOnDataNode(task)
-	case carriertypespb.TaskRole_TaskRole_PowerSupplier:
+	case commonconstantpb.TaskRole_TaskRole_PowerSupplier:
 		return m.terminateTaskOnJobNode(task)
 	default:
 		log.Errorf("Faided to driveTaskForTerminate(), Unknown task role, taskId: {%s}, taskRole: {%s}", task.GetTaskId(), task.GetLocalTaskRole().String())
@@ -792,11 +793,11 @@ func (m *Manager) publishFinishedTaskToDataCenter(task *types.NeedExecuteTask, l
 				break
 			}
 		}
-		var taskState carriertypespb.TaskState
+		var taskState commonconstantpb.TaskState
 		if isFailed {
-			taskState = carriertypespb.TaskState_TaskState_Failed
+			taskState = commonconstantpb.TaskState_TaskState_Failed
 		} else {
-			taskState = carriertypespb.TaskState_TaskState_Succeed
+			taskState = commonconstantpb.TaskState_TaskState_Succeed
 		}
 
 		// 1、settle metadata or power usage.
@@ -916,7 +917,7 @@ func (m *Manager) sendTaskTerminateMsg(task *types.Task) error {
 
 	sender := task.GetTaskSender()
 
-	sendTerminateMsgFn := func(wg *sync.WaitGroup, sender, receiver *carriertypespb.TaskOrganization, senderRole, receiverRole carriertypespb.TaskRole, errCh chan<- error) {
+	sendTerminateMsgFn := func(wg *sync.WaitGroup, sender, receiver *carriertypespb.TaskOrganization, senderRole, receiverRole commonconstantpb.TaskRole, errCh chan<- error) {
 
 		defer wg.Done()
 
@@ -970,7 +971,7 @@ func (m *Manager) sendTaskTerminateMsg(task *types.Task) error {
 		wg.Add(1)
 		dataSupplier := task.GetTaskData().GetDataSuppliers()[i]
 		receiver := dataSupplier
-		go sendTerminateMsgFn(&wg, sender, receiver, carriertypespb.TaskRole_TaskRole_Sender, carriertypespb.TaskRole_TaskRole_DataSupplier, errCh)
+		go sendTerminateMsgFn(&wg, sender, receiver, commonconstantpb.TaskRole_TaskRole_Sender, commonconstantpb.TaskRole_TaskRole_DataSupplier, errCh)
 
 	}
 	for i := 0; i < len(task.GetTaskData().GetPowerSuppliers()); i++ {
@@ -978,7 +979,7 @@ func (m *Manager) sendTaskTerminateMsg(task *types.Task) error {
 		wg.Add(1)
 		powerSupplier := task.GetTaskData().GetPowerSuppliers()[i]
 		receiver := powerSupplier
-		go sendTerminateMsgFn(&wg, sender, receiver, carriertypespb.TaskRole_TaskRole_Sender, carriertypespb.TaskRole_TaskRole_PowerSupplier, errCh)
+		go sendTerminateMsgFn(&wg, sender, receiver, commonconstantpb.TaskRole_TaskRole_Sender, commonconstantpb.TaskRole_TaskRole_PowerSupplier, errCh)
 
 	}
 
@@ -986,7 +987,7 @@ func (m *Manager) sendTaskTerminateMsg(task *types.Task) error {
 
 		wg.Add(1)
 		receiver := task.GetTaskData().GetReceivers()[i]
-		go sendTerminateMsgFn(&wg, sender, receiver, carriertypespb.TaskRole_TaskRole_Sender, carriertypespb.TaskRole_TaskRole_Receiver, errCh)
+		go sendTerminateMsgFn(&wg, sender, receiver, commonconstantpb.TaskRole_TaskRole_Sender, commonconstantpb.TaskRole_TaskRole_Receiver, errCh)
 	}
 
 	wg.Wait()
@@ -1016,7 +1017,7 @@ func (m *Manager) sendTaskEvent(event *carriertypespb.TaskEvent) {
 
 func (m *Manager) publishBadTaskToDataCenter(task *types.Task, events []*carriertypespb.TaskEvent, reason string) error {
 	task.GetTaskData().TaskEvents = events
-	task.GetTaskData().State = carriertypespb.TaskState_TaskState_Failed
+	task.GetTaskData().State = commonconstantpb.TaskState_TaskState_Failed
 	task.GetTaskData().Reason = reason
 	task.GetTaskData().EndAt = timeutils.UnixMsecUint64()
 
@@ -1026,7 +1027,7 @@ func (m *Manager) publishBadTaskToDataCenter(task *types.Task, events []*carrier
 	return m.resourceMng.GetDB().InsertTask(task)
 }
 
-func (m *Manager) fillTaskEventAndFinishedState(task *types.Task, eventList []*carriertypespb.TaskEvent, state carriertypespb.TaskState) *types.Task {
+func (m *Manager) fillTaskEventAndFinishedState(task *types.Task, eventList []*carriertypespb.TaskEvent, state commonconstantpb.TaskState) *types.Task {
 	task.GetTaskData().TaskEvents = eventList
 	task.GetTaskData().EndAt = timeutils.UnixMsecUint64()
 	task.GetTaskData().State = state
@@ -1168,12 +1169,12 @@ func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types
 	inputDataArr := make([]interface{}, 0)
 
 	switch task.GetLocalTaskRole() {
-	case carriertypespb.TaskRole_TaskRole_DataSupplier:
+	case commonconstantpb.TaskRole_TaskRole_DataSupplier:
 
 		for i, policyType := range localTask.GetTaskData().GetDataPolicyTypes() {
 
 			switch policyType {
-			case uint32(carriertypespb.OrigindataType_OrigindataType_CSV):
+			case uint32(commonconstantpb.OrigindataType_OrigindataType_CSV):
 
 				var dataPolicy *types.TaskMetadataPolicyCSV
 				if err := json.Unmarshal([]byte(localTask.GetTaskData().GetDataPolicyOptions()[i]), &dataPolicy); nil != err {
@@ -1188,7 +1189,7 @@ func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types
 					}
 					inputDataArr = append(inputDataArr, inputData)
 				}
-			case uint32(carriertypespb.OrigindataType_OrigindataType_DIR):
+			case uint32(commonconstantpb.OrigindataType_OrigindataType_DIR):
 				var dataPolicy *types.TaskMetadataPolicyDIR
 				if err := json.Unmarshal([]byte(localTask.GetTaskData().GetDataPolicyOptions()[i]), &dataPolicy); nil != err {
 					return "", fmt.Errorf("can not unmarshal dataPolicyOption, %s, taskId: {%s}, partyId: {%s}", err, localTask.GetTaskId(), partyId)
@@ -1203,7 +1204,7 @@ func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types
 					inputDataArr = append(inputDataArr, inputData)
 				}
 
-			case uint32(carriertypespb.OrigindataType_OrigindataType_BINARY):
+			case uint32(commonconstantpb.OrigindataType_OrigindataType_BINARY):
 				var dataPolicy *types.TaskMetadataPolicyBINARY
 				if err := json.Unmarshal([]byte(localTask.GetTaskData().GetDataPolicyOptions()[i]), &dataPolicy); nil != err {
 					return "", fmt.Errorf("can not unmarshal dataPolicyOption, %s, taskId: {%s}, partyId: {%s}", err, localTask.GetTaskId(), partyId)
@@ -1221,7 +1222,7 @@ func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types
 				return "", fmt.Errorf("unknown dataPolicy type, taskId: {%s}, partyId: {%s}, dataPolicyType: {%d}", task.GetTaskId(), partyId, policyType)
 			}
 		}
-	case carriertypespb.TaskRole_TaskRole_PowerSupplier:
+	case commonconstantpb.TaskRole_TaskRole_PowerSupplier:
 		// do nothing...
 	}
 
@@ -1408,12 +1409,12 @@ func (m *Manager) metadataInputBINARY(task *types.NeedExecuteTask, localTask *ty
 	}, nil
 }
 
-func (m *Manager) makeConnectPolicy(task *types.NeedExecuteTask, localTask *types.Task) (fighterpbtypes.ConnectPolicyFormat, string, error) {
+func (m *Manager) makeConnectPolicy(task *types.NeedExecuteTask, localTask *types.Task) (commonconstantpb.ConnectPolicyFormat, string, error) {
 
 	//partyId := task.GetLocalTaskOrganization().GetPartyId()
 
 	var (
-		format        fighterpbtypes.ConnectPolicyFormat
+		format        commonconstantpb.ConnectPolicyFormat
 		connectPolicy string
 		err           error
 	)
@@ -1424,11 +1425,11 @@ func (m *Manager) makeConnectPolicy(task *types.NeedExecuteTask, localTask *type
 
 		switch policyType {
 		case types.TASK_DATAFLOW_POLICY_GENERAL_FULL_CONNECT, types.TASK_DATAFLOW_POLICY_GENERAL_DIRECTIONAL_CONNECT:
-			format = fighterpbtypes.ConnectPolicyFormat_ConnectPolicyFormat_Json
+			format = commonconstantpb.ConnectPolicyFormat_ConnectPolicyFormat_Json
 			connectPolicy = policy
 		default:
 			format, connectPolicy, err =
-				fighterpbtypes.ConnectPolicyFormat_ConnectPolicyFormat_Unknown, "", fmt.Errorf("unknown dataFlowPolicyType")
+				commonconstantpb.ConnectPolicyFormat_ConnectPolicyFormat_Unknown, "", fmt.Errorf("unknown dataFlowPolicyType")
 		}
 		break
 	}
@@ -1529,7 +1530,7 @@ func (m *Manager) addmonitor(task *types.NeedExecuteTask, when int64) {
 		}
 
 		// 3、 handle ExpireTask
-		if localTask.GetTaskData().GetState() == carriertypespb.TaskState_TaskState_Running && localTask.GetTaskData().GetStartAt() != 0 {
+		if localTask.GetTaskData().GetState() == commonconstantpb.TaskState_TaskState_Running && localTask.GetTaskData().GetStartAt() != 0 {
 			var duration uint64
 
 			duration = timeutils.UnixMsecUint64() - localTask.GetTaskData().GetStartAt()
@@ -1543,7 +1544,7 @@ func (m *Manager) addmonitor(task *types.NeedExecuteTask, when int64) {
 				fmt.Sprintf("task running expire")))
 
 			switch nt.GetLocalTaskRole() {
-			case carriertypespb.TaskRole_TaskRole_Sender:
+			case commonconstantpb.TaskRole_TaskRole_Sender:
 				m.publishFinishedTaskToDataCenter(nt, localTask, true)
 			default:
 				// 2、terminate fighter processor for this task with current party
@@ -1666,7 +1667,7 @@ func (m *Manager) mustQueryNeedExecuteTaskCache(taskId, partyId string) *types.N
 
 func (m *Manager) makeTaskResultMsgWithEventList(task *types.NeedExecuteTask) *taskmngpb.TaskResultMsg {
 
-	if task.GetLocalTaskRole() == carriertypespb.TaskRole_TaskRole_Sender {
+	if task.GetLocalTaskRole() == commonconstantpb.TaskRole_TaskRole_Sender {
 		log.Errorf("the task sender can not make taskResultMsg")
 		return nil
 	}
@@ -1763,14 +1764,14 @@ func (m *Manager) handleNeedExecuteTask(task *types.NeedExecuteTask, localTask *
 		return
 	}
 
-	if localTask.GetTaskData().GetState() == carriertypespb.TaskState_TaskState_Pending &&
+	if localTask.GetTaskData().GetState() == commonconstantpb.TaskState_TaskState_Pending &&
 		localTask.GetTaskData().GetStartAt() == 0 {
 
-		localTask.GetTaskData().State = carriertypespb.TaskState_TaskState_Running
+		localTask.GetTaskData().State = commonconstantpb.TaskState_TaskState_Running
 		localTask.GetTaskData().StartAt = timeutils.UnixMsecUint64()
 		if err := m.resourceMng.GetDB().StoreLocalTask(localTask); nil != err {
 			log.WithError(err).Errorf("Failed to update local task state before executing task on handleNeedExecuteTask(), taskId: {%s}, need update state: {%s}",
-				task.GetTaskId(), carriertypespb.TaskState_TaskState_Running.String())
+				task.GetTaskId(), commonconstantpb.TaskState_TaskState_Running.String())
 		}
 	}
 
@@ -2391,26 +2392,26 @@ func (m *Manager) needExecuteTaskMonitorTimer() *time.Timer {
 	return m.syncExecuteTaskMonitors.Timer()
 }
 
-func fetchOrgByPartyRole(partyId string, role carriertypespb.TaskRole, task *types.Task) *carriertypespb.TaskOrganization {
+func fetchOrgByPartyRole(partyId string, role commonconstantpb.TaskRole, task *types.Task) *carriertypespb.TaskOrganization {
 
 	switch role {
-	case carriertypespb.TaskRole_TaskRole_Sender:
+	case commonconstantpb.TaskRole_TaskRole_Sender:
 		if partyId == task.GetTaskSender().GetPartyId() {
 			return task.GetTaskSender()
 		}
-	case carriertypespb.TaskRole_TaskRole_DataSupplier:
+	case commonconstantpb.TaskRole_TaskRole_DataSupplier:
 		for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
 			if partyId == dataSupplier.GetPartyId() {
 				return dataSupplier
 			}
 		}
-	case carriertypespb.TaskRole_TaskRole_PowerSupplier:
+	case commonconstantpb.TaskRole_TaskRole_PowerSupplier:
 		for _, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
 			if partyId == powerSupplier.GetPartyId() {
 				return powerSupplier
 			}
 		}
-	case carriertypespb.TaskRole_TaskRole_Receiver:
+	case commonconstantpb.TaskRole_TaskRole_Receiver:
 		for _, receiver := range task.GetTaskData().GetReceivers() {
 			if partyId == receiver.GetPartyId() {
 				return receiver

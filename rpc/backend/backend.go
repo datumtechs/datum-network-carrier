@@ -31,7 +31,7 @@ type Backend interface {
 	SendTaskEvent(event *carriertypespb.TaskEvent) error
 
 	// v 2.0
-	ReportTaskResourceUsage(nodeType pb.NodeType, ip, port string, usage *types.TaskResuorceUsage) error
+	ReportTaskResourceUsage(nodeType carrierapipb.NodeType, ip, port string, usage *types.TaskResuorceUsage) error
 
 	// v 0.4.0
 	GenerateObServerProxyWalletAddress() (string, error)
@@ -40,23 +40,23 @@ type Backend interface {
 	IsInternalMetadata(metadataId string) (bool, error)
 	GetInternalMetadataDetail(metadataId string) (*types.Metadata, error)
 	GetMetadataDetail(metadataId string) (*types.Metadata, error)
-	GetGlobalMetadataDetailList(lastUpdate, pageSize uint64) ([]*pb.GetGlobalMetadataDetail, error)
-	GetGlobalMetadataDetailListByIdentityId(identityId string, lastUpdate, pageSize uint64) ([]*pb.GetGlobalMetadataDetail, error)
-	GetLocalMetadataDetailList(lastUpdate, pageSize uint64) ([]*pb.GetLocalMetadataDetail, error)
-	GetLocalInternalMetadataDetailList() ([]*pb.GetLocalMetadataDetail, error) // add by v 0.3.0
+	GetGlobalMetadataDetailList(lastUpdate, pageSize uint64) ([]*carrierapipb.GetGlobalMetadataDetail, error)
+	GetGlobalMetadataDetailListByIdentityId(identityId string, lastUpdate, pageSize uint64) ([]*carrierapipb.GetGlobalMetadataDetail, error)
+	GetLocalMetadataDetailList(lastUpdate, pageSize uint64) ([]*carrierapipb.GetLocalMetadataDetail, error)
+	GetLocalInternalMetadataDetailList() ([]*carrierapipb.GetLocalMetadataDetail, error) // add by v 0.3.0
 	GetMetadataUsedTaskIdList(identityId, metadataId string) ([]string, error)
 	UpdateGlobalMetadata(metadata *types.Metadata) error // add by v 0.4.0
 
 	// metadataAuthority api
-	AuditMetadataAuthority(audit *types.MetadataAuthAudit) (carriertypespb.AuditMetadataOption, error)
+	AuditMetadataAuthority(audit *types.MetadataAuthAudit) (commonconstantpb.AuditMetadataOption, error)
 	GetLocalMetadataAuthorityList(lastUpdate, pageSize uint64) (types.MetadataAuthArray, error)
 	GetGlobalMetadataAuthorityList(lastUpdate, pageSize uint64) (types.MetadataAuthArray, error)
-	HasValidMetadataAuth(userType carriertypespb.UserType, user, identityId, metadataId string) (bool, error)
+	HasValidMetadataAuth(userType commonconstantpb.UserType, user, identityId, metadataId string) (bool, error)
 
 	// power api
-	GetGlobalPowerSummaryList() ([]*pb.GetGlobalPowerSummary, error)
-	GetGlobalPowerDetailList(lastUpdate, pageSize uint64) ([]*pb.GetGlobalPowerDetail, error)
-	GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail, error)
+	GetGlobalPowerSummaryList() ([]*carrierapipb.GetGlobalPowerSummary, error)
+	GetGlobalPowerDetailList(lastUpdate, pageSize uint64) ([]*carrierapipb.GetGlobalPowerDetail, error)
+	GetLocalPowerDetailList() ([]*carrierapipb.GetLocalPowerDetail, error)
 
 	// identity api
 
@@ -90,7 +90,7 @@ type Backend interface {
 	QueryDataResourceFileUploads() ([]*types.DataResourceFileUpload, error)
 
 	// about task result file
-	StoreTaskResultFileSummary(taskId, originId, dataHash, metadataOption, dataNodeId, extra string, dataType carriertypespb.OrigindataType) error
+	StoreTaskResultFileSummary(taskId, originId, dataHash, metadataOption, dataNodeId, extra string, dataType commonconstantpb.OrigindataType) error
 	QueryTaskResultFileSummary(taskId string) (*types.TaskResultFileSummary, error)
 	QueryTaskResultFileSummaryList() (types.TaskResultFileSummaryArr, error)
 

@@ -14,6 +14,7 @@ import (
 	"github.com/datumtechs/datum-network-carrier/core/resource"
 	libapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"github.com/datumtechs/datum-network-carrier/policy"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -297,7 +298,7 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (resTask *types.NeedConsensusTask
 }
 
 func (sche *SchedulerStarveFIFO) ReplaySchedule(
-	partyId string, taskRole carriertypespb.TaskRole,
+	partyId string, taskRole commonconstantpb.TaskRole,
 	replayTask *types.NeedReplayScheduleTask) *types.ReplayScheduleResult {
 
 	task := replayTask.GetTask()
@@ -367,7 +368,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 
 	switch taskRole {
 
-	case carriertypespb.TaskRole_TaskRole_DataSupplier:
+	case commonconstantpb.TaskRole_TaskRole_DataSupplier:
 
 		// ## 1、verify the powsuppliers election result
 		caches := make(map[uint32]ReScheduleCollecter, 0)
@@ -486,7 +487,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 	// select your own internal power resource and lock it,
 	// and finally click 'publishfinishedtasktodatacenter'
 	// or 'sendtaskresultmsgtotasksender' in taskmnager.
-	case carriertypespb.TaskRole_TaskRole_PowerSupplier:
+	case commonconstantpb.TaskRole_TaskRole_PowerSupplier:
 
 		// ## 1、choosing powerSupplier jobNode
 
@@ -591,7 +592,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 
 	// If the current participant is resultsupplier.
 	// just select their own available datanodes.
-	case carriertypespb.TaskRole_TaskRole_Receiver:
+	case commonconstantpb.TaskRole_TaskRole_Receiver:
 
 		// ## 1、choosing receiver dataNode
 

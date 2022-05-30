@@ -5,6 +5,7 @@ import (
 	"github.com/datumtechs/datum-network-carrier/common/bytesutil"
 	"github.com/datumtechs/datum-network-carrier/db"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/gogo/protobuf/proto"
@@ -982,7 +983,7 @@ func HasLocalTaskExecuteStatusTerminateByPartyId(db DatabaseReader, taskId, part
 	return true, nil
 }
 
-func StoreUserMetadataAuthIdByMetadataId(db DatabaseWriter, userType carriertypespb.UserType, user, metadataId, metadataAuthId string) error {
+func StoreUserMetadataAuthIdByMetadataId(db DatabaseWriter, userType commonconstantpb.UserType, user, metadataId, metadataAuthId string) error {
 
 	key := GetUserMetadataAuthByMetadataIdKey(userType, user, metadataId)
 	val, err := rlp.EncodeToBytes(metadataAuthId)
@@ -994,7 +995,7 @@ func StoreUserMetadataAuthIdByMetadataId(db DatabaseWriter, userType carriertype
 	return db.Put(key, val)
 }
 
-func QueryUserMetadataAuthIdByMetadataId(db DatabaseReader, userType carriertypespb.UserType, user, metadataId string) (string, error) {
+func QueryUserMetadataAuthIdByMetadataId(db DatabaseReader, userType commonconstantpb.UserType, user, metadataId string) (string, error) {
 	key := GetUserMetadataAuthByMetadataIdKey(userType, user, metadataId)
 
 	val, err := db.Get(key)
@@ -1015,7 +1016,7 @@ func QueryUserMetadataAuthIdByMetadataId(db DatabaseReader, userType carriertype
 	return metadataAuthId, nil
 }
 
-func HasUserMetadataAuthIdByMetadataId(db DatabaseReader, userType carriertypespb.UserType, user, metadataId string) (bool, error) {
+func HasUserMetadataAuthIdByMetadataId(db DatabaseReader, userType commonconstantpb.UserType, user, metadataId string) (bool, error) {
 	key := GetUserMetadataAuthByMetadataIdKey(userType, user, metadataId)
 
 	has, err := db.Has(key)
@@ -1029,7 +1030,7 @@ func HasUserMetadataAuthIdByMetadataId(db DatabaseReader, userType carriertypesp
 	return true, nil
 }
 
-func RemoveUserMetadataAuthIdByMetadataId(db KeyValueStore, userType carriertypespb.UserType, user, metadataId string) error {
+func RemoveUserMetadataAuthIdByMetadataId(db KeyValueStore, userType commonconstantpb.UserType, user, metadataId string) error {
 	key := GetUserMetadataAuthByMetadataIdKey(userType, user, metadataId)
 
 	has, err := db.Has(key)

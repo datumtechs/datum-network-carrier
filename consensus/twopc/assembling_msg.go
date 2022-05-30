@@ -7,12 +7,13 @@ import (
 	ctypes "github.com/datumtechs/datum-network-carrier/consensus/twopc/types"
 	twopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"github.com/datumtechs/datum-network-carrier/types"
 )
 
 func makePrepareMsg(
 	proposalId common.Hash,
-	senderRole, receiverRole carriertypespb.TaskRole,
+	senderRole, receiverRole commonconstantpb.TaskRole,
 	senderPartyId, receiverPartyId string,
 	nonConsTaks *types.NeedConsensusTask,
 	startTime uint64,
@@ -36,7 +37,7 @@ func makePrepareMsg(
 
 func makePrepareVote(
 	proposalId common.Hash,
-	senderRole, receiverRole carriertypespb.TaskRole,
+	senderRole, receiverRole commonconstantpb.TaskRole,
 	senderPartyId, receiverPartyId string,
 	owner *carriertypespb.TaskOrganization,
 	voteOption types.VoteOption,
@@ -55,7 +56,7 @@ func makePrepareVote(
 
 func makeConfirmMsg(
 	proposalId common.Hash,
-	senderRole, receiverRole carriertypespb.TaskRole,
+	senderRole, receiverRole commonconstantpb.TaskRole,
 	senderPartyId, receiverPartyId string,
 	owner *carriertypespb.TaskOrganization,
 	peers *twopcpb.ConfirmTaskPeerInfo,
@@ -76,7 +77,7 @@ func makeConfirmMsg(
 
 func makeConfirmVote(
 	proposalId common.Hash,
-	senderRole, receiverRole carriertypespb.TaskRole,
+	senderRole, receiverRole commonconstantpb.TaskRole,
 	senderPartyId, receiverPartyId string,
 	owner *carriertypespb.TaskOrganization,
 	voteOption types.VoteOption,
@@ -93,7 +94,7 @@ func makeConfirmVote(
 
 func makeCommitMsg(
 	proposalId common.Hash,
-	senderRole, receiverRole carriertypespb.TaskRole,
+	senderRole, receiverRole commonconstantpb.TaskRole,
 	senderPartyId, receiverPartyId string,
 	owner *carriertypespb.TaskOrganization,
 	option types.TwopcMsgOption,

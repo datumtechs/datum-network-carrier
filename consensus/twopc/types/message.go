@@ -5,6 +5,7 @@ import (
 	"github.com/datumtechs/datum-network-carrier/common"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"strings"
 	"sync"
 	"time"
@@ -76,7 +77,7 @@ type OrgProposalState struct {
 	createAt         uint64 // the time is that the proposal state was created on current iden
 	startAt          uint64 // the time is that the proposal state was created on task sender iden
 	taskId           string
-	taskRole         carriertypespb.TaskRole
+	taskRole         commonconstantpb.TaskRole
 	taskSender       *carriertypespb.TaskOrganization
 	taskOrg          *carriertypespb.TaskOrganization
 	periodNum        ProposalStatePeriod
@@ -85,7 +86,7 @@ type OrgProposalState struct {
 func NewOrgProposalState(
 	proposalId common.Hash,
 	taskId string,
-	taskRole carriertypespb.TaskRole,
+	taskRole commonconstantpb.TaskRole,
 	taskSender *carriertypespb.TaskOrganization,
 	taskOrg *carriertypespb.TaskOrganization,
 	startAt uint64,
@@ -108,7 +109,7 @@ func NewOrgProposalState(
 func NewOrgProposalStateWithFields(
 	proposalId common.Hash,
 	taskId string,
-	taskRole carriertypespb.TaskRole,
+	taskRole commonconstantpb.TaskRole,
 	taskSender *carriertypespb.TaskOrganization,
 	taskOrg *carriertypespb.TaskOrganization,
 	periodNum ProposalStatePeriod,
@@ -137,7 +138,7 @@ func (pstate *OrgProposalState) String() string {
 }
 func (pstate *OrgProposalState) GetProposalId() common.Hash        { return pstate.proposalId }
 func (pstate *OrgProposalState) GetTaskId() string                 { return pstate.taskId }
-func (pstate *OrgProposalState) GetTaskRole() carriertypespb.TaskRole { return pstate.taskRole }
+func (pstate *OrgProposalState) GetTaskRole() commonconstantpb.TaskRole { return pstate.taskRole }
 func (pstate *OrgProposalState) GetTaskSender() *carriertypespb.TaskOrganization {
 	return pstate.taskSender
 }

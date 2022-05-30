@@ -10,10 +10,11 @@ import (
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
 	"github.com/datumtechs/datum-network-carrier/core/rawdb"
 	"github.com/datumtechs/datum-network-carrier/grpclient"
-	carrierapi "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
-	fighterapi "github.com/datumtechs/datum-network-carrier/pb/fighter/api"
-	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/params"
+	carrierapi "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
+	fighterapicomputepb "github.com/datumtechs/datum-network-carrier/pb/fighter/api/compute"
 	"github.com/datumtechs/datum-network-carrier/policy"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -193,16 +194,16 @@ func (s *CarrierAPIBackend) GetSeedNodeList() ([]*carrierapi.SeedPeer, error) {
 	return seeds, nil
 }
 
-func (s *CarrierAPIBackend) storeLocalResource(identity *carriertypespb.Organization, jobNodeId string, jobNodeStatus *computesvc.GetStatusReply) error {
+func (s *CarrierAPIBackend) storeLocalResource(identity *carriertypespb.Organization, jobNodeId string, jobNodeStatus *fighterapicomputepb.GetStatusReply) error {
 
 	// store into local db
-	if err := s.carrier.carrierDB.StoreLocalResource(types.NewLocalResource(&carriertypespb.LocalResourcecarrierapi{
+	if err := s.carrier.carrierDB.StoreLocalResource(types.NewLocalResource(&carriertypespb.LocalResourcePB{
 		Owner:      identity,
 		JobNodeId:  jobNodeId,
 		DataId:     "", // can not own powerId now, because power have not publish
-		DataStatus: carriertypespb.DataStatus_DataStatus_Valid,
+		DataStatus: commonconstantpb.DataStatus_DataStatus_Valid,
 		// resource status, eg: create/release/revoke
-		State: carriertypespb.PowerState_PowerState_Created,
+		State: commonconstantpb.PowerState_PowerState_Created,
 		// unit: byte
 		TotalMem: jobNodeStatus.GetTotalMemory(),
 		UsedMem:  0,
@@ -436,13 +437,13 @@ func (s *CarrierAPIBackend) DeleteRegisterNode(typ carrierapi.RegisteredNodeType
 			}
 
 			// 3. revoke power about jobNode from global
-			if err := s.carrier.carrierDB.RevokeResource(types.NewResource(&carriertypespb.Resourcecarrierapi{
+			if err := s.carrier.carrierDB.RevokeResource(types.NewResource(&carriertypespb.ResourcePB{
 				Owner:  identity,
 				DataId: resourceTable.GetPowerId(),
 				// the status of data, N means normal, D means deleted.
-				DataStatus: carriertypespb.DataStatus_DataStatus_Invalid,
+				DataStatus: commonconstantpb.DataStatus_DataStatus_Invalid,
 				// resource status, eg: create/release/revoke
-				State:    carriertypespb.PowerState_PowerState_Revoked,
+				State:    commonconstantpb.PowerState_PowerState_Revoked,
 				UpdateAt: timeutils.UnixMsecUint64(),
 			})); nil != err {
 				log.WithError(err).Errorf("Failed to remove dataCenter resource on RemoveRegisterNode with revoke power, powerId: {%s}, jobNodeId: {%s}",
@@ -1029,7 +1030,7 @@ func (s *CarrierAPIBackend) GetNodeIdentity() (*types.Identity, error) {
 	if nil != err {
 		return nil, err
 	}
-	return types.NewIdentity(&carriertypespb.Identitycarrierapi{
+	return types.NewIdentity(&carriertypespb.IdentityPB{
 		IdentityId: nodeAlias.GetIdentityId(),
 		NodeId:     nodeAlias.GetNodeId(),
 		NodeName:   nodeAlias.GetNodeName(),
@@ -1044,7 +1045,7 @@ func (s *CarrierAPIBackend) GetIdentityList(lastUpdate uint64, pageSize uint64) 
 
 // for metadataAuthority
 
-func (s *CarrierAPIBackend) AuditMetadataAuthority(audit *types.MetadataAuthAudit) (carriertypespb.AuditMetadataOption, error) {
+func (s *CarrierAPIBackend) AuditMetadataAuthority(audit *types.MetadataAuthAudit) (commonconstantpb.AuditMetadataOption, error) {
 	return s.carrier.authManager.AuditMetadataAuthority(audit)
 }
 
@@ -1056,7 +1057,7 @@ func (s *CarrierAPIBackend) GetGlobalMetadataAuthorityList(lastUpdate, pageSize 
 	return s.carrier.authManager.GetGlobalMetadataAuthorityList(lastUpdate, pageSize)
 }
 
-func (s *CarrierAPIBackend) HasValidMetadataAuth(userType carriertypespb.UserType, user, identityId, metadataId string) (bool, error) {
+func (s *CarrierAPIBackend) HasValidMetadataAuth(userType commonconstantpb.UserType, user, identityId, metadataId string) (bool, error) {
 	return s.carrier.authManager.HasValidMetadataAuth(userType, user, identityId, metadataId)
 }
 
@@ -1152,7 +1153,7 @@ next:
 
 		// For the initiator's local task, when the task has not started execution
 		// (i.e. the status is still: pending), the 'powersuppliers' of the task should not be returned.
-		if identity.GetIdentityId() == task.GetTaskSender().GetIdentityId() && task.GetTaskData().GetState() == carriertypespb.TaskState_TaskState_Pending {
+		if identity.GetIdentityId() == task.GetTaskSender().GetIdentityId() && task.GetTaskData().GetState() == commonconstantpb.TaskState_TaskState_Pending {
 			task.RemovePowerSuppliers() // clean powerSupplier when before return.
 		}
 
@@ -1258,7 +1259,7 @@ next:
 		//
 		// For the initiator's local task, when the task has not started execution
 		// (i.e. the status is still: pending), the 'powersuppliers' of the task should not be returned.
-		if identity.GetIdentityId() == task.GetTaskSender().GetIdentityId() && task.GetTaskData().GetState() == carriertypespb.TaskState_TaskState_Pending {
+		if identity.GetIdentityId() == task.GetTaskSender().GetIdentityId() && task.GetTaskData().GetState() == commonconstantpb.TaskState_TaskState_Pending {
 			task.RemovePowerSuppliers() // clean powerSupplier when before return.
 		}
 
@@ -1381,7 +1382,7 @@ func (s *CarrierAPIBackend) QueryDataResourceFileUploads() ([]*types.DataResourc
 	return s.carrier.carrierDB.QueryDataResourceFileUploads()
 }
 
-func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, dataHash, metadataOption, dataNodeId, extra string, dataType carriertypespb.OrigindataType) error {
+func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, dataHash, metadataOption, dataNodeId, extra string, dataType commonconstantpb.OrigindataType) error {
 	// generate metadataId
 	var buf bytes.Buffer
 	buf.Write([]byte(originId))
@@ -1398,7 +1399,7 @@ func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, dataHas
 	}
 
 	// store local metadata (about task result file)
-	metadata := types.NewMetadata(&carriertypespb.Metadatacarrierapi{
+	metadata := types.NewMetadata(&carriertypespb.MetadataPB{
 		/**
 		MetadataId           string
 		Owner                *Organization
@@ -1422,15 +1423,15 @@ func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, dataHas
 		MetadataId:     metadataId,
 		Owner:          identity,
 		DataId:         metadataId,
-		DataStatus:     carriertypespb.DataStatus_DataStatus_Valid,
+		DataStatus:     commonconstantpb.DataStatus_DataStatus_Valid,
 		MetadataName:   fmt.Sprintf("task `%s` result file", taskId),
-		MetadataType:   carriertypespb.MetadataType_MetadataType_Unknown, // It means this is a module or psi result ??? so we don't known it.
+		MetadataType:   commonconstantpb.MetadataType_MetadataType_Unknown, // It means this is a module or psi result ??? so we don't known it.
 		DataHash:       dataHash,
 		Desc:           fmt.Sprintf("the task `%s` result file after executed", taskId),
-		LocationType:   carriertypespb.DataLocationType_DataLocationType_Local,
+		LocationType:   commonconstantpb.DataLocationType_DataLocationType_Local,
 		DataType:       dataType,
 		Industry:       "Unknown",
-		State:          carriertypespb.MetadataState_MetadataState_Created, // metaData status, eg: create/release/revoke
+		State:          commonconstantpb.MetadataState_MetadataState_Created, // metaData status, eg: create/release/revoke
 		PublishAt:      0,                                            // have not publish
 		UpdateAt:       timeutils.UnixMsecUint64(),
 		Nonce:          0,

@@ -1,7 +1,7 @@
 package schedule
 
 import (
-	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"github.com/datumtechs/datum-network-carrier/types"
 )
 
@@ -14,5 +14,5 @@ type Scheduler interface {
 	RepushTask(task *types.Task) error
 	RemoveTask(taskId string) error
 	TrySchedule() (*types.NeedConsensusTask, string, error)
-	ReplaySchedule(localPartyId string, localTaskRole carriertypespb.TaskRole, task *types.NeedReplayScheduleTask) *types.ReplayScheduleResult
+	ReplaySchedule(localPartyId string, localTaskRole commonconstantpb.TaskRole, task *types.NeedReplayScheduleTask) *types.ReplayScheduleResult
 }

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"github.com/datumtechs/datum-network-carrier/rpc/backend"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -28,7 +29,7 @@ func (svr *Server) ReportUpFileSummary(ctx context.Context, req *pb.ReportUpFile
 		return &carriertypespb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "require dataHash"}, nil
 	}
 	// add by v 0.4.0
-	if carriertypespb.OrigindataType_OrigindataType_Unknown == req.GetDataType() {
+	if commonconstantpb.OrigindataType_OrigindataType_Unknown == req.GetDataType() {
 		return &carriertypespb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "require dataType"}, nil
 	}
 	// add by v 0.4.0
@@ -103,7 +104,7 @@ func (svr *Server) ReportTaskResultFileSummary(ctx context.Context, req *pb.Repo
 	//	return &carriertypespb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "require dataHash"}, nil
 	//}
 	// add by v 0.4.0
-	if carriertypespb.OrigindataType_OrigindataType_Unknown == req.GetDataType() {
+	if commonconstantpb.OrigindataType_OrigindataType_Unknown == req.GetDataType() {
 		return &carriertypespb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "require dataType"}, nil
 	}
 	// add by v 0.4.0
@@ -158,7 +159,7 @@ func (svr *Server) ReportTaskResultFileSummary(ctx context.Context, req *pb.Repo
 
 func (svr *Server) QueryAvailableDataNode(ctx context.Context, req *pb.QueryAvailableDataNodeRequest) (*pb.QueryAvailableDataNodeResponse, error) {
 
-	if req.GetDataType() == carriertypespb.OrigindataType_OrigindataType_Unknown {
+	if req.GetDataType() == commonconstantpb.OrigindataType_OrigindataType_Unknown {
 		return &pb.QueryAvailableDataNodeResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown dataType"}, nil
 	}
 
@@ -239,24 +240,24 @@ func (svr *Server) QueryFilePosition(ctx context.Context, req *pb.QueryFilePosit
 	}
 
 	log.Debugf("RPC-API:QueryFilePosition Succeed, originId: {%s}, return dataNodeIp: {%s}, dataNodePort: {%s}, dataType: {%s}, metadataOption: %s",
-		req.GetOriginId(), dataNode.GetInternalIp(), dataNode.GetInternalPort(), carriertypespb.OrigindataType(dataResourceFileUpload.GetDataType()).String(), dataResourceFileUpload.GetMetadataOption())
+		req.GetOriginId(), dataNode.GetInternalIp(), dataNode.GetInternalPort(), commonconstantpb.OrigindataType(dataResourceFileUpload.GetDataType()).String(), dataResourceFileUpload.GetMetadataOption())
 
 	var dataPath string
 
-	switch carriertypespb.OrigindataType(dataResourceFileUpload.GetDataType()) {
-	case carriertypespb.OrigindataType_OrigindataType_CSV:
+	switch commonconstantpb.OrigindataType(dataResourceFileUpload.GetDataType()) {
+	case commonconstantpb.OrigindataType_OrigindataType_CSV:
 		var option *types.MetadataOptionCSV
 		if err := json.Unmarshal([]byte(dataResourceFileUpload.GetMetadataOption()), &option); nil != err {
 			return &pb.QueryFilePositionResponse{Status: backend.ErrQueryFilePosition.ErrCode(), Msg: fmt.Sprintf("unmashal metadataOption to csv failed, %s", err)}, nil
 		}
 		dataPath = option.GetDataPath()
-	case carriertypespb.OrigindataType_OrigindataType_DIR:
+	case commonconstantpb.OrigindataType_OrigindataType_DIR:
 		var option *types.MetadataOptionDIR
 		if err := json.Unmarshal([]byte(dataResourceFileUpload.GetMetadataOption()), &option); nil != err {
 			return &pb.QueryFilePositionResponse{Status: backend.ErrQueryFilePosition.ErrCode(), Msg: fmt.Sprintf("unmashal metadataOption to dir failed, %s", err)}, nil
 		}
 		dataPath = option.GetDirPath()
-	case carriertypespb.OrigindataType_OrigindataType_BINARY:
+	case commonconstantpb.OrigindataType_OrigindataType_BINARY:
 		var option *types.MetadataOptionBINARY
 		if err := json.Unmarshal([]byte(dataResourceFileUpload.GetMetadataOption()), &option); nil != err {
 			return &pb.QueryFilePositionResponse{Status: backend.ErrQueryFilePosition.ErrCode(), Msg: fmt.Sprintf("unmashal metadataOption to binary failed, %s", err)}, nil
@@ -301,7 +302,7 @@ func (svr *Server) GetTaskResultFileSummary(ctx context.Context, req *pb.GetTask
 	}
 
 	log.Debugf("RPC-API:GetTaskResultFileSummary Succeed, taskId: {%s}, return dataNodeIp: {%s}, dataNodePort: {%s}, metadataId: {%s}, originId: {%s}, metadataName: {%s}, dataHash: {%s}, dataType: {%s}, metadataOption: %s",
-		req.GetTaskId(), dataNode.GetInternalIp(), dataNode.GetInternalPort(), summary.GetMetadataId(), summary.GetOriginId(), summary.GetMetadataName(), summary.GetDataHash(), carriertypespb.OrigindataType(summary.GetDataType()).String(), summary.GetMetadataOption())
+		req.GetTaskId(), dataNode.GetInternalIp(), dataNode.GetInternalPort(), summary.GetMetadataId(), summary.GetOriginId(), summary.GetMetadataName(), summary.GetDataHash(), commonconstantpb.OrigindataType(summary.GetDataType()).String(), summary.GetMetadataOption())
 
 	return &pb.GetTaskResultFileSummaryResponse{
 		Status: 0,
@@ -327,7 +328,7 @@ func (svr *Server) GetTaskResultFileSummary(ctx context.Context, req *pb.GetTask
 			Port:           dataNode.GetInternalPort(),
 			Extra:          summary.GetExtra(),
 			DataHash:       summary.GetDataHash(),
-			DataType:       carriertypespb.OrigindataType(summary.GetDataType()),
+			DataType:       commonconstantpb.OrigindataType(summary.GetDataType()),
 			MetadataOption: summary.GetMetadataOption(),
 		},
 	}, nil
@@ -369,7 +370,7 @@ func (svr *Server) GetTaskResultFileSummaryList(ctx context.Context, empty *empt
 			Port:           dataNode.GetInternalPort(),
 			Extra:          summary.GetExtra(),
 			DataHash:       summary.GetDataHash(),
-			DataType:       carriertypespb.OrigindataType(summary.GetDataType()),
+			DataType:       commonconstantpb.OrigindataType(summary.GetDataType()),
 			MetadataOption: summary.GetMetadataOption(),
 		})
 	}

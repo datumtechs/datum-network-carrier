@@ -7,9 +7,10 @@ import (
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
 	"github.com/datumtechs/datum-network-carrier/core/resource"
 	"github.com/datumtechs/datum-network-carrier/crypto/vrf"
+	"github.com/datumtechs/datum-network-carrier/p2p"
 	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
-	"github.com/datumtechs/datum-network-carrier/p2p"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"github.com/datumtechs/datum-network-carrier/rpc/backend"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"math/big"
@@ -318,7 +319,7 @@ func (s *VrfElector) queryValidGlobalPowerList (logkeyword, taskId string) (type
 
 	for _, identityInfo := range identityInfoArr {
 		// Skip the invalid organization
-		if identityInfo.GetStatus() == carriertypespb.CommonStatus_CommonStatus_Invalid || identityInfo.GetDataStatus() == carriertypespb.DataStatus_DataStatus_Invalid {
+		if identityInfo.GetStatus() == commonconstantpb.CommonStatus_CommonStatus_Invalid || identityInfo.GetDataStatus() == commonconstantpb.DataStatus_DataStatus_Invalid {
 			continue
 		}
 		// Skip the mock identityId

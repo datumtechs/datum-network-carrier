@@ -7,6 +7,7 @@ import (
 	"github.com/datumtechs/datum-network-carrier/core/rawdb"
 	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"github.com/datumtechs/datum-network-carrier/rpc/backend"
 	"github.com/datumtechs/datum-network-carrier/signsuite"
 	"github.com/datumtechs/datum-network-carrier/types"
@@ -202,13 +203,13 @@ func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *pb.ApplyMeta
 
 	now := timeutils.UnixMsecUint64()
 	switch req.GetAuth().GetUsageRule().GetUsageType() {
-	case carriertypespb.MetadataUsageType_Usage_Period:
+	case commonconstantpb.MetadataUsageType_Usage_Period:
 		if now >= req.GetAuth().GetUsageRule().GetEndAt() {
 			log.Errorf("RPC-API:ApplyMetadataAuthority failed, usaageRule endTime of metadataAuth has expire, userType: {%s}, user: {%s}, metadataId: {%s}, usageType: {%s}, usageEndTime: {%d}, now: {%d}",
 				req.GetUserType().String(), req.GetUser(), req.GetAuth().GetMetadataId(), req.GetAuth().GetUsageRule().GetUsageType().String(), req.GetAuth().GetUsageRule().GetEndAt(), now)
 			return &pb.ApplyMetadataAuthorityResponse{Status: backend.ErrApplyMetadataAuthority.ErrCode(), Msg: "usaageRule endTime of metadataAuth has expire"}, nil
 		}
-	case carriertypespb.MetadataUsageType_Usage_Times:
+	case commonconstantpb.MetadataUsageType_Usage_Times:
 		if req.GetAuth().GetUsageRule().GetTimes() == 0 {
 			log.Errorf("RPC-API:ApplyMetadataAuthority failed, usaageRule times of metadataAuth must be greater than zero, userType: {%s}, user: {%s}, metadataId: {%s}, usageType: {%s}, usageEndTime: {%d}, now: {%d}",
 				req.GetUserType().String(), req.GetUser(), req.GetAuth().GetMetadataId(), req.GetAuth().GetUsageRule().GetUsageType().String(), req.GetAuth().GetUsageRule().GetEndAt(), now)
@@ -348,23 +349,23 @@ func (svr *Server) RevokeMetadataAuthority(ctx context.Context, req *pb.RevokeMe
 			auth.GetData().GetMetadataAuthId() == req.GetMetadataAuthId() {
 
 			// The data authorization application information that has been audited and cannot be revoked
-			if auth.GetData().GetAuditOption() != carriertypespb.AuditMetadataOption_Audit_Pending {
+			if auth.GetData().GetAuditOption() != commonconstantpb.AuditMetadataOption_Audit_Pending {
 				log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, the metadataAuth was audited")
 				return &carriertypespb.SimpleResponse{Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "the metadataAuth state was audited"}, nil
 			}
 
-			if auth.GetData().GetState() != carriertypespb.MetadataAuthorityState_MAState_Released {
+			if auth.GetData().GetState() != commonconstantpb.MetadataAuthorityState_MAState_Released {
 				log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, the metadataAuth state was not released")
 				return &carriertypespb.SimpleResponse{Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "the metadataAuth state was not released"}, nil
 			}
 
 			switch auth.GetData().GetAuth().GetUsageRule().GetUsageType() {
-			case carriertypespb.MetadataUsageType_Usage_Period:
+			case commonconstantpb.MetadataUsageType_Usage_Period:
 				if timeutils.UnixMsecUint64() >= auth.GetData().GetAuth().GetUsageRule().GetEndAt() {
 					log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, the metadataAuth had been expire")
 					return &carriertypespb.SimpleResponse{Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "the metadataAuth had been expire"}, nil
 				}
-			case carriertypespb.MetadataUsageType_Usage_Times:
+			case commonconstantpb.MetadataUsageType_Usage_Times:
 				if auth.GetData().GetUsedQuo().GetUsedTimes() >= auth.GetData().GetAuth().GetUsageRule().GetTimes() {
 					log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, the metadataAuth had been not enough times")
 					return &carriertypespb.SimpleResponse{Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "the metadataAuth had been not enough times"}, nil
@@ -405,7 +406,7 @@ func (svr *Server) AuditMetadataAuthority(ctx context.Context, req *pb.AuditMeta
 		return &pb.AuditMetadataAuthorityResponse{Status: backend.ErrAuditMetadataAuth.ErrCode(), Msg: "the metadataAuth Id is empty"}, nil
 	}
 
-	if req.GetAudit() == carriertypespb.AuditMetadataOption_Audit_Pending {
+	if req.GetAudit() == commonconstantpb.AuditMetadataOption_Audit_Pending {
 		return &pb.AuditMetadataAuthorityResponse{Status: backend.ErrAuditMetadataAuth.ErrCode(), Msg: "the valid audit metadata option must cannot pending"}, nil
 	}
 
@@ -497,13 +498,13 @@ func (svr *Server) GetGlobalMetadataAuthorityList(ctx context.Context, req *pb.G
 	}, nil
 }
 
-func verifyUserType(userType carriertypespb.UserType) bool {
+func verifyUserType(userType commonconstantpb.UserType) bool {
 	switch userType {
-	case carriertypespb.UserType_User_1: // PlatON
+	case commonconstantpb.UserType_User_1: // PlatON
 		return true
-	case carriertypespb.UserType_User_2: // Alaya
+	case commonconstantpb.UserType_User_2: // Alaya
 		return true
-	case carriertypespb.UserType_User_3: // Ethereum
+	case commonconstantpb.UserType_User_3: // Ethereum
 		return true
 	default:
 		return false
