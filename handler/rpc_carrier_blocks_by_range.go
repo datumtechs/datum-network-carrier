@@ -2,7 +2,7 @@ package handler
 
 import (
 	"context"
-	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
+	carrierp2ppbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
 	libp2pcore "github.com/libp2p/go-libp2p-core"
 	"github.com/pkg/errors"
 	types "github.com/prysmaticlabs/eth2-types"
@@ -19,9 +19,9 @@ func (s *Service) carrierBlocksByRangeRPCHandler(ctx context.Context, msg interf
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
 
-	m, ok := msg.(*pb.CarrierBlocksByRangeRequest)
+	m, ok := msg.(*carrierp2ppbv1.CarrierBlocksByRangeRequest)
 	if !ok {
-		return errors.New("message is not type *pb.CarrierBlockByRangeRequest")
+		return errors.New("message is not type *carrierp2ppbv1.CarrierBlockByRangeRequest")
 	}
 	if err := s.validateRangeRequest(m); err != nil {
 		s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
@@ -39,7 +39,7 @@ func (s *Service) writeBlockRangeToStream(ctx context.Context, startSlot, endSlo
 	return nil
 }
 
-func (s *Service) validateRangeRequest(r *pb.CarrierBlocksByRangeRequest) error {
+func (s *Service) validateRangeRequest(r *carrierp2ppbv1.CarrierBlocksByRangeRequest) error {
 	//TODO: ...
 	return nil
 }

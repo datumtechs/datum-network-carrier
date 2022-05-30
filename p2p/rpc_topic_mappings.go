@@ -1,12 +1,12 @@
 package p2p
 
 import (
-	libp2ppb "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
+	carrierrpcdebugpbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
 	"reflect"
 
-	twopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
-	taskmngpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/taskmng"
-	p2ppb "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
+	carriertwopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
+	carriernetmsgtaskmngpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/taskmng"
+	carrierp2ppbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
 	"github.com/pkg/errors"
 	types "github.com/prysmaticlabs/eth2-types"
 )
@@ -45,20 +45,20 @@ const (
 
 // RPCTopicMappings map the base message type to the rpc request.
 var RPCTopicMappings = map[string]interface{}{
-	RPCStatusTopic:                new(p2ppb.Status),
+	RPCStatusTopic:                new(carrierp2ppbv1.Status),
 	RPCGoodByeTopic:               new(types.SSZUint64),
-	RPCBlocksByRangeTopic:         new(p2ppb.CarrierBlocksByRangeRequest),
+	RPCBlocksByRangeTopic:         new(carrierp2ppbv1.CarrierBlocksByRangeRequest),
 	RPCPingTopic:                  new(types.SSZUint64),
 	RPCMetaDataTopic:              new(interface{}),
-	RPCGossipTestDataByRangeTopic: new(libp2ppb.GossipTestData),
-	RPCTwoPcPrepareMsgTopic:       new(twopcpb.PrepareMsg),
-	RPCTwoPcPrepareVoteTopic:      new(twopcpb.PrepareVote),
-	RPCTwoPcConfirmMsgTopic:       new(twopcpb.ConfirmMsg),
-	RPCTwoPcConfirmVoteTopic:      new(twopcpb.ConfirmVote),
-	RPCTwoPcCommitMsgTopic:        new(twopcpb.CommitMsg),
-	RPCTaskResultMsgTopic:         new(taskmngpb.TaskResultMsg),
-	RPCTaskResourceUsageMsgTopic:  new(taskmngpb.TaskResourceUsageMsg),
-	RPCTaskTerminateMsgTopic:      new(taskmngpb.TaskTerminateMsg),
+	RPCGossipTestDataByRangeTopic: new(carrierrpcdebugpbv1.GossipTestData),
+	RPCTwoPcPrepareMsgTopic:       new(carriertwopcpb.PrepareMsg),
+	RPCTwoPcPrepareVoteTopic:      new(carriertwopcpb.PrepareVote),
+	RPCTwoPcConfirmMsgTopic:       new(carriertwopcpb.ConfirmMsg),
+	RPCTwoPcConfirmVoteTopic:      new(carriertwopcpb.ConfirmVote),
+	RPCTwoPcCommitMsgTopic:        new(carriertwopcpb.CommitMsg),
+	RPCTaskResultMsgTopic:         new(carriernetmsgtaskmngpb.TaskResultMsg),
+	RPCTaskResourceUsageMsgTopic:  new(carriernetmsgtaskmngpb.TaskResourceUsageMsg),
+	RPCTaskTerminateMsgTopic:      new(carriernetmsgtaskmngpb.TaskTerminateMsg),
 }
 
 // VerifyTopicMapping verifies that the topic and its accompanying

@@ -9,8 +9,8 @@ import (
 	"github.com/datumtechs/datum-network-carrier/common/rlputil"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
 	"github.com/datumtechs/datum-network-carrier/db"
-	dbtype "github.com/datumtechs/datum-network-carrier/pb/carrier/db"
-	twopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
+	carrierdbpb "github.com/datumtechs/datum-network-carrier/pb/carrier/db"
+	carriertwopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -65,9 +65,9 @@ func RandStr(length int) string {
 	}
 	return string(result)
 }
-func NeedExecuteTask() (KeyValueStore, dbtype.TaskArrayPB) {
+func NeedExecuteTask() (KeyValueStore, carrierdbpb.TaskArrayPB) {
 	database := db.NewMemoryDatabase()
-	var taskList dbtype.TaskArrayPB
+	var taskList carrierdbpb.TaskArrayPB
 	for _, taskId := range taskIds {
 		taskPB := &carriertypespb.TaskPB{
 			TaskId: taskId,
@@ -94,7 +94,7 @@ func NeedExecuteTask() (KeyValueStore, dbtype.TaskArrayPB) {
 				Port:    "5555",
 				PartyId: partyId,
 			}
-			resources := &twopcpb.ConfirmTaskPeerInfo{}
+			resources := &carriertwopcpb.ConfirmTaskPeerInfo{}
 
 			_task := types.NewNeedExecuteTask(peer.ID(remotepid), 1, 2, localTaskOrganization, remoteTaskOrganization, task.GetTaskId(),
 				3, localResource, resources, nil)
@@ -125,7 +125,7 @@ func TestDeleteNeedExecuteTask(t *testing.T) {
 	RemoveNeedExecuteTaskByPartyId(database, taskId2, partyId)
 	assert.Equal(t, 11, count-1)
 }
-func MockQueryLocalTask(taskList dbtype.TaskArrayPB, taskId string) (*types.Task, error) {
+func MockQueryLocalTask(taskList carrierdbpb.TaskArrayPB, taskId string) (*types.Task, error) {
 	for _, task := range taskList.GetTaskList() {
 		if strings.EqualFold(task.TaskId, taskId) {
 			return types.NewTask(task), nil

@@ -7,12 +7,12 @@ import (
 
 	"fmt"
 
-	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
+	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/rpc/backend"
 )
 
-func (svr *Server) ReportTaskEvent(ctx context.Context, req *pb.ReportTaskEventRequest) (*carriertypespb.SimpleResponse, error) {
+func (svr *Server) ReportTaskEvent(ctx context.Context, req *carrierapipb.ReportTaskEventRequest) (*carriertypespb.SimpleResponse, error) {
 
 	if "" == strings.Trim(req.GetTaskEvent().GetTaskId(), "") {
 		return &carriertypespb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "require taskId"}, nil
@@ -40,7 +40,7 @@ func (svr *Server) ReportTaskEvent(ctx context.Context, req *pb.ReportTaskEventR
 }
 
 
-func (svr *Server) ReportTaskResourceUsage (ctx context.Context, req *pb.ReportTaskResourceUsageRequest) (*carriertypespb.SimpleResponse, error) {
+func (svr *Server) ReportTaskResourceUsage (ctx context.Context, req *carrierapipb.ReportTaskResourceUsageRequest) (*carriertypespb.SimpleResponse, error) {
 
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
@@ -61,7 +61,7 @@ func (svr *Server) ReportTaskResourceUsage (ctx context.Context, req *pb.ReportT
 		return &carriertypespb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "require ip and port"}, nil
 	}
 
-	if req.GetNodeType() != pb.NodeType_NodeType_JobNode && req.GetNodeType() != pb.NodeType_NodeType_DataNode {
+	if req.GetNodeType() != carrierapipb.NodeType_NodeType_JobNode && req.GetNodeType() != carrierapipb.NodeType_NodeType_DataNode {
 		return &carriertypespb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown nodeType"}, nil
 	}
 

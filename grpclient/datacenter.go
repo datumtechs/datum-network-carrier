@@ -3,7 +3,7 @@ package grpclient
 import (
 	"context"
 	"fmt"
-	"github.com/datumtechs/datum-network-carrier/pb/datacenter/api"
+	datacenterapipb "github.com/datumtechs/datum-network-carrier/pb/datacenter/api"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -22,10 +22,10 @@ type GrpcClient struct {
 	c *grpc.ClientConn
 
 	// grpc service
-	metadataService api.MetadataServiceClient
-	resourceService api.ResourceServiceClient
-	identityService api.IdentityServiceClient
-	taskService     api.TaskServiceClient
+	metadataService datacenterapipb.MetadataServiceClient
+	resourceService datacenterapipb.ResourceServiceClient
+	identityService datacenterapipb.IdentityServiceClient
+	taskService     datacenterapipb.TaskServiceClient
 }
 
 // NewClient creates a client that uses the given GRPC client.
@@ -38,10 +38,10 @@ func NewGrpcClient(ctx context.Context, addr string) (*GrpcClient, error) {
 	}
 	return &GrpcClient{
 		c:               conn,
-		metadataService: api.NewMetadataServiceClient(conn),
-		resourceService: api.NewResourceServiceClient(conn),
-		identityService: api.NewIdentityServiceClient(conn),
-		taskService:     api.NewTaskServiceClient(conn),
+		metadataService: datacenterapipb.NewMetadataServiceClient(conn),
+		resourceService: datacenterapipb.NewResourceServiceClient(conn),
+		identityService: datacenterapipb.NewIdentityServiceClient(conn),
+		taskService:     datacenterapipb.NewTaskServiceClient(conn),
 	}, nil
 }
 
@@ -59,7 +59,7 @@ func (gc *GrpcClient) GetClientConn() *grpc.ClientConn {
 }
 
 // MetadataSave saves new metadata to database.
-func (gc *GrpcClient) SaveMetadata(ctx context.Context, request *api.SaveMetadataRequest) (*carriertypespb.SimpleResponse, error) {
+func (gc *GrpcClient) SaveMetadata(ctx context.Context, request *datacenterapipb.SaveMetadataRequest) (*carriertypespb.SimpleResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}
@@ -68,7 +68,7 @@ func (gc *GrpcClient) SaveMetadata(ctx context.Context, request *api.SaveMetadat
 	return gc.metadataService.SaveMetadata(ctx, request)
 }
 
-func (gc *GrpcClient) GetMetadataSummaryList(ctx context.Context, request *api.ListMetadataSummaryRequest) (*api.ListMetadataSummaryResponse, error) {
+func (gc *GrpcClient) GetMetadataSummaryList(ctx context.Context, request *datacenterapipb.ListMetadataSummaryRequest) (*datacenterapipb.ListMetadataSummaryResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}
@@ -78,7 +78,7 @@ func (gc *GrpcClient) GetMetadataSummaryList(ctx context.Context, request *api.L
 	return gc.metadataService.ListMetadataSummary(ctx, request, RPCMaxCallRecvMsgSize)
 }
 
-func (gc *GrpcClient) GetMetadataList(ctx context.Context, request *api.ListMetadataRequest) (*api.ListMetadataResponse, error) {
+func (gc *GrpcClient) GetMetadataList(ctx context.Context, request *datacenterapipb.ListMetadataRequest) (*datacenterapipb.ListMetadataResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}
@@ -88,7 +88,7 @@ func (gc *GrpcClient) GetMetadataList(ctx context.Context, request *api.ListMeta
 	return gc.metadataService.ListMetadata(ctx, request, RPCMaxCallRecvMsgSize)
 }
 
-func (gc *GrpcClient) GetMetadataListByIdentityId(ctx context.Context, request *api.ListMetadataByIdentityIdRequest) (*api.ListMetadataResponse, error) {
+func (gc *GrpcClient) GetMetadataListByIdentityId(ctx context.Context, request *datacenterapipb.ListMetadataByIdentityIdRequest) (*datacenterapipb.ListMetadataResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}
@@ -98,7 +98,7 @@ func (gc *GrpcClient) GetMetadataListByIdentityId(ctx context.Context, request *
 	return gc.metadataService.ListMetadataByIdentityId(ctx, request, RPCMaxCallRecvMsgSize)
 }
 
-func (gc *GrpcClient) GetMetadataById(ctx context.Context, request *api.FindMetadataByIdRequest) (*api.FindMetadataByIdResponse, error) {
+func (gc *GrpcClient) GetMetadataById(ctx context.Context, request *datacenterapipb.FindMetadataByIdRequest) (*datacenterapipb.FindMetadataByIdResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}
@@ -107,7 +107,7 @@ func (gc *GrpcClient) GetMetadataById(ctx context.Context, request *api.FindMeta
 	return gc.metadataService.FindMetadataById(ctx, request)
 }
 
-func (gc *GrpcClient) GetMetadataByIds(ctx context.Context, request *api.FindMetadataByIdsRequest) (*api.ListMetadataResponse, error) {
+func (gc *GrpcClient) GetMetadataByIds(ctx context.Context, request *datacenterapipb.FindMetadataByIdsRequest) (*datacenterapipb.ListMetadataResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}
@@ -116,7 +116,7 @@ func (gc *GrpcClient) GetMetadataByIds(ctx context.Context, request *api.FindMet
 	return gc.metadataService.FindMetadataByIds(ctx, request)
 }
 
-func (gc *GrpcClient) RevokeMetadata(ctx context.Context, request *api.RevokeMetadataRequest) (*carriertypespb.SimpleResponse, error) {
+func (gc *GrpcClient) RevokeMetadata(ctx context.Context, request *datacenterapipb.RevokeMetadataRequest) (*carriertypespb.SimpleResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}
@@ -125,7 +125,7 @@ func (gc *GrpcClient) RevokeMetadata(ctx context.Context, request *api.RevokeMet
 	return gc.metadataService.RevokeMetadata(ctx, request)
 }
 // add by v 0.4.0
-func (gc *GrpcClient) UpdateMetadata(ctx context.Context, request *api.UpdateMetadataRequest) (*carriertypespb.SimpleResponse, error) {
+func (gc *GrpcClient) UpdateMetadata(ctx context.Context, request *datacenterapipb.UpdateMetadataRequest) (*carriertypespb.SimpleResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}
@@ -136,7 +136,7 @@ func (gc *GrpcClient) UpdateMetadata(ctx context.Context, request *api.UpdateMet
 
 // ************************************** Resource module *******************************************************
 
-func (gc *GrpcClient) SaveResource(ctx context.Context, request *api.PublishPowerRequest) (*carriertypespb.SimpleResponse, error) {
+func (gc *GrpcClient) SaveResource(ctx context.Context, request *datacenterapipb.PublishPowerRequest) (*carriertypespb.SimpleResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}
@@ -145,7 +145,7 @@ func (gc *GrpcClient) SaveResource(ctx context.Context, request *api.PublishPowe
 	return gc.resourceService.PublishPower(ctx, request)
 }
 
-func (gc *GrpcClient) SyncPower(ctx context.Context, request *api.SyncPowerRequest) (*carriertypespb.SimpleResponse, error) {
+func (gc *GrpcClient) SyncPower(ctx context.Context, request *datacenterapipb.SyncPowerRequest) (*carriertypespb.SimpleResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}
@@ -154,7 +154,7 @@ func (gc *GrpcClient) SyncPower(ctx context.Context, request *api.SyncPowerReque
 	return gc.resourceService.SyncPower(ctx, request)
 }
 
-func (gc *GrpcClient) RevokeResource(ctx context.Context, request *api.RevokePowerRequest) (*carriertypespb.SimpleResponse, error) {
+func (gc *GrpcClient) RevokeResource(ctx context.Context, request *datacenterapipb.RevokePowerRequest) (*carriertypespb.SimpleResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}
@@ -163,7 +163,7 @@ func (gc *GrpcClient) RevokeResource(ctx context.Context, request *api.RevokePow
 	return gc.resourceService.RevokePower(ctx, request)
 }
 
-func (gc *GrpcClient) GetPowerSummaryByIdentityId(ctx context.Context, request *api.GetPowerSummaryByIdentityRequest) (*api.PowerSummaryResponse, error) {
+func (gc *GrpcClient) GetPowerSummaryByIdentityId(ctx context.Context, request *datacenterapipb.GetPowerSummaryByIdentityRequest) (*datacenterapipb.PowerSummaryResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}
@@ -172,7 +172,7 @@ func (gc *GrpcClient) GetPowerSummaryByIdentityId(ctx context.Context, request *
 	return gc.resourceService.GetPowerSummaryByIdentityId(ctx, request, RPCMaxCallRecvMsgSize)
 }
 
-func (gc *GrpcClient) GetPowerGlobalSummaryList(ctx context.Context) (*api.ListPowerSummaryResponse, error) {
+func (gc *GrpcClient) GetPowerGlobalSummaryList(ctx context.Context) (*datacenterapipb.ListPowerSummaryResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}
@@ -182,7 +182,7 @@ func (gc *GrpcClient) GetPowerGlobalSummaryList(ctx context.Context) (*api.ListP
 	return gc.resourceService.ListPowerSummary(ctx, &emptypb.Empty{}, RPCMaxCallRecvMsgSize)
 }
 
-func (gc *GrpcClient) GetPowerList(ctx context.Context, request *api.ListPowerRequest) (*api.ListPowerResponse, error) {
+func (gc *GrpcClient) GetPowerList(ctx context.Context, request *datacenterapipb.ListPowerRequest) (*datacenterapipb.ListPowerResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}
@@ -194,7 +194,7 @@ func (gc *GrpcClient) GetPowerList(ctx context.Context, request *api.ListPowerRe
 
 // ************************************** Identity module *******************************************************
 
-func (gc *GrpcClient) SaveIdentity(ctx context.Context, request *api.SaveIdentityRequest) (*carriertypespb.SimpleResponse, error) {
+func (gc *GrpcClient) SaveIdentity(ctx context.Context, request *datacenterapipb.SaveIdentityRequest) (*carriertypespb.SimpleResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}
@@ -203,7 +203,7 @@ func (gc *GrpcClient) SaveIdentity(ctx context.Context, request *api.SaveIdentit
 	return gc.identityService.SaveIdentity(ctx, request)
 }
 
-func (gc *GrpcClient) RevokeIdentityJoin(ctx context.Context, request *api.RevokeIdentityRequest) (*carriertypespb.SimpleResponse, error) {
+func (gc *GrpcClient) RevokeIdentityJoin(ctx context.Context, request *datacenterapipb.RevokeIdentityRequest) (*carriertypespb.SimpleResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}
@@ -212,7 +212,7 @@ func (gc *GrpcClient) RevokeIdentityJoin(ctx context.Context, request *api.Revok
 	return gc.identityService.RevokeIdentity(ctx, request)
 }
 
-func (gc *GrpcClient) GetIdentityList(ctx context.Context, request *api.ListIdentityRequest) (*api.ListIdentityResponse, error) {
+func (gc *GrpcClient) GetIdentityList(ctx context.Context, request *datacenterapipb.ListIdentityRequest) (*datacenterapipb.ListIdentityResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}
@@ -222,7 +222,7 @@ func (gc *GrpcClient) GetIdentityList(ctx context.Context, request *api.ListIden
 }
 
 // Store metadata authentication application records
-func (gc *GrpcClient) SaveMetadataAuthority(ctx context.Context, request *api.MetadataAuthorityRequest) (*carriertypespb.SimpleResponse, error) {
+func (gc *GrpcClient) SaveMetadataAuthority(ctx context.Context, request *datacenterapipb.MetadataAuthorityRequest) (*carriertypespb.SimpleResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}
@@ -233,7 +233,7 @@ func (gc *GrpcClient) SaveMetadataAuthority(ctx context.Context, request *api.Me
 
 // Data authorization audit, rules:
 // 1. After authorization, the approval result can be bound to the original application record
-func (gc *GrpcClient) UpdateMetadataAuthority(ctx context.Context, request *api.MetadataAuthorityRequest) (*carriertypespb.SimpleResponse, error) {
+func (gc *GrpcClient) UpdateMetadataAuthority(ctx context.Context, request *datacenterapipb.MetadataAuthorityRequest) (*carriertypespb.SimpleResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}
@@ -244,7 +244,7 @@ func (gc *GrpcClient) UpdateMetadataAuthority(ctx context.Context, request *api.
 
 // Obtain data authorization application list
 // Rule: obtained according to the condition when the parameter exists; returned in full when the parameter does not exist
-func (gc *GrpcClient) GetMetadataAuthorityList(ctx context.Context, request *api.ListMetadataAuthorityRequest) (*api.ListMetadataAuthorityResponse, error) {
+func (gc *GrpcClient) GetMetadataAuthorityList(ctx context.Context, request *datacenterapipb.ListMetadataAuthorityRequest) (*datacenterapipb.ListMetadataAuthorityResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}
@@ -254,7 +254,7 @@ func (gc *GrpcClient) GetMetadataAuthorityList(ctx context.Context, request *api
 	return gc.identityService.ListMetadataAuthority(ctx, request, RPCMaxCallRecvMsgSize)
 }
 
-func (gc *GrpcClient) FindMetadataAuthority(ctx context.Context, request *api.FindMetadataAuthorityRequest) (*api.FindMetadataAuthorityResponse, error) {
+func (gc *GrpcClient) FindMetadataAuthority(ctx context.Context, request *datacenterapipb.FindMetadataAuthorityRequest) (*datacenterapipb.FindMetadataAuthorityResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}
@@ -266,7 +266,7 @@ func (gc *GrpcClient) FindMetadataAuthority(ctx context.Context, request *api.Fi
 
 // ************************************** GetTask module *******************************************************
 
-func (gc *GrpcClient) SaveTask(ctx context.Context, request *api.SaveTaskRequest) (*carriertypespb.SimpleResponse, error) {
+func (gc *GrpcClient) SaveTask(ctx context.Context, request *datacenterapipb.SaveTaskRequest) (*carriertypespb.SimpleResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}
@@ -275,7 +275,7 @@ func (gc *GrpcClient) SaveTask(ctx context.Context, request *api.SaveTaskRequest
 	return gc.taskService.SaveTask(ctx, request)
 }
 
-func (gc *GrpcClient) GetDetailTask(ctx context.Context, request *api.GetTaskDetailRequest) (*api.GetTaskDetailResponse, error) {
+func (gc *GrpcClient) GetDetailTask(ctx context.Context, request *datacenterapipb.GetTaskDetailRequest) (*datacenterapipb.GetTaskDetailResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}
@@ -285,7 +285,7 @@ func (gc *GrpcClient) GetDetailTask(ctx context.Context, request *api.GetTaskDet
 	return gc.taskService.GetTaskDetail(ctx, request)
 }
 
-func (gc *GrpcClient) ListTask(ctx context.Context, request *api.ListTaskRequest) (*api.ListTaskResponse, error) {
+func (gc *GrpcClient) ListTask(ctx context.Context, request *datacenterapipb.ListTaskRequest) (*datacenterapipb.ListTaskResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}
@@ -295,7 +295,7 @@ func (gc *GrpcClient) ListTask(ctx context.Context, request *api.ListTaskRequest
 	return gc.taskService.ListTask(ctx, request, RPCMaxCallRecvMsgSize)
 }
 
-func (gc *GrpcClient) ListTaskByIdentity(ctx context.Context, request *api.ListTaskByIdentityRequest) (*api.ListTaskResponse, error) {
+func (gc *GrpcClient) ListTaskByIdentity(ctx context.Context, request *datacenterapipb.ListTaskByIdentityRequest) (*datacenterapipb.ListTaskResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}
@@ -305,7 +305,7 @@ func (gc *GrpcClient) ListTaskByIdentity(ctx context.Context, request *api.ListT
 	return gc.taskService.ListTaskByIdentity(ctx, request, RPCMaxCallRecvMsgSize)
 }
 
-func (gc *GrpcClient) ListTaskByTaskIds(ctx context.Context, request *api.ListTaskByTaskIdsRequest) (*api.ListTaskResponse, error) {
+func (gc *GrpcClient) ListTaskByTaskIds(ctx context.Context, request *datacenterapipb.ListTaskByTaskIdsRequest) (*datacenterapipb.ListTaskResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}
@@ -315,7 +315,7 @@ func (gc *GrpcClient) ListTaskByTaskIds(ctx context.Context, request *api.ListTa
 	return gc.taskService.ListTaskByTaskIds(ctx, request, RPCMaxCallRecvMsgSize)
 }
 
-func (gc *GrpcClient) ListTaskEvent(ctx context.Context, request *api.ListTaskEventRequest) (*api.ListTaskEventResponse, error) {
+func (gc *GrpcClient) ListTaskEvent(ctx context.Context, request *datacenterapipb.ListTaskEventRequest) (*datacenterapipb.ListTaskEventResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}

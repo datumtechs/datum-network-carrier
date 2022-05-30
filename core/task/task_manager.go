@@ -16,9 +16,9 @@ import (
 	"github.com/datumtechs/datum-network-carrier/core/schedule"
 	"github.com/datumtechs/datum-network-carrier/p2p"
 	"github.com/datumtechs/datum-network-carrier/params"
-	msgcommonpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/common"
-	twopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
-	taskmngpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/taskmng"
+	carriernetmsgcommonpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/common"
+	carriertwopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
+	carriernetmsgtaskmngpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/taskmng"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"github.com/datumtechs/datum-network-carrier/policy"
@@ -243,7 +243,7 @@ func (m *Manager) loop() {
 						task.GetTaskId(),
 						result.GetStatus(),
 						&types.PrepareVoteResource{},   // zero value
-						&twopcpb.ConfirmTaskPeerInfo{}, // zero value
+						&carriertwopcpb.ConfirmTaskPeerInfo{}, // zero value
 						result.GetErr(),
 					))
 				case types.TaskConsensusInterrupt:
@@ -270,7 +270,7 @@ func (m *Manager) loop() {
 							task.GetTaskId(),
 							types.TaskScheduleFailed,
 							&types.PrepareVoteResource{},   // zero value
-							&twopcpb.ConfirmTaskPeerInfo{}, // zero value
+							&carriertwopcpb.ConfirmTaskPeerInfo{}, // zero value
 							fmt.Errorf("consensus interrupted: "+result.GetErr().Error()+" and "+schedule.ErrRescheduleLargeThreshold.Error()),
 						))
 					} else {
@@ -503,7 +503,7 @@ func (m *Manager) onTerminateExecuteTask(taskId, partyId string, task *types.Tas
 			task.GetTaskId(),
 			types.TaskTerminate,
 			&types.PrepareVoteResource{},   // zero value
-			&twopcpb.ConfirmTaskPeerInfo{}, // zero value
+			&carriertwopcpb.ConfirmTaskPeerInfo{}, // zero value
 			fmt.Errorf("task was terminated"),
 		))
 
@@ -654,14 +654,14 @@ func (m *Manager) HandleReportResourceUsage(usage *types.TaskResuorceUsage) erro
 		needExecuteTask.GetRemoteTaskOrganization().GetIdentityId() != identityId &&
 		needExecuteTask.GetRemoteTaskOrganization().GetIdentityId() == task.GetTaskSender().GetIdentityId() {
 
-		msg := &taskmngpb.TaskResourceUsageMsg{
-			MsgOption: &msgcommonpb.MsgOption{
+		msg := &carriernetmsgtaskmngpb.TaskResourceUsageMsg{
+			MsgOption: &carriernetmsgcommonpb.MsgOption{
 				ProposalId:      common.Hash{}.Bytes(),
 				SenderRole:      uint64(needExecuteTask.GetLocalTaskRole()),
 				SenderPartyId:   []byte(needExecuteTask.GetLocalTaskOrganization().GetPartyId()),
 				ReceiverRole:    uint64(needExecuteTask.GetRemoteTaskRole()),
 				ReceiverPartyId: []byte(needExecuteTask.GetRemoteTaskOrganization().GetPartyId()),
-				MsgOwner: &msgcommonpb.TaskOrganizationIdentityInfo{
+				MsgOwner: &carriernetmsgcommonpb.TaskOrganizationIdentityInfo{
 					Name:       []byte(needExecuteTask.GetLocalTaskOrganization().GetNodeName()),
 					NodeId:     []byte(needExecuteTask.GetLocalTaskOrganization().GetNodeId()),
 					IdentityId: []byte(needExecuteTask.GetLocalTaskOrganization().GetIdentityId()),
@@ -669,7 +669,7 @@ func (m *Manager) HandleReportResourceUsage(usage *types.TaskResuorceUsage) erro
 				},
 			},
 			TaskId: []byte(task.GetTaskId()),
-			Usage: &msgcommonpb.ResourceUsage{
+			Usage: &carriernetmsgcommonpb.ResourceUsage{
 				TotalMem:       usage.GetTotalMem(),
 				UsedMem:        usage.GetUsedMem(),
 				TotalProcessor: uint64(usage.GetTotalProcessor()),

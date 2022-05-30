@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
-	msgcommonpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/common"
-	twopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
+	carriernetmsgcommonpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/common"
+	carriertwopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -187,7 +187,7 @@ type NeedExecuteTask struct {
 	remoteTaskOrganization *carriertypespb.TaskOrganization
 	status                 TaskActionStatus
 	localResource          *PrepareVoteResource
-	resources              *twopcpb.ConfirmTaskPeerInfo
+	resources              *carriertwopcpb.ConfirmTaskPeerInfo
 	taskId                 string
 	consumeQueryId         string // The query Id used to query the consumption status of the task
 	consumeSpec            string // Consumption special of the task  (json format)
@@ -201,7 +201,7 @@ func NewNeedExecuteTask(
 	taskId string,
 	status TaskActionStatus,
 	localResource *PrepareVoteResource,
-	resources *twopcpb.ConfirmTaskPeerInfo,
+	resources *carriertwopcpb.ConfirmTaskPeerInfo,
 	err error,
 ) *NeedExecuteTask {
 	return &NeedExecuteTask{
@@ -231,7 +231,7 @@ func (net *NeedExecuteTask) GetRemoteTaskOrganization() *carriertypespb.TaskOrga
 func (net *NeedExecuteTask) GetTaskId() string                          { return net.taskId }
 func (net *NeedExecuteTask) GetConsStatus() TaskActionStatus            { return net.status }
 func (net *NeedExecuteTask) GetLocalResource() *PrepareVoteResource     { return net.localResource }
-func (net *NeedExecuteTask) GetResources() *twopcpb.ConfirmTaskPeerInfo { return net.resources }
+func (net *NeedExecuteTask) GetResources() *carriertwopcpb.ConfirmTaskPeerInfo { return net.resources }
 func (net *NeedExecuteTask) GetConsumeQueryId() string                  { return net.consumeQueryId }
 func (net *NeedExecuteTask) GetConsumeSpec() string                     { return net.consumeSpec }
 func (net *NeedExecuteTask) GetErr() error                              { return net.err }
@@ -531,7 +531,7 @@ func (syncQueue *SyncExecuteTaskMonitorQueue) siftDownMonitor(i int) {
 	}
 }
 
-func ConfirmTaskPeerInfoString(resources *twopcpb.ConfirmTaskPeerInfo) string {
+func ConfirmTaskPeerInfoString(resources *carriertwopcpb.ConfirmTaskPeerInfo) string {
 	if nil == resources {
 		return "{}"
 	}
@@ -587,13 +587,13 @@ func ConfirmTaskPeerInfoString(resources *twopcpb.ConfirmTaskPeerInfo) string {
 		dataSupplierListStr, powerSupplierListStr, receiverListStr)
 }
 
-func IsSameTaskOrgByte(org1, org2 *msgcommonpb.TaskOrganizationIdentityInfo) bool {
+func IsSameTaskOrgByte(org1, org2 *carriernetmsgcommonpb.TaskOrganizationIdentityInfo) bool {
 	if bytes.Compare(org1.GetPartyId(), org2.GetPartyId()) == 0 && bytes.Compare(org1.GetIdentityId(), org2.GetIdentityId()) == 0 {
 		return true
 	}
 	return false
 }
-func IsNotSameTaskOrgByte(org1, org2 *msgcommonpb.TaskOrganizationIdentityInfo) bool {
+func IsNotSameTaskOrgByte(org1, org2 *carriernetmsgcommonpb.TaskOrganizationIdentityInfo) bool {
 	return !IsSameTaskOrgByte(org1, org2)
 }
 

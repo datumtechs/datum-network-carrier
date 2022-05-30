@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
+	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"github.com/datumtechs/datum-network-carrier/rpc/backend"
@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-func (svr *Server) ReportUpFileSummary(ctx context.Context, req *pb.ReportUpFileSummaryRequest) (*carriertypespb.SimpleResponse, error) {
+func (svr *Server) ReportUpFileSummary(ctx context.Context, req *carrierapipb.ReportUpFileSummaryRequest) (*carriertypespb.SimpleResponse, error) {
 
 	if "" == req.GetOriginId() {
 		return &carriertypespb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "require originId"}, nil
@@ -38,7 +38,7 @@ func (svr *Server) ReportUpFileSummary(ctx context.Context, req *pb.ReportUpFile
 	}
 
 
-	dataNodeList, err := svr.B.GetRegisterNodeList(pb.PrefixTypeDataNode)
+	dataNodeList, err := svr.B.GetRegisterNodeList(carrierapipb.PrefixTypeDataNode)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:ReportUpFileSummary failed, call QueryRegisterNodeList() failed, req.GetOriginId: {%s}, req.GetDataType: {%s}, req.Ip: {%s}, req.Port: {%s}, req.GetDataHash: {%s}, req.GetMetadataOption: %s",
 			req.GetOriginId(), req.GetDataType().String(), req.GetIp(), req.GetPort(), req.GetDataHash(), req.GetMetadataOption())
@@ -82,7 +82,7 @@ func (svr *Server) ReportUpFileSummary(ctx context.Context, req *pb.ReportUpFile
 	}, nil
 }
 
-func (svr *Server) ReportTaskResultFileSummary(ctx context.Context, req *pb.ReportTaskResultFileSummaryRequest) (*carriertypespb.SimpleResponse, error) {
+func (svr *Server) ReportTaskResultFileSummary(ctx context.Context, req *carrierapipb.ReportTaskResultFileSummaryRequest) (*carriertypespb.SimpleResponse, error) {
 
 	if "" == strings.Trim(req.GetTaskId(), "") {
 		return &carriertypespb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "require taskId"}, nil
@@ -112,7 +112,7 @@ func (svr *Server) ReportTaskResultFileSummary(ctx context.Context, req *pb.Repo
 		return &carriertypespb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "require metadataOption"}, nil
 	}
 
-	dataNodeList, err := svr.B.GetRegisterNodeList(pb.PrefixTypeDataNode)
+	dataNodeList, err := svr.B.GetRegisterNodeList(carrierapipb.PrefixTypeDataNode)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:ReportTaskResultFileSummary failed, call QueryRegisterNodeList() failed, req.TaskId: {%s}, req.GetOriginId: {%s}, req.GetDataType: {%s}, req.Ip: {%s}, req.Port: {%s}, req.GetMetadataOption: %s",
 			req.GetTaskId(), req.GetOriginId(), req.GetDataType().String(), req.GetIp(), req.GetPort(), req.GetMetadataOption())
@@ -157,14 +157,14 @@ func (svr *Server) ReportTaskResultFileSummary(ctx context.Context, req *pb.Repo
 	}, nil
 }
 
-func (svr *Server) QueryAvailableDataNode(ctx context.Context, req *pb.QueryAvailableDataNodeRequest) (*pb.QueryAvailableDataNodeResponse, error) {
+func (svr *Server) QueryAvailableDataNode(ctx context.Context, req *carrierapipb.QueryAvailableDataNodeRequest) (*carrierapipb.QueryAvailableDataNodeResponse, error) {
 
 	if req.GetDataType() == commonconstantpb.OrigindataType_OrigindataType_Unknown {
-		return &pb.QueryAvailableDataNodeResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown dataType"}, nil
+		return &carrierapipb.QueryAvailableDataNodeResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown dataType"}, nil
 	}
 
 	if req.GetDataSize() == 0 {
-		return &pb.QueryAvailableDataNodeResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require dataSize"}, nil
+		return &carrierapipb.QueryAvailableDataNodeResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require dataSize"}, nil
 	}
 
 	dataResourceTables, err := svr.B.QueryDataResourceTables()
@@ -173,7 +173,7 @@ func (svr *Server) QueryAvailableDataNode(ctx context.Context, req *pb.QueryAvai
 			req.GetDataType(), req.GetDataSize())
 
 		errMsg := fmt.Sprintf("%s, call QueryDataResourceTables() failed, %s, %d", backend.ErrQueryAvailableDataNode.Error(), req.GetDataType(), req.GetDataSize())
-		return &pb.QueryAvailableDataNodeResponse{Status: backend.ErrQueryAvailableDataNode.ErrCode(), Msg: errMsg}, nil
+		return &carrierapipb.QueryAvailableDataNodeResponse{Status: backend.ErrQueryAvailableDataNode.ErrCode(), Msg: errMsg}, nil
 	}
 
 	var nodeId string
@@ -191,35 +191,35 @@ func (svr *Server) QueryAvailableDataNode(ctx context.Context, req *pb.QueryAvai
 
 		errMsg := fmt.Sprintf("%s, not found available dataNodeId of dataNode, %s, %d, %s", backend.ErrQueryAvailableDataNode.Error(),
 			req.GetDataType(), req.GetDataSize(), nodeId)
-		return &pb.QueryAvailableDataNodeResponse{Status: backend.ErrQueryAvailableDataNode.ErrCode(), Msg: errMsg}, nil
+		return &carrierapipb.QueryAvailableDataNodeResponse{Status: backend.ErrQueryAvailableDataNode.ErrCode(), Msg: errMsg}, nil
 	}
 
-	dataNode, err := svr.B.GetRegisterNode(pb.PrefixTypeDataNode, nodeId)
+	dataNode, err := svr.B.GetRegisterNode(carrierapipb.PrefixTypeDataNode, nodeId)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:QueryAvailableDataNode-QueryRegisterNode failed, dataType: {%s}, dataSize: {%d}, dataNodeId: {%s}",
 			req.GetDataType(), req.GetDataSize(), nodeId)
 
 		errMsg := fmt.Sprintf("%s, call QueryRegisterNode() failed, %s, %d, %s", backend.ErrQueryAvailableDataNode.Error(),
 			req.GetDataType(), req.GetDataSize(), nodeId)
-		return &pb.QueryAvailableDataNodeResponse{Status: backend.ErrQueryAvailableDataNode.ErrCode(), Msg: errMsg}, nil
+		return &carrierapipb.QueryAvailableDataNodeResponse{Status: backend.ErrQueryAvailableDataNode.ErrCode(), Msg: errMsg}, nil
 	}
 	log.Debugf("RPC-API:QueryAvailableDataNode succeed, dataType: {%s}, dataSize: {%d}, return dataNodeId: {%s}, dataNodeIp: {%s}, dataNodePort: {%s}",
 		req.GetDataType(), req.GetDataSize(), dataNode.GetId(), dataNode.GetInternalIp(), dataNode.GetInternalPort())
 
-	return &pb.QueryAvailableDataNodeResponse{
+	return &carrierapipb.QueryAvailableDataNodeResponse{
 		Status: 0,
 		Msg:    backend.OK,
-		Information: &pb.QueryAvailableDataNode{
+		Information: &carrierapipb.QueryAvailableDataNode{
 			Ip:   dataNode.GetInternalIp(),
 			Port: dataNode.GetInternalPort(),
 		},
 	}, nil
 }
 
-func (svr *Server) QueryFilePosition(ctx context.Context, req *pb.QueryFilePositionRequest) (*pb.QueryFilePositionResponse, error) {
+func (svr *Server) QueryFilePosition(ctx context.Context, req *carrierapipb.QueryFilePositionRequest) (*carrierapipb.QueryFilePositionResponse, error) {
 
 	if "" == req.GetOriginId() {
-		return &pb.QueryFilePositionResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require originId"}, nil
+		return &carrierapipb.QueryFilePositionResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require originId"}, nil
 	}
 
 	dataResourceFileUpload, err := svr.B.QueryDataResourceFileUpload(req.GetOriginId())
@@ -227,16 +227,16 @@ func (svr *Server) QueryFilePosition(ctx context.Context, req *pb.QueryFilePosit
 		log.WithError(err).Errorf("RPC-API:QueryFilePosition-QueryDataResourceFileUpload failed, originId: {%s}", req.GetOriginId())
 
 		errMsg := fmt.Sprintf("%s, call QueryDataResourceFileUpload() failed, %s", backend.ErrQueryFilePosition.Error(), req.GetOriginId())
-		return &pb.QueryFilePositionResponse{Status: backend.ErrQueryFilePosition.ErrCode(), Msg: errMsg}, nil
+		return &carrierapipb.QueryFilePositionResponse{Status: backend.ErrQueryFilePosition.ErrCode(), Msg: errMsg}, nil
 	}
-	dataNode, err := svr.B.GetRegisterNode(pb.PrefixTypeDataNode, dataResourceFileUpload.GetNodeId())
+	dataNode, err := svr.B.GetRegisterNode(carrierapipb.PrefixTypeDataNode, dataResourceFileUpload.GetNodeId())
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:QueryFilePosition-QueryRegisterNode failed, originId: {%s}, dataNodeId: {%s}",
 			req.GetOriginId(), dataResourceFileUpload.GetNodeId())
 
 		errMsg := fmt.Sprintf("%s, call QueryRegisterNode() failed, %s, %s", backend.ErrQueryFilePosition.Error(),
 			req.GetOriginId(), dataResourceFileUpload.GetNodeId())
-		return &pb.QueryFilePositionResponse{Status: backend.ErrQueryFilePosition.ErrCode(), Msg: errMsg}, nil
+		return &carrierapipb.QueryFilePositionResponse{Status: backend.ErrQueryFilePosition.ErrCode(), Msg: errMsg}, nil
 	}
 
 	log.Debugf("RPC-API:QueryFilePosition Succeed, originId: {%s}, return dataNodeIp: {%s}, dataNodePort: {%s}, dataType: {%s}, metadataOption: %s",
@@ -248,29 +248,29 @@ func (svr *Server) QueryFilePosition(ctx context.Context, req *pb.QueryFilePosit
 	case commonconstantpb.OrigindataType_OrigindataType_CSV:
 		var option *types.MetadataOptionCSV
 		if err := json.Unmarshal([]byte(dataResourceFileUpload.GetMetadataOption()), &option); nil != err {
-			return &pb.QueryFilePositionResponse{Status: backend.ErrQueryFilePosition.ErrCode(), Msg: fmt.Sprintf("unmashal metadataOption to csv failed, %s", err)}, nil
+			return &carrierapipb.QueryFilePositionResponse{Status: backend.ErrQueryFilePosition.ErrCode(), Msg: fmt.Sprintf("unmashal metadataOption to csv failed, %s", err)}, nil
 		}
 		dataPath = option.GetDataPath()
 	case commonconstantpb.OrigindataType_OrigindataType_DIR:
 		var option *types.MetadataOptionDIR
 		if err := json.Unmarshal([]byte(dataResourceFileUpload.GetMetadataOption()), &option); nil != err {
-			return &pb.QueryFilePositionResponse{Status: backend.ErrQueryFilePosition.ErrCode(), Msg: fmt.Sprintf("unmashal metadataOption to dir failed, %s", err)}, nil
+			return &carrierapipb.QueryFilePositionResponse{Status: backend.ErrQueryFilePosition.ErrCode(), Msg: fmt.Sprintf("unmashal metadataOption to dir failed, %s", err)}, nil
 		}
 		dataPath = option.GetDirPath()
 	case commonconstantpb.OrigindataType_OrigindataType_BINARY:
 		var option *types.MetadataOptionBINARY
 		if err := json.Unmarshal([]byte(dataResourceFileUpload.GetMetadataOption()), &option); nil != err {
-			return &pb.QueryFilePositionResponse{Status: backend.ErrQueryFilePosition.ErrCode(), Msg: fmt.Sprintf("unmashal metadataOption to binary failed, %s", err)}, nil
+			return &carrierapipb.QueryFilePositionResponse{Status: backend.ErrQueryFilePosition.ErrCode(), Msg: fmt.Sprintf("unmashal metadataOption to binary failed, %s", err)}, nil
 		}
 		dataPath = option.GetDataPath()
 	default:
-		return &pb.QueryFilePositionResponse{Status: backend.ErrQueryFilePosition.ErrCode(), Msg: fmt.Sprint("cannot match metadata option")}, nil
+		return &carrierapipb.QueryFilePositionResponse{Status: backend.ErrQueryFilePosition.ErrCode(), Msg: fmt.Sprint("cannot match metadata option")}, nil
 	}
 
-	return &pb.QueryFilePositionResponse{
+	return &carrierapipb.QueryFilePositionResponse{
 		Status: 0,
 		Msg:    backend.OK,
-		Information: &pb.QueryFilePosition{
+		Information: &carrierapipb.QueryFilePosition{
 			Ip:       dataNode.GetInternalIp(),
 			Port:     dataNode.GetInternalPort(),
 			DataPath: dataPath,
@@ -278,10 +278,10 @@ func (svr *Server) QueryFilePosition(ctx context.Context, req *pb.QueryFilePosit
 	}, nil
 }
 
-func (svr *Server) GetTaskResultFileSummary(ctx context.Context, req *pb.GetTaskResultFileSummaryRequest) (*pb.GetTaskResultFileSummaryResponse, error) {
+func (svr *Server) GetTaskResultFileSummary(ctx context.Context, req *carrierapipb.GetTaskResultFileSummaryRequest) (*carrierapipb.GetTaskResultFileSummaryResponse, error) {
 
 	if "" == req.GetTaskId() {
-		return &pb.GetTaskResultFileSummaryResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require taskId"}, nil
+		return &carrierapipb.GetTaskResultFileSummaryResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require taskId"}, nil
 	}
 
 	summary, err := svr.B.QueryTaskResultFileSummary(req.GetTaskId())
@@ -289,25 +289,25 @@ func (svr *Server) GetTaskResultFileSummary(ctx context.Context, req *pb.GetTask
 		log.WithError(err).Errorf("RPC-API:GetTaskResultFileSummary-QueryTaskResultFileSummary failed, taskId: {%s}", req.GetTaskId())
 
 		errMsg := fmt.Sprintf("%s, call QueryTaskResultFileSummary() failed, %s", backend.ErrQueryTaskResultFileSummary.Error(), req.GetTaskId())
-		return &pb.GetTaskResultFileSummaryResponse{Status: backend.ErrQueryTaskResultFileSummary.ErrCode(), Msg: errMsg}, nil
+		return &carrierapipb.GetTaskResultFileSummaryResponse{Status: backend.ErrQueryTaskResultFileSummary.ErrCode(), Msg: errMsg}, nil
 	}
-	dataNode, err := svr.B.GetRegisterNode(pb.PrefixTypeDataNode, summary.GetNodeId())
+	dataNode, err := svr.B.GetRegisterNode(carrierapipb.PrefixTypeDataNode, summary.GetNodeId())
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:GetTaskResultFileSummary-QueryRegisterNode failed, taskId: {%s}, dataNodeId: {%s}",
 			req.GetTaskId(), summary.GetNodeId())
 
 		errMsg := fmt.Sprintf("%s, call QueryRegisterNode() failed, %s, %s", backend.ErrQueryTaskResultFileSummary.Error(),
 			req.GetTaskId(), summary.GetNodeId())
-		return &pb.GetTaskResultFileSummaryResponse{Status: backend.ErrQueryTaskResultFileSummary.ErrCode(), Msg: errMsg}, nil
+		return &carrierapipb.GetTaskResultFileSummaryResponse{Status: backend.ErrQueryTaskResultFileSummary.ErrCode(), Msg: errMsg}, nil
 	}
 
 	log.Debugf("RPC-API:GetTaskResultFileSummary Succeed, taskId: {%s}, return dataNodeIp: {%s}, dataNodePort: {%s}, metadataId: {%s}, originId: {%s}, metadataName: {%s}, dataHash: {%s}, dataType: {%s}, metadataOption: %s",
 		req.GetTaskId(), dataNode.GetInternalIp(), dataNode.GetInternalPort(), summary.GetMetadataId(), summary.GetOriginId(), summary.GetMetadataName(), summary.GetDataHash(), commonconstantpb.OrigindataType(summary.GetDataType()).String(), summary.GetMetadataOption())
 
-	return &pb.GetTaskResultFileSummaryResponse{
+	return &carrierapipb.GetTaskResultFileSummaryResponse{
 		Status: 0,
 		Msg:    backend.OK,
-		Information: &pb.GetTaskResultFileSummary{
+		Information: &carrierapipb.GetTaskResultFileSummary{
 			/**
 			TaskId               string
 			MetadataName         string
@@ -334,22 +334,22 @@ func (svr *Server) GetTaskResultFileSummary(ctx context.Context, req *pb.GetTask
 	}, nil
 }
 
-func (svr *Server) GetTaskResultFileSummaryList(ctx context.Context, empty *emptypb.Empty) (*pb.GetTaskResultFileSummaryListResponse, error) {
+func (svr *Server) GetTaskResultFileSummaryList(ctx context.Context, empty *emptypb.Empty) (*carrierapipb.GetTaskResultFileSummaryListResponse, error) {
 	taskResultFileSummaryArr, err := svr.B.QueryTaskResultFileSummaryList()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:GetTaskResultFileSummaryList-QueryTaskResultFileSummaryList failed")
-		return &pb.GetTaskResultFileSummaryListResponse{Status: backend.ErrQueryTaskResultFileSummaryList.ErrCode(), Msg: backend.ErrQueryTaskResultFileSummaryList.Error()}, nil
+		return &carrierapipb.GetTaskResultFileSummaryListResponse{Status: backend.ErrQueryTaskResultFileSummaryList.ErrCode(), Msg: backend.ErrQueryTaskResultFileSummaryList.Error()}, nil
 	}
 
-	arr := make([]*pb.GetTaskResultFileSummary, 0)
+	arr := make([]*carrierapipb.GetTaskResultFileSummary, 0)
 	for _, summary := range taskResultFileSummaryArr {
-		dataNode, err := svr.B.GetRegisterNode(pb.PrefixTypeDataNode, summary.GetNodeId())
+		dataNode, err := svr.B.GetRegisterNode(carrierapipb.PrefixTypeDataNode, summary.GetNodeId())
 		if nil != err {
 			log.WithError(err).Errorf("RPC-API:GetTaskResultFileSummaryList-QueryRegisterNode failed, taskId: {%s}, dataNodeId: {%s}",
 				summary.GetTaskId(), summary.GetNodeId())
 			continue
 		}
-		arr = append(arr, &pb.GetTaskResultFileSummary{
+		arr = append(arr, &carrierapipb.GetTaskResultFileSummary{
 			/**
 			TaskId               string
 			MetadataName         string
@@ -376,7 +376,7 @@ func (svr *Server) GetTaskResultFileSummaryList(ctx context.Context, empty *empt
 	}
 
 	log.Debugf("RPC-API:GetTaskResultFileSummaryList Succeed, task result file summary list len: {%d}", len(arr))
-	return &pb.GetTaskResultFileSummaryListResponse{
+	return &carrierapipb.GetTaskResultFileSummaryListResponse{
 		Status:          0,
 		Msg:             backend.OK,
 		TaskResultFiles: arr,

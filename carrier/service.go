@@ -19,7 +19,7 @@ import (
 	"github.com/datumtechs/datum-network-carrier/db"
 	"github.com/datumtechs/datum-network-carrier/grpclient"
 	"github.com/datumtechs/datum-network-carrier/handler"
-	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
+	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	"github.com/datumtechs/datum-network-carrier/p2p"
 	"github.com/datumtechs/datum-network-carrier/service/discovery"
 	"github.com/datumtechs/datum-network-carrier/types"
@@ -165,7 +165,7 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 	s.Engines[types.ChainconsTyp] = chaincons.New()
 
 	// load stored jobNode and dataNode
-	jobNodeList, err := s.carrierDB.QueryRegisterNodeList(pb.PrefixTypeJobNode)
+	jobNodeList, err := s.carrierDB.QueryRegisterNodeList(carrierapipb.PrefixTypeJobNode)
 	if err == nil {
 		for _, node := range jobNodeList {
 			client, err := grpclient.NewJobNodeClient(ctx, fmt.Sprintf("%s:%s", node.GetInternalIp(), node.GetInternalPort()), node.GetId())
@@ -174,7 +174,7 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 			}
 		}
 	}
-	dataNodeList, err := s.carrierDB.QueryRegisterNodeList(pb.PrefixTypeDataNode)
+	dataNodeList, err := s.carrierDB.QueryRegisterNodeList(carrierapipb.PrefixTypeDataNode)
 	if err == nil {
 		for _, node := range dataNodeList {
 			client, err := grpclient.NewDataNodeClient(ctx, fmt.Sprintf("%s:%s", node.GetInternalIp(), node.GetInternalPort()), node.GetId())

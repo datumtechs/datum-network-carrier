@@ -8,7 +8,7 @@ import (
 	"github.com/datumtechs/datum-network-carrier/common/rlputil"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
 	ctypes "github.com/datumtechs/datum-network-carrier/consensus/twopc/types"
-	twopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
+	carriertwopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/gogo/protobuf/proto"
@@ -90,22 +90,22 @@ func TestUpdateOrgProposalState(t *testing.T) {
 func TestUpdateConfirmTaskPeerInfo(t *testing.T) {
 	db := generateWalDB()
 	proposalId := generateProposalId()
-	peerDesc := &twopcpb.ConfirmTaskPeerInfo{
-		DataSupplierPeerInfos: []*twopcpb.TaskPeerInfo{
+	peerDesc := &carriertwopcpb.ConfirmTaskPeerInfo{
+		DataSupplierPeerInfos: []*carriertwopcpb.TaskPeerInfo{
 			{
 				Ip:      []byte("192.157.222.112"),
 				Port:    []byte("8890"),
 				PartyId: []byte("P1"),
 			},
 		},
-		PowerSupplierPeerInfos: []*twopcpb.TaskPeerInfo{
+		PowerSupplierPeerInfos: []*carriertwopcpb.TaskPeerInfo{
 			{
 				Ip:      []byte("192.157.222.113"),
 				Port:    []byte("8889"),
 				PartyId: []byte("P0"),
 			},
 		},
-		ResultReceiverPeerInfos: []*twopcpb.TaskPeerInfo{
+		ResultReceiverPeerInfos: []*carriertwopcpb.TaskPeerInfo{
 			{
 				Ip:      []byte("192.157.222.114"),
 				Port:    []byte("8888"),
@@ -240,7 +240,7 @@ func TestRecoveryState(t *testing.T) {
 
 	// recovery proposalPeerInfoCache (proposalId -> ConfirmTaskPeerInfo)
 	go func(wg *sync.WaitGroup, errCh chan<- error) {
-		proposalPeerInfoCache := make(map[common.Hash]*twopcpb.ConfirmTaskPeerInfo, 0)
+		proposalPeerInfoCache := make(map[common.Hash]*carriertwopcpb.ConfirmTaskPeerInfo, 0)
 		defer wg.Done()
 
 		prefixLength := len(proposalPeerInfoCachePrefix)
@@ -248,7 +248,7 @@ func TestRecoveryState(t *testing.T) {
 
 			if len(key) != 0 && len(value) != 0 {
 				proposalId := common.BytesToHash(key[prefixLength:])
-				confirmTaskPeerInfo := &twopcpb.ConfirmTaskPeerInfo{}
+				confirmTaskPeerInfo := &carriertwopcpb.ConfirmTaskPeerInfo{}
 				if err := proto.Unmarshal(value, confirmTaskPeerInfo); err != nil {
 					return fmt.Errorf("unmarshal confirmTaskPeerInfo failed, %s", err)
 				}

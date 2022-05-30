@@ -6,7 +6,7 @@ import (
 	"github.com/datumtechs/datum-network-carrier/core/rawdb"
 	"github.com/datumtechs/datum-network-carrier/db"
 	"github.com/datumtechs/datum-network-carrier/grpclient"
-	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
+	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/sirupsen/logrus"
@@ -122,7 +122,7 @@ func (dc *DataCenter) InsertData(blocks types.Blocks) (int, error) {
 }
 
 // on yarn node api
-func (dc *DataCenter) SetSeedNode(seed *pb.SeedPeer) error {
+func (dc *DataCenter) SetSeedNode(seed *carrierapipb.SeedPeer) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.StoreSeedNode(dc.db, seed)
@@ -134,31 +134,31 @@ func (dc *DataCenter) RemoveSeedNode(addr string) error {
 	return rawdb.RemoveSeedNode(dc.db, addr)
 }
 
-func (dc *DataCenter) QuerySeedNodeList() ([]*pb.SeedPeer, error) {
+func (dc *DataCenter) QuerySeedNodeList() ([]*carrierapipb.SeedPeer, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.QueryAllSeedNodes(dc.db)
 }
 
-func (dc *DataCenter) SetRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRegisteredPeerDetail) error {
+func (dc *DataCenter) SetRegisterNode(typ carrierapipb.RegisteredNodeType, node *carrierapipb.YarnRegisteredPeerDetail) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.StoreRegisterNode(dc.db, typ, node)
 }
 
-func (dc *DataCenter) DeleteRegisterNode(typ pb.RegisteredNodeType, id string) error {
+func (dc *DataCenter) DeleteRegisterNode(typ carrierapipb.RegisteredNodeType, id string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.RemoveRegisterNode(dc.db, typ, id)
 }
 
-func (dc *DataCenter) QueryRegisterNode(typ pb.RegisteredNodeType, id string) (*pb.YarnRegisteredPeerDetail, error) {
+func (dc *DataCenter) QueryRegisterNode(typ carrierapipb.RegisteredNodeType, id string) (*carrierapipb.YarnRegisteredPeerDetail, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.QueryRegisterNode(dc.db, typ, id)
 }
 
-func (dc *DataCenter) QueryRegisterNodeList(typ pb.RegisteredNodeType) ([]*pb.YarnRegisteredPeerDetail, error) {
+func (dc *DataCenter) QueryRegisterNodeList(typ carrierapipb.RegisteredNodeType) ([]*carrierapipb.YarnRegisteredPeerDetail, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.QueryAllRegisterNodes(dc.db, typ)

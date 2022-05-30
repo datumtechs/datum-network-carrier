@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/core/rawdb"
-	"github.com/datumtechs/datum-network-carrier/pb/datacenter/api"
+	datacenterapipb "github.com/datumtechs/datum-network-carrier/pb/datacenter/api"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"strings"
@@ -197,7 +197,7 @@ func (dc *DataCenter) InsertTask(task *types.Task) error {
 func (dc *DataCenter) QueryGlobalTaskList(lastUpdate, pageSize uint64) (types.TaskDataArray, error) {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
-	taskListResponse, err := dc.client.ListTask(dc.ctx, &api.ListTaskRequest{
+	taskListResponse, err := dc.client.ListTask(dc.ctx, &datacenterapipb.ListTaskRequest{
 		LastUpdated: lastUpdate,
 		PageSize:    pageSize,
 	})
@@ -207,7 +207,7 @@ func (dc *DataCenter) QueryGlobalTaskList(lastUpdate, pageSize uint64) (types.Ta
 func (dc *DataCenter) QueryTaskListByIdentityId(identityId string, lastUpdate, pageSize uint64) (types.TaskDataArray, error) {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
-	taskListResponse, err := dc.client.ListTaskByIdentity(dc.ctx, &api.ListTaskByIdentityRequest{
+	taskListResponse, err := dc.client.ListTaskByIdentity(dc.ctx, &datacenterapipb.ListTaskByIdentityRequest{
 		IdentityId:  identityId,
 		LastUpdated: lastUpdate,
 		PageSize:    pageSize,
@@ -218,7 +218,7 @@ func (dc *DataCenter) QueryTaskListByIdentityId(identityId string, lastUpdate, p
 func (dc *DataCenter) QueryTaskListByTaskIds(taskIds []string) (types.TaskDataArray, error) {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
-	taskListResponse, err := dc.client.ListTaskByTaskIds(dc.ctx, &api.ListTaskByTaskIdsRequest{
+	taskListResponse, err := dc.client.ListTaskByTaskIds(dc.ctx, &datacenterapipb.ListTaskByTaskIdsRequest{
 		TaskIds: taskIds,
 	})
 	return types.NewTaskArrayFromResponse(taskListResponse), err
@@ -227,7 +227,7 @@ func (dc *DataCenter) QueryTaskListByTaskIds(taskIds []string) (types.TaskDataAr
 func (dc *DataCenter) QueryTaskEventListByTaskId(taskId string) ([]*carriertypespb.TaskEvent, error) {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
-	taskEventResponse, err := dc.client.ListTaskEvent(dc.ctx, &api.ListTaskEventRequest{
+	taskEventResponse, err := dc.client.ListTaskEvent(dc.ctx, &datacenterapipb.ListTaskEventRequest{
 		TaskId: taskId,
 	})
 	if nil != err {
@@ -245,7 +245,7 @@ func (dc *DataCenter) QueryTaskEventListByTaskIds(taskIds []string) ([]*carriert
 
 	eventList := make([]*carriertypespb.TaskEvent, 0)
 	for _, taskId := range taskIds {
-		taskEventResponse, err := dc.client.ListTaskEvent(dc.ctx, &api.ListTaskEventRequest{
+		taskEventResponse, err := dc.client.ListTaskEvent(dc.ctx, &datacenterapipb.ListTaskEventRequest{
 			TaskId: taskId,
 		})
 		if nil != err {

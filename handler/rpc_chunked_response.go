@@ -2,7 +2,7 @@ package handler
 
 import (
 	"errors"
-	libp2ppb "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
+	carrierrpcdebugpbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/p2p"
 	"github.com/datumtechs/datum-network-carrier/p2p/encoder"
@@ -70,19 +70,19 @@ func readResponseChunk(stream libp2pcore.Stream, p2p p2p.P2P, to interface{}) er
 	return p2p.Encoding().DecodeWithMaxLength(stream, to)
 }
 
-func ReadChunkedGossipTestData(stream libp2pcore.Stream, p2p p2p.P2P, isFirstChunk bool) (*libp2ppb.SignedGossipTestData, error) {
+func ReadChunkedGossipTestData(stream libp2pcore.Stream, p2p p2p.P2P, isFirstChunk bool) (*carrierrpcdebugpbv1.SignedGossipTestData, error) {
 	if isFirstChunk {
 		return readFirstChunkedGossipTestData(stream, p2p)
 	}
-	blk := &libp2ppb.SignedGossipTestData{}
+	blk := &carrierrpcdebugpbv1.SignedGossipTestData{}
 	if err := readResponseChunk(stream, p2p, blk); err != nil {
 		return nil, err
 	}
 	return blk, nil
 }
 
-func readFirstChunkedGossipTestData(stream libp2pcore.Stream, p2p p2p.P2P) (*libp2ppb.SignedGossipTestData, error) {
-	blk := &libp2ppb.SignedGossipTestData{}
+func readFirstChunkedGossipTestData(stream libp2pcore.Stream, p2p p2p.P2P) (*carrierrpcdebugpbv1.SignedGossipTestData, error) {
+	blk := &carrierrpcdebugpbv1.SignedGossipTestData{}
 	code, errMsg, err := ReadStatusCode(stream, p2p.Encoding())
 	if err != nil {
 		return nil, err

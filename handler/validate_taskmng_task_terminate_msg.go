@@ -5,7 +5,7 @@ import (
 	"github.com/datumtechs/datum-network-carrier/common"
 	"github.com/datumtechs/datum-network-carrier/common/hashutil"
 	"github.com/datumtechs/datum-network-carrier/common/traceutil"
-	taskmngcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/taskmng"
+	carriernetmsgtaskmngpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/taskmng"
 	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/peer"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
@@ -29,7 +29,7 @@ func (s *Service) validateTaskTerminateMessagePubSub(ctx context.Context, pid pe
 		return pubsub.ValidationReject
 	}
 
-	message, ok := m.(*taskmngcpb.TaskTerminateMsg)
+	message, ok := m.(*carriernetmsgtaskmngpb.TaskTerminateMsg)
 	if !ok {
 		log.Errorf("Invalid message type in the validateTaskTerminateMessagePubSub, typ: %T", m)
 		return pubsub.ValidationReject

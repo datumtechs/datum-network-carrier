@@ -2,16 +2,16 @@ package core
 
 import (
 	"github.com/datumtechs/datum-network-carrier/common/traceutil"
-	"github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/common"
-	taskmngpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/taskmng"
+	carriernetmsgcommonpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/common"
+	carriernetmsgtaskmngpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/taskmng"
 	"testing"
 )
 
 func TestTraceIDRules(t *testing.T) {
-	pbmsg := &taskmngpb.TaskResultMsg{
-		MsgOption:            &common.MsgOption{
+	pbmsg := &carriernetmsgtaskmngpb.TaskResultMsg{
+		MsgOption:            &carriernetmsgcommonpb.MsgOption{
 		},
-		TaskEventList:        make([]*taskmngpb.TaskEvent, 0),
+		TaskEventList:        make([]*carriernetmsgtaskmngpb.TaskEvent, 0),
 		CreateAt:             10000,
 		Sign:                 nil,
 	}

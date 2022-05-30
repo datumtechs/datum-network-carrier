@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
 	"github.com/datumtechs/datum-network-carrier/db"
-	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
+	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/stretchr/testify/require"
 	"gotest.tools/assert"
@@ -20,10 +21,10 @@ func TestLocalTask(t *testing.T) {
 	database := db.NewMemoryDatabase()
 	data01 := &carriertypespb.TaskPB{
 		DataId:     "taskId",
-		DataStatus: carriertypespb.DataStatus_DataStatus_Invalid,
+		DataStatus: commonconstantpb.DataStatus_DataStatus_Invalid,
 		TaskId:     "taskID",
 		TaskName:   "taskName",
-		State:      carriertypespb.TaskState_TaskState_Failed,
+		State:      commonconstantpb.TaskState_TaskState_Failed,
 		Reason:     "reason",
 		Desc:       "desc",
 		CreateAt:   timeutils.UnixMsecUint64(),
@@ -35,7 +36,7 @@ func TestLocalTask(t *testing.T) {
 	assert.Assert(t, strings.EqualFold(data01.TaskId, res.GetTaskId()))
 
 	// test update state
-	res.GetTaskData().State = carriertypespb.TaskState_TaskState_Failed
+	res.GetTaskData().State = commonconstantpb.TaskState_TaskState_Failed
 	RemoveLocalTask(database, data01.TaskId)
 	StoreLocalTask(database, res)
 
@@ -61,7 +62,7 @@ func TestLocalTask(t *testing.T) {
 func TestSeedNode(t *testing.T) {
 	// write seed
 	database := db.NewMemoryDatabase()
-	seedNodeInfo := &pb.SeedPeer{
+	seedNodeInfo := &carrierapipb.SeedPeer{
 		Addr:"addr1",
 		IsDefault: false,
 		ConnState:    1,
@@ -88,7 +89,7 @@ func TestSeedNode(t *testing.T) {
 func TestRegisteredNode(t *testing.T) {
 	// write seed
 	database := db.NewMemoryDatabase()
-	registered := &pb.YarnRegisteredPeerDetail{
+	registered := &carrierapipb.YarnRegisteredPeerDetail{
 		Id:           "id",
 		InternalIp:   "internalIp",
 		InternalPort: "9999",
@@ -96,27 +97,27 @@ func TestRegisteredNode(t *testing.T) {
 		ExternalPort: "999",
 		ConnState:    1,
 	}
-	StoreRegisterNode(database, pb.PrefixTypeJobNode, registered)
+	StoreRegisterNode(database, carrierapipb.PrefixTypeJobNode, registered)
 
 	// get seed
-	r, _ := QueryRegisterNode(database, pb.PrefixTypeJobNode, "id")
+	r, _ := QueryRegisterNode(database, carrierapipb.PrefixTypeJobNode, "id")
 	t.Logf("registered info : %v", r)
 	assert.Assert(t, strings.EqualFold("id", r.Id))
 
 	// read all
-	registeredNodes, _ := QueryAllRegisterNodes(database, pb.PrefixTypeJobNode)
+	registeredNodes, _ := QueryAllRegisterNodes(database, carrierapipb.PrefixTypeJobNode)
 	assert.Assert(t, len(registeredNodes) == 1)
 
 	// delete
-	RemoveRegisterNode(database, pb.PrefixTypeJobNode, "id")
+	RemoveRegisterNode(database, carrierapipb.PrefixTypeJobNode, "id")
 
-	registeredNodes, _ = QueryAllRegisterNodes(database, pb.PrefixTypeJobNode)
+	registeredNodes, _ = QueryAllRegisterNodes(database, carrierapipb.PrefixTypeJobNode)
 	assert.Assert(t, len(registeredNodes) == 0)
 
 	// delete
-	RemoveRegisterNodes(database, pb.PrefixTypeJobNode)
+	RemoveRegisterNodes(database, carrierapipb.PrefixTypeJobNode)
 
-	registeredNodes, _ = QueryAllRegisterNodes(database, pb.PrefixTypeJobNode)
+	registeredNodes, _ = QueryAllRegisterNodes(database, carrierapipb.PrefixTypeJobNode)
 	assert.Assert(t, len(registeredNodes) == 0)
 }
 
@@ -180,8 +181,8 @@ func TestLocalResource(t *testing.T) {
 	localResource01 := &carriertypespb.LocalResourcePB{
 		JobNodeId:      "01",
 		DataId:         "01-dataId",
-		DataStatus:     carriertypespb.DataStatus_DataStatus_Invalid,
-		State:          carriertypespb.PowerState_PowerState_Created,
+		DataStatus:     commonconstantpb.DataStatus_DataStatus_Invalid,
+		State:          commonconstantpb.PowerState_PowerState_Created,
 		TotalMem:       111,
 		UsedMem:        222,
 		TotalProcessor: 11,
@@ -196,8 +197,8 @@ func TestLocalResource(t *testing.T) {
 	localResource02 := &carriertypespb.LocalResourcePB{
 		JobNodeId:      "02",
 		DataId:         "01-dataId",
-		DataStatus:     carriertypespb.DataStatus_DataStatus_Valid,
-		State:         carriertypespb.PowerState_PowerState_Created,
+		DataStatus:     commonconstantpb.DataStatus_DataStatus_Valid,
+		State:         commonconstantpb.PowerState_PowerState_Created,
 		TotalMem:       111,
 		UsedMem:        222,
 		TotalProcessor: 11,

@@ -3,10 +3,10 @@ package handler
 import (
 	"context"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
-	"github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/common"
-	twopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
 	"github.com/datumtechs/datum-network-carrier/p2p"
 	p2ptest "github.com/datumtechs/datum-network-carrier/p2p/testing"
+	carriernetmsgcommonpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/common"
+	carriertwopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
 	twopctypes "github.com/datumtechs/datum-network-carrier/types"
 	"github.com/kevinms/leakybucket-go"
 	"github.com/libp2p/go-libp2p-core/network"
@@ -45,7 +45,7 @@ func TestPrepareMsgRPCHandler_ReceivesPrepareMsg(t *testing.T) {
 	p2.BHost.SetStreamHandler(pcl, func(stream network.Stream) {
 		defer wg.Done()
 		expectSuccess(t, stream)
-		out := new(twopcpb.PrepareMsg)
+		out := new(carriertwopcpb.PrepareMsg)
 		require.NoError(t, r.cfg.P2P.Encoding().DecodeWithMaxLength(stream, out))
 		assert.DeepEqual(t, p1.LocalMetadata, out)
 	})
@@ -53,7 +53,7 @@ func TestPrepareMsgRPCHandler_ReceivesPrepareMsg(t *testing.T) {
 	stream1, err := p1.BHost.NewStream(context.Background(), p2.BHost.ID(), pcl)
 	require.NoError(t, err)
 
-	require.NoError(t, r.prepareMsgRPCHandler(context.Background(), new(twopcpb.PrepareMsg), stream1))
+	require.NoError(t, r.prepareMsgRPCHandler(context.Background(), new(carriertwopcpb.PrepareMsg), stream1))
 
 	if WaitTimeout(&wg, 1*time.Second) {
 		t.Fatal("Did not receive stream within 1 sec")
@@ -92,8 +92,8 @@ func TestPrepareMsgRPCHandler_SendsPrepareMsg(t *testing.T) {
 	r.rateLimiter.limiterMap[topic] = leakybucket.NewCollector(1, 1, false)
 	r2.rateLimiter.limiterMap[topic] = leakybucket.NewCollector(1, 1, false)
 
-	prepareMsg := &twopcpb.PrepareMsg{
-		MsgOption: &common.MsgOption{
+	prepareMsg := &carriertwopcpb.PrepareMsg{
+		MsgOption: &carriernetmsgcommonpb.MsgOption{
 			ProposalId:           []byte("proposalId"),
 			SenderRole:           0,
 			SenderPartyId:        []byte("SenderPartyId"),
@@ -110,7 +110,7 @@ func TestPrepareMsgRPCHandler_SendsPrepareMsg(t *testing.T) {
 	wg.Add(1)
 	p2.BHost.SetStreamHandler(pcl, func(stream network.Stream) {
 		defer wg.Done()
-		out := new(twopcpb.PrepareMsg)
+		out := new(carriertwopcpb.PrepareMsg)
 		require.NoError(t, r.cfg.P2P.Encoding().DecodeWithMaxLength(stream, out))
 		require.Equal(t, out.MsgOption.ProposalId, prepareMsg.MsgOption.ProposalId)
 		if _, err := stream.Write([]byte{responseCodeSuccess}); err != nil {
@@ -160,8 +160,8 @@ func TestPrepareVoteRPCHandler_SendsPrepareVoteMsg(t *testing.T) {
 	r.rateLimiter.limiterMap[topic] = leakybucket.NewCollector(1, 1, false)
 	r2.rateLimiter.limiterMap[topic] = leakybucket.NewCollector(1, 1, false)
 
-	prepareVote := &twopcpb.PrepareVote{
-		MsgOption: &common.MsgOption{
+	prepareVote := &carriertwopcpb.PrepareVote{
+		MsgOption: &carriernetmsgcommonpb.MsgOption{
 			ProposalId:           []byte("proposalId"),
 			SenderRole:           0,
 			SenderPartyId:        []byte("SenderPartyId"),
@@ -177,7 +177,7 @@ func TestPrepareVoteRPCHandler_SendsPrepareVoteMsg(t *testing.T) {
 	wg.Add(1)
 	p2.BHost.SetStreamHandler(pcl, func(stream network.Stream) {
 		defer wg.Done()
-		out := new(twopcpb.PrepareVote)
+		out := new(carriertwopcpb.PrepareVote)
 		require.NoError(t, r.cfg.P2P.Encoding().DecodeWithMaxLength(stream, out))
 		require.Equal(t, out.MsgOption.ProposalId, prepareVote.MsgOption.ProposalId)
 		if _, err := stream.Write([]byte{responseCodeSuccess}); err != nil {
@@ -226,8 +226,8 @@ func TestConfirmMsgRPCHandler_SendsConfirmMsg(t *testing.T) {
 	r.rateLimiter.limiterMap[topic] = leakybucket.NewCollector(1, 1, false)
 	r2.rateLimiter.limiterMap[topic] = leakybucket.NewCollector(1, 1, false)
 
-	confirmMsg := &twopcpb.ConfirmMsg{
-		MsgOption: &common.MsgOption{
+	confirmMsg := &carriertwopcpb.ConfirmMsg{
+		MsgOption: &carriernetmsgcommonpb.MsgOption{
 			ProposalId:           []byte("proposalId"),
 			SenderRole:           0,
 			SenderPartyId:        []byte("SenderPartyId"),
@@ -243,7 +243,7 @@ func TestConfirmMsgRPCHandler_SendsConfirmMsg(t *testing.T) {
 	wg.Add(1)
 	p2.BHost.SetStreamHandler(pcl, func(stream network.Stream) {
 		defer wg.Done()
-		out := new(twopcpb.ConfirmMsg)
+		out := new(carriertwopcpb.ConfirmMsg)
 		require.NoError(t, r.cfg.P2P.Encoding().DecodeWithMaxLength(stream, out))
 		require.Equal(t, out.MsgOption.ProposalId, confirmMsg.MsgOption.ProposalId)
 		if _, err := stream.Write([]byte{responseCodeSuccess}); err != nil {
@@ -292,8 +292,8 @@ func TestConfirmVoteRPCHandler_SendsConfirmVote(t *testing.T) {
 	r.rateLimiter.limiterMap[topic] = leakybucket.NewCollector(1, 1, false)
 	r2.rateLimiter.limiterMap[topic] = leakybucket.NewCollector(1, 1, false)
 
-	confirmVote := &twopcpb.ConfirmVote{
-		MsgOption: &common.MsgOption{
+	confirmVote := &carriertwopcpb.ConfirmVote{
+		MsgOption: &carriernetmsgcommonpb.MsgOption{
 			ProposalId:           []byte("proposalId"),
 			SenderRole:           0,
 			SenderPartyId:        []byte("SenderPartyId"),
@@ -309,7 +309,7 @@ func TestConfirmVoteRPCHandler_SendsConfirmVote(t *testing.T) {
 	wg.Add(1)
 	p2.BHost.SetStreamHandler(pcl, func(stream network.Stream) {
 		defer wg.Done()
-		out := new(twopcpb.ConfirmVote)
+		out := new(carriertwopcpb.ConfirmVote)
 		require.NoError(t, r.cfg.P2P.Encoding().DecodeWithMaxLength(stream, out))
 		require.Equal(t, out.MsgOption.ProposalId, confirmVote.MsgOption.ProposalId)
 		if _, err := stream.Write([]byte{responseCodeSuccess}); err != nil {
@@ -358,8 +358,8 @@ func TestCommitMsgRPCHandler_SendsCommitMsg(t *testing.T) {
 	r.rateLimiter.limiterMap[topic] = leakybucket.NewCollector(1, 1, false)
 	r2.rateLimiter.limiterMap[topic] = leakybucket.NewCollector(1, 1, false)
 
-	commitMsg := &twopcpb.CommitMsg{
-		MsgOption: &common.MsgOption{
+	commitMsg := &carriertwopcpb.CommitMsg{
+		MsgOption: &carriernetmsgcommonpb.MsgOption{
 			ProposalId:           []byte("proposalId"),
 			SenderRole:           0,
 			SenderPartyId:        []byte("SenderPartyId"),
@@ -376,7 +376,7 @@ func TestCommitMsgRPCHandler_SendsCommitMsg(t *testing.T) {
 	wg.Add(1)
 	p2.BHost.SetStreamHandler(pcl, func(stream network.Stream) {
 		defer wg.Done()
-		out := new(twopcpb.CommitMsg)
+		out := new(carriertwopcpb.CommitMsg)
 		require.NoError(t, r.cfg.P2P.Encoding().DecodeWithMaxLength(stream, out))
 		t.Log(twopctypes.TwopcMsgOptionFromBytes(out.CommitOption))
 		require.Equal(t, out.MsgOption.ProposalId, commitMsg.MsgOption.ProposalId)

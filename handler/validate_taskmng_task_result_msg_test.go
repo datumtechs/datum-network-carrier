@@ -5,10 +5,10 @@ import (
 	"context"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
 	"github.com/datumtechs/datum-network-carrier/common/traceutil"
-	"github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/common"
-	"github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/taskmng"
 	"github.com/datumtechs/datum-network-carrier/p2p"
 	p2ptest "github.com/datumtechs/datum-network-carrier/p2p/testing"
+	carriernetmsgcommonpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/common"
+	carriernetmsgtaskmngpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/taskmng"
 	lru "github.com/hashicorp/golang-lru"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	pubsubpb "github.com/libp2p/go-libp2p-pubsub/pb"
@@ -32,8 +32,8 @@ func TestValidateTwopc_ValidTaskResult(t *testing.T) {
 	}
 
 	buf := new(bytes.Buffer)
-	pbmsg := &taskmng.TaskResultMsg{
-		MsgOption: &common.MsgOption{
+	pbmsg := &carriernetmsgtaskmngpb.TaskResultMsg{
+		MsgOption: &carriernetmsgcommonpb.MsgOption{
 			ProposalId:      []byte("proposalId"),
 			SenderRole:      0,
 			SenderPartyId:   []byte("SenderPartyId"),
@@ -47,7 +47,7 @@ func TestValidateTwopc_ValidTaskResult(t *testing.T) {
 	_, err = p.Encoding().EncodeGossip(buf, pbmsg)
 	require.NoError(t, err)
 
-	topic := p2p.GossipTypeMapping[reflect.TypeOf(&taskmng.TaskResultMsg{})]
+	topic := p2p.GossipTypeMapping[reflect.TypeOf(&carriernetmsgtaskmngpb.TaskResultMsg{})]
 	msg := &pubsub.Message{
 		Message: &pubsubpb.Message{
 			Data:  buf.Bytes(),

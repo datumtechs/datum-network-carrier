@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/common/fileutil"
 	"github.com/datumtechs/datum-network-carrier/common/iputils"
-	pbp2p "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
+	carrierp2ppbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
 	gcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/p2p/enode"
 	"github.com/ethereum/go-ethereum/p2p/enr"
@@ -118,7 +118,7 @@ func privKeyFromFile(path string) (*ecdsa.PrivateKey, error) {
 
 // Retrieves node p2p metadata from a set of configuration values
 // from the p2p service.
-func metaDataFromConfig(cfg *Config) (*pbp2p.MetaData, error) {
+func metaDataFromConfig(cfg *Config) (*carrierp2ppbv1.MetaData, error) {
 	defaultKeyPath := path.Join(cfg.DataDir, metaDataPath)
 	metaDataPath := cfg.MetaDataDir
 
@@ -128,7 +128,7 @@ func metaDataFromConfig(cfg *Config) (*pbp2p.MetaData, error) {
 		return nil, err
 	}
 	if metaDataPath == "" && !defaultMetadataExist {
-		metaData := &pbp2p.MetaData{
+		metaData := &carrierp2ppbv1.MetaData{
 			SeqNumber: 0,
 			Attnets:   bitfield.NewBitvector64(),
 		}
@@ -149,7 +149,7 @@ func metaDataFromConfig(cfg *Config) (*pbp2p.MetaData, error) {
 		log.WithError(err).Error("Error reading metadata from file")
 		return nil, err
 	}
-	metaData := &pbp2p.MetaData{}
+	metaData := &carrierp2ppbv1.MetaData{}
 	if err := metaData.Unmarshal(src); err != nil {
 		return nil, err
 	}

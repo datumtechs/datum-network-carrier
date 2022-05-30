@@ -1,13 +1,13 @@
 package debug
 
-import rpcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
+import carrierrpcdebugpbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
 
 type TwopcBackend interface {
 	// 2pc consensus debug
-	Get2PcProposalStateByTaskId(taskId string) (*rpcpb.Get2PcProposalStateResponse, error)
-	Get2PcProposalStateByProposalId(proposalId string) (*rpcpb.Get2PcProposalStateResponse, error)
-	Get2PcProposalPrepare(proposalId string) (*rpcpb.Get2PcProposalPrepareResponse, error)
-	Get2PcProposalConfirm(proposalId string) (*rpcpb.Get2PcProposalConfirmResponse, error)
+	Get2PcProposalStateByTaskId(taskId string) (*carrierrpcdebugpbv1.Get2PcProposalStateResponse, error)
+	Get2PcProposalStateByProposalId(proposalId string) (*carrierrpcdebugpbv1.Get2PcProposalStateResponse, error)
+	Get2PcProposalPrepare(proposalId string) (*carrierrpcdebugpbv1.Get2PcProposalPrepareResponse, error)
+	Get2PcProposalConfirm(proposalId string) (*carrierrpcdebugpbv1.Get2PcProposalConfirmResponse, error)
 }
 
 type DebugBackend interface {

@@ -3,7 +3,7 @@ package handler
 import (
 	"context"
 	"github.com/datumtechs/datum-network-carrier/common/traceutil"
-	twopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
+	carriertwopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
 	"github.com/libp2p/go-libp2p-core/peer"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	"go.opencensus.io/trace"
@@ -28,7 +28,7 @@ func (s *Service) validateCommitMessagePubSub(ctx context.Context, pid peer.ID, 
 		return pubsub.ValidationReject
 	}
 
-	message, ok := m.(*twopcpb.CommitMsg)
+	message, ok := m.(*carriertwopcpb.CommitMsg)
 	if !ok {
 		log.Errorf("Invalid message type in the validateCommitMessagePubSub, typ: %T", m)
 		return pubsub.ValidationReject

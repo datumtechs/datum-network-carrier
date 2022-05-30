@@ -2,7 +2,7 @@ package scorers_test
 
 import (
 	"context"
-	pbrpc "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
+	carrierrpcdebugpbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
 	"github.com/datumtechs/datum-network-carrier/p2p/peers"
 	"github.com/datumtechs/datum-network-carrier/p2p/peers/scorers"
 	"gotest.tools/assert"
@@ -39,7 +39,7 @@ func TestScorers_Gossip_Score(t *testing.T) {
 		{
 			name: "good peer",
 			update: func(scorer *scorers.GossipScorer) {
-				scorer.SetGossipData("peer1", 10.0, 0, map[string]*pbrpc.TopicScoreSnapshot{"a": {TimeInMesh: 100}})
+				scorer.SetGossipData("peer1", 10.0, 0, map[string]*carrierrpcdebugpbv1.TopicScoreSnapshot{"a": {TimeInMesh: 100}})
 			},
 			check: func(scorer *scorers.GossipScorer) {
 				assert.Equal(t, 10.0, scorer.Score("peer1"), "Unexpected score")

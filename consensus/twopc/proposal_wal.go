@@ -6,7 +6,7 @@ import (
 	ctypes "github.com/datumtechs/datum-network-carrier/consensus/twopc/types"
 	"github.com/datumtechs/datum-network-carrier/core/rawdb"
 	"github.com/datumtechs/datum-network-carrier/db"
-	twopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
+	carriertwopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/gogo/protobuf/proto"
@@ -180,7 +180,7 @@ func (w *walDB) StoreConfirmVote(vote *types.ConfirmVote) {
 	}
 }
 
-func (w *walDB) StoreConfirmTaskPeerInfo(proposalId common.Hash, peerDesc *twopcpb.ConfirmTaskPeerInfo) {
+func (w *walDB) StoreConfirmTaskPeerInfo(proposalId common.Hash, peerDesc *carriertwopcpb.ConfirmTaskPeerInfo) {
 	data, err := proto.Marshal(peerDesc)
 	if err != nil {
 		log.WithError(err).Fatalf("marshal confirmTaskPeerInfo failed, proposalId: {%s}",
@@ -228,9 +228,9 @@ func (w *walDB)  ForEachKVWithPrefix (prefix []byte, f func(key, value []byte) e
 func (w *walDB) UnmarshalTest() {
 	it := w.db.NewIteratorWithPrefixAndStart(proposalPeerInfoCachePrefix, nil)
 	defer it.Release()
-	proposalPeerInfoCache := make(map[common.Hash]*twopcpb.ConfirmTaskPeerInfo, 0)
+	proposalPeerInfoCache := make(map[common.Hash]*carriertwopcpb.ConfirmTaskPeerInfo, 0)
 	prefixLength := len(proposalPeerInfoCachePrefix)
-	libProposalPeerInfoCache := &twopcpb.ConfirmTaskPeerInfo{}
+	libProposalPeerInfoCache := &carriertwopcpb.ConfirmTaskPeerInfo{}
 	for it.Next() {
 		key := it.Key()
 		proposalId := common.BytesToHash(key[prefixLength:])

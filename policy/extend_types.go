@@ -1,7 +1,7 @@
 package policy
 
 import (
-	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
+	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/types"
 )
@@ -45,8 +45,8 @@ func NewTaskDetailShowFromTaskData(input *types.Task) *carriertypespb.TaskDetail
 	}
 }
 
-func NewGlobalMetadataInfoFromMetadata(input *types.Metadata) *pb.GetGlobalMetadataDetail {
-	response := &pb.GetGlobalMetadataDetail{
+func NewGlobalMetadataInfoFromMetadata(input *types.Metadata) *carrierapipb.GetGlobalMetadataDetail {
+	response := &carrierapipb.GetGlobalMetadataDetail{
 		Owner: input.GetData().GetOwner(),
 		Information: &carriertypespb.MetadataDetail{
 			MetadataSummary: &carriertypespb.MetadataSummary{
@@ -88,8 +88,8 @@ func NewGlobalMetadataInfoFromMetadata(input *types.Metadata) *pb.GetGlobalMetad
 	return response
 }
 
-func NewLocalMetadataInfoFromMetadata(isInternal bool, input *types.Metadata) *pb.GetLocalMetadataDetail {
-	response := &pb.GetLocalMetadataDetail{
+func NewLocalMetadataInfoFromMetadata(isInternal bool, input *types.Metadata) *carrierapipb.GetLocalMetadataDetail {
+	response := &carrierapipb.GetLocalMetadataDetail{
 		Owner: input.GetData().GetOwner(),
 		Information: &carriertypespb.MetadataDetail{
 			MetadataSummary: &carriertypespb.MetadataSummary{
@@ -133,8 +133,8 @@ func NewLocalMetadataInfoFromMetadata(isInternal bool, input *types.Metadata) *p
 	return response
 }
 
-func NewGlobalMetadataInfoArrayFromMetadataArray(input types.MetadataArray) []*pb.GetGlobalMetadataDetail {
-	result := make([]*pb.GetGlobalMetadataDetail, 0, input.Len())
+func NewGlobalMetadataInfoArrayFromMetadataArray(input types.MetadataArray) []*carrierapipb.GetGlobalMetadataDetail {
+	result := make([]*carrierapipb.GetGlobalMetadataDetail, 0, input.Len())
 	for _, metadata := range input {
 		if metadata == nil {
 			continue
@@ -144,8 +144,8 @@ func NewGlobalMetadataInfoArrayFromMetadataArray(input types.MetadataArray) []*p
 	return result
 }
 
-func NewLocalMetadataInfoArrayFromMetadataArray(internalArr, publishArr types.MetadataArray) []*pb.GetLocalMetadataDetail {
-	result := make([]*pb.GetLocalMetadataDetail, 0, internalArr.Len()+publishArr.Len())
+func NewLocalMetadataInfoArrayFromMetadataArray(internalArr, publishArr types.MetadataArray) []*carrierapipb.GetLocalMetadataDetail {
+	result := make([]*carrierapipb.GetLocalMetadataDetail, 0, internalArr.Len()+publishArr.Len())
 
 	for _, metadata := range internalArr {
 		if metadata == nil {

@@ -12,7 +12,7 @@ import (
 	"github.com/datumtechs/datum-network-carrier/core/evengine"
 	"github.com/datumtechs/datum-network-carrier/core/rawdb"
 	"github.com/datumtechs/datum-network-carrier/core/resource"
-	libapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
+	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"github.com/datumtechs/datum-network-carrier/policy"
@@ -313,7 +313,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 		return types.NewReplayScheduleResult(task.GetTaskId(), fmt.Errorf("query local identity failed, %s", err), nil)
 	}
 
-	findDataNodeByMetadataIdFn := func(metadataId string) (*libapipb.YarnRegisteredPeerDetail, error) {
+	findDataNodeByMetadataIdFn := func(metadataId string) (*carrierapipb.YarnRegisteredPeerDetail, error) {
 		// Select the datanode where your metadata ID is located.
 		var dataNodeId string
 		// check the metadata whether internal metadata
@@ -355,7 +355,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 			dataNodeId = dataResourceDiskUsed.GetNodeId()
 		}
 
-		dataNode, err := sche.resourceMng.GetDB().QueryRegisterNode(libapipb.PrefixTypeDataNode, dataNodeId)
+		dataNode, err := sche.resourceMng.GetDB().QueryRegisterNode(carrierapipb.PrefixTypeDataNode, dataNodeId)
 		if nil != err {
 			log.WithError(err).Errorf("failed query internal data resource by metaDataId when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, metadataId: {%s}",
 				task.GetTaskId(), taskRole.String(), partyId, metadataId)
@@ -492,7 +492,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 		// ## 1、choosing powerSupplier jobNode
 
 		var (
-			node *libapipb.YarnRegisteredPeerDetail
+			node *carrierapipb.YarnRegisteredPeerDetail
 			err  error
 		)
 
@@ -597,7 +597,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 		// ## 1、choosing receiver dataNode
 
 		var (
-			dataNode *libapipb.YarnRegisteredPeerDetail
+			dataNode *carrierapipb.YarnRegisteredPeerDetail
 			err      error
 		)
 
@@ -619,7 +619,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 						task.GetTaskId(), taskRole.String(), partyId, types.UtilDataResourceArrString(dataResourceTables))
 
 					resource := dataResourceTables[len(dataResourceTables)-1]
-					dataNode, err = sche.resourceMng.GetDB().QueryRegisterNode(libapipb.PrefixTypeDataNode, resource.GetNodeId())
+					dataNode, err = sche.resourceMng.GetDB().QueryRegisterNode(carrierapipb.PrefixTypeDataNode, resource.GetNodeId())
 					if nil != err {
 						log.WithError(err).Errorf("Failed to query internal data resource when role is receiver on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, dataNodeId: {%s}",
 							task.GetTaskId(), taskRole.String(), partyId, resource.GetNodeId())

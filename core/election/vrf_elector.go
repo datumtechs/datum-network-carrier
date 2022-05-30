@@ -8,7 +8,7 @@ import (
 	"github.com/datumtechs/datum-network-carrier/core/resource"
 	"github.com/datumtechs/datum-network-carrier/crypto/vrf"
 	"github.com/datumtechs/datum-network-carrier/p2p"
-	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
+	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"github.com/datumtechs/datum-network-carrier/rpc/backend"
@@ -35,7 +35,7 @@ func NewVrfElector(privateKey *ecdsa.PrivateKey, resourceMng *resource.Manager) 
 	}
 }
 
-func (s *VrfElector) ElectionNode(taskId, partyId string, mem, bandwidth, disk uint64, processor uint32, extra string) (*pb.YarnRegisteredPeerDetail, error) {
+func (s *VrfElector) ElectionNode(taskId, partyId string, mem, bandwidth, disk uint64, processor uint32, extra string) (*carrierapipb.YarnRegisteredPeerDetail, error) {
 
 	if s.resourceMng.HasNotInternalJobNodeClientSet() {
 		return nil, fmt.Errorf("not found alive jobNode")
@@ -70,7 +70,7 @@ func (s *VrfElector) ElectionNode(taskId, partyId string, mem, bandwidth, disk u
 	}
 
 	resourceId := resourceNodeIdArr[len(resourceNodeIdArr)-1]
-	jobNode, err := s.resourceMng.GetDB().QueryRegisterNode(pb.PrefixTypeJobNode, resourceId)
+	jobNode, err := s.resourceMng.GetDB().QueryRegisterNode(carrierapipb.PrefixTypeJobNode, resourceId)
 	if nil != err {
 		return nil, fmt.Errorf("query jobNode info failed, %s", err)
 	}

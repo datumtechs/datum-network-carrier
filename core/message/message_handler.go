@@ -9,7 +9,7 @@ import (
 	"github.com/datumtechs/datum-network-carrier/core/resource"
 	"github.com/datumtechs/datum-network-carrier/core/task"
 	"github.com/datumtechs/datum-network-carrier/event"
-	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
+	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"github.com/datumtechs/datum-network-carrier/rpc/backend"
@@ -342,7 +342,7 @@ func (m *MessageHandler) BroadcastIdentityRevokeMsg() {
 	}
 
 	// what if running task, can not revoke identity
-	jobNodes, err := m.resourceMng.GetDB().QueryRegisterNodeList(pb.PrefixTypeJobNode)
+	jobNodes, err := m.resourceMng.GetDB().QueryRegisterNodeList(carrierapipb.PrefixTypeJobNode)
 	if rawdb.IsNoDBNotFoundErr(err) {
 		log.WithError(err).Errorf("query all jobNode failed")
 		return

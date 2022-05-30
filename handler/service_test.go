@@ -5,7 +5,7 @@ import (
 	"github.com/datumtechs/datum-network-carrier/common/abool"
 	"github.com/datumtechs/datum-network-carrier/common/feed"
 	statefeed "github.com/datumtechs/datum-network-carrier/common/feed/state"
-	libp2ppb "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
+	carrierrpcdebugpbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
 	p2ptest "github.com/datumtechs/datum-network-carrier/p2p/testing"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -37,8 +37,8 @@ func TestSyncHandlers_WaitToSync(t *testing.T) {
 		t.Fatal("didn't send genesis time to subscribers")
 	}
 
-	p2p.ReceivePubSub(topic, &libp2ppb.SignedGossipTestData{
-		Data:                 &libp2ppb.GossipTestData{
+	p2p.ReceivePubSub(topic, &carrierrpcdebugpbv1.SignedGossipTestData{
+		Data:                 &carrierrpcdebugpbv1.GossipTestData{
 			Data:                 []byte("xxxx"),
 			Count:                10,
 			Step:                 777,

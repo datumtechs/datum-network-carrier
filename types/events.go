@@ -2,7 +2,7 @@ package types
 
 import (
 	"encoding/json"
-	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/taskmng"
+	carriernetmsgtaskmngpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/taskmng"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 )
 
@@ -80,8 +80,8 @@ func (msg *TaskMsgEvent) String() string {
 	return string(result)
 }
 
-func ConvertTaskEvent(event *carriertypespb.TaskEvent) *pb.TaskEvent {
-	return &pb.TaskEvent{
+func ConvertTaskEvent(event *carriertypespb.TaskEvent) *carriernetmsgtaskmngpb.TaskEvent {
+	return &carriernetmsgtaskmngpb.TaskEvent{
 		Type:       []byte(event.GetType()),
 		TaskId:     []byte(event.GetTaskId()),
 		IdentityId: []byte(event.GetIdentityId()),
@@ -91,7 +91,7 @@ func ConvertTaskEvent(event *carriertypespb.TaskEvent) *pb.TaskEvent {
 	}
 }
 
-func FetchTaskEvent(event *pb.TaskEvent) *carriertypespb.TaskEvent {
+func FetchTaskEvent(event *carriernetmsgtaskmngpb.TaskEvent) *carriertypespb.TaskEvent {
 	return &carriertypespb.TaskEvent{
 		Type:       string(event.GetType()),
 		TaskId:     string(event.GetTaskId()),
@@ -102,15 +102,15 @@ func FetchTaskEvent(event *pb.TaskEvent) *carriertypespb.TaskEvent {
 	}
 }
 
-func ConvertTaskEventArr(events []*carriertypespb.TaskEvent) []*pb.TaskEvent {
-	arr := make([]*pb.TaskEvent, len(events))
+func ConvertTaskEventArr(events []*carriertypespb.TaskEvent) []*carriernetmsgtaskmngpb.TaskEvent {
+	arr := make([]*carriernetmsgtaskmngpb.TaskEvent, len(events))
 	for i, ev := range events {
 		arr[i] = ConvertTaskEvent(ev)
 	}
 	return arr
 }
 
-func FetchTaskEventArr(events []*pb.TaskEvent) []*carriertypespb.TaskEvent {
+func FetchTaskEventArr(events []*carriernetmsgtaskmngpb.TaskEvent) []*carriertypespb.TaskEvent {
 	arr := make([]*carriertypespb.TaskEvent, len(events))
 	for i, ev := range events {
 		arr[i] = FetchTaskEvent(ev)

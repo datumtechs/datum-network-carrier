@@ -2,7 +2,7 @@ package debug
 
 import (
 	context "context"
-	rpcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
+	carrierrpcdebugpbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
 	"github.com/datumtechs/datum-network-carrier/p2p"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/libp2p/go-libp2p-core/network"
@@ -13,8 +13,8 @@ import (
 )
 
 // AddPeer uses the specified peerID to connect to the network.
-func (ds *Server) AddPeer(_ context.Context, request *rpcpb.PeerRequest) (*rpcpb.DebugPeerAddResponse, error) {
-	response := &rpcpb.DebugPeerAddResponse{}
+func (ds *Server) AddPeer(_ context.Context, request *carrierrpcdebugpbv1.PeerRequest) (*carrierrpcdebugpbv1.DebugPeerAddResponse, error) {
+	response := &carrierrpcdebugpbv1.DebugPeerAddResponse{}
 	err := ds.PeerManager.AddPeer(request.GetPeerId())
 	if err != nil {
 		response.Message = err.Error()
@@ -23,7 +23,7 @@ func (ds *Server) AddPeer(_ context.Context, request *rpcpb.PeerRequest) (*rpcpb
 }
 
 // GetPeer returns the data known about the peer defined by the provided peer id.
-func (ds *Server) GetPeer(_ context.Context, peerReq *rpcpb.PeerRequest) (*rpcpb.DebugPeerResponse, error) {
+func (ds *Server) GetPeer(_ context.Context, peerReq *carrierrpcdebugpbv1.PeerRequest) (*carrierrpcdebugpbv1.DebugPeerResponse, error) {
 	pid, err := peer.Decode(peerReq.PeerId)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "Unable to parse provided peer id: %v", err)
@@ -33,8 +33,8 @@ func (ds *Server) GetPeer(_ context.Context, peerReq *rpcpb.PeerRequest) (*rpcpb
 
 // ListPeers returns all peers known to the host node, irregardless of if they are connected/
 // disconnected.
-func (ds *Server) ListPeers(_ context.Context, _ *empty.Empty) (*rpcpb.DebugPeerResponses, error) {
-	var responses []*rpcpb.DebugPeerResponse
+func (ds *Server) ListPeers(_ context.Context, _ *empty.Empty) (*carrierrpcdebugpbv1.DebugPeerResponses, error) {
+	var responses []*carrierrpcdebugpbv1.DebugPeerResponse
 	for _, pid := range ds.PeersFetcher.Peers().All() {
 		resp, err := ds.getPeer(pid)
 		if err != nil {
@@ -42,15 +42,15 @@ func (ds *Server) ListPeers(_ context.Context, _ *empty.Empty) (*rpcpb.DebugPeer
 		}
 		responses = append(responses, resp)
 	}
-	return &rpcpb.DebugPeerResponses{Responses: responses}, nil
+	return &carrierrpcdebugpbv1.DebugPeerResponses{Responses: responses}, nil
 }
 
-func (ds *Server) GetPeerCount(context.Context, *emptypb.Empty) (*rpcpb.DebugPeerCountResponse, error){
+func (ds *Server) GetPeerCount(context.Context, *emptypb.Empty) (*carrierrpcdebugpbv1.DebugPeerCountResponse, error){
 	peerIds := ds.PeersFetcher.Peers().Active()
-	return &rpcpb.DebugPeerCountResponse{Count: uint64(len(peerIds))}, nil
+	return &carrierrpcdebugpbv1.DebugPeerCountResponse{Count: uint64(len(peerIds))}, nil
 }
 
-func (ds *Server) getPeer(pid peer.ID) (*rpcpb.DebugPeerResponse, error) {
+func (ds *Server) getPeer(pid peer.ID) (*carrierrpcdebugpbv1.DebugPeerResponse, error) {
 	peers := ds.PeersFetcher.Peers()
 	peerStore := ds.PeerManager.Host().Peerstore()
 	addr, err := peers.Address(pid)
@@ -61,12 +61,12 @@ func (ds *Server) getPeer(pid peer.ID) (*rpcpb.DebugPeerResponse, error) {
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "Requested peer does not exist: %v", err)
 	}
-	pbDirection := rpcpb.PeerDirection_UNKNOWN
+	pbDirection := carrierrpcdebugpbv1.PeerDirection_UNKNOWN
 	switch dir {
 	case network.DirInbound:
-		pbDirection = rpcpb.PeerDirection_INBOUND
+		pbDirection = carrierrpcdebugpbv1.PeerDirection_INBOUND
 	case network.DirOutbound:
-		pbDirection = rpcpb.PeerDirection_OUTBOUND
+		pbDirection = carrierrpcdebugpbv1.PeerDirection_OUTBOUND
 	}
 	connState, err := peers.ConnectionState(pid)
 	if err != nil {
@@ -106,7 +106,7 @@ func (ds *Server) getPeer(pid peer.ID) (*rpcpb.DebugPeerResponse, error) {
 	if err != nil || !ok {
 		aVersion = ""
 	}
-	peerInfo := &rpcpb.DebugPeerResponse_PeerInfo{
+	peerInfo := &carrierrpcdebugpbv1.DebugPeerResponse_PeerInfo{
 		Metadata:        metadata,
 		Protocols:       protocols,
 		FaultCount:      uint64(resp),
@@ -142,17 +142,17 @@ func (ds *Server) getPeer(pid peer.ID) (*rpcpb.DebugPeerResponse, error) {
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "Requested peer does not exist: %v", err)
 	}
-	scoreInfo := &rpcpb.ScoreInfo{
+	scoreInfo := &carrierrpcdebugpbv1.ScoreInfo{
 		OverallScore:       float32(peers.Scorers().Score(pid)),
 		TopicScores:        topicMaps,
 		GossipScore:        float32(gScore),
 		BehaviourPenalty:   float32(bPenalty),
 		ValidationError:    errorToString(peers.Scorers().ValidationError(pid)),
 	}
-	return &rpcpb.DebugPeerResponse{
+	return &carrierrpcdebugpbv1.DebugPeerResponse{
 		ListeningAddresses: stringAddrs,
 		Direction:          pbDirection,
-		ConnectionState:    rpcpb.ConnectionState(connState),
+		ConnectionState:    carrierrpcdebugpbv1.ConnectionState(connState),
 		PeerId:             pid.String(),
 		Enr:                enr,
 		PeerInfo:           peerInfo,

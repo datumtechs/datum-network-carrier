@@ -3,7 +3,7 @@ package carrier
 import (
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/core/rawdb"
-	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
+	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	"github.com/datumtechs/datum-network-carrier/service/discovery"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"strconv"
@@ -136,9 +136,9 @@ func (s *Service) refreshResourceNodes() error {
 		log.WithError(err).Warnf("query jobNodeServices failed from discovery center on service.refreshResourceNodes()")
 	} else {
 
-		jobNodeDBCache := make(map[string]*pb.YarnRegisteredPeerDetail, 0)
+		jobNodeDBCache := make(map[string]*carrierapipb.YarnRegisteredPeerDetail, 0)
 		// load stored jobNode
-		jobNodeList, err := s.carrierDB.QueryRegisterNodeList(pb.PrefixTypeJobNode)
+		jobNodeList, err := s.carrierDB.QueryRegisterNodeList(carrierapipb.PrefixTypeJobNode)
 		if nil != err && rawdb.IsNoDBNotFoundErr(err) {
 			log.WithError(err).Warnf("query jobNodes failed from local db on service.refreshResourceNodes()")
 		} else {
@@ -197,9 +197,9 @@ func (s *Service) refreshResourceNodes() error {
 		log.WithError(err).Warnf("query dataNodeServices from discovery center failed on service.refreshResourceNodes()")
 	} else {
 
-		dataNodeDBCache := make(map[string]*pb.YarnRegisteredPeerDetail, 0)
+		dataNodeDBCache := make(map[string]*carrierapipb.YarnRegisteredPeerDetail, 0)
 		// load stored dataNode
-		dataNodeList, err := s.carrierDB.QueryRegisterNodeList(pb.PrefixTypeDataNode)
+		dataNodeList, err := s.carrierDB.QueryRegisterNodeList(carrierapipb.PrefixTypeDataNode)
 		if nil != err && rawdb.IsNoDBNotFoundErr(err) {
 			log.WithError(err).Warnf("query dataNodes from local db failed on service.refreshResourceNodes()")
 		} else {

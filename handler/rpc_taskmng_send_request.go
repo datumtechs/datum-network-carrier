@@ -3,13 +3,13 @@ package handler
 import (
 	"context"
 	"errors"
-	taskmngpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/taskmng"
+	carriernetmsgtaskmngpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/taskmng"
 	"github.com/datumtechs/datum-network-carrier/p2p"
 	"github.com/libp2p/go-libp2p-core/peer"
 )
 
 // SendTaskResultMsg sends taskResult to other peer, if the task has finished.
-func SendTaskResultMsg (ctx context.Context, p2pProvider p2p.P2P, pid peer.ID, req *taskmngpb.TaskResultMsg) error {
+func SendTaskResultMsg (ctx context.Context, p2pProvider p2p.P2P, pid peer.ID, req *carriernetmsgtaskmngpb.TaskResultMsg) error {
 	ctx, cancel := context.WithTimeout(ctx, respTimeout)
 	defer cancel()
 
@@ -29,7 +29,7 @@ func SendTaskResultMsg (ctx context.Context, p2pProvider p2p.P2P, pid peer.ID, r
 	return nil
 }
 
-func SendTaskResourceUsageMsg(ctx context.Context, p2pProvider p2p.P2P, pid peer.ID, req *taskmngpb.TaskResourceUsageMsg) error {
+func SendTaskResourceUsageMsg(ctx context.Context, p2pProvider p2p.P2P, pid peer.ID, req *carriernetmsgtaskmngpb.TaskResourceUsageMsg) error {
 	ctx, cancel := context.WithTimeout(ctx, respTimeout)
 	defer cancel()
 
@@ -49,7 +49,7 @@ func SendTaskResourceUsageMsg(ctx context.Context, p2pProvider p2p.P2P, pid peer
 	return nil
 }
 
-func SendTaskTerminateMsg(ctx context.Context, p2pProvider p2p.P2P, pid peer.ID, req *taskmngpb.TaskTerminateMsg) error {
+func SendTaskTerminateMsg(ctx context.Context, p2pProvider p2p.P2P, pid peer.ID, req *carriernetmsgtaskmngpb.TaskTerminateMsg) error {
 	ctx, cancel := context.WithTimeout(ctx, respTimeout)
 	defer cancel()
 

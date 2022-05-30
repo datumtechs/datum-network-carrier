@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	twopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
+	carriertwopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
 	"github.com/datumtechs/datum-network-carrier/types"
 	libp2pcore "github.com/libp2p/go-libp2p-core"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -15,10 +15,10 @@ func (s *Service) prepareMsgRPCHandler(ctx context.Context, msg interface{}, str
 
 	SetRPCStreamDeadlines(stream)
 
-	m, ok := msg.(*twopcpb.PrepareMsg)
+	m, ok := msg.(*carriertwopcpb.PrepareMsg)
 	if !ok {
 		//log.Errorf("Failed to convert `PrepareMsg` from msg, proposalId: {%s}", common.BytesToHash(m.ProposalId).String())
-		return errors.New("message is not type *twopcpb.PrepareMsg")
+		return errors.New("message is not type *carriertwopcpb.PrepareMsg")
 	}
 
 	//TODO: validate request by rateLimiter.
@@ -54,10 +54,10 @@ func (s *Service) prepareVoteRPCHandler(ctx context.Context, msg interface{}, st
 
 	SetRPCStreamDeadlines(stream)
 
-	m, ok := msg.(*twopcpb.PrepareVote)
+	m, ok := msg.(*carriertwopcpb.PrepareVote)
 	if !ok {
 		//log.Errorf("Failed to convert `PrepareVote` from msg, proposalId: {%s}", common.BytesToHash(m.ProposalId).String())
-		return errors.New("message is not type *twopcpb.PrepareVote")
+		return errors.New("message is not type *carriertwopcpb.PrepareVote")
 	}
 
 	//// validate prepareVote
@@ -91,10 +91,10 @@ func (s *Service) confirmMsgRPCHandler(ctx context.Context, msg interface{}, str
 
 	SetRPCStreamDeadlines(stream)
 
-	m, ok := msg.(*twopcpb.ConfirmMsg)
+	m, ok := msg.(*carriertwopcpb.ConfirmMsg)
 	if !ok {
 		//log.Errorf("Failed to convert `ConfirmMsg` from msg, proposalId: {%s}", common.BytesToHash(m.ProposalId).String())
-		return errors.New("message is not type *twopcpb.ConfirmMsg")
+		return errors.New("message is not type *carriertwopcpb.ConfirmMsg")
 	}
 
 	//// validate ConfirmMsg
@@ -128,10 +128,10 @@ func (s *Service) confirmVoteRPCHandler(ctx context.Context, msg interface{}, st
 
 	SetRPCStreamDeadlines(stream)
 
-	m, ok := msg.(*twopcpb.ConfirmVote)
+	m, ok := msg.(*carriertwopcpb.ConfirmVote)
 	if !ok {
 		//log.Errorf("Failed to convert `ConfirmVote` from msg, proposalId: {%s}", common.BytesToHash(m.ProposalId).String())
-		return errors.New("message is not type *twopcpb.ConfirmVote")
+		return errors.New("message is not type *carriertwopcpb.ConfirmVote")
 	}
 
 	//// validate ConfirmVote
@@ -165,10 +165,10 @@ func (s *Service) commitMsgRPCHandler(ctx context.Context, msg interface{}, stre
 
 	SetRPCStreamDeadlines(stream)
 
-	m, ok := msg.(*twopcpb.CommitMsg)
+	m, ok := msg.(*carriertwopcpb.CommitMsg)
 	if !ok {
 		//log.Errorf("Failed to convert `CommitMsg` from msg, proposalId: {%s}", common.BytesToHash(m.ProposalId).String())
-		return errors.New("message is not type *twopcpb.CommitMsg")
+		return errors.New("message is not type *carriertwopcpb.CommitMsg")
 	}
 
 	//// validate CommitMsg
@@ -202,7 +202,7 @@ func (s *Service) commitMsgRPCHandler(ctx context.Context, msg interface{}, stre
 
 // ------------------------------------  some validate Fn  ------------------------------------
 
-func (s *Service) validatePrepareMsg(pid peer.ID, r *twopcpb.PrepareMsg) error {
+func (s *Service) validatePrepareMsg(pid peer.ID, r *carriertwopcpb.PrepareMsg) error {
 	//engine, ok := s.cfg.Engines[types.TwopcTyp]
 	//if !ok {
 	//	return fmt.Errorf("Failed to fecth 2pc engine instanse ...")
@@ -211,7 +211,7 @@ func (s *Service) validatePrepareMsg(pid peer.ID, r *twopcpb.PrepareMsg) error {
 	return nil
 }
 
-func (s *Service) validatePrepareVote(pid peer.ID, r *twopcpb.PrepareVote) error {
+func (s *Service) validatePrepareVote(pid peer.ID, r *carriertwopcpb.PrepareVote) error {
 	//engine, ok := s.cfg.Engines[types.TwopcTyp]
 	//if !ok {
 	//	return fmt.Errorf("Failed to fecth 2pc engine instanse ...")
@@ -220,7 +220,7 @@ func (s *Service) validatePrepareVote(pid peer.ID, r *twopcpb.PrepareVote) error
 	return nil
 }
 
-func (s *Service) validateConfirmMsg(pid peer.ID, r *twopcpb.ConfirmMsg) error {
+func (s *Service) validateConfirmMsg(pid peer.ID, r *carriertwopcpb.ConfirmMsg) error {
 	//engine, ok := s.cfg.Engines[types.TwopcTyp]
 	//if !ok {
 	//	return fmt.Errorf("Failed to fecth 2pc engine instanse ...")
@@ -229,7 +229,7 @@ func (s *Service) validateConfirmMsg(pid peer.ID, r *twopcpb.ConfirmMsg) error {
 	return nil
 }
 
-func (s *Service) validateConfirmVote(pid peer.ID, r *twopcpb.ConfirmVote) error {
+func (s *Service) validateConfirmVote(pid peer.ID, r *carriertwopcpb.ConfirmVote) error {
 	//engine, ok := s.cfg.Engines[types.TwopcTyp]
 	//if !ok {
 	//	return fmt.Errorf("Failed to fecth 2pc engine instanse ...")
@@ -238,7 +238,7 @@ func (s *Service) validateConfirmVote(pid peer.ID, r *twopcpb.ConfirmVote) error
 	return nil
 }
 
-func (s *Service) validateCommitMsg(pid peer.ID, r *twopcpb.CommitMsg) error {
+func (s *Service) validateCommitMsg(pid peer.ID, r *carriertwopcpb.CommitMsg) error {
 	//engine, ok := s.cfg.Engines[types.TwopcTyp]
 	//if !ok {
 	//	return fmt.Errorf("Failed to fecth 2pc engine instanse ...")
@@ -251,7 +251,7 @@ func (s *Service) validateCommitMsg(pid peer.ID, r *twopcpb.CommitMsg) error {
 
 // ------------------------------------  some handle Fn  ------------------------------------
 
-func (s *Service) onPrepareMsg(pid peer.ID, r *twopcpb.PrepareMsg) error {
+func (s *Service) onPrepareMsg(pid peer.ID, r *carriertwopcpb.PrepareMsg) error {
 	engine, ok := s.cfg.Engines[types.TwopcTyp]
 	if !ok {
 		return fmt.Errorf("Failed to fecth 2pc engine instanse ...")
@@ -259,7 +259,7 @@ func (s *Service) onPrepareMsg(pid peer.ID, r *twopcpb.PrepareMsg) error {
 	return engine.OnConsensusMsg(pid, &types.PrepareMsgWrap{PrepareMsg: r})
 }
 
-func (s *Service) onPrepareVote(pid peer.ID, r *twopcpb.PrepareVote) error {
+func (s *Service) onPrepareVote(pid peer.ID, r *carriertwopcpb.PrepareVote) error {
 	engine, ok := s.cfg.Engines[types.TwopcTyp]
 	if !ok {
 		return fmt.Errorf("Failed to fecth 2pc engine instanse ...")
@@ -267,7 +267,7 @@ func (s *Service) onPrepareVote(pid peer.ID, r *twopcpb.PrepareVote) error {
 	return engine.OnConsensusMsg(pid, &types.PrepareVoteWrap{PrepareVote: r})
 }
 
-func (s *Service) onConfirmMsg(pid peer.ID, r *twopcpb.ConfirmMsg) error {
+func (s *Service) onConfirmMsg(pid peer.ID, r *carriertwopcpb.ConfirmMsg) error {
 	engine, ok := s.cfg.Engines[types.TwopcTyp]
 	if !ok {
 		return fmt.Errorf("Failed to fecth 2pc engine instanse ...")
@@ -275,7 +275,7 @@ func (s *Service) onConfirmMsg(pid peer.ID, r *twopcpb.ConfirmMsg) error {
 	return engine.OnConsensusMsg(pid, &types.ConfirmMsgWrap{ConfirmMsg: r})
 }
 
-func (s *Service) onConfirmVote(pid peer.ID, r *twopcpb.ConfirmVote) error {
+func (s *Service) onConfirmVote(pid peer.ID, r *carriertwopcpb.ConfirmVote) error {
 	engine, ok := s.cfg.Engines[types.TwopcTyp]
 	if !ok {
 		return fmt.Errorf("Failed to fecth 2pc engine instanse ...")
@@ -283,7 +283,7 @@ func (s *Service) onConfirmVote(pid peer.ID, r *twopcpb.ConfirmVote) error {
 	return engine.OnConsensusMsg(pid, &types.ConfirmVoteWrap{ConfirmVote: r})
 }
 
-func (s *Service) onCommitMsg(pid peer.ID, r *twopcpb.CommitMsg) error {
+func (s *Service) onCommitMsg(pid peer.ID, r *carriertwopcpb.CommitMsg) error {
 	engine, ok := s.cfg.Engines[types.TwopcTyp]
 	if !ok {
 		return fmt.Errorf("Failed to fecth 2pc engine instanse ...")

@@ -3,16 +3,16 @@ package types
 import (
 	"bytes"
 	"github.com/datumtechs/datum-network-carrier/common"
-	"github.com/datumtechs/datum-network-carrier/pb/carrier/types"
-	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	carriertypespb"github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"testing"
 )
 
-var testTaskdata = NewTask(&types.TaskPB{
+var testTaskdata = NewTask(&carriertypespb.TaskPB{
 	DataId:     "",
-	DataStatus: carriertypespb.DataStatus_DataStatus_Unknown,
+	DataStatus: commonconstantpb.DataStatus_DataStatus_Unknown,
 	TaskId:     "",
-	State:      carriertypespb.TaskState_TaskState_Unknown,
+	State:      commonconstantpb.TaskState_TaskState_Unknown,
 	Reason:     "",
 	Desc:       "",
 	TaskEvents: nil,

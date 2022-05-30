@@ -8,7 +8,7 @@ import (
 	statefeed "github.com/datumtechs/datum-network-carrier/common/feed/state"
 	"github.com/datumtechs/datum-network-carrier/common/runutil"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
-	libp2ppb "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
+	carrierrpcdebugpbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
 	"github.com/datumtechs/datum-network-carrier/p2p"
 	"github.com/datumtechs/datum-network-carrier/params"
 	"github.com/datumtechs/datum-network-carrier/types"
@@ -119,7 +119,7 @@ func (s *Service) Start() error {
 	runutil.RunEvery(s.ctx, 5*time.Second, func() {
 		sendPeer, _ := peer.Decode("16Uiu2HAm7pq7heDZwmrmWt9rXV8C1t5ENmyPKtToZAV6pioc1CrW")
 		if s.cfg.P2P.PeerID() == sendPeer {
-			err := s.cfg.P2P.Broadcast(s.ctx, &libp2ppb.GossipTestData{
+			err := s.cfg.P2P.Broadcast(s.ctx, &carrierrpcdebugpbv1.GossipTestData{
 				Data:  []byte("data"),
 				Count: rand.Uint64(),
 				Step:  rand.Uint64(),

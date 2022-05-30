@@ -2,7 +2,7 @@ package peers_test
 
 import (
 	"context"
-	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
+	carrierp2ppbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
 	"github.com/datumtechs/datum-network-carrier/p2p/peers"
 	"github.com/datumtechs/datum-network-carrier/p2p/peers/peerdata"
 	"github.com/datumtechs/datum-network-carrier/p2p/peers/scorers"
@@ -186,7 +186,7 @@ func TestPeerCommitteeIndices(t *testing.T) {
 			bitV.SetBitAt(uint64(i), true)
 		}
 	}
-	p.SetMetadata(id, &pb.MetaData{
+	p.SetMetadata(id, &carrierp2ppbv1.MetaData{
 		SeqNumber: 2,
 		Attnets:   bitV,
 	})
@@ -221,7 +221,7 @@ func TestPeerSubscribedToSubnet(t *testing.T) {
 			bitV.SetBitAt(uint64(i), true)
 		}
 	}
-	p.SetMetadata(expectedPeer, &pb.MetaData{
+	p.SetMetadata(expectedPeer, &carrierp2ppbv1.MetaData{
 		SeqNumber: 2,
 		Attnets:   bitV,
 	})
@@ -287,7 +287,7 @@ func TestPeerChainState(t *testing.T) {
 	require.NoError(t, err)
 
 	finalizedEpoch := types.Epoch(123)
-	p.SetChainState(id, &pb.Status{FinalizedEpoch: finalizedEpoch})
+	p.SetChainState(id, &carrierp2ppbv1.Status{FinalizedEpoch: finalizedEpoch})
 
 	resChainState, err := p.ChainState(id)
 	require.NoError(t, err)
@@ -368,7 +368,7 @@ func TestAddMetaData(t *testing.T) {
 	}
 	newPeer := p.All()[2]
 
-	newMetaData := &pb.MetaData{
+	newMetaData := &carrierp2ppbv1.MetaData{
 		SeqNumber: 8,
 		Attnets:   bitfield.NewBitvector64(),
 	}
@@ -580,35 +580,35 @@ func TestTrimmedOrderedPeers(t *testing.T) {
 	copy(mockroot5[:], "five")
 	// Peer 1
 	pid1 := addPeer(t, p, peers.PeerConnected)
-	p.SetChainState(pid1, &pb.Status{
+	p.SetChainState(pid1, &carrierp2ppbv1.Status{
 		HeadSlot:       3 * params.CarrierConfig().SlotsPerEpoch,
 		FinalizedEpoch: 3,
 		FinalizedRoot:  mockroot3[:],
 	})
 	// Peer 2
 	pid2 := addPeer(t, p, peers.PeerConnected)
-	p.SetChainState(pid2, &pb.Status{
+	p.SetChainState(pid2, &carrierp2ppbv1.Status{
 		HeadSlot:       4 * params.CarrierConfig().SlotsPerEpoch,
 		FinalizedEpoch: 4,
 		FinalizedRoot:  mockroot4[:],
 	})
 	// Peer 3
 	pid3 := addPeer(t, p, peers.PeerConnected)
-	p.SetChainState(pid3, &pb.Status{
+	p.SetChainState(pid3, &carrierp2ppbv1.Status{
 		HeadSlot:       5 * params.CarrierConfig().SlotsPerEpoch,
 		FinalizedEpoch: 5,
 		FinalizedRoot:  mockroot5[:],
 	})
 	// Peer 4
 	pid4 := addPeer(t, p, peers.PeerConnected)
-	p.SetChainState(pid4, &pb.Status{
+	p.SetChainState(pid4, &carrierp2ppbv1.Status{
 		HeadSlot:       2 * params.CarrierConfig().SlotsPerEpoch,
 		FinalizedEpoch: 2,
 		FinalizedRoot:  mockroot2[:],
 	})
 	// Peer 5
 	pid5 := addPeer(t, p, peers.PeerConnected)
-	p.SetChainState(pid5, &pb.Status{
+	p.SetChainState(pid5, &carrierp2ppbv1.Status{
 		HeadSlot:       2 * params.CarrierConfig().SlotsPerEpoch,
 		FinalizedEpoch: 2,
 		FinalizedRoot:  mockroot2[:],
@@ -860,7 +860,7 @@ func TestStatus_BestPeer(t *testing.T) {
 				},
 			})
 			for _, peerConfig := range tt.peers {
-				p.SetChainState(addPeer(t, p, peers.PeerConnected), &pb.Status{
+				p.SetChainState(addPeer(t, p, peers.PeerConnected), &carrierp2ppbv1.Status{
 					FinalizedEpoch: peerConfig.finalizedEpoch,
 					HeadSlot:       peerConfig.headSlot,
 				})
@@ -887,7 +887,7 @@ func TestBestFinalized_returnsMaxValue(t *testing.T) {
 	for i := 0; i <= maxPeers+100; i++ {
 		p.Add(new(enr.Record), peer.ID(rune(i)), nil, network.DirOutbound)
 		p.SetConnectionState(peer.ID(rune(i)), peers.PeerConnected)
-		p.SetChainState(peer.ID(rune(i)), &pb.Status{
+		p.SetChainState(peer.ID(rune(i)), &carrierp2ppbv1.Status{
 			FinalizedEpoch: 10,
 		})
 	}
@@ -922,17 +922,17 @@ func TestStatus_CurrentEpoch(t *testing.T) {
 	})
 	// Peer 1
 	pid1 := addPeer(t, p, peers.PeerConnected)
-	p.SetChainState(pid1, &pb.Status{
+	p.SetChainState(pid1, &carrierp2ppbv1.Status{
 		HeadSlot: params.CarrierConfig().SlotsPerEpoch * 4,
 	})
 	// Peer 2
 	pid2 := addPeer(t, p, peers.PeerConnected)
-	p.SetChainState(pid2, &pb.Status{
+	p.SetChainState(pid2, &carrierp2ppbv1.Status{
 		HeadSlot: params.CarrierConfig().SlotsPerEpoch * 5,
 	})
 	// Peer 3
 	pid3 := addPeer(t, p, peers.PeerConnected)
-	p.SetChainState(pid3, &pb.Status{
+	p.SetChainState(pid3, &carrierp2ppbv1.Status{
 		HeadSlot: params.CarrierConfig().SlotsPerEpoch * 4,
 	})
 
@@ -989,7 +989,7 @@ func addPeer(t *testing.T, p *peers.Status, state peerdata.PeerConnectionState) 
 	require.NoError(t, err)
 	p.Add(new(enr.Record), id, nil, network.DirUnknown)
 	p.SetConnectionState(id, state)
-	p.SetMetadata(id, &pb.MetaData{
+	p.SetMetadata(id, &carrierp2ppbv1.MetaData{
 		SeqNumber: 0,
 		Attnets:   bitfield.NewBitvector64(),
 	})

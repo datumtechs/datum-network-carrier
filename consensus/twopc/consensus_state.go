@@ -3,7 +3,7 @@ package twopc
 import (
 	"github.com/datumtechs/datum-network-carrier/common"
 	ctypes "github.com/datumtechs/datum-network-carrier/consensus/twopc/types"
-	twopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
+	carriertwopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"github.com/datumtechs/datum-network-carrier/types"
@@ -20,7 +20,7 @@ type state struct {
 	// About the voting state of confirmMsg for proposal
 	confirmVotes map[common.Hash]*confirmVoteState
 	// cache
-	proposalPeerInfoCache map[common.Hash]*twopcpb.ConfirmTaskPeerInfo
+	proposalPeerInfoCache map[common.Hash]*carriertwopcpb.ConfirmTaskPeerInfo
 	// wal
 	wal *walDB
 	// v 0.3.0 monitors
@@ -39,7 +39,7 @@ func newState(ldb *walDB) *state {
 		proposalSet:               make(map[common.Hash]map[string]*ctypes.OrgProposalState, 0),
 		prepareVotes:              make(map[common.Hash]*prepareVoteState, 0),
 		confirmVotes:              make(map[common.Hash]*confirmVoteState, 0),
-		proposalPeerInfoCache:     make(map[common.Hash]*twopcpb.ConfirmTaskPeerInfo, 0),
+		proposalPeerInfoCache:     make(map[common.Hash]*carriertwopcpb.ConfirmTaskPeerInfo, 0),
 		syncProposalStateMonitors: ctypes.NewSyncProposalStateMonitorQueue(0),
 		wal:                       ldb,
 	}
@@ -797,7 +797,7 @@ func (st *confirmVoteState) hasConfirmVoting(partyId, identityId string) bool {
 	return false
 }
 
-func (s *state) StoreConfirmTaskPeerInfo(proposalId common.Hash, peerDesc *twopcpb.ConfirmTaskPeerInfo) {
+func (s *state) StoreConfirmTaskPeerInfo(proposalId common.Hash, peerDesc *carriertwopcpb.ConfirmTaskPeerInfo) {
 	s.confirmPeerInfoLock.Lock()
 	_, ok := s.proposalPeerInfoCache[proposalId]
 	if !ok {
@@ -814,14 +814,14 @@ func (s *state) HasConfirmTaskPeerInfo(proposalId common.Hash) bool {
 	return ok
 }
 
-func (s *state) QueryConfirmTaskPeerInfo(proposalId common.Hash) (*twopcpb.ConfirmTaskPeerInfo, bool) {
+func (s *state) QueryConfirmTaskPeerInfo(proposalId common.Hash) (*carriertwopcpb.ConfirmTaskPeerInfo, bool) {
 	s.confirmPeerInfoLock.RLock()
 	peers, ok := s.proposalPeerInfoCache[proposalId]
 	s.confirmPeerInfoLock.RUnlock()
 	return peers, ok
 }
 
-func (s *state) MustQueryConfirmTaskPeerInfo(proposalId common.Hash) *twopcpb.ConfirmTaskPeerInfo {
+func (s *state) MustQueryConfirmTaskPeerInfo(proposalId common.Hash) *carriertwopcpb.ConfirmTaskPeerInfo {
 	peers, _ := s.QueryConfirmTaskPeerInfo(proposalId)
 	return peers
 }

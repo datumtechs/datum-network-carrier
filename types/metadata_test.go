@@ -4,14 +4,14 @@ import (
 	"bytes"
 	"github.com/datumtechs/datum-network-carrier/common"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
-	"github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"gotest.tools/assert"
 	"reflect"
 	"testing"
 )
 
-var metadata = NewMetadata(&types.MetadataPB{
+var metadata = NewMetadata(&carriertypespb.MetadataPB{
 	MetadataId: "xxxxx",
 	Owner: &carriertypespb.Organization{
 		IdentityId: "identity",
@@ -19,12 +19,12 @@ var metadata = NewMetadata(&types.MetadataPB{
 		NodeName:   "nodeName",
 	},
 	DataId:         "dataId",
-	DataStatus:     carriertypespb.DataStatus_DataStatus_Valid,
+	DataStatus:     commonconstantpb.DataStatus_DataStatus_Valid,
 	MetadataName:   "this is a metadata",
 	MetadataType:   1,
 	Desc:           "desc",
 	Industry:       "1",
-	State:          carriertypespb.MetadataState_MetadataState_Created,
+	State:          commonconstantpb.MetadataState_MetadataState_Created,
 	PublishAt:      timeutils.UnixMsecUint64(),
 	UpdateAt:       timeutils.UnixMsecUint64(),
 	Nonce:          1,

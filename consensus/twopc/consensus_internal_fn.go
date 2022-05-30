@@ -10,7 +10,7 @@ import (
 	"github.com/datumtechs/datum-network-carrier/core/evengine"
 	"github.com/datumtechs/datum-network-carrier/core/resource"
 	"github.com/datumtechs/datum-network-carrier/p2p"
-	twopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
+	carriertwopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"github.com/datumtechs/datum-network-carrier/types"
@@ -212,17 +212,17 @@ func (t *Twopc) addmonitor(orgState *ctypes.OrgProposalState) {
 	t.state.AddMonitor(monitor)
 }
 
-func (t *Twopc) makeEmptyConfirmTaskPeerDesc() *twopcpb.ConfirmTaskPeerInfo {
-	return &twopcpb.ConfirmTaskPeerInfo{
-		DataSupplierPeerInfos:   make([]*twopcpb.TaskPeerInfo, 0),
-		PowerSupplierPeerInfos:  make([]*twopcpb.TaskPeerInfo, 0),
-		ResultReceiverPeerInfos: make([]*twopcpb.TaskPeerInfo, 0),
+func (t *Twopc) makeEmptyConfirmTaskPeerDesc() *carriertwopcpb.ConfirmTaskPeerInfo {
+	return &carriertwopcpb.ConfirmTaskPeerInfo{
+		DataSupplierPeerInfos:   make([]*carriertwopcpb.TaskPeerInfo, 0),
+		PowerSupplierPeerInfos:  make([]*carriertwopcpb.TaskPeerInfo, 0),
+		ResultReceiverPeerInfos: make([]*carriertwopcpb.TaskPeerInfo, 0),
 	}
 }
 
-func (t *Twopc) makeConfirmTaskPeerDesc(proposalId common.Hash) *twopcpb.ConfirmTaskPeerInfo {
+func (t *Twopc) makeConfirmTaskPeerDesc(proposalId common.Hash) *carriertwopcpb.ConfirmTaskPeerInfo {
 
-	dataSuppliers, powerSuppliers, receivers := make([]*twopcpb.TaskPeerInfo, 0), make([]*twopcpb.TaskPeerInfo, 0), make([]*twopcpb.TaskPeerInfo, 0)
+	dataSuppliers, powerSuppliers, receivers := make([]*carriertwopcpb.TaskPeerInfo, 0), make([]*carriertwopcpb.TaskPeerInfo, 0), make([]*carriertwopcpb.TaskPeerInfo, 0)
 
 	for _, vote := range t.state.GetPrepareVoteArr(proposalId) {
 
@@ -236,7 +236,7 @@ func (t *Twopc) makeConfirmTaskPeerDesc(proposalId common.Hash) *twopcpb.Confirm
 			receivers = append(receivers, types.ConvertTaskPeerInfo(vote.GetPeerInfo()))
 		}
 	}
-	return &twopcpb.ConfirmTaskPeerInfo{
+	return &carriertwopcpb.ConfirmTaskPeerInfo{
 		DataSupplierPeerInfos:   dataSuppliers,
 		PowerSupplierPeerInfos:  powerSuppliers,
 		ResultReceiverPeerInfos: receivers,
@@ -291,7 +291,7 @@ func (t *Twopc) stopTaskConsensus(
 			taskId,
 			taskActionStatus,
 			&types.PrepareVoteResource{},   // zero value
-			&twopcpb.ConfirmTaskPeerInfo{}, // zero value
+			&carriertwopcpb.ConfirmTaskPeerInfo{}, // zero value
 			fmt.Errorf(reason),
 		))
 		// Finally, release local task cache that task manager will do it. (to call `resourceMng.ReleaseLocalResourceWithTask()` by taskManager)
@@ -454,7 +454,7 @@ func (t *Twopc) sendNeedExecuteTask(task *types.NeedExecuteTask) {
 	}(task)
 }
 
-func (t *Twopc) sendPrepareVote(pid peer.ID, sender, receiver *carriertypespb.TaskOrganization, req *twopcpb.PrepareVote) error {
+func (t *Twopc) sendPrepareVote(pid peer.ID, sender, receiver *carriertypespb.TaskOrganization, req *carriertwopcpb.PrepareVote) error {
 	if types.IsNotSameTaskOrg(sender, receiver) {
 		//return handler.SendTwoPcPrepareVote(context.TODO(), t.p2p, pid, req)
 		return t.p2p.Broadcast(context.TODO(), req)
@@ -463,7 +463,7 @@ func (t *Twopc) sendPrepareVote(pid peer.ID, sender, receiver *carriertypespb.Ta
 	}
 }
 
-func (t *Twopc) sendConfirmMsg(proposalId common.Hash, task *types.Task, peers *twopcpb.ConfirmTaskPeerInfo, option types.TwopcMsgOption, startTime uint64) error {
+func (t *Twopc) sendConfirmMsg(proposalId common.Hash, task *types.Task, peers *carriertwopcpb.ConfirmTaskPeerInfo, option types.TwopcMsgOption, startTime uint64) error {
 
 	sender := task.GetTaskSender()
 
@@ -550,7 +550,7 @@ func (t *Twopc) sendConfirmMsg(proposalId common.Hash, task *types.Task, peers *
 	return nil
 }
 
-func (t *Twopc) sendConfirmVote(pid peer.ID, sender, receiver *carriertypespb.TaskOrganization, req *twopcpb.ConfirmVote) error {
+func (t *Twopc) sendConfirmVote(pid peer.ID, sender, receiver *carriertypespb.TaskOrganization, req *carriertwopcpb.ConfirmVote) error {
 	if types.IsNotSameTaskOrg(sender, receiver) {
 		//return handler.SendTwoPcConfirmVote(context.TODO(), t.p2p, pid, req)
 		return t.p2p.Broadcast(context.TODO(), req)
@@ -809,7 +809,7 @@ func (t *Twopc) getConfirmVote(proposalId common.Hash, partyId string) *types.Co
 	return t.state.GetConfirmVote(proposalId, partyId)
 }
 
-func (t *Twopc) storeConfirmTaskPeerInfo(proposalId common.Hash, peers *twopcpb.ConfirmTaskPeerInfo) {
+func (t *Twopc) storeConfirmTaskPeerInfo(proposalId common.Hash, peers *carriertwopcpb.ConfirmTaskPeerInfo) {
 	t.state.StoreConfirmTaskPeerInfo(proposalId, peers)
 }
 
@@ -817,11 +817,11 @@ func (t *Twopc) hasConfirmTaskPeerInfo(proposalId common.Hash) bool {
 	return t.state.HasConfirmTaskPeerInfo(proposalId)
 }
 
-func (t *Twopc) getConfirmTaskPeerInfo(proposalId common.Hash) (*twopcpb.ConfirmTaskPeerInfo, bool) {
+func (t *Twopc) getConfirmTaskPeerInfo(proposalId common.Hash) (*carriertwopcpb.ConfirmTaskPeerInfo, bool) {
 	return t.state.QueryConfirmTaskPeerInfo(proposalId)
 }
 
-func (t *Twopc) mustGetConfirmTaskPeerInfo(proposalId common.Hash) *twopcpb.ConfirmTaskPeerInfo {
+func (t *Twopc) mustGetConfirmTaskPeerInfo(proposalId common.Hash) *carriertwopcpb.ConfirmTaskPeerInfo {
 	return t.state.MustQueryConfirmTaskPeerInfo(proposalId)
 }
 
@@ -1003,7 +1003,7 @@ func (t *Twopc) recoverCache() {
 
 			if len(key) != 0 && len(value) != 0 {
 				proposalId := common.BytesToHash(key[prefixLength:])
-				confirmTaskPeerInfo := &twopcpb.ConfirmTaskPeerInfo{}
+				confirmTaskPeerInfo := &carriertwopcpb.ConfirmTaskPeerInfo{}
 				if err := proto.Unmarshal(value, confirmTaskPeerInfo); err != nil {
 					return fmt.Errorf("unmarshal confirmTaskPeerInfo failed, %s", err)
 				}

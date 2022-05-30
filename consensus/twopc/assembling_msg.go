@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/common"
 	ctypes "github.com/datumtechs/datum-network-carrier/consensus/twopc/types"
-	twopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
+	carriertwopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"github.com/datumtechs/datum-network-carrier/types"
@@ -17,7 +17,7 @@ func makePrepareMsg(
 	senderPartyId, receiverPartyId string,
 	nonConsTaks *types.NeedConsensusTask,
 	startTime uint64,
-) (*twopcpb.PrepareMsg, error) {
+) (*carriertwopcpb.PrepareMsg, error) {
 
 	// region receivers come from task.Receivers
 	taskBytes := new(bytes.Buffer)
@@ -26,7 +26,7 @@ func makePrepareMsg(
 		return nil, err
 	}
 
-	return &twopcpb.PrepareMsg{
+	return &carriertwopcpb.PrepareMsg{
 		MsgOption: types.MakeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, nonConsTaks.GetTask().GetTaskSender()),
 		TaskInfo:  taskBytes.Bytes(),
 		Evidence:  []byte(nonConsTaks.GetEvidence()),
@@ -43,9 +43,9 @@ func makePrepareVote(
 	voteOption types.VoteOption,
 	peerInfo *types.PrepareVoteResource,
 	startTime uint64,
-) *twopcpb.PrepareVote {
+) *carriertwopcpb.PrepareVote {
 
-	return &twopcpb.PrepareVote{
+	return &carriertwopcpb.PrepareVote{
 		MsgOption:  types.MakeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, owner),
 		VoteOption: voteOption.Bytes(),
 		PeerInfo:   types.ConvertTaskPeerInfo(peerInfo),
@@ -59,12 +59,12 @@ func makeConfirmMsg(
 	senderRole, receiverRole commonconstantpb.TaskRole,
 	senderPartyId, receiverPartyId string,
 	owner *carriertypespb.TaskOrganization,
-	peers *twopcpb.ConfirmTaskPeerInfo,
+	peers *carriertwopcpb.ConfirmTaskPeerInfo,
 	option types.TwopcMsgOption,
 	startTime uint64,
-) *twopcpb.ConfirmMsg {
+) *carriertwopcpb.ConfirmMsg {
 
-	msg := &twopcpb.ConfirmMsg{
+	msg := &carriertwopcpb.ConfirmMsg{
 		MsgOption:     types.MakeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, owner),
 		ConfirmOption: option.Bytes(),
 		Peers:         peers,
@@ -82,9 +82,9 @@ func makeConfirmVote(
 	owner *carriertypespb.TaskOrganization,
 	voteOption types.VoteOption,
 	startTime uint64,
-) *twopcpb.ConfirmVote {
+) *carriertwopcpb.ConfirmVote {
 
-	return &twopcpb.ConfirmVote{
+	return &carriertwopcpb.ConfirmVote{
 		MsgOption:  types.MakeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, owner),
 		VoteOption: voteOption.Bytes(),
 		CreateAt:   startTime,
@@ -99,9 +99,9 @@ func makeCommitMsg(
 	owner *carriertypespb.TaskOrganization,
 	option types.TwopcMsgOption,
 	startTime uint64,
-) *twopcpb.CommitMsg {
+) *carriertwopcpb.CommitMsg {
 
-	msg := &twopcpb.CommitMsg{
+	msg := &carriertwopcpb.CommitMsg{
 		MsgOption:    types.MakeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, owner),
 		CommitOption: option.Bytes(),
 		CreateAt:     startTime,

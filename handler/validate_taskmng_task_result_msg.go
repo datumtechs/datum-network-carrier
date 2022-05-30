@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/datumtechs/datum-network-carrier/common"
 	"github.com/datumtechs/datum-network-carrier/common/traceutil"
-	taskmngcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/taskmng"
+	carriernetmsgtaskmngpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/taskmng"
 	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/peer"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
@@ -31,7 +31,7 @@ func (s *Service) validateTaskResultMessagePubSub(ctx context.Context, pid peer.
 		return pubsub.ValidationReject
 	}
 
-	message, ok := m.(*taskmngcpb.TaskResultMsg)
+	message, ok := m.(*carriernetmsgtaskmngpb.TaskResultMsg)
 	if !ok {
 		log.Errorf("Invalid message type in the validateTaskResultMessagePubSub, typ: %T", m)
 		return pubsub.ValidationReject

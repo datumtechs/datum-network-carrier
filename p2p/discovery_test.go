@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/common/bytesutil"
 	"github.com/datumtechs/datum-network-carrier/common/iputils"
-	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
+	carrierp2ppbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
 	"github.com/datumtechs/datum-network-carrier/p2p/peers"
 	"github.com/datumtechs/datum-network-carrier/p2p/peers/peerdata"
 	"github.com/datumtechs/datum-network-carrier/p2p/peers/scorers"
@@ -325,7 +325,7 @@ func addPeer(t *testing.T, p *peers.Status, state peerdata.PeerConnectionState) 
 	require.NoError(t, err)
 	p.Add(new(enr.Record), id, nil, network.DirInbound)
 	p.SetConnectionState(id, state)
-	p.SetMetadata(id, &pb.MetaData{
+	p.SetMetadata(id, &carrierp2ppbv1.MetaData{
 		SeqNumber: 0,
 		Attnets:   bitfield.NewBitvector64(),
 	})

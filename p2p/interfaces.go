@@ -3,7 +3,7 @@ package p2p
 import (
 	"context"
 	"crypto/ecdsa"
-	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
+	carrierp2ppbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
 	"github.com/datumtechs/datum-network-carrier/p2p/encoder"
 	"github.com/datumtechs/datum-network-carrier/p2p/peers"
 	"github.com/ethereum/go-ethereum/p2p/enr"
@@ -95,6 +95,6 @@ type PeersProvider interface {
 
 // MetadataProvider returns the metadata related information for the local peer.
 type MetadataProvider interface {
-	Metadata() *pb.MetaData
+	Metadata() *carrierp2ppbv1.MetaData
 	MetadataSeq() uint64
 }

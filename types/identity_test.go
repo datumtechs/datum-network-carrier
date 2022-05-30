@@ -4,17 +4,17 @@ import (
 	"bytes"
 	"github.com/datumtechs/datum-network-carrier/common"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
-	"github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"testing"
 )
 
-var identities = NewIdentity(&types.IdentityPB{
+var identities = NewIdentity(&carriertypespb.IdentityPB{
 	IdentityId: "",
 	NodeId:     "",
 	NodeName:   "",
 	DataId:     "",
-	DataStatus: carriertypespb.DataStatus_DataStatus_Unknown,
-	Status:     carriertypespb.CommonStatus_CommonStatus_Unknown,
+	DataStatus: commonconstantpb.DataStatus_DataStatus_Unknown,
+	Status:     commonconstantpb.CommonStatus_CommonStatus_Unknown,
 	Credential: "",
 })
 

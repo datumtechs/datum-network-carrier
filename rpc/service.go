@@ -6,8 +6,8 @@ import (
 	"github.com/datumtechs/datum-network-carrier/common"
 	statefeed "github.com/datumtechs/datum-network-carrier/common/feed/state"
 	"github.com/datumtechs/datum-network-carrier/common/traceutil"
-	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
-	pbrpc "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
+	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
+	carrierrpcdebugpbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
 	"github.com/datumtechs/datum-network-carrier/p2p"
 	"github.com/datumtechs/datum-network-carrier/rpc/backend"
 	"github.com/datumtechs/datum-network-carrier/rpc/backend/auth"
@@ -124,11 +124,11 @@ func (s *Service) Start() error {
 	s.grpcServer = grpc.NewServer(opts...)
 
 	// init server instance and register server.
-	pb.RegisterYarnServiceServer(s.grpcServer, &yarn.Server{ B: s.cfg.BackendAPI, RpcSvrIp: s.cfg.Host, RpcSvrPort: s.cfg.Port})
-	pb.RegisterMetadataServiceServer(s.grpcServer, &metadata.Server{ B: s.cfg.BackendAPI })
-	pb.RegisterPowerServiceServer(s.grpcServer, &power.Server{ B: s.cfg.BackendAPI })
-	pb.RegisterAuthServiceServer(s.grpcServer, &auth.Server{ B: s.cfg.BackendAPI })
-	pb.RegisterTaskServiceServer(s.grpcServer, &task.Server{ B: s.cfg.BackendAPI })
+	carrierapipb.RegisterYarnServiceServer(s.grpcServer, &yarn.Server{ B: s.cfg.BackendAPI, RpcSvrIp: s.cfg.Host, RpcSvrPort: s.cfg.Port})
+	carrierapipb.RegisterMetadataServiceServer(s.grpcServer, &metadata.Server{ B: s.cfg.BackendAPI })
+	carrierapipb.RegisterPowerServiceServer(s.grpcServer, &power.Server{ B: s.cfg.BackendAPI })
+	carrierapipb.RegisterAuthServiceServer(s.grpcServer, &auth.Server{ B: s.cfg.BackendAPI })
+	carrierapipb.RegisterTaskServiceServer(s.grpcServer, &task.Server{ B: s.cfg.BackendAPI })
 	service_discover_health.RegisterHealthServer(s.grpcServer, &health_check.HealthCheck{})
 
 	if s.cfg.EnableDebugRPCEndpoints {
@@ -138,7 +138,7 @@ func (s *Service) Start() error {
 			PeersFetcher: s.cfg.PeersFetcher,
 			DebugAPI: s.cfg.DebugAPI,
 		}
-		pbrpc.RegisterDebugServer(s.grpcServer, debugServer)
+		carrierrpcdebugpbv1.RegisterDebugServer(s.grpcServer, debugServer)
 
 		// add logrus instanse to gRPC loggerV2 interface implements.
 		grpclog.SetLoggerV2(NewRPCdebugLogger(log.Logger))

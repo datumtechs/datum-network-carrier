@@ -1,7 +1,7 @@
 package p2p
 
 import (
-	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
+	carrierp2ppbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
 	"github.com/datumtechs/datum-network-carrier/params"
 	"github.com/ethereum/go-ethereum/p2p/enode"
 	"github.com/ethereum/go-ethereum/p2p/enr"
@@ -39,14 +39,14 @@ func addForkEntry(
 }
 
 // Retrieves an enrForkID from an ENR record by key lookup under the xxxxx.
-func forkEntry(record *enr.Record) (*pb.ENRForkID, error) {
+func forkEntry(record *enr.Record) (*carrierp2ppbv1.ENRForkID, error) {
 	/*sszEncodedForkEntry := make([]byte, 16)
 	entry := enr.WithEntry(enr2ENRKey, &sszEncodedForkEntry)
 	err := record.Load(entry)
 	if err != nil {
 		return nil, err
 	}
-	forkEntry := &pb.ENRForkID{}
+	forkEntry := &carrierp2ppbv1.ENRForkID{}
 	if err := forkEntry.UnmarshalSSZ(sszEncodedForkEntry); err != nil {
 		return nil, err
 	}

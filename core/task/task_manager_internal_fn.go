@@ -18,10 +18,10 @@ import (
 	"math/big"
 
 	"github.com/datumtechs/datum-network-carrier/p2p"
-	libapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
-	msgcommonpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/common"
-	twopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
-	taskmngpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/taskmng"
+	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
+	carriernetmsgcommonpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/common"
+	carriertwopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
+	carriernetmsgtaskmngpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/taskmng"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	fighterpbtypes "github.com/datumtechs/datum-network-carrier/pb/fighter/types"
 	"github.com/datumtechs/datum-network-carrier/policy"
@@ -53,7 +53,7 @@ func (m *Manager) tryScheduleTask() error {
 			nonConsTask.GetTask().GetTaskId(),
 			types.TaskScheduleFailed,
 			&types.PrepareVoteResource{},   // zero value
-			&twopcpb.ConfirmTaskPeerInfo{}, // zero value
+			&carriertwopcpb.ConfirmTaskPeerInfo{}, // zero value
 			fmt.Errorf("schedule failed: "+schedule.ErrAbandonTaskWithNotFoundPowerPartyIds.Error()),
 		))
 		return err
@@ -78,7 +78,7 @@ func (m *Manager) tryScheduleTask() error {
 					nonConsTask.GetTask().GetTaskId(),
 					types.TaskScheduleFailed,
 					&types.PrepareVoteResource{},   // zero value
-					&twopcpb.ConfirmTaskPeerInfo{}, // zero value
+					&carriertwopcpb.ConfirmTaskPeerInfo{}, // zero value
 					fmt.Errorf("schedule failed: "+err.Error()+" and "+schedule.ErrRescheduleLargeThreshold.Error()),
 				))
 			}
@@ -107,7 +107,7 @@ func (m *Manager) tryScheduleTask() error {
 					nonConsTask.GetTask().GetTaskId(),
 					types.TaskScheduleFailed,
 					&types.PrepareVoteResource{},   // zero value
-					&twopcpb.ConfirmTaskPeerInfo{}, // zero value
+					&carriertwopcpb.ConfirmTaskPeerInfo{}, // zero value
 					fmt.Errorf("consensus onPrepare failed: "+err.Error()+" and "+schedule.ErrRescheduleLargeThreshold.Error()),
 				))
 			} else {
@@ -512,7 +512,7 @@ func (m *Manager) executeTaskOnDataNode(task *types.NeedExecuteTask, localTask *
 
 	// find dataNodeId with self vote
 	var dataNodeId string
-	dataNodes, err := m.resourceMng.GetDB().QueryRegisterNodeList(libapipb.PrefixTypeDataNode)
+	dataNodes, err := m.resourceMng.GetDB().QueryRegisterNodeList(carrierapipb.PrefixTypeDataNode)
 	if nil != err {
 		log.Errorf("Failed to query internal dataNode arr on `taskManager.executeTaskOnDataNode()`, taskId: {%s}, role: {%s}, partyId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
@@ -573,7 +573,7 @@ func (m *Manager) executeTaskOnJobNode(task *types.NeedExecuteTask, localTask *t
 
 	// find jobNodeId with self vote
 	var jobNodeId string
-	jobNodes, err := m.resourceMng.GetDB().QueryRegisterNodeList(libapipb.PrefixTypeJobNode)
+	jobNodes, err := m.resourceMng.GetDB().QueryRegisterNodeList(carrierapipb.PrefixTypeJobNode)
 	if nil != err {
 		log.Errorf("Failed to query internal jobNode arr on `taskManager.executeTaskOnJobNode()`, taskId: {%s}, role: {%s}, partyId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
@@ -649,7 +649,7 @@ func (m *Manager) terminateTaskOnDataNode(task *types.NeedExecuteTask) error {
 
 	// find dataNodeId with self vote
 	var dataNodeId string
-	dataNodes, err := m.resourceMng.GetDB().QueryRegisterNodeList(libapipb.PrefixTypeDataNode)
+	dataNodes, err := m.resourceMng.GetDB().QueryRegisterNodeList(carrierapipb.PrefixTypeDataNode)
 	if nil != err {
 		log.Errorf("Failed to query internal dataNode arr on `taskManager.terminateTaskOnDataNode()`, taskId: {%s}, role: {%s}, partyId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
@@ -710,7 +710,7 @@ func (m *Manager) terminateTaskOnJobNode(task *types.NeedExecuteTask) error {
 
 	// find jobNodeId with self vote
 	var jobNodeId string
-	jobNodes, err := m.resourceMng.GetDB().QueryRegisterNodeList(libapipb.PrefixTypeJobNode)
+	jobNodes, err := m.resourceMng.GetDB().QueryRegisterNodeList(carrierapipb.PrefixTypeJobNode)
 	if nil != err {
 		log.Errorf("Failed to query internal jobNode arr on `taskManager.terminateTaskOnJobNode()`, taskId: {%s}, role: {%s}, partyId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
@@ -851,7 +851,7 @@ func (m *Manager) sendTaskResultMsgToTaskSender(task *types.NeedExecuteTask, loc
 
 	var (
 		option resource.ReleaseResourceOption
-		taskResultMsg *taskmngpb.TaskResultMsg
+		taskResultMsg *carriernetmsgtaskmngpb.TaskResultMsg
 	)
 
 	// when other task partner and task sender is same identity,
@@ -928,14 +928,14 @@ func (m *Manager) sendTaskTerminateMsg(task *types.Task) error {
 			return
 		}
 
-		terminateMsg := &taskmngpb.TaskTerminateMsg{
-			MsgOption: &msgcommonpb.MsgOption{
+		terminateMsg := &carriernetmsgtaskmngpb.TaskTerminateMsg{
+			MsgOption: &carriernetmsgcommonpb.MsgOption{
 				ProposalId:      carriercommon.Hash{}.Bytes(),
 				SenderRole:      uint64(senderRole),
 				SenderPartyId:   []byte(sender.GetPartyId()),
 				ReceiverRole:    uint64(receiverRole),
 				ReceiverPartyId: []byte(receiver.GetPartyId()),
-				MsgOwner: &msgcommonpb.TaskOrganizationIdentityInfo{
+				MsgOwner: &carriernetmsgcommonpb.TaskOrganizationIdentityInfo{
 					Name:       []byte(sender.GetNodeName()),
 					NodeId:     []byte(sender.GetNodeId()),
 					IdentityId: []byte(sender.GetIdentityId()),
@@ -1665,7 +1665,7 @@ func (m *Manager) mustQueryNeedExecuteTaskCache(taskId, partyId string) *types.N
 	return task
 }
 
-func (m *Manager) makeTaskResultMsgWithEventList(task *types.NeedExecuteTask) *taskmngpb.TaskResultMsg {
+func (m *Manager) makeTaskResultMsgWithEventList(task *types.NeedExecuteTask) *carriernetmsgtaskmngpb.TaskResultMsg {
 
 	if task.GetLocalTaskRole() == commonconstantpb.TaskRole_TaskRole_Sender {
 		log.Errorf("the task sender can not make taskResultMsg")
@@ -1685,14 +1685,14 @@ func (m *Manager) makeTaskResultMsgWithEventList(task *types.NeedExecuteTask) *t
 		return nil
 	}
 
-	return &taskmngpb.TaskResultMsg{
-		MsgOption: &msgcommonpb.MsgOption{
+	return &carriernetmsgtaskmngpb.TaskResultMsg{
+		MsgOption: &carriernetmsgcommonpb.MsgOption{
 			ProposalId:      carriercommon.Hash{}.Bytes(),
 			SenderRole:      uint64(task.GetLocalTaskRole()),
 			SenderPartyId:   []byte(task.GetLocalTaskOrganization().GetPartyId()),
 			ReceiverRole:    uint64(task.GetRemoteTaskRole()),
 			ReceiverPartyId: []byte(task.GetRemoteTaskOrganization().GetPartyId()),
-			MsgOwner: &msgcommonpb.TaskOrganizationIdentityInfo{
+			MsgOwner: &carriernetmsgcommonpb.TaskOrganizationIdentityInfo{
 				Name:       []byte(task.GetLocalTaskOrganization().GetNodeName()),
 				NodeId:     []byte(task.GetLocalTaskOrganization().GetNodeId()),
 				IdentityId: []byte(task.GetLocalTaskOrganization().GetIdentityId()),
@@ -2070,7 +2070,7 @@ func (m *Manager) handleResourceUsage(keyword, usageIdentityId string, usage *ty
 	return needUpdate, nil
 }
 
-func (m *Manager) ValidateTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResultMsg) error {
+func (m *Manager) ValidateTaskResultMsg(pid peer.ID, taskResultMsg *carriernetmsgtaskmngpb.TaskResultMsg) error {
 	msg := types.FetchTaskResultMsg(taskResultMsg) // fetchTaskResultMsg(taskResultMsg)
 
 	if len(msg.GetTaskEventList()) == 0 {
@@ -2088,7 +2088,7 @@ func (m *Manager) ValidateTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.Ta
 	return nil
 }
 
-func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResultMsg) error {
+func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *carriernetmsgtaskmngpb.TaskResultMsg) error {
 
 	msg := types.FetchTaskResultMsg(taskResultMsg)
 
@@ -2162,15 +2162,15 @@ func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResu
 	return nil
 }
 
-func (m *Manager) ValidateTaskResourceUsageMsg(pid peer.ID, taskResourceUsageMsg *taskmngpb.TaskResourceUsageMsg) error {
+func (m *Manager) ValidateTaskResourceUsageMsg(pid peer.ID, taskResourceUsageMsg *carriernetmsgtaskmngpb.TaskResourceUsageMsg) error {
 	return nil
 }
 
-func (m *Manager) OnTaskResourceUsageMsg(pid peer.ID, usageMsg *taskmngpb.TaskResourceUsageMsg) error {
+func (m *Manager) OnTaskResourceUsageMsg(pid peer.ID, usageMsg *carriernetmsgtaskmngpb.TaskResourceUsageMsg) error {
 	return m.onTaskResourceUsageMsg(pid, usageMsg, types.RemoteNetworkMsg)
 }
 
-func (m *Manager) onTaskResourceUsageMsg(pid peer.ID, usageMsg *taskmngpb.TaskResourceUsageMsg, nmls types.NetworkMsgLocationSymbol) error {
+func (m *Manager) onTaskResourceUsageMsg(pid peer.ID, usageMsg *carriernetmsgtaskmngpb.TaskResourceUsageMsg, nmls types.NetworkMsgLocationSymbol) error {
 
 	msg := types.FetchTaskResourceUsageMsg(usageMsg)
 
@@ -2232,15 +2232,15 @@ func (m *Manager) onTaskResourceUsageMsg(pid peer.ID, usageMsg *taskmngpb.TaskRe
 	return nil
 }
 
-func (m *Manager) ValidateTaskTerminateMsg(pid peer.ID, terminateMsg *taskmngpb.TaskTerminateMsg) error {
+func (m *Manager) ValidateTaskTerminateMsg(pid peer.ID, terminateMsg *carriernetmsgtaskmngpb.TaskTerminateMsg) error {
 	return nil
 }
 
-func (m *Manager) OnTaskTerminateMsg(pid peer.ID, terminateMsg *taskmngpb.TaskTerminateMsg) error {
+func (m *Manager) OnTaskTerminateMsg(pid peer.ID, terminateMsg *carriernetmsgtaskmngpb.TaskTerminateMsg) error {
 	return m.onTaskTerminateMsg(pid, terminateMsg, types.RemoteNetworkMsg)
 }
 
-func (m *Manager) onTaskTerminateMsg(pid peer.ID, terminateMsg *taskmngpb.TaskTerminateMsg, nmls types.NetworkMsgLocationSymbol) error {
+func (m *Manager) onTaskTerminateMsg(pid peer.ID, terminateMsg *carriernetmsgtaskmngpb.TaskTerminateMsg, nmls types.NetworkMsgLocationSymbol) error {
 	msg := types.FetchTaskTerminateTaskMngMsg(terminateMsg)
 
 	task, err := m.resourceMng.GetDB().QueryLocalTask(msg.GetTaskId())
@@ -2378,7 +2378,7 @@ func (m *Manager) startTerminateWithNeedExecuteTask(needExecuteTask *types.NeedE
 		needExecuteTask.GetTaskId(),
 		types.TaskTerminate,
 		&types.PrepareVoteResource{},   // zero value
-		&twopcpb.ConfirmTaskPeerInfo{}, // zero value
+		&carriertwopcpb.ConfirmTaskPeerInfo{}, // zero value
 		fmt.Errorf("task was terminated"),
 	))
 	return nil

@@ -5,10 +5,10 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"fmt"
-	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
 	"github.com/datumtechs/datum-network-carrier/p2p/encoder"
 	"github.com/datumtechs/datum-network-carrier/p2p/peers"
 	"github.com/datumtechs/datum-network-carrier/p2p/peers/scorers"
+	carrierp2ppbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
 	"github.com/ethereum/go-ethereum/p2p/enr"
 	"github.com/gogo/protobuf/proto"
 	bhost "github.com/libp2p/go-libp2p-blankhost"
@@ -36,7 +36,7 @@ type TestP2P struct {
 	DelaySend       bool
 	Digest          [4]byte
 	peers           *peers.Status
-	LocalMetadata   *pb.MetaData
+	LocalMetadata   *carrierp2ppbv1.MetaData
 }
 
 // NewTestP2P initializes a new p2p test service.
@@ -347,8 +347,8 @@ func (p *TestP2P) ForkDigest() ([4]byte, error) {
 }
 
 // Metadata mocks the peer's metadata.
-func (p *TestP2P) Metadata() *pb.MetaData {
-	return proto.Clone(p.LocalMetadata).(*pb.MetaData)
+func (p *TestP2P) Metadata() *carrierp2ppbv1.MetaData {
+	return proto.Clone(p.LocalMetadata).(*carrierp2ppbv1.MetaData)
 }
 
 // MetadataSeq mocks metadata sequence number.

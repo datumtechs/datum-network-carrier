@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	librpcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
+	carrierrpcdebugpbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/p2p/encoder"
 	"github.com/datumtechs/datum-network-carrier/params"
@@ -23,7 +23,7 @@ func TestSszNetworkEncoder_RoundTrip(t *testing.T) {
 
 func TestSszNetworkEncoder_FailsSnappyLength(t *testing.T) {
 	e := &encoder.SszNetworkEncoder{}
-	goosipData := &librpcpb.GossipTestData{}
+	goosipData := &carrierrpcdebugpbv1.GossipTestData{}
 	data := make([]byte, 32)
 	binary.PutUvarint(data, encoder.MaxGossipSize+32)
 	err := e.DecodeGossip(data, goosipData)
@@ -32,14 +32,14 @@ func TestSszNetworkEncoder_FailsSnappyLength(t *testing.T) {
 
 func testRoundTripWithLength(t *testing.T, e *encoder.SszNetworkEncoder) {
 	buf := new(bytes.Buffer)
-	msg := &librpcpb.GossipTestData{
+	msg := &carrierrpcdebugpbv1.GossipTestData{
 		Data:                 []byte("my gossip test data"),
 		Count:                2,
 		Step:                 3,
 	}
 	_, err := e.EncodeWithMaxLength(buf, msg)
 	require.NoError(t, err)
-	decoded := &librpcpb.GossipTestData{}
+	decoded := &carrierrpcdebugpbv1.GossipTestData{}
 	require.NoError(t, e.DecodeWithMaxLength(buf, decoded))
 	if !proto.Equal(decoded, msg) {
 		t.Logf("decoded=%+v\n", decoded)
@@ -49,14 +49,14 @@ func testRoundTripWithLength(t *testing.T, e *encoder.SszNetworkEncoder) {
 
 func testRoundTripWithGossip(t *testing.T, e *encoder.SszNetworkEncoder) {
 	buf := new(bytes.Buffer)
-	msg := &librpcpb.GossipTestData{
+	msg := &carrierrpcdebugpbv1.GossipTestData{
 		Data:                 []byte("my gossip test data"),
 		Count:                2,
 		Step:                 3,
 	}
 	_, err := e.EncodeGossip(buf, msg)
 	require.NoError(t, err)
-	decoded := &librpcpb.GossipTestData{}
+	decoded := &carrierrpcdebugpbv1.GossipTestData{}
 	require.NoError(t, e.DecodeGossip(buf.Bytes(), decoded))
 	if !proto.Equal(decoded, msg) {
 		t.Logf("decoded=%+v\n", decoded)
@@ -66,7 +66,7 @@ func testRoundTripWithGossip(t *testing.T, e *encoder.SszNetworkEncoder) {
 
 func TestSszNetworkEncoder_EncodeWithMaxLength(t *testing.T) {
 	buf := new(bytes.Buffer)
-	msg := &librpcpb.GossipTestData{
+	msg := &carrierrpcdebugpbv1.GossipTestData{
 		Data:                 []byte("my gossip test data"),
 		Count:                2,
 		Step:                 3,
@@ -78,7 +78,7 @@ func TestSszNetworkEncoder_EncodeWithMaxLength(t *testing.T) {
 
 func TestSszNetworkEncoder_DecodeWithMaxLength(t *testing.T) {
 	buf := new(bytes.Buffer)
-	msg := &librpcpb.GossipTestData{
+	msg := &carrierrpcdebugpbv1.GossipTestData{
 		Data:                 []byte("my gossip test data"),
 		Count:                2,
 		Step:                 3,
@@ -91,7 +91,7 @@ func TestSszNetworkEncoder_DecodeWithMaxLength(t *testing.T) {
 	params.OverrideCarrierNetworkConfig(c)
 	_, err := e.EncodeGossip(buf, msg)
 	require.NoError(t, err)
-	decoded := &librpcpb.GossipTestData{}
+	decoded := &carrierrpcdebugpbv1.GossipTestData{}
 	err = e.DecodeWithMaxLength(buf, decoded)
 	wanted := fmt.Sprintf("goes over the provided max limit of %d", maxChunkSize)
 	assert.ErrorContains(t, err, wanted)

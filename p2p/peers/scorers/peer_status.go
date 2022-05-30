@@ -2,7 +2,7 @@ package scorers
 
 import (
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
-	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
+	carrierp2ppbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
 	"github.com/datumtechs/datum-network-carrier/p2p/peers/peerdata"
 	"github.com/libp2p/go-libp2p-core/peer"
 	types "github.com/prysmaticlabs/eth2-types"
@@ -105,7 +105,7 @@ func (s *PeerStatusScorer) BadPeers() []peer.ID {
 }
 
 // SetPeerStatus sets chain state data for a given peer.
-func (s *PeerStatusScorer) SetPeerStatus(pid peer.ID, chainState *pb.Status, validationError error) {
+func (s *PeerStatusScorer) SetPeerStatus(pid peer.ID, chainState *carrierp2ppbv1.Status, validationError error) {
 	s.store.Lock()
 	defer s.store.Unlock()
 
@@ -123,14 +123,14 @@ func (s *PeerStatusScorer) SetPeerStatus(pid peer.ID, chainState *pb.Status, val
 // PeerStatus gets the chain state of the given remote peer.
 // This can return nil if there is no known chain state for the peer.
 // This will error if the peer does not exist.
-func (s *PeerStatusScorer) PeerStatus(pid peer.ID) (*pb.Status, error) {
+func (s *PeerStatusScorer) PeerStatus(pid peer.ID) (*carrierp2ppbv1.Status, error) {
 	s.store.RLock()
 	defer s.store.RUnlock()
 	return s.peerStatus(pid)
 }
 
 // peerStatus lock-free version of PeerStatus.
-func (s *PeerStatusScorer) peerStatus(pid peer.ID) (*pb.Status, error) {
+func (s *PeerStatusScorer) peerStatus(pid peer.ID) (*carrierp2ppbv1.Status, error) {
 	if peerData, ok := s.store.PeerData(pid); ok {
 		return peerData.ChainState, nil
 	}

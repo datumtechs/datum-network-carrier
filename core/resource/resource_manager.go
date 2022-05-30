@@ -7,7 +7,7 @@ import (
 	"github.com/datumtechs/datum-network-carrier/core"
 	"github.com/datumtechs/datum-network-carrier/core/rawdb"
 	"github.com/datumtechs/datum-network-carrier/grpclient"
-	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
+	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"github.com/datumtechs/datum-network-carrier/service/discovery"
@@ -711,14 +711,14 @@ func (m *Manager) AddDiscoveryJobNodeResource(identity *carriertypespb.Organizat
 
 	// 3. add local jobNode info
 	// build new jobNode info that was need to store local db
-	if err = m.dataCenter.SetRegisterNode(pb.PrefixTypeJobNode,
-		&pb.YarnRegisteredPeerDetail{
+	if err = m.dataCenter.SetRegisterNode(carrierapipb.PrefixTypeJobNode,
+		&carrierapipb.YarnRegisteredPeerDetail{
 			Id:           strings.Join([]string{discovery.JobNodeConsulServiceIdPrefix, jobNodeIP, jobNodePort}, discovery.ConsulServiceIdSeparator),
 			InternalIp:   jobNodeIP,
 			InternalPort: jobNodePort,
 			ExternalIp:   jobNodeExternalIP,
 			ExternalPort: jobNodeExternalPort,
-			ConnState:    pb.ConnState_ConnState_Connected,
+			ConnState:    carrierapipb.ConnState_ConnState_Connected,
 		}); nil != err {
 		log.WithError(err).Errorf("Failed to store registerNode into local db on resourceManager.AddDiscoveryJobNodeResource(), jobNodeServiceId: {%s}, jobNodeService: {%s:%s}",
 			jobNodeId, jobNodeIP, jobNodePort)
@@ -730,7 +730,7 @@ func (m *Manager) AddDiscoveryJobNodeResource(identity *carriertypespb.Organizat
 	return nil
 }
 
-func (m *Manager) UpdateDiscoveryJobNodeResource(identity *carriertypespb.Organization, jobNodeId, jobNodeIP, jobNodePort, jobNodeExternalIP, jobNodeExternalPort string, old *pb.YarnRegisteredPeerDetail) error {
+func (m *Manager) UpdateDiscoveryJobNodeResource(identity *carriertypespb.Organization, jobNodeId, jobNodeIP, jobNodePort, jobNodeExternalIP, jobNodeExternalPort string, old *carrierapipb.YarnRegisteredPeerDetail) error {
 
 	// check the  via external ip and port comparing old infomation,
 	// if it is, update the some things about jobNode.
@@ -744,7 +744,7 @@ func (m *Manager) UpdateDiscoveryJobNodeResource(identity *carriertypespb.Organi
 		old.ExternalPort = jobNodeExternalPort
 		// 1. update local jobNode info
 		// update jobNode ip port into local db
-		if err := m.dataCenter.SetRegisterNode(pb.PrefixTypeJobNode, old); nil != err {
+		if err := m.dataCenter.SetRegisterNode(carrierapipb.PrefixTypeJobNode, old); nil != err {
 			log.WithError(err).Errorf("Failed to update jobNode into local db on resourceManager.UpdateDiscoveryJobNodeResource(), jobNodeServiceId: {%s}, jobNodeService: {%s:%s}",
 				jobNodeId, jobNodeIP, jobNodePort)
 			return err
@@ -841,10 +841,10 @@ func (m *Manager) UpdateDiscoveryJobNodeResource(identity *carriertypespb.Organi
 
 	//// check connection status,
 	//// if it be changed, update the connState value about jobNode
-	//if old.GetConnState() != pb.ConnState_ConnState_Connected {
+	//if old.GetConnState() != carrierapipb.ConnState_ConnState_Connected {
 	//
-	//	old.ConnState = pb.ConnState_ConnState_Connected
-	//	if err := m.dataCenter.SetRegisterNode(pb.PrefixTypeJobNode, old); nil != err {
+	//	old.ConnState = carrierapipb.ConnState_ConnState_Connected
+	//	if err := m.dataCenter.SetRegisterNode(carrierapipb.PrefixTypeJobNode, old); nil != err {
 	//		log.WithError(err).Errorf("Failed to update jobNode into local db on resourceManager.UpdateDiscoveryJobNodeResource(), jobNodeServiceId: {%s}, jobNodeService: {%s:%s}",
 	//			jobNodeId, jobNodeIP, jobNodePort)
 	//		return err
@@ -857,7 +857,7 @@ func (m *Manager) UpdateDiscoveryJobNodeResource(identity *carriertypespb.Organi
 	return nil
 }
 
-func (m *Manager) RemoveDiscoveryJobNodeResource(identity *carriertypespb.Organization, jobNodeId, jobNodeIP, jobNodePort, jobNodeExternalIP, jobNodeExternalPort string, old *pb.YarnRegisteredPeerDetail) error {
+func (m *Manager) RemoveDiscoveryJobNodeResource(identity *carriertypespb.Organization, jobNodeId, jobNodeIP, jobNodePort, jobNodeExternalIP, jobNodeExternalPort string, old *carrierapipb.YarnRegisteredPeerDetail) error {
 
 	log.Infof("Disappeared a old jobNode from consul server on resourceManager.RemoveDiscoveryJobNodeResource(), jobNodeId: {%s}", jobNodeId)
 
@@ -911,10 +911,10 @@ func (m *Manager) RemoveDiscoveryJobNodeResource(identity *carriertypespb.Organi
 		m.RemoveJobNodeClient(jobNodeId)
 	}
 	//// 4. update connState of local jobNode info
-	//if old.GetConnState() != pb.ConnState_ConnState_UnConnected {
+	//if old.GetConnState() != carrierapipb.ConnState_ConnState_UnConnected {
 	//
-	//	old.ConnState = pb.ConnState_ConnState_UnConnected
-	//	if err := m.dataCenter.SetRegisterNode(pb.PrefixTypeJobNode, old); nil != err {
+	//	old.ConnState = carrierapipb.ConnState_ConnState_UnConnected
+	//	if err := m.dataCenter.SetRegisterNode(carrierapipb.PrefixTypeJobNode, old); nil != err {
 	//		log.WithError(err).Errorf("Failed to update jobNode into local db on resourceManager.RemoveDiscoveryJobNodeResource(), jobNodeServiceId: {%s}, jobNodeService: {%s:%s}",
 	//			jobNodeId, jobNodeIP, jobNodePort)
 	//		return err
@@ -960,14 +960,14 @@ func (m *Manager) AddDiscoveryDataNodeResource(identity *carriertypespb.Organiza
 
 	// 3. add local dataNode info
 	// build new dataNode info that was need to store local db
-	if err = m.dataCenter.SetRegisterNode(pb.PrefixTypeDataNode,
-		&pb.YarnRegisteredPeerDetail{
+	if err = m.dataCenter.SetRegisterNode(carrierapipb.PrefixTypeDataNode,
+		&carrierapipb.YarnRegisteredPeerDetail{
 			Id:           strings.Join([]string{discovery.DataNodeConsulServiceIdPrefix, dataNodeIP, dataNodePort}, discovery.ConsulServiceIdSeparator),
 			InternalIp:   dataNodeIP,
 			InternalPort: dataNodePort,
 			ExternalIp:   dataNodeExternalIP,
 			ExternalPort: dataNodeExternalPort,
-			ConnState:    pb.ConnState_ConnState_Connected,
+			ConnState:    carrierapipb.ConnState_ConnState_Connected,
 		}); nil != err {
 		log.WithError(err).Errorf("Failed to store dataNode into local db on resourceManager.AddDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%s}",
 			dataNodeId, dataNodeIP, dataNodePort)
@@ -980,7 +980,7 @@ func (m *Manager) AddDiscoveryDataNodeResource(identity *carriertypespb.Organiza
 	return nil
 }
 
-func (m *Manager) UpdateDiscoveryDataNodeResource(identity *carriertypespb.Organization, dataNodeId, dataNodeIP, dataNodePort, dataNodeExternalIP, dataNodeExternalPort string, old *pb.YarnRegisteredPeerDetail) error {
+func (m *Manager) UpdateDiscoveryDataNodeResource(identity *carriertypespb.Organization, dataNodeId, dataNodeIP, dataNodePort, dataNodeExternalIP, dataNodeExternalPort string, old *carrierapipb.YarnRegisteredPeerDetail) error {
 	// check the  via external ip and port comparing old infomation,
 	// if it is, update the some things about dataNode.
 	if old.GetExternalIp() != dataNodeExternalIP || old.GetExternalPort() != dataNodeExternalPort {
@@ -993,7 +993,7 @@ func (m *Manager) UpdateDiscoveryDataNodeResource(identity *carriertypespb.Organ
 		old.ExternalPort = dataNodeExternalPort
 		// 1. update local dataNode info
 		// update dataNode ip port into local db
-		if err := m.dataCenter.SetRegisterNode(pb.PrefixTypeDataNode, old); nil != err {
+		if err := m.dataCenter.SetRegisterNode(carrierapipb.PrefixTypeDataNode, old); nil != err {
 			log.WithError(err).Errorf("Failed to update dataNode into local db on resourceManager.UpdateDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%s}",
 				dataNodeId, dataNodeIP, dataNodePort)
 			return err
@@ -1065,10 +1065,10 @@ func (m *Manager) UpdateDiscoveryDataNodeResource(identity *carriertypespb.Organ
 
 	//// check connection status,
 	//// if it be changed, update the connState value about jobNode
-	//if old.GetConnState() != pb.ConnState_ConnState_Connected {
+	//if old.GetConnState() != carrierapipb.ConnState_ConnState_Connected {
 	//
-	//	old.ConnState = pb.ConnState_ConnState_Connected
-	//	if err := m.dataCenter.SetRegisterNode(pb.PrefixTypeDataNode, old); nil != err {
+	//	old.ConnState = carrierapipb.ConnState_ConnState_Connected
+	//	if err := m.dataCenter.SetRegisterNode(carrierapipb.PrefixTypeDataNode, old); nil != err {
 	//		log.WithError(err).Errorf("Failed to update dataNode into local db on resourceManager.UpdateDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
 	//			dataNodeId, dataNodeIP, dataNodePort)
 	//		return err
@@ -1082,7 +1082,7 @@ func (m *Manager) UpdateDiscoveryDataNodeResource(identity *carriertypespb.Organ
 	return nil
 }
 
-func (m *Manager) RemoveDiscoveryDataNodeResource(identity *carriertypespb.Organization, dataNodeId, dataNodeIP, dataNodePort, dataNodeExternalIP, dataNodeExternalPort string, old *pb.YarnRegisteredPeerDetail) error {
+func (m *Manager) RemoveDiscoveryDataNodeResource(identity *carriertypespb.Organization, dataNodeId, dataNodeIP, dataNodePort, dataNodeExternalIP, dataNodeExternalPort string, old *carrierapipb.YarnRegisteredPeerDetail) error {
 
 	log.Infof("Disappeared a old dataNode from consul server on resourceManager.RemoveDiscoveryDataNodeResource(), dataNodeId: {%s}", dataNodeId)
 
@@ -1121,10 +1121,10 @@ func (m *Manager) RemoveDiscoveryDataNodeResource(identity *carriertypespb.Organ
 		m.RemoveDataNodeClient(dataNodeId)
 	}
 	//// 3. update connState of local dataNode info
-	//if old.GetConnState() != pb.ConnState_ConnState_UnConnected {
+	//if old.GetConnState() != carrierapipb.ConnState_ConnState_UnConnected {
 	//
-	//	old.ConnState = pb.ConnState_ConnState_UnConnected
-	//	if err := m.dataCenter.SetRegisterNode(pb.PrefixTypeDataNode, old); nil != err {
+	//	old.ConnState = carrierapipb.ConnState_ConnState_UnConnected
+	//	if err := m.dataCenter.SetRegisterNode(carrierapipb.PrefixTypeDataNode, old); nil != err {
 	//		log.WithError(err).Errorf("Failed to update dataNode into local db on resourceManager.RemoveDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
 	//			dataNodeId, dataNodeIP, dataNodePort)
 	//		return err

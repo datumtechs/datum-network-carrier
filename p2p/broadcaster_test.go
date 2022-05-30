@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/common/bytesutil"
-	libp2ppb "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
+	carrierrpcdebugpbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	p2ptest "github.com/datumtechs/datum-network-carrier/p2p/testing"
 	"github.com/gogo/protobuf/proto"
@@ -33,7 +33,7 @@ func TestService_Broadcast(t *testing.T) {
 		genesisTime:   	        time.Now(),
 	}
 
-	msg := &libp2ppb.GossipTestData{
+	msg := &carrierrpcdebugpbv1.GossipTestData{
 		Data:                 []byte{0x0,0x1},
 		Count:                11,
 		Step:                 23,
@@ -64,7 +64,7 @@ func TestService_Broadcast(t *testing.T) {
 		incomingMessage, err := sub.Next(ctx)
 		require.NoError(t, err)
 
-		result := &libp2ppb.GossipTestData{}
+		result := &carrierrpcdebugpbv1.GossipTestData{}
 		require.NoError(t, p.Encoding().DecodeGossip(incomingMessage.Data, result))
 		if !proto.Equal(result, msg) {
 			tt.Errorf("Did not receive expected message, got %+v, wanted %+v", result, msg)
