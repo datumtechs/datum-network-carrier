@@ -1,0 +1,561 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "carrier/api/power_rpc_api.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/carrier/v1/power/globalDetailList": {
+      "get": {
+        "summary": "查看全网各个组织的各个算力详情列表",
+        "operationId": "PowerService_GetGlobalPowerDetailList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiGetGlobalPowerDetailListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "last_updated",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          }
+        ],
+        "tags": [
+          "PowerService"
+        ]
+      }
+    },
+    "/carrier/v1/power/globalSummaryList": {
+      "get": {
+        "summary": "查看全网各个组织的总算力(累加)详情列表",
+        "operationId": "PowerService_GetGlobalPowerSummaryList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiGetGlobalPowerSummaryListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "PowerService"
+        ]
+      }
+    },
+    "/carrier/v1/power/localDetailList": {
+      "get": {
+        "summary": "本组织的所有(宿主机)算力信息列表 (包含【未发布】和【已发布】的)",
+        "operationId": "PowerService_GetLocalPowerDetailList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiGetLocalPowerDetailListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "PowerService"
+        ]
+      }
+    },
+    "/carrier/v1/power/publish": {
+      "post": {
+        "summary": "启用算力 (发布算力)",
+        "operationId": "PowerService_PublishPower",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiPublishPowerResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiPublishPowerRequest"
+            }
+          }
+        ],
+        "tags": [
+          "PowerService"
+        ]
+      }
+    },
+    "/carrier/v1/power/revoke": {
+      "post": {
+        "summary": "停用算力 (撤销算力)",
+        "operationId": "PowerService_RevokePower",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/typesSimpleResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiRevokePowerRequest"
+            }
+          }
+        ],
+        "tags": [
+          "PowerService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "apiGetGlobalPowerDetail": {
+      "type": "object",
+      "properties": {
+        "owner": {
+          "$ref": "#/definitions/typesOrganization"
+        },
+        "information": {
+          "$ref": "#/definitions/typesPowerUsageDetail"
+        },
+        "power_id": {
+          "type": "string"
+        }
+      },
+      "title": "单个组织的各个算力信息"
+    },
+    "apiGetGlobalPowerDetailListResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "powers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiGetGlobalPowerDetail"
+          }
+        }
+      },
+      "title": "全网各个组织的各个算力列表 resp"
+    },
+    "apiGetGlobalPowerSummary": {
+      "type": "object",
+      "properties": {
+        "owner": {
+          "$ref": "#/definitions/typesOrganization"
+        },
+        "information": {
+          "$ref": "#/definitions/typesPowerUsageDetail"
+        }
+      },
+      "title": "单个组织的总算力信息"
+    },
+    "apiGetGlobalPowerSummaryListResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "powers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiGetGlobalPowerSummary"
+          }
+        }
+      },
+      "title": "查看全网各个组织的总算力(累加)详情列表 resp"
+    },
+    "apiGetLocalPowerDetail": {
+      "type": "object",
+      "properties": {
+        "owner": {
+          "$ref": "#/definitions/typesOrganization"
+        },
+        "power": {
+          "$ref": "#/definitions/typesPowerUsageDetail"
+        },
+        "job_node_id": {
+          "type": "string"
+        },
+        "power_id": {
+          "type": "string"
+        }
+      },
+      "title": "本组织的单个(宿主机)算力信息 (包含【未发布】和【已发布】的) resp"
+    },
+    "apiGetLocalPowerDetailListResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "powers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiGetLocalPowerDetail"
+          }
+        }
+      },
+      "title": "本组织的多个(宿主机)算力信息 (包含【未发布】和【已发布】的)"
+    },
+    "apiPublishPowerRequest": {
+      "type": "object",
+      "properties": {
+        "job_node_id": {
+          "type": "string"
+        }
+      },
+      "title": "启用算力 req"
+    },
+    "apiPublishPowerResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "power_id": {
+          "type": "string"
+        }
+      },
+      "title": "启用算力 resp"
+    },
+    "apiRevokePowerRequest": {
+      "type": "object",
+      "properties": {
+        "power_id": {
+          "type": "string"
+        }
+      },
+      "title": "停用算力 req"
+    },
+    "constantCommonStatus": {
+      "type": "string",
+      "enum": [
+        "CommonStatus_Unknown",
+        "CommonStatus_Valid",
+        "CommonStatus_Invalid"
+      ],
+      "default": "CommonStatus_Unknown",
+      "title": "the status of data for datacenter, 1 means valid, 2 means invalid"
+    },
+    "constantDataStatus": {
+      "type": "string",
+      "enum": [
+        "DataStatus_Unknown",
+        "DataStatus_Valid",
+        "DataStatus_Invalid"
+      ],
+      "default": "DataStatus_Unknown",
+      "title": "the status of data for local storage, 1 means valid, 2 means invalid"
+    },
+    "constantPowerState": {
+      "type": "string",
+      "enum": [
+        "PowerState_Unknown",
+        "PowerState_Created",
+        "PowerState_Released",
+        "PowerState_Occupation",
+        "PowerState_Revoked"
+      ],
+      "default": "PowerState_Unknown",
+      "title": "算力的状态 (0: 未知; 1: 还未发布的算力; 2: 已发布的算力(算力未被占用); 3: 已发布的算力(算力正在被占用); 4: 已撤销的算力)"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "type_url": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "runtimeError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "typesOrganization": {
+      "type": "object",
+      "properties": {
+        "node_name": {
+          "type": "string",
+          "title": "org name"
+        },
+        "node_id": {
+          "type": "string",
+          "title": "the node_id for org"
+        },
+        "identity_id": {
+          "type": "string",
+          "title": "the identity for org"
+        },
+        "data_status": {
+          "$ref": "#/definitions/constantDataStatus",
+          "title": "the status of data for local storage, 1 means valid, 2 means invalid"
+        },
+        "status": {
+          "$ref": "#/definitions/constantCommonStatus",
+          "title": "the status of data for datacenter, 1 means valid, 2 means invalid"
+        },
+        "update_at": {
+          "type": "string",
+          "format": "uint64",
+          "title": "v 3.0\nthe last_update time of corresponding datacenter (unit: UTC ms)"
+        },
+        "image_url": {
+          "type": "string",
+          "title": "the link of face image (with a length limit)"
+        },
+        "details": {
+          "type": "string",
+          "title": "description of the node (with a length limit)"
+        }
+      },
+      "description": "A represents the basic information of the organization."
+    },
+    "typesPowerTask": {
+      "type": "object",
+      "properties": {
+        "task_id": {
+          "type": "string"
+        },
+        "task_name": {
+          "type": "string"
+        },
+        "owner": {
+          "$ref": "#/definitions/typesOrganization"
+        },
+        "partners": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/typesOrganization"
+          }
+        },
+        "receivers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/typesOrganization"
+          }
+        },
+        "operation_cost": {
+          "$ref": "#/definitions/typesTaskResourceCostDeclare"
+        },
+        "operation_spend": {
+          "$ref": "#/definitions/typesTaskResourceCostDeclare"
+        },
+        "createAt": {
+          "type": "string",
+          "format": "uint64"
+        }
+      },
+      "title": "算力上的任务信息"
+    },
+    "typesPowerUsageDetail": {
+      "type": "object",
+      "properties": {
+        "information": {
+          "$ref": "#/definitions/typesResourceUsageOverview"
+        },
+        "total_task_count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "current_task_count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "tasks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/typesPowerTask"
+          }
+        },
+        "state": {
+          "$ref": "#/definitions/constantPowerState"
+        },
+        "publish_at": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "update_at": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "nonce": {
+          "type": "string",
+          "format": "uint64"
+        }
+      },
+      "title": "算力及算力上的task信息的公共抽象"
+    },
+    "typesResourceUsageOverview": {
+      "type": "object",
+      "properties": {
+        "total_mem": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "used_mem": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "total_processor": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "used_processor": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "total_bandwidth": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "used_bandwidth": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "total_disk": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "used_disk": {
+          "type": "string",
+          "format": "uint64"
+        }
+      },
+      "title": "系统资源消耗概览"
+    },
+    "typesSimpleResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32",
+          "title": "the code for response"
+        },
+        "msg": {
+          "type": "string",
+          "title": "the message for response"
+        }
+      }
+    },
+    "typesTaskResourceCostDeclare": {
+      "type": "object",
+      "properties": {
+        "memory": {
+          "type": "string",
+          "format": "uint64",
+          "title": "任务所需的内存 (单位: byte)"
+        },
+        "processor": {
+          "type": "integer",
+          "format": "int64",
+          "title": "任务所需的核数 (单位: 个)"
+        },
+        "bandwidth": {
+          "type": "string",
+          "format": "uint64",
+          "title": "任务所需的带宽 (单位: bps)"
+        },
+        "duration": {
+          "type": "string",
+          "format": "uint64",
+          "title": "任务所需的运行时长 (单位: ms)"
+        }
+      },
+      "title": "任务需要花费的资源声明"
+    }
+  }
+}

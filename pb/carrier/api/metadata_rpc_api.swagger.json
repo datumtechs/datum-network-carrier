@@ -1,0 +1,698 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "carrier/api/metadata_rpc_api.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/carrier/v1/metadata/bindDataTokenAddress": {
+      "post": {
+        "summary": "v 0.4.0 将元数据发布的 datatoken 合约地址绑定 元数据信息中 (metadata : datatoken == 1 : 1)",
+        "operationId": "MetadataService_BindDataTokenAddress",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/typesSimpleResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiBindDataTokenAddressRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MetadataService"
+        ]
+      }
+    },
+    "/carrier/v1/metadata/globalList": {
+      "get": {
+        "summary": "查看 全网元数据列表",
+        "operationId": "MetadataService_GetGlobalMetadataDetailList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiGetGlobalMetadataDetailListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "last_updated",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          }
+        ],
+        "tags": [
+          "MetadataService"
+        ]
+      }
+    },
+    "/carrier/v1/metadata/localInternalList": {
+      "get": {
+        "summary": "查看 本组织(内部的/未发布的/系统生成的)元数据列表",
+        "operationId": "MetadataService_GetLocalInternalMetadataDetailList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiGetLocalMetadataDetailListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "MetadataService"
+        ]
+      }
+    },
+    "/carrier/v1/metadata/localList": {
+      "get": {
+        "summary": "查看 本组织(已发布的)元数据列表",
+        "operationId": "MetadataService_GetLocalMetadataDetailList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiGetLocalMetadataDetailListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "last_updated",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          }
+        ],
+        "tags": [
+          "MetadataService"
+        ]
+      }
+    },
+    "/carrier/v1/metadata/publish": {
+      "post": {
+        "summary": "发布元数据  (新增和编辑 都是发布新的元数据) \u003c底层根据 原始数据Id -- OriginId 来关联 新的MetaDataId\u003e",
+        "operationId": "MetadataService_PublishMetadata",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiPublishMetadataResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiPublishMetadataRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MetadataService"
+        ]
+      }
+    },
+    "/carrier/v1/metadata/publishByInteranlMetadata": {
+      "post": {
+        "summary": "v 0.4.0 将内部元数据重新发布成 对外的元数据",
+        "operationId": "MetadataService_PublishMetadataByInteranlMetadata",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiPublishMetadataResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiPublishMetadataByInteranlMetadataRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MetadataService"
+        ]
+      }
+    },
+    "/carrier/v1/metadata/publishByTaskResultFile": {
+      "post": {
+        "summary": "v 0.4.0 将任务的结果数据重新发布成 对外的元数据",
+        "operationId": "MetadataService_PublishMetadataByTaskResultFile",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiPublishMetadataResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiPublishMetadataByTaskResultFileRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MetadataService"
+        ]
+      }
+    },
+    "/carrier/v1/metadata/revoke": {
+      "post": {
+        "summary": "撤销元数据 (从底层网络撤销)",
+        "operationId": "MetadataService_RevokeMetadata",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/typesSimpleResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiRevokeMetadataRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MetadataService"
+        ]
+      }
+    },
+    "/carrier/v1/metadata/usedTaskIdList": {
+      "post": {
+        "summary": "V 0.2.0 新增\n查询某 metadata 参与过的任务的taskId列表",
+        "operationId": "MetadataService_GetMetadataUsedTaskIdList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiGetMetadataUsedTaskIdListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiGetMetadataUsedTaskIdListRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MetadataService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "apiBindDataTokenAddressRequest": {
+      "type": "object",
+      "properties": {
+        "metadata_id": {
+          "type": "string"
+        },
+        "token_address": {
+          "type": "string"
+        }
+      },
+      "title": "v 0.4.0 datatoken合约地址和metadata一对一绑定"
+    },
+    "apiGetGlobalMetadataDetail": {
+      "type": "object",
+      "properties": {
+        "owner": {
+          "$ref": "#/definitions/typesOrganization"
+        },
+        "information": {
+          "$ref": "#/definitions/typesMetadataDetail"
+        }
+      },
+      "title": "(全网) 单个元数据详情 resp"
+    },
+    "apiGetGlobalMetadataDetailListResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "metadatas": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiGetGlobalMetadataDetail"
+          }
+        }
+      },
+      "title": "查看 全网元数据列表  resp"
+    },
+    "apiGetLocalMetadataDetail": {
+      "type": "object",
+      "properties": {
+        "owner": {
+          "$ref": "#/definitions/typesOrganization"
+        },
+        "information": {
+          "$ref": "#/definitions/typesMetadataDetail"
+        },
+        "is_internal": {
+          "type": "boolean"
+        }
+      },
+      "title": "(本组织) 单个元数据详情 resp"
+    },
+    "apiGetLocalMetadataDetailListResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "metadatas": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiGetLocalMetadataDetail"
+          }
+        }
+      },
+      "title": "查看 本组织元数据列表  resp"
+    },
+    "apiGetMetadataUsedTaskIdListRequest": {
+      "type": "object",
+      "properties": {
+        "identity_id": {
+          "type": "string"
+        },
+        "metadata_id": {
+          "type": "string"
+        }
+      },
+      "title": "查询某 metadata 参与过的任务的taskId列表 req"
+    },
+    "apiGetMetadataUsedTaskIdListResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "task_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "查询某 metadata 参与过的任务的taskId列表 resp"
+    },
+    "apiPublishMetadataByInteranlMetadataRequest": {
+      "type": "object",
+      "properties": {
+        "information": {
+          "$ref": "#/definitions/typesMetadataSummary"
+        }
+      },
+      "title": "v 0.4.0 将内部元数据重新发布成 对外的元数据 req"
+    },
+    "apiPublishMetadataByTaskResultFileRequest": {
+      "type": "object",
+      "properties": {
+        "task_id": {
+          "type": "string"
+        },
+        "information": {
+          "$ref": "#/definitions/typesMetadataSummary"
+        }
+      },
+      "title": "v 0.4.0 将任务的结果数据重新发布成 对外的元数据 req"
+    },
+    "apiPublishMetadataRequest": {
+      "type": "object",
+      "properties": {
+        "information": {
+          "$ref": "#/definitions/typesMetadataSummary"
+        }
+      },
+      "title": "数据上架 req"
+    },
+    "apiPublishMetadataResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "metadata_id": {
+          "type": "string"
+        }
+      },
+      "title": "数据上架 resp"
+    },
+    "apiRevokeMetadataRequest": {
+      "type": "object",
+      "properties": {
+        "metadata_id": {
+          "type": "string"
+        }
+      },
+      "title": "数据下架 req"
+    },
+    "constantCommonStatus": {
+      "type": "string",
+      "enum": [
+        "CommonStatus_Unknown",
+        "CommonStatus_Valid",
+        "CommonStatus_Invalid"
+      ],
+      "default": "CommonStatus_Unknown",
+      "title": "the status of data for datacenter, 1 means valid, 2 means invalid"
+    },
+    "constantDataLocationType": {
+      "type": "string",
+      "enum": [
+        "DataLocationType_Unknown",
+        "DataLocationType_Local",
+        "DataLocationType_URL"
+      ],
+      "default": "DataLocationType_Unknown",
+      "title": "数据的位置 (本地、远端、云等)"
+    },
+    "constantDataStatus": {
+      "type": "string",
+      "enum": [
+        "DataStatus_Unknown",
+        "DataStatus_Valid",
+        "DataStatus_Invalid"
+      ],
+      "default": "DataStatus_Unknown",
+      "title": "the status of data for local storage, 1 means valid, 2 means invalid"
+    },
+    "constantMetadataState": {
+      "type": "string",
+      "enum": [
+        "MetadataState_Unknown",
+        "MetadataState_Created",
+        "MetadataState_Released",
+        "MetadataState_Revoked"
+      ],
+      "default": "MetadataState_Unknown",
+      "title": "元数据的状态 (0: 未知; 1: 还未发布的新表; 2: 已发布的表; 3: 已撤销的表)"
+    },
+    "constantMetadataType": {
+      "type": "string",
+      "enum": [
+        "MetadataType_Unknown",
+        "MetadataType_DataFile",
+        "MetadataType_ModuleFile"
+      ],
+      "default": "MetadataType_Unknown",
+      "title": "元数据类型"
+    },
+    "constantOrigindataType": {
+      "type": "string",
+      "enum": [
+        "OrigindataType_Unknown",
+        "OrigindataType_CSV",
+        "OrigindataType_DIR",
+        "OrigindataType_BINARY",
+        "OrigindataType_XLS",
+        "OrigindataType_XLSX",
+        "OrigindataType_TXT",
+        "OrigindataType_JSON"
+      ],
+      "default": "OrigindataType_Unknown",
+      "title": "原始数据类型 (文件类型)"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "type_url": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "runtimeError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "typesMetadataDetail": {
+      "type": "object",
+      "properties": {
+        "metadata_summary": {
+          "$ref": "#/definitions/typesMetadataSummary"
+        },
+        "total_task_count": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "title": "元数据的详情信息"
+    },
+    "typesMetadataSummary": {
+      "type": "object",
+      "properties": {
+        "metadata_id": {
+          "type": "string"
+        },
+        "metadata_name": {
+          "type": "string"
+        },
+        "metadata_type": {
+          "$ref": "#/definitions/constantMetadataType"
+        },
+        "data_hash": {
+          "type": "string"
+        },
+        "desc": {
+          "type": "string"
+        },
+        "location_type": {
+          "$ref": "#/definitions/constantDataLocationType"
+        },
+        "data_type": {
+          "$ref": "#/definitions/constantOrigindataType"
+        },
+        "industry": {
+          "type": "string"
+        },
+        "state": {
+          "$ref": "#/definitions/constantMetadataState"
+        },
+        "publish_at": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "update_at": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "nonce": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "metadata_option": {
+          "type": "string"
+        },
+        "allow_expose": {
+          "type": "boolean"
+        },
+        "token_address": {
+          "type": "string"
+        }
+      },
+      "title": "=============================== For API =========================\n元数据的摘要内容 (不包含详细 列描述)"
+    },
+    "typesOrganization": {
+      "type": "object",
+      "properties": {
+        "node_name": {
+          "type": "string",
+          "title": "org name"
+        },
+        "node_id": {
+          "type": "string",
+          "title": "the node_id for org"
+        },
+        "identity_id": {
+          "type": "string",
+          "title": "the identity for org"
+        },
+        "data_status": {
+          "$ref": "#/definitions/constantDataStatus",
+          "title": "the status of data for local storage, 1 means valid, 2 means invalid"
+        },
+        "status": {
+          "$ref": "#/definitions/constantCommonStatus",
+          "title": "the status of data for datacenter, 1 means valid, 2 means invalid"
+        },
+        "update_at": {
+          "type": "string",
+          "format": "uint64",
+          "title": "v 3.0\nthe last_update time of corresponding datacenter (unit: UTC ms)"
+        },
+        "image_url": {
+          "type": "string",
+          "title": "the link of face image (with a length limit)"
+        },
+        "details": {
+          "type": "string",
+          "title": "description of the node (with a length limit)"
+        }
+      },
+      "description": "A represents the basic information of the organization."
+    },
+    "typesSimpleResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32",
+          "title": "the code for response"
+        },
+        "msg": {
+          "type": "string",
+          "title": "the message for response"
+        }
+      }
+    }
+  }
+}

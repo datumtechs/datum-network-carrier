@@ -1,0 +1,719 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "carrier/api/auth_rpc_api.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/carrier/v1/auth/applyIdentity": {
+      "post": {
+        "summary": "组织身份入网申请",
+        "operationId": "AuthService_ApplyIdentityJoin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/typesSimpleResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiApplyIdentityJoinRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
+    "/carrier/v1/auth/applyMetadataAuth": {
+      "post": {
+        "summary": "发起数据授权申请",
+        "operationId": "AuthService_ApplyMetadataAuthority",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiApplyMetadataAuthorityResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiApplyMetadataAuthorityRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
+    "/carrier/v1/auth/auditMetadataAuth": {
+      "post": {
+        "summary": "数据授权审核",
+        "operationId": "AuthService_AuditMetadataAuthority",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiAuditMetadataAuthorityResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiAuditMetadataAuthorityRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
+    "/carrier/v1/auth/getIdentity": {
+      "get": {
+        "summary": "查询自己组织的identity信息",
+        "operationId": "AuthService_GetNodeIdentity",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiGetNodeIdentityResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
+    "/carrier/v1/auth/globalMetadataAuthList": {
+      "get": {
+        "summary": "查询(全网)的所有元数据的授权申请及审核结果详情列表",
+        "operationId": "AuthService_GetGlobalMetadataAuthorityList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiGetMetadataAuthorityListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "last_updated",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
+    "/carrier/v1/auth/identityList": {
+      "get": {
+        "summary": "查询全网组织的身份信息列表(已入网的)",
+        "operationId": "AuthService_GetIdentityList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiGetIdentityListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "last_updated",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
+    "/carrier/v1/auth/localMetadataAuthList": {
+      "get": {
+        "summary": "查询(本组织)的所有元数据的授权申请及审核结果详情列表",
+        "operationId": "AuthService_GetLocalMetadataAuthorityList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiGetMetadataAuthorityListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "last_updated",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
+    "/carrier/v1/auth/revokeIdentity": {
+      "post": {
+        "summary": "注销准入网络",
+        "operationId": "AuthService_RevokeIdentityJoin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/typesSimpleResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "properties": {}
+            }
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
+    "/carrier/v1/auth/revokeMetadataAuth": {
+      "post": {
+        "summary": "撤销数据授权申请",
+        "operationId": "AuthService_RevokeMetadataAuthority",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/typesSimpleResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiRevokeMetadataAuthorityRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "apiApplyIdentityJoinRequest": {
+      "type": "object",
+      "properties": {
+        "information": {
+          "$ref": "#/definitions/typesOrganization"
+        }
+      },
+      "title": "组织身份入网申请 req"
+    },
+    "apiApplyMetadataAuthorityRequest": {
+      "type": "object",
+      "properties": {
+        "user": {
+          "type": "string"
+        },
+        "user_type": {
+          "$ref": "#/definitions/constantUserType"
+        },
+        "auth": {
+          "$ref": "#/definitions/typesMetadataAuthority"
+        },
+        "sign": {
+          "type": "string",
+          "format": "byte"
+        }
+      },
+      "title": "发起用户对元数据使用授权申请 req"
+    },
+    "apiApplyMetadataAuthorityResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "metadata_auth_id": {
+          "type": "string"
+        }
+      },
+      "title": "发起用户对元数据使用授权申请 resp"
+    },
+    "apiAuditMetadataAuthorityRequest": {
+      "type": "object",
+      "properties": {
+        "metadata_auth_id": {
+          "type": "string"
+        },
+        "audit": {
+          "$ref": "#/definitions/constantAuditMetadataOption"
+        },
+        "suggestion": {
+          "type": "string"
+        }
+      },
+      "title": "组织对用户的数据授权申请做审核 req"
+    },
+    "apiAuditMetadataAuthorityResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "audit": {
+          "$ref": "#/definitions/constantAuditMetadataOption"
+        }
+      },
+      "title": "组织对用户的数据授权申请做审核 resp"
+    },
+    "apiGetIdentityListResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "identitys": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/typesOrganization"
+          }
+        }
+      },
+      "title": "查询全网组织的身份信息列表(已入网的) resp"
+    },
+    "apiGetMetadataAuthorityListResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "metadata_auths": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/typesMetadataAuthorityDetail"
+          }
+        }
+      },
+      "title": "当前(组织or用户)的所有元数据的授权申请及审核结果详情列表 resp"
+    },
+    "apiGetNodeIdentityResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "information": {
+          "$ref": "#/definitions/typesOrganization"
+        }
+      },
+      "title": "查询自己组织的identity信息 resp"
+    },
+    "apiRevokeMetadataAuthorityRequest": {
+      "type": "object",
+      "properties": {
+        "user": {
+          "type": "string"
+        },
+        "user_type": {
+          "$ref": "#/definitions/constantUserType"
+        },
+        "metadata_auth_id": {
+          "type": "string"
+        },
+        "sign": {
+          "type": "string",
+          "format": "byte"
+        }
+      },
+      "title": "撤销用户对元数据使用授权申请 req"
+    },
+    "constantAuditMetadataOption": {
+      "type": "string",
+      "enum": [
+        "Audit_Pending",
+        "Audit_Passed",
+        "Audit_Refused"
+      ],
+      "default": "Audit_Pending"
+    },
+    "constantCommonStatus": {
+      "type": "string",
+      "enum": [
+        "CommonStatus_Unknown",
+        "CommonStatus_Valid",
+        "CommonStatus_Invalid"
+      ],
+      "default": "CommonStatus_Unknown",
+      "title": "the status of data for datacenter, 1 means valid, 2 means invalid"
+    },
+    "constantDataStatus": {
+      "type": "string",
+      "enum": [
+        "DataStatus_Unknown",
+        "DataStatus_Valid",
+        "DataStatus_Invalid"
+      ],
+      "default": "DataStatus_Unknown",
+      "title": "the status of data for local storage, 1 means valid, 2 means invalid"
+    },
+    "constantMetadataAuthorityState": {
+      "type": "string",
+      "enum": [
+        "MAState_Unknown",
+        "MAState_Created",
+        "MAState_Released",
+        "MAState_Revoked",
+        "MAState_Invalid"
+      ],
+      "default": "MAState_Unknown",
+      "title": "数据授权信息的状态 (0: 未知; 1: 还未发布的数据授权; 2: 已发布的数据授权; 3: 已撤销的数据授权 \u003c失效前主动撤回的\u003e; 4: 已经失效的数据授权 \u003c过期or达到使用上限的or被拒绝的\u003e;)"
+    },
+    "constantMetadataUsageType": {
+      "type": "string",
+      "enum": [
+        "Usage_Unknown",
+        "Usage_Period",
+        "Usage_Times"
+      ],
+      "default": "Usage_Unknown",
+      "title": "元数据的使用方式类型枚举 (0: 未定义; 1: 按照时间段来使用; 2: 按照次数来使用)"
+    },
+    "constantUserType": {
+      "type": "string",
+      "enum": [
+        "User_Unknown",
+        "User_1",
+        "User_2",
+        "User_3"
+      ],
+      "default": "User_Unknown"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "type_url": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "runtimeError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "typesMetadataAuthority": {
+      "type": "object",
+      "properties": {
+        "owner": {
+          "$ref": "#/definitions/typesOrganization"
+        },
+        "metadata_id": {
+          "type": "string"
+        },
+        "usage_rule": {
+          "$ref": "#/definitions/typesMetadataUsageRule"
+        }
+      },
+      "title": "元数据使用授权"
+    },
+    "typesMetadataAuthorityDetail": {
+      "type": "object",
+      "properties": {
+        "metadata_auth_id": {
+          "type": "string"
+        },
+        "user": {
+          "type": "string"
+        },
+        "user_type": {
+          "$ref": "#/definitions/constantUserType"
+        },
+        "auth": {
+          "$ref": "#/definitions/typesMetadataAuthority"
+        },
+        "audit_option": {
+          "$ref": "#/definitions/constantAuditMetadataOption"
+        },
+        "audit_suggestion": {
+          "type": "string"
+        },
+        "used_quo": {
+          "$ref": "#/definitions/typesMetadataUsedQuo"
+        },
+        "apply_at": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "audit_at": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "state": {
+          "$ref": "#/definitions/constantMetadataAuthorityState"
+        },
+        "publish_at": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "update_at": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "nonce": {
+          "type": "string",
+          "format": "uint64"
+        }
+      },
+      "title": "当前组织的某个用户对单个元数据的授权申请及审核结果详情"
+    },
+    "typesMetadataUsageRule": {
+      "type": "object",
+      "properties": {
+        "usage_type": {
+          "$ref": "#/definitions/constantMetadataUsageType"
+        },
+        "start_at": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "end_at": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "times": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "title": "元数据的使用方式定义"
+    },
+    "typesMetadataUsedQuo": {
+      "type": "object",
+      "properties": {
+        "usage_type": {
+          "$ref": "#/definitions/constantMetadataUsageType"
+        },
+        "expire": {
+          "type": "boolean"
+        },
+        "used_times": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "title": "对应授权信息中元数据的使用实况定义 (配合数据授权使用)"
+    },
+    "typesOrganization": {
+      "type": "object",
+      "properties": {
+        "node_name": {
+          "type": "string",
+          "title": "org name"
+        },
+        "node_id": {
+          "type": "string",
+          "title": "the node_id for org"
+        },
+        "identity_id": {
+          "type": "string",
+          "title": "the identity for org"
+        },
+        "data_status": {
+          "$ref": "#/definitions/constantDataStatus",
+          "title": "the status of data for local storage, 1 means valid, 2 means invalid"
+        },
+        "status": {
+          "$ref": "#/definitions/constantCommonStatus",
+          "title": "the status of data for datacenter, 1 means valid, 2 means invalid"
+        },
+        "update_at": {
+          "type": "string",
+          "format": "uint64",
+          "title": "v 3.0\nthe last_update time of corresponding datacenter (unit: UTC ms)"
+        },
+        "image_url": {
+          "type": "string",
+          "title": "the link of face image (with a length limit)"
+        },
+        "details": {
+          "type": "string",
+          "title": "description of the node (with a length limit)"
+        }
+      },
+      "description": "A represents the basic information of the organization."
+    },
+    "typesSimpleResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32",
+          "title": "the code for response"
+        },
+        "msg": {
+          "type": "string",
+          "title": "the message for response"
+        }
+      }
+    }
+  }
+}
