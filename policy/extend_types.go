@@ -1,8 +1,8 @@
 package policy
 
 import (
-	pb "github.com/datumtechs/datum-network-carrier/lib/api"
-	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	pb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
+	libtypes "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/types"
 )
 
