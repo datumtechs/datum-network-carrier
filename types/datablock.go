@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-// Header represents a block header in the RosettaNet.
+// Header represents a block header in the datum-network.
 type Header carriertypespb.HeaderPb
 
 // Hash returns the block hash of the header, which is simply the keccak256 hash of its ProtoBuf encoding.
@@ -64,7 +64,7 @@ func (h *Header) _sealHash() (hash common.Hash) {
 	return hash
 }
 
-// Block represents an entire block in the RosettaNet.
+// Block represents an entire block in the datum-network.
 type Block struct {
 	header       *Header
 	metadatas 	 MetadataArray
@@ -125,7 +125,7 @@ func CopyHeader(h *Header) *Header {
 	return &cpy
 }
 
-// DecodePb decodes the RosettaNet
+// DecodePb decodes the datum-network
 func (b *Block) DecodePb(data []byte) error {
 	var blockData carriertypespb.BlockData
 	blockData.Unmarshal(data)

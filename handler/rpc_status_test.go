@@ -48,7 +48,7 @@ func TestStatusRPCHandler_Disconnects_OnForkVersionMismatch(t *testing.T) {
 		require.NoError(t, stream.Close())
 	})
 
-	pcl2 := protocol.ID("/rosettanet/carrier_chain/req/goodbye/1/ssz_snappy")
+	pcl2 := protocol.ID("/datum-network/carrier_chain/req/goodbye/1/ssz_snappy")
 	topic = string(pcl2)
 	r.rateLimiter.limiterMap[topic] = leakybucket.NewCollector(1, 1, false)
 	var wg2 sync.WaitGroup
@@ -208,7 +208,7 @@ func TestHandshakeHandlers_Roundtrip(t *testing.T) {
 	r.Start()
 
 	// Setup streams
-	pcl := protocol.ID("/rosettanet/carrier_chain/req/status/1/ssz_snappy")
+	pcl := protocol.ID("/datum-network/carrier_chain/req/status/1/ssz_snappy")
 	topic := string(pcl)
 	r.rateLimiter.limiterMap[topic] = leakybucket.NewCollector(1, 1, false)
 	var wg sync.WaitGroup
@@ -234,7 +234,7 @@ func TestHandshakeHandlers_Roundtrip(t *testing.T) {
 		}
 	})
 
-	pcl = "/rosettanet/carrier_chain/req/ping/1/ssz_snappy"
+	pcl = "/datum-network/carrier_chain/req/ping/1/ssz_snappy"
 	topic = string(pcl)
 	r2.rateLimiter.limiterMap[topic] = leakybucket.NewCollector(1, 1, false)
 	var wg2 sync.WaitGroup
@@ -300,7 +300,7 @@ func TestStatusRPCRequest_RequestSent(t *testing.T) {
 	}
 
 	// Setup streams
-	pcl := protocol.ID("/rosettanet/carrier_chain/req/status/1/ssz_snappy")
+	pcl := protocol.ID("/datum-network/carrier_chain/req/status/1/ssz_snappy")
 	topic := string(pcl)
 	r.rateLimiter.limiterMap[topic] = leakybucket.NewCollector(1, 1, false)
 	var wg sync.WaitGroup
@@ -351,7 +351,7 @@ func TestStatusRPCRequest_BadPeerHandshake(t *testing.T) {
 	r.Start()
 
 	// Setup streams
-	pcl := protocol.ID("/rosettanet/carrier_chain/req/status/1/ssz_snappy")
+	pcl := protocol.ID("/datum-network/carrier_chain/req/status/1/ssz_snappy")
 	topic := string(pcl)
 	r.rateLimiter.limiterMap[topic] = leakybucket.NewCollector(1, 1, false)
 	var wg sync.WaitGroup
