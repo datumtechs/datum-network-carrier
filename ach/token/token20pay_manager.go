@@ -5,6 +5,7 @@ import (
 	"crypto/ecdsa"
 	"encoding/hex"
 	"errors"
+	"sync/atomic"
 	"time"
 
 	"github.com/datumtechs/datum-network-carrier/ach/token/contracts"
@@ -51,6 +52,7 @@ type Token20PayManager struct {
 	chainID                    *big.Int
 	abi                        abi.ABI
 	contractToken20PayInstance *contracts.Token20Pay
+	pendingNonce             uint64
 }
 
 func (m *Token20PayManager) loadPrivateKey() {
@@ -147,6 +149,8 @@ func NewToken20PayManager(db core.CarrierDB, config *Config, kmsConfig *kms.Conf
 			m.Kms = &kms.AliKms{Config: kmsConfig}
 		}
 		m.loadPrivateKey()
+
+		m.initNonce()
 	}
 
 	abiCode, err := abi.JSON(strings.NewReader(contracts.Token20PayABI))
@@ -157,11 +161,17 @@ func NewToken20PayManager(db core.CarrierDB, config *Config, kmsConfig *kms.Conf
 	return m
 }
 
-func (m *Token20PayManager) buildTxOpts(gasLimit uint64) (*bind.TransactOpts, error) {
-	nonce, err := m.client.PendingNonceAt(context.Background(), m.Config.walletAddress)
-	if err != nil {
-		return nil, err
+func (m *Token20PayManager) initNonce() {
+	if pendingNonce, err := m.client.PendingNonceAt(context.Background(), m.Config.walletAddress); err != nil {
+		log.Fatalf("cannot init pending nonce: %v", err)
+	} else {
+		m.pendingNonce = pendingNonce
 	}
+}
+
+func (m *Token20PayManager) buildTxOpts(gasLimit uint64) (*bind.TransactOpts, error) {
+	// variable "nonce" is necessary
+	nonce := atomic.AddUint64(&m.pendingNonce, 1)
 
 	gasPrice, err := m.client.SuggestGasPrice(context.Background())
 	if err != nil {
@@ -174,7 +184,7 @@ func (m *Token20PayManager) buildTxOpts(gasLimit uint64) (*bind.TransactOpts, er
 		return nil, err
 	}
 
-	txOpts.Nonce = big.NewInt(int64(nonce))
+	txOpts.Nonce = new(big.Int).SetUint64(nonce)
 	txOpts.Value = big.NewInt(0) // in wei
 	txOpts.GasLimit = gasLimit   // in units
 	txOpts.GasPrice = gasPrice
@@ -194,6 +204,8 @@ func convert(dataTokenAddressList []string) ([]common.Address, []*big.Int) {
 // EstimateTaskGas estimates gas fee for a task's sponsor.
 // EstimateTaskGas returns estimated gas and suggested gas price.
 func (m *Token20PayManager) EstimateTaskGas(taskSponsorAddress string, dataTokenAddressList []string) (uint64, *big.Int, error) {
+	log.Debugf("call EstimateTaskGas, sponsorAddress: %s, tokenAddressList:%v", taskSponsorAddress, dataTokenAddressList)
+
 	tokenAddressList, tokenAmountList := convert(dataTokenAddressList)
 
 	// Estimating task gas happens before task starting, and the task ID has not been generated at this moment, so, apply a mock task ID.
@@ -293,6 +305,7 @@ func (m *Token20PayManager) GenerateOrgWallet() (common.Address, error) {
 // Prepay returns hx.Hash, and error.
 // The complete procedure consists of two calls to Token20Pay, the first is Prepay, the second is Settle.
 func (m *Token20PayManager) Prepay(taskID *big.Int, taskSponsorAccount common.Address, dataTokenAddressList []common.Address) (common.Hash, error) {
+	taskIDHex := hexutil.EncodeBig(taskID)
 	if m.getPrivateKey() == nil {
 		log.Errorf("cannot send Prepay transaction cause organization wallet missing")
 		return common.Hash{}, errors.New("organization private key is missing")
@@ -312,7 +325,7 @@ func (m *Token20PayManager) Prepay(taskID *big.Int, taskSponsorAccount common.Ad
 	//估算gas
 	gasEstimated, err := m.estimateGas("prepay", taskID, taskSponsorAccount, new(big.Int).SetUint64(1), dataTokenAddressList, dataTokenAmountList)
 	if err != nil {
-		log.Errorf("failed to estimate gas for Token20Pay.Prepay(), taskID: %s, error: %v", hexutil.EncodeBig(taskID), err)
+		log.Errorf("failed to estimate gas for Token20Pay.Prepay(), taskID: %s, error: %v", taskIDHex, err)
 		return common.Hash{}, errors.New("failed to estimate gas for Token20Pay.Prepay()")
 	}
 
@@ -326,15 +339,15 @@ func (m *Token20PayManager) Prepay(taskID *big.Int, taskSponsorAccount common.Ad
 	//gas fee, 支付助手合约，需要记录用户预付的手续费
 	feePrepaid := new(big.Int).Mul(new(big.Int).SetUint64(gasEstimated), opts.GasPrice)
 
-	log.Debugf("Start call contract prepay(), taskID: %d, gasEstimated: %d, gasLimit: %d, gasPrice: %d, feePrepaid: %d, taskSponsorAccount: %s, dataTokenAddressList: %s, dataTokenAmountList: %s",
-		taskID, gasEstimated, opts.GasLimit, opts.GasPrice, feePrepaid, taskSponsorAccount.String(), "["+strings.Join(addrs, ",")+"]", "["+strings.Join(amounts, ",")+"]")
+	log.Debugf("Start call contract prepay(), taskID: %s, gasEstimated: %d, gasLimit: %d, gasPrice: %d, feePrepaid: %d, taskSponsorAccount: %s, dataTokenAddressList: %s, dataTokenAmountList: %s",
+		taskIDHex, gasEstimated, opts.GasLimit, opts.GasPrice, feePrepaid, taskSponsorAccount.String(), "["+strings.Join(addrs, ",")+"]", "["+strings.Join(amounts, ",")+"]")
 
 	tx, err := m.contractToken20PayInstance.Prepay(opts, taskID, taskSponsorAccount, feePrepaid, dataTokenAddressList, dataTokenAmountList)
 	if err != nil {
-		log.WithError(err).Errorf("failed to call Token20Pay.Prepay(), taskID: %s", hexutil.EncodeBig(taskID))
+		log.WithError(err).Errorf("failed to call Token20Pay.Prepay(), taskID: %s", taskIDHex)
 		return common.Hash{}, errors.New("failed to call Token20Pay.Prepay()")
 	}
-	log.Debugf("call Token20Pay.Prepay() txHash:%v, taskID:%s", tx.Hash().Hex(), hexutil.EncodeBig(taskID))
+	log.Debugf("call Token20Pay.Prepay() txHash:%v, taskID:%s", tx.Hash().Hex(), taskIDHex)
 
 	return tx.Hash(), nil
 }
@@ -347,6 +360,8 @@ func (m *Token20PayManager) Prepay(taskID *big.Int, taskSponsorAccount common.Ad
 // gasUsedPrepay - carrier used gas for Prepay()
 
 func (m *Token20PayManager) Settle(taskID *big.Int, gasUsedPrepay uint64) (common.Hash, error) {
+	taskIDHex := hexutil.EncodeBig(taskID)
+
 	if m.getPrivateKey() == nil {
 		log.Errorf("cannot send Settle transaction cause organization wallet missing")
 		return common.Hash{}, errors.New("organization private key is missing")
@@ -371,15 +386,15 @@ func (m *Token20PayManager) Settle(taskID *big.Int, gasUsedPrepay uint64) (commo
 	//gas fee
 	totalFeeUsed := new(big.Int).Mul(new(big.Int).SetUint64(totalGasUsed), opts.GasPrice)
 
-	log.Debugf("call contract settle(),  taskID: %d, gasUsedPrepay: %d, gasEstimated: %d, gasLimit: %d, gasPrice: %d, totalFeeUsed: %d", taskID, gasUsedPrepay, gasEstimated, opts.GasLimit, opts.GasPrice, totalFeeUsed)
+	log.Debugf("call contract settle(),  taskID: %s, gasUsedPrepay: %d, gasEstimated: %d, gasLimit: %d, gasPrice: %d, totalFeeUsed: %d", taskIDHex, gasUsedPrepay, gasEstimated, opts.GasLimit, opts.GasPrice, totalFeeUsed)
 
 	//合约
 	tx, err := m.contractToken20PayInstance.Settle(opts, taskID, totalFeeUsed)
 	if err != nil {
-		log.Errorf("failed to call Token20Pay.Settle(), taskID: %s, error: %v", hexutil.EncodeBig(taskID), err)
+		log.Errorf("failed to call Token20Pay.Settle(), taskID: %s, error: %v", taskIDHex, err)
 		return common.Hash{}, errors.New("failed to call Token20Pay.Settle()")
 	}
-	log.Debugf("call Token20Pay.Settle() txHash:%v, taskID:%s", tx.Hash().Hex(), hexutil.EncodeBig(taskID))
+	log.Debugf("call Token20Pay.Settle() txHash:%v, taskID:%s", tx.Hash().Hex(), taskIDHex)
 
 	return tx.Hash(), nil
 }
@@ -433,7 +448,7 @@ func (m *Token20PayManager) GetReceipt(ctx context.Context, txHash common.Hash, 
 // constant int8 private SETTLE = 2;
 // constant int8 private END = 3;
 func (m *Token20PayManager) GetTaskState(taskId *big.Int) (int, error) {
-	log.Debugf("Start call contract taskState(), params{taskID: %d}", taskId)
+	log.Debugf("Start call contract taskState(), params{taskID: %s}", hexutil.EncodeBig(taskId))
 	if state, err := m.contractToken20PayInstance.TaskState(&bind.CallOpts{}, taskId); err != nil {
 		return -1, err
 	} else {
