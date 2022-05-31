@@ -1,7 +1,6 @@
 package p2p
 
 import (
-	"github.com/datumtechs/datum-network-carrier/blacklist"
 	statefeed "github.com/datumtechs/datum-network-carrier/common/feed/state"
 )
 
@@ -31,5 +30,4 @@ type Config struct {
 	//TODO: need to update..
 	StateNotifier statefeed.Notifier
 	//DB                  db.ReadOnlyDatabase
-	BlackList 			*blacklist.IdentityBackListCache
 }

@@ -12,11 +12,11 @@ import (
 	statefeed "github.com/datumtechs/datum-network-carrier/common/feed/state"
 	"github.com/datumtechs/datum-network-carrier/common/runutil"
 	"github.com/datumtechs/datum-network-carrier/common/slotutil"
-	carrierp2ppbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
 	"github.com/datumtechs/datum-network-carrier/p2p/encoder"
 	"github.com/datumtechs/datum-network-carrier/p2p/peers"
 	"github.com/datumtechs/datum-network-carrier/p2p/peers/scorers"
 	"github.com/datumtechs/datum-network-carrier/params"
+	carrierp2ppbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/p2p/enode"
 	"github.com/ethereum/go-ethereum/p2p/enr"
@@ -96,7 +96,6 @@ func NewService(ctx context.Context, cfg *Config) (*Service, error) {
 		isPreGenesis:  true,
 		joinedTopics:  make(map[string]*pubsub.Topic, len(GossipTopicMappings)),
 		subnetsLock:   make(map[uint64]*sync.RWMutex),
-		blackList:     cfg.BlackList,
 	}
 	dv5Nodes := parseBootStrapAddrs(s.cfg.BootstrapNodeAddr)
 	dbdv5Nodes := parseBootStrapAddrs(s.cfg.LocalBootstrapAddr)
@@ -395,6 +394,10 @@ func (s *Service) AddPingMethod(reqFunc func(ctx context.Context, id peer.ID) er
 
 func (s *Service) PeerFromAddress(addrs []string) ([]multiaddr.Multiaddr, error) {
 	return peersFromStringAddrs(addrs)
+}
+
+func (s *Service) AddBlackList(blacklist *blacklist.IdentityBackListCache) {
+	s.blackList = blacklist
 }
 
 func (s *Service) pingPeers() {
