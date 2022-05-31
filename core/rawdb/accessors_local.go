@@ -5,11 +5,11 @@ package rawdb
 import (
 	"bytes"
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/common/bytesutil"
-	pb "github.com/Metisnetwork/Metis-Carrier/lib/api"
-	dbtype "github.com/Metisnetwork/Metis-Carrier/lib/db"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/datumtechs/datum-network-carrier/common/bytesutil"
+	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
+	carrierdbpb "github.com/datumtechs/datum-network-carrier/pb/carrier/db"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/gogo/protobuf/proto"
 	"github.com/sirupsen/logrus"
@@ -20,8 +20,8 @@ const seedNodeToKeep = 50
 const registeredNodeToKeep = 50
 
 // QueryLocalIdentity retrieves the identity of local.
-func QueryLocalIdentity(db DatabaseReader) (*libtypes.Organization, error) {
-	var blob libtypes.Organization
+func QueryLocalIdentity(db DatabaseReader) (*carriertypespb.Organization, error) {
+	var blob carriertypespb.Organization
 	enc, err := db.Get(localIdentityKey)
 	if nil != err {
 		return nil, err
@@ -33,7 +33,7 @@ func QueryLocalIdentity(db DatabaseReader) (*libtypes.Organization, error) {
 }
 
 // StoreLocalIdentity stores the local identity.
-func StoreLocalIdentity(db DatabaseWriter, identity *libtypes.Organization) error {
+func StoreLocalIdentity(db DatabaseWriter, identity *carriertypespb.Organization) error {
 	enc, err := identity.Marshal()
 	if nil != err {
 		return err
@@ -60,7 +60,7 @@ func RemoveLocalIdentity(db KeyValueStore) error {
 
 // QueryYarnName retrieves the name of yarn.
 func QueryYarnName(db DatabaseReader) (string, error) {
-	var yarnName dbtype.StringPB
+	var yarnName carrierdbpb.StringPB
 	enc, err := db.Get(yarnNameKey)
 	if nil != err {
 		return "", err
@@ -73,7 +73,7 @@ func QueryYarnName(db DatabaseReader) (string, error) {
 
 // StoreYarnName stores the name of yarn.
 func StoreYarnName(db DatabaseWriter, yarnName string) error {
-	pb := dbtype.StringPB{
+	pb := carrierdbpb.StringPB{
 		V: yarnName,
 	}
 	enc, err := pb.Marshal()
@@ -102,34 +102,34 @@ func RemoveYarnName(db KeyValueStore) error {
 
 // QueryAllSeedNodes retrieves all the seed nodes in the database.
 // All returned seed nodes are sorted in reverse.
-func QueryAllSeedNodes(db DatabaseReader) ([]*pb.SeedPeer, error) {
+func QueryAllSeedNodes(db DatabaseReader) ([]*carrierapipb.SeedPeer, error) {
 	blob, err := db.Get(seedNodeKey)
 	if nil != err {
 		return nil, err
 	}
-	var seedNodes dbtype.SeedPeerListPB
+	var seedNodes carrierdbpb.SeedPeerListPB
 	if err := seedNodes.Unmarshal(blob); nil != err {
 		return nil, err
 	}
-	var nodes []*pb.SeedPeer
+	var nodes []*carrierapipb.SeedPeer
 	for _, seed := range seedNodes.SeedPeerList {
-		nodes = append(nodes, &pb.SeedPeer{
+		nodes = append(nodes, &carrierapipb.SeedPeer{
 			Addr:      seed.GetAddr(),
 			IsDefault: false,
-			ConnState: pb.ConnState_ConnState_UnConnected,
+			ConnState: carrierapipb.ConnState_ConnState_UnConnected,
 		})
 	}
 	return nodes, nil
 }
 
 // StoreSeedNode serializes the seed node into the database.
-func StoreSeedNode(db KeyValueStore, seedNode *pb.SeedPeer) error {
+func StoreSeedNode(db KeyValueStore, seedNode *carrierapipb.SeedPeer) error {
 	blob, err := db.Get(seedNodeKey)
 	if IsNoDBNotFoundErr(err) {
 		log.WithError(err).Error("Failed to load old seed nodes")
 		return err
 	}
-	var seedNodes dbtype.SeedPeerListPB
+	var seedNodes carrierdbpb.SeedPeerListPB
 	if len(blob) > 0 {
 		if err := seedNodes.Unmarshal(blob); nil != err {
 			log.WithError(err).Error("Failed to decode old seed nodes")
@@ -150,7 +150,7 @@ func StoreSeedNode(db KeyValueStore, seedNode *pb.SeedPeer) error {
 	}
 
 	// append new seed node into arr
-	seedNodes.SeedPeerList = append(seedNodes.SeedPeerList, &dbtype.SeedPeerPB{Addr: seedNode.GetAddr()})
+	seedNodes.SeedPeerList = append(seedNodes.SeedPeerList, &carrierdbpb.SeedPeerPB{Addr: seedNode.GetAddr()})
 
 	data, err := seedNodes.Marshal()
 	if nil != err {
@@ -170,7 +170,7 @@ func RemoveSeedNode(db KeyValueStore, addr string) error {
 	case IsDBNotFoundErr(err), nil == err && len(blob) == 0:
 		return nil
 	}
-	var seedNodes dbtype.SeedPeerListPB
+	var seedNodes carrierdbpb.SeedPeerListPB
 	if len(blob) > 0 {
 		if err := seedNodes.Unmarshal(blob); nil != err {
 			log.WithError(err).Error("Failed to decode old seed nodes")
@@ -209,71 +209,71 @@ func RemoveSeedNodes(db KeyValueStore) error {
 	return db.Delete(seedNodeKey)
 }
 
-func registryNodeKeyPrefix(nodeType pb.RegisteredNodeType) []byte {
+func registryNodeKeyPrefix(nodeType carrierapipb.RegisteredNodeType) []byte {
 	var key []byte
-	if nodeType == pb.PrefixTypeJobNode {
+	if nodeType == carrierapipb.PrefixTypeJobNode {
 		key = getJobNodeKeyPrefix()
 	}
-	if nodeType == pb.PrefixTypeDataNode {
+	if nodeType == carrierapipb.PrefixTypeDataNode {
 		key = getDataNodeKeyPrefix()
 	}
 	return key
 }
 
-func registryNodeKey(nodeType pb.RegisteredNodeType, nodeId string) []byte {
+func registryNodeKey(nodeType carrierapipb.RegisteredNodeType, nodeId string) []byte {
 	var key []byte
-	if nodeType == pb.PrefixTypeJobNode {
+	if nodeType == carrierapipb.PrefixTypeJobNode {
 		key = getJobNodeKey(nodeId)
 	}
-	if nodeType == pb.PrefixTypeDataNode {
+	if nodeType == carrierapipb.PrefixTypeDataNode {
 		key = getDataNodeKey(nodeId)
 	}
 	return key
 }
 
 // QueryRegisterNode retrieves the register node with the corresponding nodeId.
-func QueryRegisterNode(db DatabaseReader, nodeType pb.RegisteredNodeType, nodeId string) (*pb.YarnRegisteredPeerDetail, error) {
+func QueryRegisterNode(db DatabaseReader, nodeType carrierapipb.RegisteredNodeType, nodeId string) (*carrierapipb.YarnRegisteredPeerDetail, error) {
 	blob, err := db.Get(registryNodeKey(nodeType, nodeId))
 	if nil != err {
 		return nil, err
 	}
-	registeredNode := &dbtype.RegisteredNodePB{}
+	registeredNode := &carrierdbpb.RegisteredNodePB{}
 	if err := registeredNode.Unmarshal(blob); nil != err {
 		log.WithError(err).Errorf("registeredNode decode failed")
 		return nil, err
 	}
-	return &pb.YarnRegisteredPeerDetail{
+	return &carrierapipb.YarnRegisteredPeerDetail{
 		Id:           registeredNode.Id,
 		InternalIp:   registeredNode.InternalIp,
 		InternalPort: registeredNode.InternalPort,
 		ExternalIp:   registeredNode.ExternalIp,
 		ExternalPort: registeredNode.ExternalPort,
-		ConnState:    pb.ConnState_ConnState_UnConnected,
+		ConnState:    carrierapipb.ConnState_ConnState_UnConnected,
 	}, nil
 }
 
 // QueryAllRegisterNodes retrieves all the registered nodes in the database.
 // All returned registered nodes are sorted in reverse.
-func QueryAllRegisterNodes(db KeyValueStore, nodeType pb.RegisteredNodeType) ([]*pb.YarnRegisteredPeerDetail, error) {
+func QueryAllRegisterNodes(db KeyValueStore, nodeType carrierapipb.RegisteredNodeType) ([]*carrierapipb.YarnRegisteredPeerDetail, error) {
 
 	it := db.NewIteratorWithPrefixAndStart(registryNodeKeyPrefix(nodeType), nil)
 	defer it.Release()
 
-	arr := make([]*pb.YarnRegisteredPeerDetail, 0)
+	arr := make([]*carrierapipb.YarnRegisteredPeerDetail, 0)
 	for it.Next() {
 		if blob := it.Value(); len(blob) != 0 {
-			registeredNode := &dbtype.RegisteredNodePB{}
+			registeredNode := &carrierdbpb.RegisteredNodePB{}
 			if err := registeredNode.Unmarshal(blob); nil != err {
 				log.WithError(err).Warnf("Warning registeredNode decode failed")
 				continue
 			}
-			arr = append(arr, &pb.YarnRegisteredPeerDetail{
+			arr = append(arr, &carrierapipb.YarnRegisteredPeerDetail{
 				Id:           registeredNode.Id,
 				InternalIp:   registeredNode.InternalIp,
 				InternalPort: registeredNode.InternalPort,
 				ExternalIp:   registeredNode.ExternalIp,
 				ExternalPort: registeredNode.ExternalPort,
-				ConnState:    pb.ConnState_ConnState_UnConnected,
+				ConnState:    carrierapipb.ConnState_ConnState_UnConnected,
 			})
 		}
 	}
@@ -286,10 +286,10 @@ func QueryAllRegisterNodes(db KeyValueStore, nodeType pb.RegisteredNodeType) ([]
 
 // StoreRegisterNode serializes the registered node into the database. If the cumulated
 // registered node exceeds the limitation, the oldest will be dropped.
-func StoreRegisterNode(db DatabaseWriter, nodeType pb.RegisteredNodeType, registeredNode *pb.YarnRegisteredPeerDetail) error {
+func StoreRegisterNode(db DatabaseWriter, nodeType carrierapipb.RegisteredNodeType, registeredNode *carrierapipb.YarnRegisteredPeerDetail) error {
 
 	key := registryNodeKey(nodeType, registeredNode.GetId())
-	val := &dbtype.RegisteredNodePB{
+	val := &carrierdbpb.RegisteredNodePB{
 		Id:           registeredNode.Id,
 		InternalIp:   registeredNode.InternalIp,
 		InternalPort: registeredNode.InternalPort,
@@ -304,7 +304,7 @@ func StoreRegisterNode(db DatabaseWriter, nodeType pb.RegisteredNodeType, regist
 	return db.Put(key, data)
 }
 
-func RemoveRegisterNode(db KeyValueStore, nodeType pb.RegisteredNodeType, id string) error {
+func RemoveRegisterNode(db KeyValueStore, nodeType carrierapipb.RegisteredNodeType, id string) error {
 	key := registryNodeKey(nodeType, id)
 	has, err := db.Has(key)
 	switch {
@@ -317,7 +317,7 @@ func RemoveRegisterNode(db KeyValueStore, nodeType pb.RegisteredNodeType, id str
 }
 
 // RemoveRegisterNodes deletes all the registered nodes from the database.
-func RemoveRegisterNodes(db KeyValueStore, nodeType pb.RegisteredNodeType) error {
+func RemoveRegisterNodes(db KeyValueStore, nodeType carrierapipb.RegisteredNodeType) error {
 
 	it := db.NewIteratorWithPrefixAndStart(registryNodeKeyPrefix(nodeType), nil)
 	defer it.Release()
@@ -337,7 +337,7 @@ func QueryLocalResource(db DatabaseReader, jobNodeId string) (*types.LocalResour
 		log.WithError(err).Errorf("Failed to read local resource")
 		return nil, err
 	}
-	localResource := new(libtypes.LocalResourcePB)
+	localResource := new(carriertypespb.LocalResourcePB)
 	if err := localResource.Unmarshal(blob); nil != err {
 		log.WithError(err).Errorf("Failed to unmarshal local resource")
 		return nil, err
@@ -357,7 +357,7 @@ func QueryAllLocalResource(db KeyValueStore) (types.LocalResourceArray, error) {
 			if nil != err {
 				continue
 			}
-			localResource := new(libtypes.LocalResourcePB)
+			localResource := new(carriertypespb.LocalResourcePB)
 			if err := localResource.Unmarshal(blob); nil != err {
 				continue
 			}
@@ -441,7 +441,7 @@ func QueryLocalTask(db DatabaseReader, taskId string) (*types.Task, error) {
 	if nil != err {
 		return nil, err
 	}
-	task := &libtypes.TaskPB{}
+	task := &carriertypespb.TaskPB{}
 	if err := task.Unmarshal(blob); nil != err {
 		log.WithError(err).Errorf("local task decode failed")
 		return nil, err
@@ -459,7 +459,7 @@ func QueryLocalTaskByIds(db KeyValueStore, taskIds []string) (types.TaskDataArra
 			log.WithError(err).Warnf("Warning load local task failed")
 			continue
 		}
-		task := &libtypes.TaskPB{}
+		task := &carriertypespb.TaskPB{}
 		if err := task.Unmarshal(blob); nil != err {
 			log.WithError(err).Warnf("Warning local task decode failed")
 			continue
@@ -481,7 +481,7 @@ func QueryAllLocalTasks(db KeyValueStore) (types.TaskDataArray, error) {
 	arr := make(types.TaskDataArray, 0)
 	for it.Next() {
 		if blob := it.Value(); len(blob) != 0 {
-			task := &libtypes.TaskPB{}
+			task := &carriertypespb.TaskPB{}
 			if err := task.Unmarshal(blob); nil != err {
 				log.WithError(err).Warnf("Warning local task decode failed")
 				continue
@@ -497,12 +497,12 @@ func QueryAllLocalTasks(db KeyValueStore) (types.TaskDataArray, error) {
 }
 
 // QueryTaskEvent retrieves the evengine of task with the corresponding taskId for all partyIds.
-func QueryTaskEvent(db KeyValueStore, taskId string) ([]*libtypes.TaskEvent, error) {
+func QueryTaskEvent(db KeyValueStore, taskId string) ([]*carriertypespb.TaskEvent, error) {
 
 	it := db.NewIteratorWithPrefixAndStart(append(taskEventPrefix, []byte(taskId)...), nil)
 	defer it.Release()
 
-	result := make([]*libtypes.TaskEvent, 0)
+	result := make([]*carriertypespb.TaskEvent, 0)
 
 	for it.Next() {
 		if key := it.Key(); len(key) != 0 {
@@ -510,7 +510,7 @@ func QueryTaskEvent(db KeyValueStore, taskId string) ([]*libtypes.TaskEvent, err
 			if nil != err {
 				continue
 			}
-			var events dbtype.TaskEventArrayPB
+			var events carrierdbpb.TaskEventArrayPB
 			if err := events.Unmarshal(blob); nil != err {
 				continue
 			}
@@ -523,7 +523,7 @@ func QueryTaskEvent(db KeyValueStore, taskId string) ([]*libtypes.TaskEvent, err
 }
 
 // QueryTaskEventByPartyId retrieves the events of task with the corresponding taskId and partyId.
-func QueryTaskEventByPartyId(db DatabaseReader, taskId, partyId string) ([]*libtypes.TaskEvent, error) {
+func QueryTaskEventByPartyId(db DatabaseReader, taskId, partyId string) ([]*carriertypespb.TaskEvent, error) {
 
 	key := taskEventKey(taskId, partyId)
 
@@ -531,7 +531,7 @@ func QueryTaskEventByPartyId(db DatabaseReader, taskId, partyId string) ([]*libt
 	if nil != err {
 		return nil, err
 	}
-	var events dbtype.TaskEventArrayPB
+	var events carrierdbpb.TaskEventArrayPB
 	if err := events.Unmarshal(val); nil != err {
 		log.WithError(err).Errorf("Failed to encode task events")
 		return nil, err
@@ -540,12 +540,12 @@ func QueryTaskEventByPartyId(db DatabaseReader, taskId, partyId string) ([]*libt
 }
 
 // QueryAllTaskEvents retrieves the task event with all (all taskIds and all partyIds).
-func QueryAllTaskEvents(db KeyValueStore) ([]*libtypes.TaskEvent, error) {
+func QueryAllTaskEvents(db KeyValueStore) ([]*carriertypespb.TaskEvent, error) {
 
 	it := db.NewIteratorWithPrefixAndStart(taskEventPrefix, nil)
 	defer it.Release()
 
-	result := make([]*libtypes.TaskEvent, 0)
+	result := make([]*carriertypespb.TaskEvent, 0)
 
 	for it.Next() {
 		if key := it.Key(); len(key) != 0 {
@@ -553,7 +553,7 @@ func QueryAllTaskEvents(db KeyValueStore) ([]*libtypes.TaskEvent, error) {
 			if nil != err {
 				continue
 			}
-			var events dbtype.TaskEventArrayPB
+			var events carrierdbpb.TaskEventArrayPB
 			if err := events.Unmarshal(blob); nil != err {
 				continue
 			}
@@ -566,14 +566,14 @@ func QueryAllTaskEvents(db KeyValueStore) ([]*libtypes.TaskEvent, error) {
 }
 
 // StoreTaskEvent serializes the task evengine into the database.
-func StoreTaskEvent(db KeyValueStore, taskEvent *libtypes.TaskEvent) error {
+func StoreTaskEvent(db KeyValueStore, taskEvent *carriertypespb.TaskEvent) error {
 	key := taskEventKey(taskEvent.GetTaskId(), taskEvent.GetPartyId())
 	val, err := db.Get(key)
 	if IsNoDBNotFoundErr(err) {
 		log.WithError(err).Error("Failed to load old task events")
 		return err
 	}
-	var array dbtype.TaskEventArrayPB
+	var array carrierdbpb.TaskEventArrayPB
 	if len(val) > 0 {
 		if err := array.Unmarshal(val); nil != err {
 			log.WithError(err).Errorf("Failed to decode old task events")
@@ -636,7 +636,7 @@ func StoreNeedExecuteTask(db KeyValueStore, task *types.NeedExecuteTask) error {
 	if nil != task.GetErr() {
 		errStr = task.GetErr().Error()
 	}
-	val, err := proto.Marshal(&libtypes.NeedExecuteTask{
+	val, err := proto.Marshal(&carriertypespb.NeedExecuteTask{
 		RemotePid:              task.GetRemotePID().String(),
 		LocalTaskRole:          task.GetLocalTaskRole(),
 		LocalTaskOrganization:  task.GetLocalTaskOrganization(),
@@ -644,7 +644,7 @@ func StoreNeedExecuteTask(db KeyValueStore, task *types.NeedExecuteTask) error {
 		RemoteTaskOrganization: task.GetRemoteTaskOrganization(),
 		TaskId:                 task.GetTaskId(),
 		ConsStatus:             bytesutil.Uint16ToBytes(uint16(task.GetConsStatus())),
-		LocalResource: &libtypes.PrepareVoteResource{
+		LocalResource: &carriertypespb.PrepareVoteResource{
 			Id:      task.GetLocalResource().GetId(),
 			Ip:      task.GetLocalResource().GetIp(),
 			Port:    task.GetLocalResource().GetPort(),
@@ -756,7 +756,7 @@ func QueryLocalMetadata(db DatabaseReader, metadataId string) (*types.Metadata, 
 		log.WithError(err).Warnf("Warning query local metadata not found")
 		return nil, err
 	}
-	localMetadata := new(libtypes.MetadataPB)
+	localMetadata := new(carriertypespb.MetadataPB)
 	if err := localMetadata.Unmarshal(blob); nil != err {
 		log.WithError(err).Error("Failed to unmarshal local metadata")
 		return nil, err
@@ -776,7 +776,7 @@ func QueryAllLocalMetadata(db KeyValueStore) (types.MetadataArray, error) {
 			if nil != err {
 				continue
 			}
-			localMetadata := new(libtypes.MetadataPB)
+			localMetadata := new(carriertypespb.MetadataPB)
 			if err := localMetadata.Unmarshal(blob); nil != err {
 				continue
 			}

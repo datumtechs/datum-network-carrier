@@ -3,20 +3,21 @@ package twopc
 import (
 	"bytes"
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/common"
-	ctypes "github.com/Metisnetwork/Metis-Carrier/consensus/twopc/types"
-	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/datumtechs/datum-network-carrier/common"
+	ctypes "github.com/datumtechs/datum-network-carrier/consensus/twopc/types"
+	carriertwopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
+	"github.com/datumtechs/datum-network-carrier/types"
 )
 
 func makePrepareMsg(
 	proposalId common.Hash,
-	senderRole, receiverRole libtypes.TaskRole,
+	senderRole, receiverRole commonconstantpb.TaskRole,
 	senderPartyId, receiverPartyId string,
 	nonConsTaks *types.NeedConsensusTask,
 	startTime uint64,
-) (*twopcpb.PrepareMsg, error) {
+) (*carriertwopcpb.PrepareMsg, error) {
 
 	// region receivers come from task.Receivers
 	taskBytes := new(bytes.Buffer)
@@ -25,7 +26,7 @@ func makePrepareMsg(
 		return nil, err
 	}
 
-	return &twopcpb.PrepareMsg{
+	return &carriertwopcpb.PrepareMsg{
 		MsgOption: types.MakeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, nonConsTaks.GetTask().GetTaskSender()),
 		TaskInfo:  taskBytes.Bytes(),
 		Evidence:  []byte(nonConsTaks.GetEvidence()),
@@ -36,15 +37,15 @@ func makePrepareMsg(
 
 func makePrepareVote(
 	proposalId common.Hash,
-	senderRole, receiverRole libtypes.TaskRole,
+	senderRole, receiverRole commonconstantpb.TaskRole,
 	senderPartyId, receiverPartyId string,
-	owner *libtypes.TaskOrganization,
+	owner *carriertypespb.TaskOrganization,
 	voteOption types.VoteOption,
 	peerInfo *types.PrepareVoteResource,
 	startTime uint64,
-) *twopcpb.PrepareVote {
+) *carriertwopcpb.PrepareVote {
 
-	return &twopcpb.PrepareVote{
+	return &carriertwopcpb.PrepareVote{
 		MsgOption:  types.MakeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, owner),
 		VoteOption: voteOption.Bytes(),
 		PeerInfo:   types.ConvertTaskPeerInfo(peerInfo),
@@ -55,15 +56,15 @@ func makePrepareVote(
 
 func makeConfirmMsg(
 	proposalId common.Hash,
-	senderRole, receiverRole libtypes.TaskRole,
+	senderRole, receiverRole commonconstantpb.TaskRole,
 	senderPartyId, receiverPartyId string,
-	owner *libtypes.TaskOrganization,
-	peers *twopcpb.ConfirmTaskPeerInfo,
+	owner *carriertypespb.TaskOrganization,
+	peers *carriertwopcpb.ConfirmTaskPeerInfo,
 	option types.TwopcMsgOption,
 	startTime uint64,
-) *twopcpb.ConfirmMsg {
+) *carriertwopcpb.ConfirmMsg {
 
-	msg := &twopcpb.ConfirmMsg{
+	msg := &carriertwopcpb.ConfirmMsg{
 		MsgOption:     types.MakeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, owner),
 		ConfirmOption: option.Bytes(),
 		Peers:         peers,
@@ -76,14 +77,14 @@ func makeConfirmMsg(
 
 func makeConfirmVote(
 	proposalId common.Hash,
-	senderRole, receiverRole libtypes.TaskRole,
+	senderRole, receiverRole commonconstantpb.TaskRole,
 	senderPartyId, receiverPartyId string,
-	owner *libtypes.TaskOrganization,
+	owner *carriertypespb.TaskOrganization,
 	voteOption types.VoteOption,
 	startTime uint64,
-) *twopcpb.ConfirmVote {
+) *carriertwopcpb.ConfirmVote {
 
-	return &twopcpb.ConfirmVote{
+	return &carriertwopcpb.ConfirmVote{
 		MsgOption:  types.MakeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, owner),
 		VoteOption: voteOption.Bytes(),
 		CreateAt:   startTime,
@@ -93,14 +94,14 @@ func makeConfirmVote(
 
 func makeCommitMsg(
 	proposalId common.Hash,
-	senderRole, receiverRole libtypes.TaskRole,
+	senderRole, receiverRole commonconstantpb.TaskRole,
 	senderPartyId, receiverPartyId string,
-	owner *libtypes.TaskOrganization,
+	owner *carriertypespb.TaskOrganization,
 	option types.TwopcMsgOption,
 	startTime uint64,
-) *twopcpb.CommitMsg {
+) *carriertwopcpb.CommitMsg {
 
-	msg := &twopcpb.CommitMsg{
+	msg := &carriertwopcpb.CommitMsg{
 		MsgOption:    types.MakeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, owner),
 		CommitOption: option.Bytes(),
 		CreateAt:     startTime,
@@ -115,7 +116,7 @@ func fetchPrepareMsg(msg *types.PrepareMsgWrap) (*types.PrepareMsg, error) {
 		return nil, fmt.Errorf("receive nil prepareMsg or nil taskInfo")
 	}
 
-	task := types.NewTask(&libtypes.TaskPB{})
+	task := types.NewTask(&carriertypespb.TaskPB{})
 	err := task.DecodePb(msg.GetTaskInfo())
 	if err != nil {
 		return nil, fmt.Errorf("decode task info failed from prepareMsg, %s", err)

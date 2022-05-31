@@ -1,8 +1,8 @@
 package scorers
 
 import (
-	pbrpc "github.com/Metisnetwork/Metis-Carrier/lib/rpc/debug/v1"
-	"github.com/Metisnetwork/Metis-Carrier/p2p/peers/peerdata"
+	carrierrpcdebugpbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
+	"github.com/datumtechs/datum-network-carrier/p2p/peers/peerdata"
 	"github.com/libp2p/go-libp2p-core/peer"
 )
 
@@ -77,7 +77,7 @@ func (s *GossipScorer) BadPeers() []peer.ID {
 
 // SetGossipData sets the gossip related data of a peer.
 func (s *GossipScorer) SetGossipData(pid peer.ID, gScore float64,
-	bPenalty float64, topicScores map[string]*pbrpc.TopicScoreSnapshot) {
+	bPenalty float64, topicScores map[string]*carrierrpcdebugpbv1.TopicScoreSnapshot) {
 	s.store.Lock()
 	defer s.store.Unlock()
 
@@ -90,14 +90,14 @@ func (s *GossipScorer) SetGossipData(pid peer.ID, gScore float64,
 // GossipData gets the gossip related information of the given remote peer.
 // This can return nil if there is no known gossip record the peer.
 // This will error if the peer does not exist.
-func (s *GossipScorer) GossipData(pid peer.ID) (float64, float64, map[string]*pbrpc.TopicScoreSnapshot, error) {
+func (s *GossipScorer) GossipData(pid peer.ID) (float64, float64, map[string]*carrierrpcdebugpbv1.TopicScoreSnapshot, error) {
 	s.store.RLock()
 	defer s.store.RUnlock()
 	return s.gossipData(pid)
 }
 
 // gossipData lock-free version of GossipData.
-func (s *GossipScorer) gossipData(pid peer.ID) (float64, float64, map[string]*pbrpc.TopicScoreSnapshot, error) {
+func (s *GossipScorer) gossipData(pid peer.ID) (float64, float64, map[string]*carrierrpcdebugpbv1.TopicScoreSnapshot, error) {
 	if peerData, ok := s.store.PeerData(pid); ok {
 		return peerData.GossipScore, peerData.BehaviourPenalty, peerData.TopicScores, nil
 	}

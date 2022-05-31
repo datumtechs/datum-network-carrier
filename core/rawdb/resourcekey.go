@@ -1,7 +1,7 @@
 package rawdb
 
 import (
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 )
 
 var (
@@ -159,7 +159,7 @@ func GetLocalTaskExecuteStatus(taskId, partyId string) []byte {
 	return append(append(localTaskExecuteStatusKeyPrefix, []byte(taskId)...), []byte(partyId)...)
 }
 
-func GetUserMetadataAuthByMetadataIdKey(userType libtypes.UserType, user, metadataId string) []byte {
+func GetUserMetadataAuthByMetadataIdKey(userType commonconstantpb.UserType, user, metadataId string) []byte {
 
 	// key: prefix + userType + user + metadataId
 

@@ -3,8 +3,8 @@
 package rawdb
 
 import (
-	"github.com/Metisnetwork/Metis-Carrier/common"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/common"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 )
 
 // ReadDataLookupEntry retrieves the positional metadata associated with a metadata/resource/identity/task
@@ -14,7 +14,7 @@ func ReadDataLookupEntry(db DatabaseReader, hash common.Hash) (common.Hash, uint
 	if len(data) == 0 {
 		return common.Hash{}, 0, 0, "", ""
 	}
-	var entry libtypes.DataLookupEntry
+	var entry carriertypespb.DataLookupEntry
 	if err := entry.Unmarshal(data); err != nil {
 		log.WithField("hash", hash).WithError(err).Fatal("Invalid lookup entry ProtoBuf")
 		return common.Hash{}, 0, 0, "", ""
@@ -24,7 +24,7 @@ func ReadDataLookupEntry(db DatabaseReader, hash common.Hash) (common.Hash, uint
 
 // WriteDataLookupEntries stores a positional metadata for every metadata/resource/identity from
 // a block, enabling dataId hash based metadata、resource、identity and task lookups.
-//func WriteDataLookupEntries(db DatabaseWriter, block *libtypes.BlockData) {
+//func WriteDataLookupEntries(db DatabaseWriter, block *carriertypespb.BlockData) {
 //	header := (*types.Header)(block.Header)
 //	// todo: what is the type means???
 //	for i, metadata := range block.Metadata {
@@ -50,7 +50,7 @@ func ReadDataLookupEntry(db DatabaseReader, hash common.Hash) (common.Hash, uint
 //}
 //
 //// writeMetadata save detailed data separately for metadata.
-//func writeMetadata(db DatabaseWriter, number uint64, index uint64, metadata *libtypes.MetadataPB) {
+//func writeMetadata(db DatabaseWriter, number uint64, index uint64, metadata *carriertypespb.MetadataPB) {
 //	// todo: need to update, the param is wrong.
 //	WriteMetadataHash(db, number, index, common.Hash{})
 //	WriteMetadataId(db, metadata.NodeId, common.Hash{}, metadata.DataId)
@@ -59,7 +59,7 @@ func ReadDataLookupEntry(db DatabaseReader, hash common.Hash) (common.Hash, uint
 
 func writeDataLookupEntries(db DatabaseWriter, hash common.Hash, number uint64,
 							index uint64, nodeId string, typ string, dataId string)  {
-	entry := libtypes.DataLookupEntry{
+	entry := carriertypespb.DataLookupEntry{
 		BlockHash: hash.Bytes(),
 		BlockIndex: number,
 		Index: index,
@@ -83,7 +83,7 @@ func DeleteDataLookupEntry(db DatabaseDeleter, dataId string) {
 
 // ReadMetadata retrieves a specific metadata from the database, along with
 // its added positional metadata.
-func ReadMetadata(db DatabaseReader, dataId string) (*libtypes.MetadataPB, common.Hash, uint64, uint64, string, string) {
+func ReadMetadata(db DatabaseReader, dataId string) (*carriertypespb.MetadataPB, common.Hash, uint64, uint64, string, string) {
 	blockHash, blockNumber, index, nodeId, typ := ReadDataLookupEntry(db, common.HexToHash(dataId))
 	if blockHash == (common.Hash{}) {
 		return nil, common.Hash{}, 0, 0, "", ""
@@ -101,7 +101,7 @@ func ReadMetadata(db DatabaseReader, dataId string) (*libtypes.MetadataPB, commo
 
 // ReadResource retrieves a specific resource from the database, along with
 // its added positional metadata.
-func ReadResource(db DatabaseReader, dataId string) (*libtypes.ResourcePB, common.Hash, uint64, uint64, string, string) {
+func ReadResource(db DatabaseReader, dataId string) (*carriertypespb.ResourcePB, common.Hash, uint64, uint64, string, string) {
 	blockHash, blockNumber, index, nodeId, typ := ReadDataLookupEntry(db, common.HexToHash(dataId))
 	if blockHash == (common.Hash{}) {
 		return nil, common.Hash{}, 0, 0, "", ""
@@ -119,7 +119,7 @@ func ReadResource(db DatabaseReader, dataId string) (*libtypes.ResourcePB, commo
 
 // ReadIdentity retrieves a specific identity from the database, along with
 // its added positional metadata.
-func ReadIdentity(db DatabaseReader, dataId string) (*libtypes.IdentityPB, common.Hash, uint64, uint64, string, string) {
+func ReadIdentity(db DatabaseReader, dataId string) (*carriertypespb.IdentityPB, common.Hash, uint64, uint64, string, string) {
 	blockHash, blockNumber, index, nodeId, typ := ReadDataLookupEntry(db, common.HexToHash(dataId))
 	if blockHash == (common.Hash{}) {
 		return nil, common.Hash{}, 0, 0, "", ""
@@ -137,7 +137,7 @@ func ReadIdentity(db DatabaseReader, dataId string) (*libtypes.IdentityPB, commo
 
 // ReadIdentity retrieves a specific taskData from the database, along with
 // its added positional metadata.
-func ReadTask(db DatabaseReader, dataId string) (*libtypes.TaskPB, common.Hash, uint64, uint64, string, string) {
+func ReadTask(db DatabaseReader, dataId string) (*carriertypespb.TaskPB, common.Hash, uint64, uint64, string, string) {
 	blockHash, blockNumber, index, nodeId, typ := ReadDataLookupEntry(db, common.HexToHash(dataId))
 	if blockHash == (common.Hash{}) {
 		return nil, common.Hash{}, 0, 0, "", ""

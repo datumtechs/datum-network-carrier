@@ -2,8 +2,8 @@ package types
 
 import (
 	"encoding/json"
-	pb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/taskmng"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	carriernetmsgtaskmngpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/taskmng"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 )
 
 const (
@@ -80,8 +80,8 @@ func (msg *TaskMsgEvent) String() string {
 	return string(result)
 }
 
-func ConvertTaskEvent(event *libtypes.TaskEvent) *pb.TaskEvent {
-	return &pb.TaskEvent{
+func ConvertTaskEvent(event *carriertypespb.TaskEvent) *carriernetmsgtaskmngpb.TaskEvent {
+	return &carriernetmsgtaskmngpb.TaskEvent{
 		Type:       []byte(event.GetType()),
 		TaskId:     []byte(event.GetTaskId()),
 		IdentityId: []byte(event.GetIdentityId()),
@@ -91,8 +91,8 @@ func ConvertTaskEvent(event *libtypes.TaskEvent) *pb.TaskEvent {
 	}
 }
 
-func FetchTaskEvent(event *pb.TaskEvent) *libtypes.TaskEvent {
-	return &libtypes.TaskEvent{
+func FetchTaskEvent(event *carriernetmsgtaskmngpb.TaskEvent) *carriertypespb.TaskEvent {
+	return &carriertypespb.TaskEvent{
 		Type:       string(event.GetType()),
 		TaskId:     string(event.GetTaskId()),
 		IdentityId: string(event.GetIdentityId()),
@@ -102,16 +102,16 @@ func FetchTaskEvent(event *pb.TaskEvent) *libtypes.TaskEvent {
 	}
 }
 
-func ConvertTaskEventArr(events []*libtypes.TaskEvent) []*pb.TaskEvent {
-	arr := make([]*pb.TaskEvent, len(events))
+func ConvertTaskEventArr(events []*carriertypespb.TaskEvent) []*carriernetmsgtaskmngpb.TaskEvent {
+	arr := make([]*carriernetmsgtaskmngpb.TaskEvent, len(events))
 	for i, ev := range events {
 		arr[i] = ConvertTaskEvent(ev)
 	}
 	return arr
 }
 
-func FetchTaskEventArr(events []*pb.TaskEvent) []*libtypes.TaskEvent {
-	arr := make([]*libtypes.TaskEvent, len(events))
+func FetchTaskEventArr(events []*carriernetmsgtaskmngpb.TaskEvent) []*carriertypespb.TaskEvent {
+	arr := make([]*carriertypespb.TaskEvent, len(events))
 	for i, ev := range events {
 		arr[i] = FetchTaskEvent(ev)
 	}

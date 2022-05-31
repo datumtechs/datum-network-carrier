@@ -4,8 +4,8 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/core"
-	"github.com/Metisnetwork/Metis-Carrier/db"
+	"github.com/datumtechs/datum-network-carrier/core"
+	"github.com/datumtechs/datum-network-carrier/db"
 )
 
 func main() {

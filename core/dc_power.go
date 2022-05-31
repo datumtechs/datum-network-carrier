@@ -2,9 +2,9 @@ package core
 
 import (
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/core/rawdb"
-	"github.com/Metisnetwork/Metis-Carrier/lib/center/api"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/datumtechs/datum-network-carrier/core/rawdb"
+	datacenterapipb "github.com/datumtechs/datum-network-carrier/pb/datacenter/api"
+	"github.com/datumtechs/datum-network-carrier/types"
 )
 
 // about power on local
@@ -96,7 +96,7 @@ func (dc *DataCenter) SyncPowerUsed(resource *types.LocalResource) error {
 func (dc *DataCenter) GetResourceListByIdentityId(identityId string) (types.ResourceArray, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
-	powerTotalSummaryResponse, err := dc.client.GetPowerSummaryByIdentityId(dc.ctx, &api.GetPowerSummaryByIdentityRequest{
+	powerTotalSummaryResponse, err := dc.client.GetPowerSummaryByIdentityId(dc.ctx, &datacenterapipb.GetPowerSummaryByIdentityRequest{
 		IdentityId: identityId,
 	})
 	return types.NewResourceFromPowerSummaryResponse(powerTotalSummaryResponse), err
@@ -112,7 +112,7 @@ func (dc *DataCenter) QueryGlobalResourceSummaryList() (types.ResourceArray, err
 func (dc *DataCenter) QueryGlobalResourceDetailList(lastUpdate uint64, pageSize uint64) (types.ResourceArray, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
-	powerListResp, err := dc.client.GetPowerList(dc.ctx, &api.ListPowerRequest{LastUpdated: lastUpdate, PageSize: pageSize})
+	powerListResp, err := dc.client.GetPowerList(dc.ctx, &datacenterapipb.ListPowerRequest{LastUpdated: lastUpdate, PageSize: pageSize})
 	return types.NewResourceArrayFromPowerDetailListResponse(powerListResp), err
 }
 

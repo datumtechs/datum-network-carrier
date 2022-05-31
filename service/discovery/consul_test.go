@@ -28,7 +28,7 @@ func TestConsulClientFlow(t *testing.T) {
 		grpcIp             = "192.168.21.187"
 		grpcPort           = "9999"
 		carrierServiceName = "carrier"
-		configKey          = "metis/via_ip_port"
+		configKey          = "datum-network/via_ip_port"
 		configValue        = "192.168.10.111_12345"
 	)
 

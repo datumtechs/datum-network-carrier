@@ -3,8 +3,8 @@
 package rawdb
 
 import (
-	"github.com/Metisnetwork/Metis-Carrier/common"
-	"github.com/Metisnetwork/Metis-Carrier/db"
+	"github.com/datumtechs/datum-network-carrier/common"
+	"github.com/datumtechs/datum-network-carrier/db"
 )
 
 // ReadAllMetadataHashes retrieves all the hashes of metadata.

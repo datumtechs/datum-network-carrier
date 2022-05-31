@@ -1,0 +1,874 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "carrier/api/task_rpc_api.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/carrier/v1/task/estimateTaskGas": {
+      "post": {
+        "summary": "v 0.4.0 预估gas",
+        "operationId": "TaskService_EstimateTaskGas",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiEstimateTaskGasResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiEstimateTaskGasRequest"
+            }
+          }
+        ],
+        "tags": [
+          "TaskService"
+        ]
+      }
+    },
+    "/carrier/v1/task/eventList": {
+      "post": {
+        "summary": "查看某个任务的全部事件列表",
+        "operationId": "TaskService_GetTaskEventList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiGetTaskEventListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiGetTaskEventListRequest"
+            }
+          }
+        ],
+        "tags": [
+          "TaskService"
+        ]
+      }
+    },
+    "/carrier/v1/task/eventListByTaskIds": {
+      "post": {
+        "summary": "查看多个任务的全部事件列表",
+        "operationId": "TaskService_GetTaskEventListByTaskIds",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiGetTaskEventListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiGetTaskEventListByTaskIdsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "TaskService"
+        ]
+      }
+    },
+    "/carrier/v1/task/globalList": {
+      "get": {
+        "summary": "查看全网全部任务详情列表 (支持分页)",
+        "operationId": "TaskService_GetGlobalTaskDetailList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiGetTaskDetailListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "last_updated",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          }
+        ],
+        "tags": [
+          "TaskService"
+        ]
+      }
+    },
+    "/carrier/v1/task/listByTaskIds": {
+      "get": {
+        "summary": "查看本组织参与过的全部任务详情列表 (v3.0)",
+        "operationId": "TaskService_GetTaskDetailListByTaskIds",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiGetTaskDetailListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "task_ids",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "tags": [
+          "TaskService"
+        ]
+      }
+    },
+    "/carrier/v1/task/localList": {
+      "get": {
+        "summary": "查看本组织参与过的全部任务详情列表 (支持分页)",
+        "operationId": "TaskService_GetLocalTaskDetailList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiGetTaskDetailListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "last_updated",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          }
+        ],
+        "tags": [
+          "TaskService"
+        ]
+      }
+    },
+    "/carrier/v1/task/publish": {
+      "post": {
+        "summary": "发布任务",
+        "operationId": "TaskService_PublishTaskDeclare",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiPublishTaskDeclareResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiPublishTaskDeclareRequest"
+            }
+          }
+        ],
+        "tags": [
+          "TaskService"
+        ]
+      }
+    },
+    "/carrier/v1/task/terminate": {
+      "post": {
+        "summary": "终止任务",
+        "operationId": "TaskService_TerminateTask",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/typesSimpleResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiTerminateTaskRequest"
+            }
+          }
+        ],
+        "tags": [
+          "TaskService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "apiEstimateTaskGasRequest": {
+      "type": "object",
+      "properties": {
+        "task_sponsor_address": {
+          "type": "string"
+        },
+        "data_token_addresses": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "预估gas request"
+    },
+    "apiEstimateTaskGasResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "gas_limit": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "gas_price": {
+          "type": "string",
+          "format": "uint64"
+        }
+      },
+      "title": "预估gas response"
+    },
+    "apiGetTaskDetailListResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "tasks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/typesTaskDetail"
+          }
+        }
+      },
+      "title": "查看本组织参与过的全部任务详情列表 resp"
+    },
+    "apiGetTaskEventListByTaskIdsRequest": {
+      "type": "object",
+      "properties": {
+        "task_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "查看多个任务的全部事件列表 req"
+    },
+    "apiGetTaskEventListRequest": {
+      "type": "object",
+      "properties": {
+        "task_id": {
+          "type": "string"
+        }
+      },
+      "title": "查看某个任务的全部事件列表 req"
+    },
+    "apiGetTaskEventListResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "task_events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/typesTaskEvent"
+          }
+        }
+      },
+      "title": "查看某个or多个任务的全部事件列表 resp"
+    },
+    "apiPublishTaskDeclareRequest": {
+      "type": "object",
+      "properties": {
+        "task_name": {
+          "type": "string"
+        },
+        "user": {
+          "type": "string"
+        },
+        "user_type": {
+          "$ref": "#/definitions/constantUserType"
+        },
+        "sender": {
+          "$ref": "#/definitions/typesTaskOrganization"
+        },
+        "algo_supplier": {
+          "$ref": "#/definitions/typesTaskOrganization"
+        },
+        "data_suppliers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/typesTaskOrganization"
+          }
+        },
+        "receivers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/typesTaskOrganization"
+          }
+        },
+        "data_policy_types": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "data_policy_options": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "power_policy_types": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "power_policy_options": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "receiver_policy_types": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "receiver_policy_options": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "data_flow_policy_types": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "data_flow_policy_options": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "operation_cost": {
+          "$ref": "#/definitions/typesTaskResourceCostDeclare"
+        },
+        "algorithm_code": {
+          "type": "string"
+        },
+        "meta_algorithm_id": {
+          "type": "string"
+        },
+        "algorithm_code_extra_params": {
+          "type": "string"
+        },
+        "sign": {
+          "type": "string",
+          "format": "byte"
+        },
+        "desc": {
+          "type": "string"
+        }
+      },
+      "title": "发布任务 req"
+    },
+    "apiPublishTaskDeclareResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        }
+      },
+      "title": "发布任务 resp"
+    },
+    "apiTerminateTaskRequest": {
+      "type": "object",
+      "properties": {
+        "user": {
+          "type": "string"
+        },
+        "user_type": {
+          "$ref": "#/definitions/constantUserType"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "sign": {
+          "type": "string",
+          "format": "byte"
+        }
+      },
+      "title": "终止任务 req"
+    },
+    "constantTaskState": {
+      "type": "string",
+      "enum": [
+        "TaskState_Unknown",
+        "TaskState_Pending",
+        "TaskState_Running",
+        "TaskState_Failed",
+        "TaskState_Succeed"
+      ],
+      "default": "TaskState_Unknown",
+      "title": "task的状态"
+    },
+    "constantUserType": {
+      "type": "string",
+      "enum": [
+        "User_Unknown",
+        "User_1",
+        "User_2",
+        "User_3"
+      ],
+      "default": "User_Unknown"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "type_url": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "runtimeError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "typesResourceUsageOverview": {
+      "type": "object",
+      "properties": {
+        "total_mem": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "used_mem": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "total_processor": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "used_processor": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "total_bandwidth": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "used_bandwidth": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "total_disk": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "used_disk": {
+          "type": "string",
+          "format": "uint64"
+        }
+      },
+      "title": "系统资源消耗概览"
+    },
+    "typesSimpleResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32",
+          "title": "the code for response"
+        },
+        "msg": {
+          "type": "string",
+          "title": "the message for response"
+        }
+      }
+    },
+    "typesTaskDetail": {
+      "type": "object",
+      "properties": {
+        "information": {
+          "$ref": "#/definitions/typesTaskDetailSummary"
+        }
+      },
+      "title": "查看本组织参与过的全部任务详情列表"
+    },
+    "typesTaskDetailSummary": {
+      "type": "object",
+      "properties": {
+        "task_id": {
+          "type": "string"
+        },
+        "task_name": {
+          "type": "string"
+        },
+        "user": {
+          "type": "string"
+        },
+        "user_type": {
+          "$ref": "#/definitions/constantUserType"
+        },
+        "sender": {
+          "$ref": "#/definitions/typesTaskOrganization"
+        },
+        "algo_supplier": {
+          "$ref": "#/definitions/typesTaskOrganization"
+        },
+        "data_suppliers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/typesTaskOrganization"
+          }
+        },
+        "power_suppliers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/typesTaskOrganization"
+          }
+        },
+        "receivers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/typesTaskOrganization"
+          }
+        },
+        "data_policy_types": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "data_policy_options": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "power_policy_types": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "power_policy_options": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "receiver_policy_types": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "receiver_policy_options": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "data_flow_policy_types": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "data_flow_policy_options": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "operation_cost": {
+          "$ref": "#/definitions/typesTaskResourceCostDeclare"
+        },
+        "algorithm_code": {
+          "type": "string"
+        },
+        "meta_algorithm_id": {
+          "type": "string"
+        },
+        "algorithm_code_extra_params": {
+          "type": "string"
+        },
+        "power_resource_options": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/typesTaskPowerResourceOption"
+          }
+        },
+        "state": {
+          "$ref": "#/definitions/constantTaskState"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "desc": {
+          "type": "string"
+        },
+        "create_at": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "start_at": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "end_at": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "sign": {
+          "type": "string",
+          "format": "byte"
+        },
+        "nonce": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "update_at": {
+          "type": "string",
+          "format": "uint64"
+        }
+      },
+      "title": "定义：任务详情（仅用户与前端交互展示使用）"
+    },
+    "typesTaskEvent": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "identity_id": {
+          "type": "string"
+        },
+        "party_id": {
+          "type": "string"
+        },
+        "content": {
+          "type": "string"
+        },
+        "create_at": {
+          "type": "string",
+          "format": "uint64"
+        }
+      },
+      "title": "任务事件定义"
+    },
+    "typesTaskOrganization": {
+      "type": "object",
+      "properties": {
+        "party_id": {
+          "type": "string"
+        },
+        "node_name": {
+          "type": "string",
+          "title": "org name"
+        },
+        "node_id": {
+          "type": "string",
+          "title": "the node_id for org"
+        },
+        "identity_id": {
+          "type": "string",
+          "title": "the identity for org"
+        }
+      },
+      "title": "任务下的组织信息"
+    },
+    "typesTaskPowerResourceOption": {
+      "type": "object",
+      "properties": {
+        "party_id": {
+          "type": "string"
+        },
+        "resource_used_overview": {
+          "$ref": "#/definitions/typesResourceUsageOverview"
+        }
+      },
+      "title": "任务算力提供方信息"
+    },
+    "typesTaskResourceCostDeclare": {
+      "type": "object",
+      "properties": {
+        "memory": {
+          "type": "string",
+          "format": "uint64",
+          "title": "任务所需的内存 (单位: byte)"
+        },
+        "processor": {
+          "type": "integer",
+          "format": "int64",
+          "title": "任务所需的核数 (单位: 个)"
+        },
+        "bandwidth": {
+          "type": "string",
+          "format": "uint64",
+          "title": "任务所需的带宽 (单位: bps)"
+        },
+        "duration": {
+          "type": "string",
+          "format": "uint64",
+          "title": "任务所需的运行时长 (单位: ms)"
+        }
+      },
+      "title": "任务需要花费的资源声明"
+    }
+  }
+}

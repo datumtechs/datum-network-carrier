@@ -2,10 +2,10 @@ package grpclient
 
 import (
 	"context"
-	"github.com/Metisnetwork/Metis-Carrier/common/runutil"
-	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
-	"github.com/Metisnetwork/Metis-Carrier/lib/fighter/common"
-	"github.com/Metisnetwork/Metis-Carrier/lib/fighter/computesvc"
+	"github.com/datumtechs/datum-network-carrier/common/runutil"
+	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	fighterapicomputepb "github.com/datumtechs/datum-network-carrier/pb/fighter/api/compute"
+	fightertypespb "github.com/datumtechs/datum-network-carrier/pb/fighter/types"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
@@ -24,7 +24,7 @@ type JobNodeClient struct {
 	connStartAt int64
 
 	//TODO: define some client...
-	computeProviderClient computesvc.ComputeProviderClient
+	computeProviderClient fighterapicomputepb.ComputeProviderClient
 }
 
 func NewJobNodeClient(ctx context.Context, addr string, nodeId string) (*JobNodeClient, error) {
@@ -40,7 +40,7 @@ func NewJobNodeClient(ctx context.Context, addr string, nodeId string) (*JobNode
 		nodeId:                nodeId,
 		conn:                  conn,
 		connStartAt:           timeutils.UnixMsec(),
-		computeProviderClient: computesvc.NewComputeProviderClient(conn),
+		computeProviderClient: fighterapicomputepb.NewComputeProviderClient(conn),
 	}
 	log.Debugf("New a jobNode Client, jobNodeId: {%s}, timestamp: {%d}", nodeId, client.connStartAt)
 	// try to connect grpc server.
@@ -72,7 +72,7 @@ func (c *JobNodeClient) connecting() error {
 		return err
 	}
 	// set client with conn for computeProviderClient
-	c.computeProviderClient = computesvc.NewComputeProviderClient(conn)
+	c.computeProviderClient = fighterapicomputepb.NewComputeProviderClient(conn)
 	c.conn = conn
 	c.connStartAt = timeutils.UnixMsec()
 	log.Debugf("Update a jobNode Client, jobNodeId: {%s}, timestamp: {%d}", c.nodeId, c.connStartAt)
@@ -130,28 +130,28 @@ func (c *JobNodeClient) RunningDuration() int64 {
 	return timeutils.UnixMsec() - c.connStartAt
 }
 
-func (c *JobNodeClient) GetStatus() (*computesvc.GetStatusReply, error) {
+func (c *JobNodeClient) GetStatus() (*fighterapicomputepb.GetStatusReply, error) {
 	ctx, cancel := context.WithTimeout(c.ctx, 20*defaultRequestTime)
 	defer cancel()
 	in := new(emptypb.Empty)
 	return c.computeProviderClient.GetStatus(ctx, in)
 }
 
-func (c *JobNodeClient) GetTaskDetails(ctx context.Context, taskIds []string) (*computesvc.GetTaskDetailsReply, error) {
+func (c *JobNodeClient) GetTaskDetails(ctx context.Context, taskIds []string) (*fighterapicomputepb.GetTaskDetailsReply, error) {
 	return nil, errors.New("method GetTaskDetails not implemented")
 }
 
-func (c *JobNodeClient) UploadShard(ctx context.Context) (computesvc.ComputeProvider_UploadShardClient, error) {
+func (c *JobNodeClient) UploadShard(ctx context.Context) (fighterapicomputepb.ComputeProvider_UploadShardClient, error) {
 	return nil, errors.New("method UploadShard not implemented")
 }
 
-func (c *JobNodeClient) HandleTaskReadyGo(req *common.TaskReadyGoReq) (*common.TaskReadyGoReply, error) {
+func (c *JobNodeClient) HandleTaskReadyGo(req *fightertypespb.TaskReadyGoReq) (*fightertypespb.TaskReadyGoReply, error) {
 	ctx, cancel := context.WithTimeout(c.ctx, 20*defaultRequestTime)
 	defer cancel()
 	return c.computeProviderClient.HandleTaskReadyGo(ctx, req)
 }
 
-func (c *JobNodeClient) HandleCancelTask(req *common.TaskCancelReq) (*common.TaskCancelReply, error) {
+func (c *JobNodeClient) HandleCancelTask(req *fightertypespb.TaskCancelReq) (*fightertypespb.TaskCancelReply, error) {
 	ctx, cancel := context.WithTimeout(c.ctx, 20*defaultRequestTime)
 	defer cancel()
 	return c.computeProviderClient.HandleCancelTask(ctx, req)

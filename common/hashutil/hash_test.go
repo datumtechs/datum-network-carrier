@@ -2,8 +2,8 @@ package hashutil_test
 
 import (
 	"encoding/hex"
-	"github.com/Metisnetwork/Metis-Carrier/common/bytesutil"
-	"github.com/Metisnetwork/Metis-Carrier/common/hashutil"
+	"github.com/datumtechs/datum-network-carrier/common/bytesutil"
+	"github.com/datumtechs/datum-network-carrier/common/hashutil"
 	"github.com/stretchr/testify/require"
 	"gotest.tools/assert"
 	"testing"

@@ -3,7 +3,7 @@ package handler
 import (
 	"context"
 	"errors"
-	taskmngpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/taskmng"
+	carriernetmsgtaskmngpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/taskmng"
 	libp2pcore "github.com/libp2p/go-libp2p-core"
 	"github.com/libp2p/go-libp2p-core/peer"
 )
@@ -13,9 +13,9 @@ func (s *Service) taskResultMsgRPCHandler(ctx context.Context, msg interface{}, 
 
 	SetRPCStreamDeadlines(stream)
 
-	m, ok := msg.(*taskmngpb.TaskResultMsg)
+	m, ok := msg.(*carriernetmsgtaskmngpb.TaskResultMsg)
 	if !ok {
-		return errors.New("message is not type *taskmngpb.TaskResultMsg")
+		return errors.New("message is not type *carriernetmsgtaskmngpb.TaskResultMsg")
 	}
 
 	// validate TaskResultMsg
@@ -46,9 +46,9 @@ func (s *Service) taskResourceUsageMsgRPCHandler(ctx context.Context, msg interf
 
 	SetRPCStreamDeadlines(stream)
 
-	m, ok := msg.(*taskmngpb.TaskResourceUsageMsg)
+	m, ok := msg.(*carriernetmsgtaskmngpb.TaskResourceUsageMsg)
 	if !ok {
-		return errors.New("message is not type *taskmngpb.TaskResourceUsageMsg")
+		return errors.New("message is not type *carriernetmsgtaskmngpb.TaskResourceUsageMsg")
 	}
 
 	// validate TaskResourceUsageMsg
@@ -80,9 +80,9 @@ func (s *Service) taskTerminateMsgRPCHandler(ctx context.Context, msg interface{
 
 	SetRPCStreamDeadlines(stream)
 
-	m, ok := msg.(*taskmngpb.TaskTerminateMsg)
+	m, ok := msg.(*carriernetmsgtaskmngpb.TaskTerminateMsg)
 	if !ok {
-		return errors.New("message is not type *taskmngpb.TaskTerminateMsg")
+		return errors.New("message is not type *carriernetmsgtaskmngpb.TaskTerminateMsg")
 	}
 
 	// validate TaskTerminateMsg
@@ -111,15 +111,15 @@ func (s *Service) taskTerminateMsgRPCHandler(ctx context.Context, msg interface{
 
 
 // --------------------------------------- validate fn ---------------------------------------
-func (s *Service) validateTaskResultMsg(pid peer.ID, r *taskmngpb.TaskResultMsg) error {
+func (s *Service) validateTaskResultMsg(pid peer.ID, r *carriernetmsgtaskmngpb.TaskResultMsg) error {
 	return s.cfg.TaskManager.ValidateTaskResultMsg(pid, r)
 }
 
-func (s *Service) validateTaskResourceUsageMsg(pid peer.ID, r *taskmngpb.TaskResourceUsageMsg) error {
+func (s *Service) validateTaskResourceUsageMsg(pid peer.ID, r *carriernetmsgtaskmngpb.TaskResourceUsageMsg) error {
 	return s.cfg.TaskManager.ValidateTaskResourceUsageMsg(pid, r)
 }
 
-func (s *Service) validateTaskTerminateMsg(pid peer.ID, r *taskmngpb.TaskTerminateMsg) error {
+func (s *Service) validateTaskTerminateMsg(pid peer.ID, r *carriernetmsgtaskmngpb.TaskTerminateMsg) error {
 	return s.cfg.TaskManager.ValidateTaskTerminateMsg(pid, r)
 }
 
@@ -127,14 +127,14 @@ func (s *Service) validateTaskTerminateMsg(pid peer.ID, r *taskmngpb.TaskTermina
 
 
 // --------------------------------------- handler fn ---------------------------------------
-func (s *Service) onTaskResultMsg(pid peer.ID, r *taskmngpb.TaskResultMsg) error {
+func (s *Service) onTaskResultMsg(pid peer.ID, r *carriernetmsgtaskmngpb.TaskResultMsg) error {
 	return s.cfg.TaskManager.OnTaskResultMsg(pid, r)
 }
 
-func (s *Service) onTaskResourceUsageMsg(pid peer.ID, r *taskmngpb.TaskResourceUsageMsg) error {
+func (s *Service) onTaskResourceUsageMsg(pid peer.ID, r *carriernetmsgtaskmngpb.TaskResourceUsageMsg) error {
 	return s.cfg.TaskManager.OnTaskResourceUsageMsg(pid, r)
 }
 
-func (s *Service) onTaskTerminateMsg(pid peer.ID, r *taskmngpb.TaskTerminateMsg) error {
+func (s *Service) onTaskTerminateMsg(pid peer.ID, r *carriernetmsgtaskmngpb.TaskTerminateMsg) error {
 	return s.cfg.TaskManager.OnTaskTerminateMsg(pid, r)
 }

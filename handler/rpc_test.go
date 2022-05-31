@@ -2,10 +2,10 @@ package handler
 
 import (
 	"context"
-	libp2ppb "github.com/Metisnetwork/Metis-Carrier/lib/rpc/debug/v1"
-	carrrierP2P "github.com/Metisnetwork/Metis-Carrier/p2p"
-	"github.com/Metisnetwork/Metis-Carrier/p2p/encoder"
-	p2ptest "github.com/Metisnetwork/Metis-Carrier/p2p/testing"
+	carrierrpcdebugpbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
+	carrrierP2P "github.com/datumtechs/datum-network-carrier/p2p"
+	"github.com/datumtechs/datum-network-carrier/p2p/encoder"
+	p2ptest "github.com/datumtechs/datum-network-carrier/p2p/testing"
 	libp2pcore "github.com/libp2p/go-libp2p-core"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/stretchr/testify/require"
@@ -51,7 +51,7 @@ func TestRegisterRPC_ReceivesValidMessage(t *testing.T) {
 	wg.Add(1)
 	topic := "/testing/foobar/1"
 	handler := func(ctx context.Context, msg interface{}, stream libp2pcore.Stream) error {
-		m, ok := msg.(*libp2ppb.GossipTestData)
+		m, ok := msg.(*carrierrpcdebugpbv1.GossipTestData)
 		if !ok {
 			t.Error("Object is not of type *pb.TestSimpleMessage")
 		}
@@ -60,14 +60,14 @@ func TestRegisterRPC_ReceivesValidMessage(t *testing.T) {
 
 		return nil
 	}
-	carrrierP2P.RPCTopicMappings[topic] = new(libp2ppb.GossipTestData)
+	carrrierP2P.RPCTopicMappings[topic] = new(carrierrpcdebugpbv1.GossipTestData)
 	// Cleanup Topic mappings
 	defer func() {
 		delete(carrrierP2P.RPCTopicMappings, topic)
 	}()
 	r.registerRPC(topic, handler)
 
-	p2p.ReceiveRPC(topic, &libp2ppb.GossipTestData{Data: []byte("gossipData"), Step: 1, Count: 3})
+	p2p.ReceiveRPC(topic, &carrierrpcdebugpbv1.GossipTestData{Data: []byte("gossipData"), Step: 1, Count: 3})
 
 	if WaitTimeout(&wg, time.Second) {
 		t.Fatal("Did not receive RPC in 1 second")

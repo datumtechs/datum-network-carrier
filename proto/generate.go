@@ -21,14 +21,14 @@ import (
 
 // Inception, go generate calls the script itself that then deals with generation.
 // This is only done because go:generate does not support wildcards in paths.
-//go:generate go run generate.go lib/db lib/types lib/api lib/center/api lib/p2p/v1 lib/rpc/debug/v1 lib/netmsg/common lib/netmsg/consensus/twopc lib/netmsg/taskmng lib/fighter/computesvc lib/fighter/datasvc lib/fighter/common
+//go:generate go run generate.go armada-common/carrier/api armada-common/carrier/db armada-common/carrier/netmsg/common armada-common/carrier/netmsg/consensus/twopc armada-common/carrier/netmsg/taskmng armada-common/carrier/p2p/v1  armada-common/carrier/rpc/debug/v1 armada-common/carrier/types armada-common/common/constant armada-common/datacenter/api armada-common/fighter/api armada-common/fighter/api/compute armada-common/fighter/api/data armada-common/fighter/types
 
 // final, generate grpc gateway stub.
-//go:generate protoc -I ../ -I . -I ../repos/grpc-gateway/third_party/googleapis --grpc-gateway_out=logtostderr=true:./.. ./lib/rpc/debug/v1/debug.proto
-//go:generate protoc -I ../ -I . -I ../repos/grpc-gateway/third_party/googleapis --swagger_out=logtostderr=true:./.. ./lib/rpc/debug/v1/debug.proto
+//go:generate protoc -I ../ -I ./armada-common -I . -I ../repos/grpc-gateway/third_party/googleapis --grpc-gateway_out=logtostderr=true:./../pb ./armada-common/carrier/rpc/debug/v1/debug.proto
+//go:generate protoc -I ../ -I ./armada-common -I . -I ../repos/grpc-gateway/third_party/googleapis --swagger_out=logtostderr=true:./../pb ./armada-common/carrier/rpc/debug/v1/debug.proto
 
-// go:generate protoc -I ../ -I . -I ../repos/grpc-gateway/third_party/googleapis --grpc-gateway_out=logtostderr=true:./.. ./lib/api/*.proto
-// go:generate protoc -I ../ -I . -I ../repos/grpc-gateway/third_party/googleapis --swagger_out=logtostderr=true:./.. ./lib/api/*.proto
+// go:generate protoc -I ../ -I ./armada-common -I . -I ../repos/grpc-gateway/third_party/googleapis --grpc-gateway_out=logtostderr=true:./../pb ./armada-common/carrier/api/*.proto
+// go:generate protoc -I ../ -I ./armada-common -I . -I ../repos/grpc-gateway/third_party/googleapis --swagger_out=logtostderr=true:./../pb ./armada-common/carrier/api/*.proto
 
 
 func main() {
@@ -40,11 +40,12 @@ func main() {
 		log.Println(path, "returned:", matches)
 		args := []string{
 			"-I", "..",
+			"-I", "./armada-common",
 			"-I", ".",
 			"-I", "../repos/grpc-gateway/third_party/googleapis",
 			//"--plugin=protoc-gen-gorosetta=scripts/protoc-gen-gorosetta",
 			//"--gorosetta_out=paths=source_relative:..",
-			"--gogofast_out=plugins=grpc,paths=source_relative:..",
+			"--gogofast_out=plugins=grpc,paths=source_relative:../pb",
 		}
 		args = append(args, matches...)
 		cmd := exec.Command("protoc", args...)

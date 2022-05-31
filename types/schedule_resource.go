@@ -2,7 +2,7 @@ package types
 
 import (
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/common/mathutil"
+	"github.com/datumtechs/datum-network-carrier/common/mathutil"
 )
 
 type Slot struct {

@@ -3,10 +3,10 @@ package p2p
 import (
 	"context"
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/common/bytesutil"
-	libp2ppb "github.com/Metisnetwork/Metis-Carrier/lib/rpc/debug/v1"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	p2ptest "github.com/Metisnetwork/Metis-Carrier/p2p/testing"
+	"github.com/datumtechs/datum-network-carrier/common/bytesutil"
+	carrierrpcdebugpbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	p2ptest "github.com/datumtechs/datum-network-carrier/p2p/testing"
 	"github.com/gogo/protobuf/proto"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	"github.com/stretchr/testify/require"
@@ -33,7 +33,7 @@ func TestService_Broadcast(t *testing.T) {
 		genesisTime:   	        time.Now(),
 	}
 
-	msg := &libp2ppb.GossipTestData{
+	msg := &carrierrpcdebugpbv1.GossipTestData{
 		Data:                 []byte{0x0,0x1},
 		Count:                11,
 		Step:                 23,
@@ -64,7 +64,7 @@ func TestService_Broadcast(t *testing.T) {
 		incomingMessage, err := sub.Next(ctx)
 		require.NoError(t, err)
 
-		result := &libp2ppb.GossipTestData{}
+		result := &carrierrpcdebugpbv1.GossipTestData{}
 		require.NoError(t, p.Encoding().DecodeGossip(incomingMessage.Data, result))
 		if !proto.Equal(result, msg) {
 			tt.Errorf("Did not receive expected message, got %+v, wanted %+v", result, msg)
@@ -84,5 +84,5 @@ func TestService_Broadcast_ReturnsErr_TopicNotMapped(t *testing.T) {
 		genesisTime:           time.Now(),
 		genesisValidatorsRoot: bytesutil.PadTo([]byte{'A'}, 32),
 	}
-	assert.ErrorContains(t, p.Broadcast(context.Background(), &libtypes.BlockData{}), ErrMessageNotMapped.Error())
+	assert.ErrorContains(t, p.Broadcast(context.Background(), &carriertypespb.BlockData{}), ErrMessageNotMapped.Error())
 }

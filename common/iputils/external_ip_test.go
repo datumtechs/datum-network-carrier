@@ -1,7 +1,7 @@
 package iputils_test
 
 import (
-	"github.com/Metisnetwork/Metis-Carrier/common/iputils"
+	"github.com/datumtechs/datum-network-carrier/common/iputils"
 	"github.com/stretchr/testify/require"
 	"gotest.tools/assert"
 	"net"

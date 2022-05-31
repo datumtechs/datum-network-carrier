@@ -2,16 +2,16 @@ package types
 
 import (
 	"bytes"
-	"github.com/Metisnetwork/Metis-Carrier/common"
-	"github.com/Metisnetwork/Metis-Carrier/lib/types"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/common"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"testing"
 )
 
-var resource_test = NewResource(&types.ResourcePB{
+var resource_test = NewResource(&carriertypespb.ResourcePB{
 	DataId:               "dataId",
-	DataStatus:           libtypes.DataStatus_DataStatus_Invalid,
-	State:                libtypes.PowerState_PowerState_Created,
+	DataStatus:           commonconstantpb.DataStatus_DataStatus_Invalid,
+	State:                commonconstantpb.PowerState_PowerState_Created,
 	TotalMem:             1,
 	UsedMem:              2,
 	TotalProcessor:       0,

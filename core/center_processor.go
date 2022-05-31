@@ -2,7 +2,7 @@ package core
 
 import (
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/datumtechs/datum-network-carrier/types"
 )
 
 // StateProcessor implements Processor.

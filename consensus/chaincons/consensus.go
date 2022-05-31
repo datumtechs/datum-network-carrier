@@ -1,8 +1,8 @@
 package chaincons
 
 import (
-	"github.com/Metisnetwork/Metis-Carrier/consensus/twopc"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/datumtechs/datum-network-carrier/consensus/twopc"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/libp2p/go-libp2p-core/peer"
 	log "github.com/sirupsen/logrus"
 )

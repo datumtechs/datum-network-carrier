@@ -3,9 +3,9 @@ package types
 import (
 	"bytes"
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/common"
-	"github.com/Metisnetwork/Metis-Carrier/common/bytesutil"
-	"github.com/Metisnetwork/Metis-Carrier/common/rlputil"
+	"github.com/datumtechs/datum-network-carrier/common"
+	"github.com/datumtechs/datum-network-carrier/common/bytesutil"
+	"github.com/datumtechs/datum-network-carrier/common/rlputil"
 	"github.com/ethereum/go-ethereum/rlp"
 	"io"
 	"sync/atomic"

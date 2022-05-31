@@ -6,16 +6,16 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/common"
-	"github.com/Metisnetwork/Metis-Carrier/common/feed"
-	statefeed "github.com/Metisnetwork/Metis-Carrier/common/feed/state"
-	"github.com/Metisnetwork/Metis-Carrier/common/runutil"
-	"github.com/Metisnetwork/Metis-Carrier/common/slotutil"
-	pb "github.com/Metisnetwork/Metis-Carrier/lib/p2p/v1"
-	"github.com/Metisnetwork/Metis-Carrier/p2p/encoder"
-	"github.com/Metisnetwork/Metis-Carrier/p2p/peers"
-	"github.com/Metisnetwork/Metis-Carrier/p2p/peers/scorers"
-	"github.com/Metisnetwork/Metis-Carrier/params"
+	"github.com/datumtechs/datum-network-carrier/common"
+	"github.com/datumtechs/datum-network-carrier/common/feed"
+	statefeed "github.com/datumtechs/datum-network-carrier/common/feed/state"
+	"github.com/datumtechs/datum-network-carrier/common/runutil"
+	"github.com/datumtechs/datum-network-carrier/common/slotutil"
+	carrierp2ppbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
+	"github.com/datumtechs/datum-network-carrier/p2p/encoder"
+	"github.com/datumtechs/datum-network-carrier/p2p/peers"
+	"github.com/datumtechs/datum-network-carrier/p2p/peers/scorers"
+	"github.com/datumtechs/datum-network-carrier/params"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/p2p/enode"
 	"github.com/ethereum/go-ethereum/p2p/enr"
@@ -62,7 +62,7 @@ type Service struct {
 	addrFilter            *multiaddr.Filters
 	ipLimiter             *leakybucket.Collector
 	privKey               *ecdsa.PrivateKey
-	metaData              *pb.MetaData
+	metaData              *carrierp2ppbv1.MetaData
 	pubsub                *pubsub.PubSub
 	joinedTopics          map[string]*pubsub.Topic
 	joinedTopicsLock      sync.Mutex
@@ -375,8 +375,8 @@ func (s *Service) DiscoveryAddresses() ([]multiaddr.Multiaddr, error) {
 }
 
 // Metadata returns a copy of the peer's metadata.
-func (s *Service) Metadata() *pb.MetaData {
-	return proto.Clone(s.metaData).(*pb.MetaData)
+func (s *Service) Metadata() *carrierp2ppbv1.MetaData {
+	return proto.Clone(s.metaData).(*carrierp2ppbv1.MetaData)
 }
 
 // MetadataSeq returns the metadata sequence number.

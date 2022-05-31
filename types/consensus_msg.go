@@ -3,12 +3,13 @@ package types
 import (
 	"bytes"
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/common"
-	"github.com/Metisnetwork/Metis-Carrier/common/bytesutil"
-	"github.com/Metisnetwork/Metis-Carrier/common/rlputil"
-	msgcommonpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/common"
-	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/common"
+	"github.com/datumtechs/datum-network-carrier/common/bytesutil"
+	"github.com/datumtechs/datum-network-carrier/common/rlputil"
+	carriernetmsgcommonpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/common"
+	carriertwopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 )
 
 type ConsensusEngineType string
@@ -72,17 +73,17 @@ func (resource *PrepareVoteResource) GetIp() string      { return resource.Ip }
 func (resource *PrepareVoteResource) GetPort() string    { return resource.Port }
 func (resource *PrepareVoteResource) GetPartyId() string { return resource.PartyId }
 
-func ConvertTaskPeerInfo(peerInfo *PrepareVoteResource) *twopcpb.TaskPeerInfo {
+func ConvertTaskPeerInfo(peerInfo *PrepareVoteResource) *carriertwopcpb.TaskPeerInfo {
 	if nil == peerInfo {
-		return &twopcpb.TaskPeerInfo{}
+		return &carriertwopcpb.TaskPeerInfo{}
 	}
-	return &twopcpb.TaskPeerInfo{
+	return &carriertwopcpb.TaskPeerInfo{
 		Ip:      []byte(peerInfo.GetIp()),
 		Port:    []byte(peerInfo.GetPort()),
 		PartyId: []byte(peerInfo.GetPartyId()),
 	}
 }
-func FetchTaskPeerInfo(peerInfo *twopcpb.TaskPeerInfo) *PrepareVoteResource {
+func FetchTaskPeerInfo(peerInfo *carriertwopcpb.TaskPeerInfo) *PrepareVoteResource {
 	if nil == peerInfo {
 		return &PrepareVoteResource{}
 	}
@@ -92,16 +93,16 @@ func FetchTaskPeerInfo(peerInfo *twopcpb.TaskPeerInfo) *PrepareVoteResource {
 		PartyId: string(peerInfo.GetPartyId()),
 	}
 }
-func ConvertTaskPeerInfoArr(resourceArr []*PrepareVoteResource) []*twopcpb.TaskPeerInfo {
+func ConvertTaskPeerInfoArr(resourceArr []*PrepareVoteResource) []*carriertwopcpb.TaskPeerInfo {
 
-	arr := make([]*twopcpb.TaskPeerInfo, len(resourceArr))
+	arr := make([]*carriertwopcpb.TaskPeerInfo, len(resourceArr))
 
 	for i, resource := range resourceArr {
-		var peerInfo *twopcpb.TaskPeerInfo
+		var peerInfo *carriertwopcpb.TaskPeerInfo
 		if nil == resource {
-			peerInfo = &twopcpb.TaskPeerInfo{}
+			peerInfo = &carriertwopcpb.TaskPeerInfo{}
 		} else {
-			peerInfo = &twopcpb.TaskPeerInfo{
+			peerInfo = &carriertwopcpb.TaskPeerInfo{
 				Ip:      []byte(resource.GetIp()),
 				Port:    []byte(resource.GetPort()),
 				PartyId: []byte(resource.GetPartyId()),
@@ -112,7 +113,7 @@ func ConvertTaskPeerInfoArr(resourceArr []*PrepareVoteResource) []*twopcpb.TaskP
 	}
 	return arr
 }
-func FetchTaskPeerInfoArr(peerInfoArr []*twopcpb.TaskPeerInfo) []*PrepareVoteResource {
+func FetchTaskPeerInfoArr(peerInfoArr []*carriertwopcpb.TaskPeerInfo) []*PrepareVoteResource {
 
 	arr := make([]*PrepareVoteResource, len(peerInfoArr))
 
@@ -134,25 +135,25 @@ func FetchTaskPeerInfoArr(peerInfoArr []*twopcpb.TaskPeerInfo) []*PrepareVoteRes
 
 type MsgOption struct {
 	ProposalId      common.Hash
-	SenderRole      libtypes.TaskRole
+	SenderRole      commonconstantpb.TaskRole
 	SenderPartyId   string
-	ReceiverRole    libtypes.TaskRole
+	ReceiverRole    commonconstantpb.TaskRole
 	ReceiverPartyId string
-	Owner           *libtypes.TaskOrganization
+	Owner           *carriertypespb.TaskOrganization
 }
 
 func MakeMsgOption(proposalId common.Hash,
-	senderRole, receiverRole libtypes.TaskRole,
+	senderRole, receiverRole commonconstantpb.TaskRole,
 	senderPartyId, receiverPartyId string,
-	sender *libtypes.TaskOrganization,
-) *msgcommonpb.MsgOption {
-	return &msgcommonpb.MsgOption{
+	sender *carriertypespb.TaskOrganization,
+) *carriernetmsgcommonpb.MsgOption {
+	return &carriernetmsgcommonpb.MsgOption{
 		ProposalId:      proposalId.Bytes(),
 		SenderRole:      uint64(senderRole),
 		SenderPartyId:   []byte(senderPartyId),
 		ReceiverRole:    uint64(receiverRole),
 		ReceiverPartyId: []byte(receiverPartyId),
-		MsgOwner: &msgcommonpb.TaskOrganizationIdentityInfo{
+		MsgOwner: &carriernetmsgcommonpb.TaskOrganizationIdentityInfo{
 			Name:       []byte(sender.GetNodeName()),
 			NodeId:     []byte(sender.GetNodeId()),
 			IdentityId: []byte(sender.GetIdentityId()),
@@ -195,20 +196,20 @@ func (option *MsgOption) Hash () common.Hash {
 }
 
 func (option *MsgOption) GetProposalId() common.Hash              { return option.ProposalId }
-func (option *MsgOption) GetSenderRole() libtypes.TaskRole     { return option.SenderRole }
+func (option *MsgOption) GetSenderRole() commonconstantpb.TaskRole     { return option.SenderRole }
 func (option *MsgOption) GetSenderPartyId() string                { return option.SenderPartyId }
-func (option *MsgOption) GetReceiverRole() libtypes.TaskRole   { return option.ReceiverRole }
+func (option *MsgOption) GetReceiverRole() commonconstantpb.TaskRole   { return option.ReceiverRole }
 func (option *MsgOption) GetReceiverPartyId() string              { return option.ReceiverPartyId }
-func (option *MsgOption) GetOwner() *libtypes.TaskOrganization { return option.Owner }
+func (option *MsgOption) GetOwner() *carriertypespb.TaskOrganization { return option.Owner }
 
-func ConvertMsgOption(option *MsgOption) *msgcommonpb.MsgOption {
-	return &msgcommonpb.MsgOption{
+func ConvertMsgOption(option *MsgOption) *carriernetmsgcommonpb.MsgOption {
+	return &carriernetmsgcommonpb.MsgOption{
 		ProposalId:      option.GetProposalId().Bytes(),
 		SenderRole:      uint64(option.GetSenderRole()),
 		SenderPartyId:   []byte(option.GetSenderPartyId()),
 		ReceiverRole:    uint64(option.GetReceiverRole()),
 		ReceiverPartyId: []byte(option.GetReceiverPartyId()),
-		MsgOwner: &msgcommonpb.TaskOrganizationIdentityInfo{
+		MsgOwner: &carriernetmsgcommonpb.TaskOrganizationIdentityInfo{
 			Name:       []byte(option.GetOwner().GetNodeName()),
 			NodeId:     []byte(option.GetOwner().GetNodeId()),
 			IdentityId: []byte(option.GetOwner().GetIdentityId()),
@@ -217,14 +218,14 @@ func ConvertMsgOption(option *MsgOption) *msgcommonpb.MsgOption {
 	}
 }
 
-func FetchMsgOption(option *msgcommonpb.MsgOption) *MsgOption {
+func FetchMsgOption(option *carriernetmsgcommonpb.MsgOption) *MsgOption {
 	return &MsgOption{
 		ProposalId:      common.BytesToHash(option.GetProposalId()),
-		SenderRole:      libtypes.TaskRole(option.GetSenderRole()),
+		SenderRole:      commonconstantpb.TaskRole(option.GetSenderRole()),
 		SenderPartyId:   string(option.GetSenderPartyId()),
-		ReceiverRole:    libtypes.TaskRole(option.GetReceiverRole()),
+		ReceiverRole:    commonconstantpb.TaskRole(option.GetReceiverRole()),
 		ReceiverPartyId: string(option.GetReceiverPartyId()),
-		Owner: &libtypes.TaskOrganization{
+		Owner: &carriertypespb.TaskOrganization{
 			NodeName:   string(option.GetMsgOwner().GetName()),
 			NodeId:     string(option.GetMsgOwner().GetNodeId()),
 			IdentityId: string(option.GetMsgOwner().GetIdentityId()),
@@ -317,8 +318,8 @@ func (vote *PrepareVote) GetPeerInfo() *PrepareVoteResource { return vote.PeerIn
 func (vote *PrepareVote) GetCreateAt() uint64               { return vote.CreateAt }
 func (vote *PrepareVote) GetSign() []byte                   { return vote.Sign }
 
-func ConvertPrepareVote(vote *PrepareVote) *twopcpb.PrepareVote {
-	return &twopcpb.PrepareVote{
+func ConvertPrepareVote(vote *PrepareVote) *carriertwopcpb.PrepareVote {
+	return &carriertwopcpb.PrepareVote{
 		MsgOption:  ConvertMsgOption(vote.GetMsgOption()),
 		VoteOption: vote.GetVoteOption().Bytes(),
 		PeerInfo:   ConvertTaskPeerInfo(vote.GetPeerInfo()),
@@ -326,7 +327,7 @@ func ConvertPrepareVote(vote *PrepareVote) *twopcpb.PrepareVote {
 		Sign:       vote.GetSign(),
 	}
 }
-func FetchPrepareVote(vote *twopcpb.PrepareVote) *PrepareVote {
+func FetchPrepareVote(vote *carriertwopcpb.PrepareVote) *PrepareVote {
 	return &PrepareVote{
 		MsgOption:  FetchMsgOption(vote.GetMsgOption()),
 		VoteOption: VoteOptionFromBytes(vote.GetVoteOption()),
@@ -339,7 +340,7 @@ func FetchPrepareVote(vote *twopcpb.PrepareVote) *PrepareVote {
 type ConfirmMsg struct {
 	MsgOption     *MsgOption
 	ConfirmOption TwopcMsgOption
-	Peers         *twopcpb.ConfirmTaskPeerInfo
+	Peers         *carriertwopcpb.ConfirmTaskPeerInfo
 	CreateAt      uint64
 	Sign          []byte
 }
@@ -407,12 +408,12 @@ func (msg *ConfirmMsg) Hash() common.Hash {
 
 func (msg *ConfirmMsg) GetMsgOption() *MsgOption               { return msg.MsgOption }
 func (msg *ConfirmMsg) GetConfirmOption() TwopcMsgOption       { return msg.ConfirmOption }
-func (msg *ConfirmMsg) GetPeers() *twopcpb.ConfirmTaskPeerInfo { return msg.Peers }
+func (msg *ConfirmMsg) GetPeers() *carriertwopcpb.ConfirmTaskPeerInfo { return msg.Peers }
 func (msg *ConfirmMsg) GetCreateAt() uint64                    { return msg.CreateAt }
 func (msg *ConfirmMsg) GetSign() []byte                        { return msg.Sign }
 
-func ConvertConfirmMsg(msg *ConfirmMsg) *twopcpb.ConfirmMsg {
-	return &twopcpb.ConfirmMsg{
+func ConvertConfirmMsg(msg *ConfirmMsg) *carriertwopcpb.ConfirmMsg {
+	return &carriertwopcpb.ConfirmMsg{
 		MsgOption:     ConvertMsgOption(msg.GetMsgOption()),
 		ConfirmOption: msg.GetConfirmOption().Bytes(),
 		Peers:         msg.GetPeers(),
@@ -420,7 +421,7 @@ func ConvertConfirmMsg(msg *ConfirmMsg) *twopcpb.ConfirmMsg {
 		Sign:          msg.GetSign(),
 	}
 }
-func FetchConfirmMsg(msg *twopcpb.ConfirmMsg) *ConfirmMsg {
+func FetchConfirmMsg(msg *carriertwopcpb.ConfirmMsg) *ConfirmMsg {
 	return &ConfirmMsg{
 		MsgOption:     FetchMsgOption(msg.GetMsgOption()),
 		ConfirmOption: TwopcMsgOptionFromBytes(msg.GetConfirmOption()),
@@ -465,15 +466,15 @@ func (vote *ConfirmVote) GetVoteOption() VoteOption { return vote.VoteOption }
 func (vote *ConfirmVote) GetCreateAt() uint64       { return vote.CreateAt }
 func (vote *ConfirmVote) GetSign() []byte           { return vote.Sign }
 
-func ConvertConfirmVote(vote *ConfirmVote) *twopcpb.ConfirmVote {
-	return &twopcpb.ConfirmVote{
+func ConvertConfirmVote(vote *ConfirmVote) *carriertwopcpb.ConfirmVote {
+	return &carriertwopcpb.ConfirmVote{
 		MsgOption:  ConvertMsgOption(vote.GetMsgOption()),
 		VoteOption: vote.GetVoteOption().Bytes(),
 		CreateAt:   vote.GetCreateAt(),
 		Sign:       vote.GetSign(),
 	}
 }
-func FetchConfirmVote(vote *twopcpb.ConfirmVote) *ConfirmVote {
+func FetchConfirmVote(vote *carriertwopcpb.ConfirmVote) *ConfirmVote {
 	return &ConfirmVote{
 		MsgOption:  FetchMsgOption(vote.GetMsgOption()),
 		VoteOption: VoteOptionFromBytes(vote.GetVoteOption()),
@@ -516,15 +517,15 @@ func (msg *CommitMsg) GetCommitOption() TwopcMsgOption { return msg.CommitOption
 func (msg *CommitMsg) GetCreateAt() uint64             { return msg.CreateAt }
 func (msg *CommitMsg) GetSign() []byte                 { return msg.Sign }
 
-func ConvertCommitMsg(msg *CommitMsg) *twopcpb.CommitMsg {
-	return &twopcpb.CommitMsg{
+func ConvertCommitMsg(msg *CommitMsg) *carriertwopcpb.CommitMsg {
+	return &carriertwopcpb.CommitMsg{
 		MsgOption:    ConvertMsgOption(msg.GetMsgOption()),
 		CommitOption: msg.GetCommitOption().Bytes(),
 		CreateAt:     msg.GetCreateAt(),
 		Sign:         msg.GetSign(),
 	}
 }
-func FetchCommitMsg(msg *twopcpb.CommitMsg) *CommitMsg {
+func FetchCommitMsg(msg *carriertwopcpb.CommitMsg) *CommitMsg {
 	return &CommitMsg{
 		MsgOption:    FetchMsgOption(msg.GetMsgOption()),
 		CommitOption: TwopcMsgOptionFromBytes(msg.GetCommitOption()),

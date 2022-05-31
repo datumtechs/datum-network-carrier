@@ -2,13 +2,13 @@ package core
 
 import (
 	"context"
-	"github.com/Metisnetwork/Metis-Carrier/common"
-	"github.com/Metisnetwork/Metis-Carrier/core/rawdb"
-	"github.com/Metisnetwork/Metis-Carrier/db"
-	"github.com/Metisnetwork/Metis-Carrier/event"
-	pb "github.com/Metisnetwork/Metis-Carrier/lib/api"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/datumtechs/datum-network-carrier/common"
+	"github.com/datumtechs/datum-network-carrier/core/rawdb"
+	"github.com/datumtechs/datum-network-carrier/db"
+	"github.com/datumtechs/datum-network-carrier/event"
+	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	"github.com/datumtechs/datum-network-carrier/types"
 	lru "github.com/hashicorp/golang-lru"
 	"sync"
 	"sync/atomic"
@@ -110,9 +110,9 @@ func (dc *DataChain) GetBodyPb(hash common.Hash) []byte {
 }
 
 // GetBody retrieves a block body (metadata/resource/identity/task) from database by hash, caching it if found.
-func (dc *DataChain) GetBody(hash common.Hash) *libtypes.BodyData {
+func (dc *DataChain) GetBody(hash common.Hash) *carriertypespb.BodyData {
 	if cached, ok := dc.bodyCache.Get(hash); ok {
-		body := cached.(*libtypes.BodyData)
+		body := cached.(*carriertypespb.BodyData)
 		return body
 	}
 	number := rawdb.ReadHeaderNumber(dc.db, hash)
@@ -170,13 +170,13 @@ func (dc *DataChain) InsertData(blocks types.Blocks) (int, error) {
 }
 
 // TODO 本地存储event事件
-func (dc *DataChain) StoreTaskEvent(event *libtypes.TaskEvent) error {
+func (dc *DataChain) StoreTaskEvent(event *carriertypespb.TaskEvent) error {
 	// todo:
 	return nil
 }
 
 // TODO 本地存储当前调度服务自身的  identity
-func (dc *DataChain) StoreIdentity(identity *libtypes.Organization) error {return nil}
+func (dc *DataChain) StoreIdentity(identity *carriertypespb.Organization) error {return nil}
 func (dc *DataChain) DelIdentity() error                                     {return nil}
 
 func (dc *DataChain) GetYarnName() (string, error) {
@@ -189,7 +189,7 @@ func (dc *DataChain) GetIdentityId() (string, error) {
 	return "", nil
 }
 
-func (dc *DataChain) GetIdentity() (*libtypes.Organization, error) {
+func (dc *DataChain) GetIdentity() (*carriertypespb.Organization, error) {
 	// todo: implements by datacenter
 	return nil, nil
 }
@@ -222,8 +222,8 @@ func (dc *DataChain) GetTaskDataListByNodeId(nodeId string) (types.TaskDataArray
 	return nil, nil
 }
 // TODO 未完成 ...
-func (dc *DataChain) SetSeedNode(seed *pb.SeedPeer) (pb.ConnState, error) {
-	return  pb.ConnState_ConnState_UnConnected, nil
+func (dc *DataChain) SetSeedNode(seed *carrierapipb.SeedPeer) (carrierapipb.ConnState, error) {
+	return  carrierapipb.ConnState_ConnState_UnConnected, nil
 }
 
 func (dc *DataChain) DeleteSeedNode(id string) error {
@@ -232,26 +232,26 @@ func (dc *DataChain) DeleteSeedNode(id string) error {
 }
 
 
-func (dc *DataChain) GetSeedNodeList() ([]*pb.SeedPeer, error) {
+func (dc *DataChain) GetSeedNodeList() ([]*carrierapipb.SeedPeer, error) {
 	return rawdb.QueryAllSeedNodes(dc.db)
 }
 // TODO 未完成 ...
-func (dc *DataChain) SetRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRegisteredPeerDetail) (pb.ConnState, error) {
+func (dc *DataChain) SetRegisterNode(typ carrierapipb.RegisteredNodeType, node *carrierapipb.YarnRegisteredPeerDetail) (carrierapipb.ConnState, error) {
 	rawdb.StoreRegisterNode(dc.db, typ, node)
 	// todo: need to establish conn to registered node. heartbeat detection
-	return  pb.ConnState_ConnState_UnConnected, nil
+	return  carrierapipb.ConnState_ConnState_UnConnected, nil
 }
 
-func (dc *DataChain) DeleteRegisterNode(typ pb.RegisteredNodeType, id string) error {
+func (dc *DataChain) DeleteRegisterNode(typ carrierapipb.RegisteredNodeType, id string) error {
 	rawdb.RemoveRegisterNode(dc.db, typ, id)
 	return nil
 }
 
-func (dc *DataChain) GetRegisterNode(typ pb.RegisteredNodeType, id string) (*pb.YarnRegisteredPeerDetail, error) {
+func (dc *DataChain) GetRegisterNode(typ carrierapipb.RegisteredNodeType, id string) (*carrierapipb.YarnRegisteredPeerDetail, error) {
 	return rawdb.QueryRegisterNode(dc.db, typ, id)
 }
 
-func (dc *DataChain) GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*pb.YarnRegisteredPeerDetail, error) {
+func (dc *DataChain) GetRegisterNodeList(typ carrierapipb.RegisteredNodeType) ([]*carrierapipb.YarnRegisteredPeerDetail, error) {
 	return rawdb.QueryAllRegisterNodes(dc.db, typ)
 }
 

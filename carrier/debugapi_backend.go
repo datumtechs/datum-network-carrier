@@ -1,8 +1,8 @@
 package carrier
 
 import (
-	"github.com/Metisnetwork/Metis-Carrier/consensus/twopc"
-	rpcpb "github.com/Metisnetwork/Metis-Carrier/lib/rpc/debug/v1"
+	"github.com/datumtechs/datum-network-carrier/consensus/twopc"
+	carrierrpcdebugpbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
 )
 
 // CarrierDebugAPIBackend implements rpc.Backend for Carrier
@@ -16,15 +16,15 @@ func NewCarrierDebugAPIBackend(engine  *twopc.Twopc) *CarrierDebugAPIBackend {
 
 
 
-func (c *CarrierDebugAPIBackend)Get2PcProposalStateByTaskId (taskId string) (*rpcpb.Get2PcProposalStateResponse, error) {
+func (c *CarrierDebugAPIBackend)Get2PcProposalStateByTaskId (taskId string) (*carrierrpcdebugpbv1.Get2PcProposalStateResponse, error) {
 	return c.engine.Get2PcProposalStateByProposalId(taskId)
 }
-func (c *CarrierDebugAPIBackend)Get2PcProposalStateByProposalId (proposalId string) (*rpcpb.Get2PcProposalStateResponse, error) {
+func (c *CarrierDebugAPIBackend)Get2PcProposalStateByProposalId (proposalId string) (*carrierrpcdebugpbv1.Get2PcProposalStateResponse, error) {
 	return c.engine.Get2PcProposalStateByProposalId(proposalId)
 }
-func (c *CarrierDebugAPIBackend)Get2PcProposalPrepare (proposalId string) (*rpcpb.Get2PcProposalPrepareResponse, error) {
+func (c *CarrierDebugAPIBackend)Get2PcProposalPrepare (proposalId string) (*carrierrpcdebugpbv1.Get2PcProposalPrepareResponse, error) {
 	return c.engine.Get2PcProposalPrepare(proposalId)
 }
-func (c *CarrierDebugAPIBackend)Get2PcProposalConfirm (proposalId string) (*rpcpb.Get2PcProposalConfirmResponse, error) {
+func (c *CarrierDebugAPIBackend)Get2PcProposalConfirm (proposalId string) (*carrierrpcdebugpbv1.Get2PcProposalConfirmResponse, error) {
 	return c.engine.Get2PcProposalConfirm(proposalId)
 }

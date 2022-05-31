@@ -2,10 +2,10 @@ package handler
 
 import (
 	"context"
-	"github.com/Metisnetwork/Metis-Carrier/common"
-	"github.com/Metisnetwork/Metis-Carrier/common/hashutil"
-	"github.com/Metisnetwork/Metis-Carrier/common/traceutil"
-	taskmngcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/taskmng"
+	"github.com/datumtechs/datum-network-carrier/common"
+	"github.com/datumtechs/datum-network-carrier/common/hashutil"
+	"github.com/datumtechs/datum-network-carrier/common/traceutil"
+	carriernetmsgtaskmngpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/taskmng"
 	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/peer"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
@@ -29,7 +29,7 @@ func (s *Service) validateTaskResourceUsageMessagePubSub(ctx context.Context, pi
 		return pubsub.ValidationReject
 	}
 
-	message, ok := m.(*taskmngcpb.TaskResourceUsageMsg)
+	message, ok := m.(*carriernetmsgtaskmngpb.TaskResourceUsageMsg)
 	if !ok {
 		log.Errorf("Invalid message type in the validateTaskResourceUsageMessagePubSub, typ: %T", m)
 		return pubsub.ValidationReject

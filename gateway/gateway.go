@@ -3,9 +3,9 @@ package gateway
 import (
 	"context"
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/common"
-	rpcpb "github.com/Metisnetwork/Metis-Carrier/lib/rpc/debug/v1"
-	rpcapipb "github.com/Metisnetwork/Metis-Carrier/lib/api"
+	"github.com/datumtechs/datum-network-carrier/common"
+	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
+	carrierrpcdebugpbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
 	gwruntime "github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
@@ -86,14 +86,14 @@ func (g *Gateway) Start() error {
 		),
 	)
 	handlers := []func(context.Context, *gwruntime.ServeMux, *grpc.ClientConn) error {
-		rpcapipb.RegisterAuthServiceHandler,
-		rpcapipb.RegisterMetadataServiceHandler,
-		rpcapipb.RegisterPowerServiceHandler,
-		rpcapipb.RegisterYarnServiceHandler,
-		rpcapipb.RegisterTaskServiceHandler,
+		carrierapipb.RegisterAuthServiceHandler,
+		carrierapipb.RegisterMetadataServiceHandler,
+		carrierapipb.RegisterPowerServiceHandler,
+		carrierapipb.RegisterYarnServiceHandler,
+		carrierapipb.RegisterTaskServiceHandler,
 	}
 	if g.enableDebugRPCEndpoints {
-		handlers = append(handlers, rpcpb.RegisterDebugHandler)
+		handlers = append(handlers, carrierrpcdebugpbv1.RegisterDebugHandler)
 	}
 	for _, f := range handlers {
 		if err := f(ctx, gwmux, conn); err != nil {

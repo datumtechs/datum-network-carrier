@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/cmd/utils"
+	"github.com/datumtechs/datum-network-carrier/cmd/utils"
 	"github.com/ethereum/go-ethereum/crypto"
 )
 

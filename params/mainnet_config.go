@@ -1,8 +1,8 @@
 package params
 
 import (
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"math/big"
 	"time"
 )
@@ -20,8 +20,8 @@ func UseMainnetConfig() {
 var mainnetCarrierConfig = &types.CarrierChainConfig{
 	DiscoveryServiceName: "carrierService",
 	DiscoveryServiceTags: []string{"carrier"},
-	BlockChainIdCache: map[libtypes.UserType]*big.Int{
-		libtypes.UserType_User_1: new(big.Int).SetUint64(210309),  // TODO Maybe using command params to deside it.
+	BlockChainIdCache: map[commonconstantpb.UserType]*big.Int{
+		commonconstantpb.UserType_User_1: new(big.Int).SetUint64(210309),  // TODO Maybe using command params to deside it.
 	},
 }
 

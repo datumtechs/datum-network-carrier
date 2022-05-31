@@ -3,21 +3,22 @@ package types
 import (
 	"bytes"
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/common"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/common"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"io"
 	"sync/atomic"
 )
 
 type MetadataAuthority struct {
-	data *libtypes.MetadataAuthorityPB
+	data *carriertypespb.MetadataAuthorityPB
 
 	// caches
 	hash atomic.Value
 	size atomic.Value
 }
 
-func NewMetadataAuthority(data *libtypes.MetadataAuthorityPB) *MetadataAuthority {
+func NewMetadataAuthority(data *carriertypespb.MetadataAuthorityPB) *MetadataAuthority {
 	return &MetadataAuthority{data: data}
 }
 
@@ -31,7 +32,7 @@ func (m *MetadataAuthority) EncodePB(w io.Writer) error {
 
 func (m *MetadataAuthority) DecodePB(data []byte) error {
 	if m.data == nil {
-		m.data = new(libtypes.MetadataAuthorityPB)
+		m.data = new(carriertypespb.MetadataAuthorityPB)
 	}
 	m.size.Store(common.StorageSize(len(data)))
 	return m.data.Unmarshal(data)
@@ -49,8 +50,8 @@ func (m *MetadataAuthority) Hash() common.Hash {
 }
 
 func (m *MetadataAuthority) GetUser() string                        { return m.data.GetUser() }
-func (m *MetadataAuthority) GetUserType() libtypes.UserType      { return m.data.GetUserType() }
-func (m *MetadataAuthority) GetData() *libtypes.MetadataAuthorityPB { return m.data }
+func (m *MetadataAuthority) GetUserType() commonconstantpb.UserType      { return m.data.GetUserType() }
+func (m *MetadataAuthority) GetData() *carriertypespb.MetadataAuthorityPB { return m.data }
 
 type MetadataAuthArray []*MetadataAuthority
 
@@ -66,7 +67,7 @@ func (s MetadataAuthArray) GetPb(i int) []byte {
 	return buffer.Bytes()
 }
 
-func NewMetadataAuthArray(metaData []*libtypes.MetadataPB) MetadataArray {
+func NewMetadataAuthArray(metaData []*carriertypespb.MetadataPB) MetadataArray {
 	var s MetadataArray
 	for _, v := range metaData {
 		s = append(s, NewMetadata(v))
@@ -74,8 +75,8 @@ func NewMetadataAuthArray(metaData []*libtypes.MetadataPB) MetadataArray {
 	return s
 }
 
-func (s MetadataAuthArray) ToArray() []*libtypes.MetadataAuthorityPB {
-	arr := make([]*libtypes.MetadataAuthorityPB, 0, s.Len())
+func (s MetadataAuthArray) ToArray() []*carriertypespb.MetadataAuthorityPB {
+	arr := make([]*carriertypespb.MetadataAuthorityPB, 0, s.Len())
 	for _, v := range s {
 		arr = append(arr, v.data)
 	}
@@ -85,11 +86,11 @@ func (s MetadataAuthArray) ToArray() []*libtypes.MetadataAuthorityPB {
 
 type MetadataAuthAudit struct {
 	MetadataAuthId  string
-	AuditOption     libtypes.AuditMetadataOption
+	AuditOption     commonconstantpb.AuditMetadataOption
 	AuditSuggestion string
 }
 
-func NewMetadataAuthAudit(metadataAuthId, suggestion string, option libtypes.AuditMetadataOption) *MetadataAuthAudit {
+func NewMetadataAuthAudit(metadataAuthId, suggestion string, option commonconstantpb.AuditMetadataOption) *MetadataAuthAudit {
 	return &MetadataAuthAudit{
 		MetadataAuthId:  metadataAuthId,
 		AuditOption:     option,
@@ -98,7 +99,7 @@ func NewMetadataAuthAudit(metadataAuthId, suggestion string, option libtypes.Aud
 }
 
 func (maa *MetadataAuthAudit) GetMetadataAuthId() string                       { return maa.MetadataAuthId }
-func (maa *MetadataAuthAudit) GetAuditOption() libtypes.AuditMetadataOption { return maa.AuditOption }
+func (maa *MetadataAuthAudit) GetAuditOption() commonconstantpb.AuditMetadataOption { return maa.AuditOption }
 func (maa *MetadataAuthAudit) GetAuditSuggestion() string                      { return maa.AuditSuggestion }
 
 func (maa *MetadataAuthAudit) String() string {

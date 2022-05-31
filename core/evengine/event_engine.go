@@ -1,9 +1,9 @@
 package evengine
 
 import (
-	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
-	"github.com/Metisnetwork/Metis-Carrier/core/iface"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	"github.com/datumtechs/datum-network-carrier/core/iface"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 )
 
 type EventEngine struct {
@@ -16,8 +16,8 @@ func NewEventEngine(dataCenter iface.TaskCarrierDB) *EventEngine {
 	}
 }
 
-func (e *EventEngine) GenerateEvent(typ, taskId, identityId, partyId, extra string) *libtypes.TaskEvent {
-	return &libtypes.TaskEvent{
+func (e *EventEngine) GenerateEvent(typ, taskId, identityId, partyId, extra string) *carriertypespb.TaskEvent {
+	return &carriertypespb.TaskEvent{
 		Type:       typ,
 		TaskId:     taskId,
 		IdentityId: identityId,
@@ -27,7 +27,7 @@ func (e *EventEngine) GenerateEvent(typ, taskId, identityId, partyId, extra stri
 	}
 }
 
-func (e *EventEngine) StoreEvent(event *libtypes.TaskEvent) {
+func (e *EventEngine) StoreEvent(event *carriertypespb.TaskEvent) {
 	if err := e.dataCenter.StoreTaskEvent(event); nil != err {
 		log.WithError(err).Errorf("Failed to Store task event, taskId: {%s}, evnet: {%s}", event.TaskId, event.String())
 	}

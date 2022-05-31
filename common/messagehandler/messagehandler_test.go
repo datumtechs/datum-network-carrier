@@ -2,7 +2,7 @@ package messagehandler
 
 import (
 	"context"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/gogo/protobuf/proto"
 	logTest "github.com/sirupsen/logrus/hooks/test"
 	"testing"
@@ -12,7 +12,7 @@ func TestSafelyHandleMessage(t *testing.T) {
 	SafelyHandleMessage(context.Background(), func(_ context.Context, _ proto.Message) error {
 		panic("bad!")
 		return nil
-	}, &libtypes.BlockData{})
+	}, &carriertypespb.BlockData{})
 }
 
 func TestSafelyHandleMessage_NoData(t *testing.T) {

@@ -2,11 +2,11 @@ package handler
 
 import (
 	"context"
-	"github.com/Metisnetwork/Metis-Carrier/common/bytesutil"
-	pb "github.com/Metisnetwork/Metis-Carrier/lib/p2p/v1"
-	"github.com/Metisnetwork/Metis-Carrier/p2p/peers"
-	p2ptest "github.com/Metisnetwork/Metis-Carrier/p2p/testing"
-	p2ptypes "github.com/Metisnetwork/Metis-Carrier/p2p/types"
+	"github.com/datumtechs/datum-network-carrier/common/bytesutil"
+	carrierp2ppbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
+	"github.com/datumtechs/datum-network-carrier/p2p/peers"
+	p2ptest "github.com/datumtechs/datum-network-carrier/p2p/testing"
+	p2ptypes "github.com/datumtechs/datum-network-carrier/p2p/types"
 	"github.com/ethereum/go-ethereum/p2p/enr"
 	"github.com/gogo/protobuf/proto"
 	"github.com/kevinms/leakybucket-go"
@@ -42,7 +42,7 @@ func TestStatusRPCHandler_Disconnects_OnForkVersionMismatch(t *testing.T) {
 	p2.BHost.SetStreamHandler(pcl, func(stream network.Stream) {
 		defer wg.Done()
 		expectSuccess(t, stream)
-		out := &pb.Status{}
+		out := &carrierp2ppbv1.Status{}
 		require.NoError(t, r.cfg.P2P.Encoding().DecodeWithMaxLength(stream, out))
 		//assert.DeepEqual(t, root[:], out.FinalizedRoot)
 		require.NoError(t, stream.Close())
@@ -63,7 +63,7 @@ func TestStatusRPCHandler_Disconnects_OnForkVersionMismatch(t *testing.T) {
 
 	stream1, err := p1.BHost.NewStream(context.Background(), p2.BHost.ID(), pcl)
 	require.NoError(t, err)
-	require.NoError(t, r.statusRPCHandler(context.Background(), &pb.Status{ForkDigest: bytesutil.PadTo([]byte("f"), 4), HeadRoot: make([]byte, 32), FinalizedRoot: make([]byte, 32)}, stream1))
+	require.NoError(t, r.statusRPCHandler(context.Background(), &carrierp2ppbv1.Status{ForkDigest: bytesutil.PadTo([]byte("f"), 4), HeadRoot: make([]byte, 32), FinalizedRoot: make([]byte, 32)}, stream1))
 
 	if WaitTimeout(&wg, 1*time.Second) {
 		t.Fatal("Did not receive stream within 1 sec")
@@ -97,7 +97,7 @@ func TestStatusRPCHandler_ConnectsOnGenesis(t *testing.T) {
 	p2.BHost.SetStreamHandler(pcl, func(stream network.Stream) {
 		defer wg.Done()
 		expectSuccess(t, stream)
-		out := &pb.Status{}
+		out := &carrierp2ppbv1.Status{}
 		require.NoError(t, r.cfg.P2P.Encoding().DecodeWithMaxLength(stream, out))
 		assert.DeepEqual(t, root[:], out.FinalizedRoot)
 	})
@@ -107,7 +107,7 @@ func TestStatusRPCHandler_ConnectsOnGenesis(t *testing.T) {
 	digest, err := r.forkDigest()
 	require.NoError(t, err)
 
-	err = r.statusRPCHandler(context.Background(), &pb.Status{ForkDigest: digest[:], FinalizedRoot: make([]byte, 32)}, stream1)
+	err = r.statusRPCHandler(context.Background(), &carrierp2ppbv1.Status{ForkDigest: digest[:], FinalizedRoot: make([]byte, 32)}, stream1)
 	require.NoError(t, err)
 
 	if WaitTimeout(&wg, 1*time.Second) {
@@ -142,9 +142,9 @@ func TestStatusRPCHandler_ReturnsHelloMessage(t *testing.T) {
 	p2.BHost.SetStreamHandler(pcl, func(stream network.Stream) {
 		defer wg.Done()
 		expectSuccess(t, stream)
-		out := &pb.Status{}
+		out := &carrierp2ppbv1.Status{}
 		require.NoError(t, r.cfg.P2P.Encoding().DecodeWithMaxLength(stream, out))
-		expected := &pb.Status{
+		expected := &carrierp2ppbv1.Status{
 			ForkDigest:     digest[:],
 			HeadSlot:       0,
 			HeadRoot:       make([]byte, 32),
@@ -158,7 +158,7 @@ func TestStatusRPCHandler_ReturnsHelloMessage(t *testing.T) {
 	stream1, err := p1.BHost.NewStream(context.Background(), p2.BHost.ID(), pcl)
 	require.NoError(t, err)
 
-	err = r.statusRPCHandler(context.Background(), &pb.Status{
+	err = r.statusRPCHandler(context.Background(), &carrierp2ppbv1.Status{
 		ForkDigest:     digest[:],
 		FinalizedRoot:  make([]byte, 32),
 		FinalizedEpoch: 3,
@@ -176,12 +176,12 @@ func TestHandshakeHandlers_Roundtrip(t *testing.T) {
 	p1 := p2ptest.NewTestP2P(t)
 	p2 := p2ptest.NewTestP2P(t)
 
-	p1.LocalMetadata = &pb.MetaData{
+	p1.LocalMetadata = &carrierp2ppbv1.MetaData{
 		SeqNumber: 2,
 		Attnets:   bytesutil.PadTo([]byte{'A', 'B'}, 8),
 	}
 
-	p2.LocalMetadata = &pb.MetaData{
+	p2.LocalMetadata = &carrierp2ppbv1.MetaData{
 		SeqNumber: 2,
 		Attnets:   bytesutil.PadTo([]byte{'C', 'D'}, 8),
 	}
@@ -215,10 +215,10 @@ func TestHandshakeHandlers_Roundtrip(t *testing.T) {
 	wg.Add(1)
 	p2.BHost.SetStreamHandler(pcl, func(stream network.Stream) {
 		defer wg.Done()
-		out := &pb.Status{}
+		out := &carrierp2ppbv1.Status{}
 		require.NoError(t, r.cfg.P2P.Encoding().DecodeWithMaxLength(stream, out))
 		log.WithField("status", out).Warn("received status")
-		resp := &pb.Status{
+		resp := &carrierp2ppbv1.Status{
 			HeadSlot:       0,
 			HeadRoot:       make([]byte, 32),
 			ForkDigest:     make([]byte, 4),
@@ -307,11 +307,11 @@ func TestStatusRPCRequest_RequestSent(t *testing.T) {
 	wg.Add(1)
 	p2.BHost.SetStreamHandler(pcl, func(stream network.Stream) {
 		defer wg.Done()
-		out := &pb.Status{}
+		out := &carrierp2ppbv1.Status{}
 		require.NoError(t, r.cfg.P2P.Encoding().DecodeWithMaxLength(stream, out))
 		digest, err := r.forkDigest()
 		require.NoError(t, err)
-		expected := &pb.Status{
+		expected := &carrierp2ppbv1.Status{
 			ForkDigest:     digest[:],
 			HeadSlot:       0,
 			HeadRoot:       make([]byte, 32),
@@ -336,8 +336,8 @@ func TestStatusRPCRequest_RequestSent(t *testing.T) {
 func TestStatusRPCRequest_BadPeerHandshake(t *testing.T) {
 	p1 := p2ptest.NewTestP2P(t)
 	p2 := p2ptest.NewTestP2P(t)
-	p1.LocalMetadata = &pb.MetaData{}
-	p2.LocalMetadata = &pb.MetaData{
+	p1.LocalMetadata = &carrierp2ppbv1.MetaData{}
+	p2.LocalMetadata = &carrierp2ppbv1.MetaData{
 		SeqNumber:            1,
 		Attnets:              []byte{},
 	}
@@ -358,9 +358,9 @@ func TestStatusRPCRequest_BadPeerHandshake(t *testing.T) {
 	wg.Add(1)
 	p2.BHost.SetStreamHandler(pcl, func(stream network.Stream) {
 		defer wg.Done()
-		out := &pb.Status{}
+		out := &carrierp2ppbv1.Status{}
 		require.NoError(t, r.cfg.P2P.Encoding().DecodeWithMaxLength(stream, out))
-		expected := &pb.Status{
+		expected := &carrierp2ppbv1.Status{
 			ForkDigest:     []byte{1, 1, 1, 1},
 			HeadSlot:       0,
 			HeadRoot:       make([]byte, 32),

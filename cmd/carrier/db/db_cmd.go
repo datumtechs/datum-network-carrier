@@ -1,8 +1,8 @@
 package db
 
 import (
-	"github.com/Metisnetwork/Metis-Carrier/cmd"
-	"github.com/Metisnetwork/Metis-Carrier/common/flags"
+	"github.com/datumtechs/datum-network-carrier/cmd"
+	"github.com/datumtechs/datum-network-carrier/common/flags"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 )

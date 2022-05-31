@@ -3,7 +3,7 @@ package db_test
 import (
 	"bytes"
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/db"
+	"github.com/datumtechs/datum-network-carrier/db"
 	"io/ioutil"
 	"os"
 	"strconv"

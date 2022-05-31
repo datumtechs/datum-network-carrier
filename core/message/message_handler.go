@@ -2,17 +2,18 @@ package message
 
 import (
 	"encoding/json"
-	auth2 "github.com/Metisnetwork/Metis-Carrier/ach/auth"
-	"github.com/Metisnetwork/Metis-Carrier/common/feed"
-	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
-	"github.com/Metisnetwork/Metis-Carrier/core/rawdb"
-	"github.com/Metisnetwork/Metis-Carrier/core/resource"
-	"github.com/Metisnetwork/Metis-Carrier/core/task"
-	"github.com/Metisnetwork/Metis-Carrier/event"
-	pb "github.com/Metisnetwork/Metis-Carrier/lib/api"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/rpc/backend"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	auth2 "github.com/datumtechs/datum-network-carrier/ach/auth"
+	"github.com/datumtechs/datum-network-carrier/common/feed"
+	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	"github.com/datumtechs/datum-network-carrier/core/rawdb"
+	"github.com/datumtechs/datum-network-carrier/core/resource"
+	"github.com/datumtechs/datum-network-carrier/core/task"
+	"github.com/datumtechs/datum-network-carrier/event"
+	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
+	"github.com/datumtechs/datum-network-carrier/rpc/backend"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"sync"
 	"time"
 )
@@ -314,8 +315,8 @@ func (m *MessageHandler) BroadcastIdentityMsg(msg *types.IdentityMsg) {
 
 	// add identity to local db
 	identity := msg.GetOrganization()
-	identity.DataStatus = libtypes.DataStatus_DataStatus_Valid
-	identity.Status = libtypes.CommonStatus_CommonStatus_Valid
+	identity.DataStatus = commonconstantpb.DataStatus_DataStatus_Valid
+	identity.Status = commonconstantpb.CommonStatus_CommonStatus_Valid
 	if err := m.resourceMng.GetDB().StoreIdentity(identity); nil != err {
 		log.WithError(err).Errorf("Failed to store local org identity on MessageHandler with broadcast identity, identityId: {%s}", msg.GetOwnerIdentityId())
 		return
@@ -341,7 +342,7 @@ func (m *MessageHandler) BroadcastIdentityRevokeMsg() {
 	}
 
 	// what if running task, can not revoke identity
-	jobNodes, err := m.resourceMng.GetDB().QueryRegisterNodeList(pb.PrefixTypeJobNode)
+	jobNodes, err := m.resourceMng.GetDB().QueryRegisterNodeList(carrierapipb.PrefixTypeJobNode)
 	if rawdb.IsNoDBNotFoundErr(err) {
 		log.WithError(err).Errorf("query all jobNode failed")
 		return
@@ -384,13 +385,13 @@ func (m *MessageHandler) BroadcastIdentityRevokeMsg() {
 
 	// remove identity from dataCenter
 	if err := m.resourceMng.GetDB().RevokeIdentity(
-		types.NewIdentity(&libtypes.IdentityPB{
+		types.NewIdentity(&carriertypespb.IdentityPB{
 			NodeName:   identity.GetNodeName(),
 			NodeId:     identity.GetNodeId(),
 			IdentityId: identity.GetIdentityId(),
 			DataId:     "",
-			DataStatus: libtypes.DataStatus_DataStatus_Invalid,
-			Status:     libtypes.CommonStatus_CommonStatus_Invalid,
+			DataStatus: commonconstantpb.DataStatus_DataStatus_Invalid,
+			Status:     commonconstantpb.CommonStatus_CommonStatus_Invalid,
 			Credential: "",
 		})); nil != err {
 		log.WithError(err).Errorf("Failed to remove org identity to remote on MessageHandler with revoke identity, identityId: {%s}", identity.GetIdentityId())
@@ -422,7 +423,7 @@ func (m *MessageHandler) BroadcastPowerMsgArr(powerMsgArr types.PowerMsgArr) {
 
 		// set powerId to resource and change state
 		resource.GetData().DataId = msg.GetPowerId()
-		resource.GetData().State = libtypes.PowerState_PowerState_Released
+		resource.GetData().State = commonconstantpb.PowerState_PowerState_Released
 
 		// check jobNode wether connected?
 		client, ok := m.resourceMng.QueryJobNodeClient(msg.GetJobNodeId())
@@ -460,13 +461,13 @@ func (m *MessageHandler) BroadcastPowerMsgArr(powerMsgArr types.PowerMsgArr) {
 		}
 		// TODO 填充 nonce
 		// publish to global
-		if err := m.resourceMng.GetDB().InsertResource(types.NewResource(&libtypes.ResourcePB{
+		if err := m.resourceMng.GetDB().InsertResource(types.NewResource(&carriertypespb.ResourcePB{
 			Owner:  identity,
 			DataId: msg.GetPowerId(),
 			// the status of data for local storage, 1 means valid, 2 means invalid
-			DataStatus: libtypes.DataStatus_DataStatus_Valid,
+			DataStatus: commonconstantpb.DataStatus_DataStatus_Valid,
 			// resource status, eg: create/release/revoke
-			State: libtypes.PowerState_PowerState_Released,
+			State: commonconstantpb.PowerState_PowerState_Released,
 			// unit: byte
 			TotalMem: resource.GetData().GetTotalMem(),
 			UsedMem:  0,
@@ -530,7 +531,7 @@ func (m *MessageHandler) BroadcastPowerRevokeMsgArr(powerRevokeMsgArr types.Powe
 
 		// remove powerId from local resource and change state
 		resource.GetData().DataId = ""
-		resource.GetData().State = libtypes.PowerState_PowerState_Revoked
+		resource.GetData().State = commonconstantpb.PowerState_PowerState_Revoked
 		// clean used resource value
 		resource.GetData().UsedBandwidth = 0
 		resource.GetData().UsedDisk = 0
@@ -545,13 +546,13 @@ func (m *MessageHandler) BroadcastPowerRevokeMsgArr(powerRevokeMsgArr types.Powe
 		}
 
 		// remove from global
-		if err := m.resourceMng.GetDB().RevokeResource(types.NewResource(&libtypes.ResourcePB{
+		if err := m.resourceMng.GetDB().RevokeResource(types.NewResource(&carriertypespb.ResourcePB{
 			Owner:  identity,
 			DataId: revoke.GetPowerId(),
 			// the status of data for local storage, 1 means valid, 2 means invalid
-			DataStatus: libtypes.DataStatus_DataStatus_Invalid,
+			DataStatus: commonconstantpb.DataStatus_DataStatus_Invalid,
 			// resource status, eg: create/release/revoke
-			State:    libtypes.PowerState_PowerState_Revoked,
+			State:    commonconstantpb.PowerState_PowerState_Revoked,
 			UpdateAt: timeutils.UnixMsecUint64(),
 		})); nil != err {
 			log.WithError(err).Errorf("Failed to remove dataCenter resource on MessageHandler with revoke power, powerId: {%s}, jobNodeId: {%s}",
@@ -773,21 +774,21 @@ func (m *MessageHandler) BroadcastMetadataAuthMsgArr(metadataAuthMsgArr types.Me
 		}
 		// TODO 填充 nonce
 		// Store metadataAuthority
-		if err := m.authManager.ApplyMetadataAuthority(types.NewMetadataAuthority(&libtypes.MetadataAuthorityPB{
+		if err := m.authManager.ApplyMetadataAuthority(types.NewMetadataAuthority(&carriertypespb.MetadataAuthorityPB{
 			MetadataAuthId:  msg.GetMetadataAuthId(),
 			User:            msg.GetUser(),
 			UserType:        msg.GetUserType(),
 			Auth:            msg.GetMetadataAuthority(),
-			AuditOption:     libtypes.AuditMetadataOption_Audit_Pending,
+			AuditOption:     commonconstantpb.AuditMetadataOption_Audit_Pending,
 			AuditSuggestion: "",
-			UsedQuo: &libtypes.MetadataUsedQuo{
+			UsedQuo: &carriertypespb.MetadataUsedQuo{
 				UsageType: msg.GetMetadataAuthority().GetUsageRule().GetUsageType(),
 				Expire:    false, // Initialized zero value
 				UsedTimes: 0,     // Initialized zero value
 			},
 			ApplyAt: msg.GetCreateAt(),
 			AuditAt: 0,
-			State:   libtypes.MetadataAuthorityState_MAState_Released,
+			State:   commonconstantpb.MetadataAuthorityState_MAState_Released,
 			Sign:    msg.GetSign(),
 		})); nil != err {
 			log.WithError(err).Errorf("Failed to store metadataAuth to dataCenter on MessageHandler with broadcast metadataAuth, metadataAuthId: {%s}, metadataId: {%s}, userType: {%s}, user:{%s}",
@@ -820,21 +821,21 @@ func (m *MessageHandler) BroadcastMetadataAuthRevokeMsgArr(metadataAuthRevokeMsg
 		}
 
 		// The data authorization application information that has been audited and cannot be revoked
-		if metadataAuth.GetData().GetAuditOption() != libtypes.AuditMetadataOption_Audit_Pending {
+		if metadataAuth.GetData().GetAuditOption() != commonconstantpb.AuditMetadataOption_Audit_Pending {
 			log.Errorf("the metadataAuth has audit on MessageHandler with revoke metadataAuth, metadataAuthId: {%s}, user:{%s}, state: {%s}",
 				revoke.GetMetadataAuthId(), revoke.GetUser(), metadataAuth.GetData().GetAuditOption().String())
 			continue
 		}
 
 		// The data authorization application information that has been `invalidated` or has been `revoked` is not allowed to be revoked
-		if metadataAuth.GetData().GetState() != libtypes.MetadataAuthorityState_MAState_Released {
+		if metadataAuth.GetData().GetState() != commonconstantpb.MetadataAuthorityState_MAState_Released {
 			log.Errorf("state of metadataAuth is wrong on MessageHandler with revoke metadataAuth, metadataAuthId: {%s}, user:{%s}, state: {%s}",
 				revoke.GetMetadataAuthId(), revoke.GetUser(), metadataAuth.GetData().GetState().String())
 			continue
 		}
 
 		// change state of metadataAuth from `release` to `revoke`
-		metadataAuth.GetData().State = libtypes.MetadataAuthorityState_MAState_Revoked
+		metadataAuth.GetData().State = commonconstantpb.MetadataAuthorityState_MAState_Revoked
 		// update metadataAuth from datacenter
 		if err := m.resourceMng.GetDB().UpdateMetadataAuthority(metadataAuth); nil != err {
 			log.WithError(err).Errorf("Failed to update metadataAuth to dataCenter on MessageHandler with revoke metadataAuth, metadataAuthId: {%s}, user:{%s}",

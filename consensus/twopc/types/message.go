@@ -2,9 +2,10 @@ package types
 
 import (
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/common"
-	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/common"
+	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"strings"
 	"sync"
 	"time"
@@ -76,18 +77,18 @@ type OrgProposalState struct {
 	createAt         uint64 // the time is that the proposal state was created on current iden
 	startAt          uint64 // the time is that the proposal state was created on task sender iden
 	taskId           string
-	taskRole         libtypes.TaskRole
-	taskSender       *libtypes.TaskOrganization
-	taskOrg          *libtypes.TaskOrganization
+	taskRole         commonconstantpb.TaskRole
+	taskSender       *carriertypespb.TaskOrganization
+	taskOrg          *carriertypespb.TaskOrganization
 	periodNum        ProposalStatePeriod
 }
 
 func NewOrgProposalState(
 	proposalId common.Hash,
 	taskId string,
-	taskRole libtypes.TaskRole,
-	taskSender *libtypes.TaskOrganization,
-	taskOrg *libtypes.TaskOrganization,
+	taskRole commonconstantpb.TaskRole,
+	taskSender *carriertypespb.TaskOrganization,
+	taskOrg *carriertypespb.TaskOrganization,
 	startAt uint64,
 ) *OrgProposalState {
 
@@ -108,9 +109,9 @@ func NewOrgProposalState(
 func NewOrgProposalStateWithFields(
 	proposalId common.Hash,
 	taskId string,
-	taskRole libtypes.TaskRole,
-	taskSender *libtypes.TaskOrganization,
-	taskOrg *libtypes.TaskOrganization,
+	taskRole commonconstantpb.TaskRole,
+	taskSender *carriertypespb.TaskOrganization,
+	taskOrg *carriertypespb.TaskOrganization,
 	periodNum ProposalStatePeriod,
 	deadlineDuration uint64,
 	createAt uint64,
@@ -137,11 +138,11 @@ func (pstate *OrgProposalState) String() string {
 }
 func (pstate *OrgProposalState) GetProposalId() common.Hash        { return pstate.proposalId }
 func (pstate *OrgProposalState) GetTaskId() string                 { return pstate.taskId }
-func (pstate *OrgProposalState) GetTaskRole() libtypes.TaskRole { return pstate.taskRole }
-func (pstate *OrgProposalState) GetTaskSender() *libtypes.TaskOrganization {
+func (pstate *OrgProposalState) GetTaskRole() commonconstantpb.TaskRole { return pstate.taskRole }
+func (pstate *OrgProposalState) GetTaskSender() *carriertypespb.TaskOrganization {
 	return pstate.taskSender
 }
-func (pstate *OrgProposalState) GetTaskOrg() *libtypes.TaskOrganization { return pstate.taskOrg }
+func (pstate *OrgProposalState) GetTaskOrg() *carriertypespb.TaskOrganization { return pstate.taskOrg }
 func (pstate *OrgProposalState) GetPeriodNum() ProposalStatePeriod         { return pstate.periodNum }
 func (pstate *OrgProposalState) GetDeadlineDuration() uint64               { return pstate.deadlineDuration }
 func (pstate *OrgProposalState) GetCreateAt() uint64                       { return pstate.createAt }
@@ -253,7 +254,7 @@ func (pstate *OrgProposalState) ChangeToFinished() {
 type ProposalStateMonitor struct {
 	proposalId common.Hash
 	partyId    string
-	sender     *libtypes.TaskOrganization
+	sender     *carriertypespb.TaskOrganization
 	orgState   *OrgProposalState
 	when       int64 // target timestamp
 	next       int64
@@ -282,7 +283,7 @@ func (psm *ProposalStateMonitor) String() string {
 func (psm *ProposalStateMonitor) GetIndex() int                                { return psm.index }
 func (psm *ProposalStateMonitor) GetProposalId() common.Hash                   { return psm.proposalId }
 func (psm *ProposalStateMonitor) GetPartyId() string                           { return psm.partyId }
-func (psm *ProposalStateMonitor) GetTaskSender() *libtypes.TaskOrganization { return psm.sender }
+func (psm *ProposalStateMonitor) GetTaskSender() *carriertypespb.TaskOrganization { return psm.sender }
 func (psm *ProposalStateMonitor) GetOrgState() *OrgProposalState               { return psm.orgState }
 func (psm *ProposalStateMonitor) GetWhen() int64                               { return psm.when }
 func (psm *ProposalStateMonitor) GetNext() int64                               { return psm.next }

@@ -2,18 +2,18 @@ package types
 
 import (
 	"bytes"
-	"github.com/Metisnetwork/Metis-Carrier/common"
-	"github.com/Metisnetwork/Metis-Carrier/lib/types"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/common"
+	carriertypespb"github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"gotest.tools/assert"
 	"testing"
 )
 
-var testTaskdata = NewTask(&types.TaskPB{
+var testTaskdata = NewTask(&carriertypespb.TaskPB{
 	DataId:     "",
-	DataStatus: libtypes.DataStatus_DataStatus_Unknown,
+	DataStatus: commonconstantpb.DataStatus_DataStatus_Unknown,
 	TaskId:     "",
-	State:      libtypes.TaskState_TaskState_Unknown,
+	State:      commonconstantpb.TaskState_TaskState_Unknown,
 	Reason:     "",
 	Desc:       "",
 	TaskEvents: nil,
@@ -41,17 +41,17 @@ func TestTaskDataEncode(t *testing.T) {
 
 func TestTaskHashEqual(t *testing.T) {
 
-	task1 := NewTask(&types.TaskPB{
+	task1 := NewTask(&carriertypespb.TaskPB{
 		TaskId: "0xwqrqrqwr",
 		TaskName: "Gavin",
-		UserType: libtypes.UserType_User_1,
+		UserType: commonconstantpb.UserType_User_1,
 		User: "0x34234242",
 	})
 
-	task2 := NewTask(&types.TaskPB{
+	task2 := NewTask(&carriertypespb.TaskPB{
 		TaskId: "0xwqrqrqwr",
 		TaskName: "Gavin",
-		UserType: libtypes.UserType_User_1,
+		UserType: commonconstantpb.UserType_User_1,
 		User: "0x34234242",
 	})
 	assert.Equal(t, task1.Hash(), task2.Hash(), "hash is not same")

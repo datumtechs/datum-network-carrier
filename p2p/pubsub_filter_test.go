@@ -2,7 +2,7 @@ package p2p
 
 import (
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/p2p/encoder"
+	"github.com/datumtechs/datum-network-carrier/p2p/encoder"
 	"testing"
 	"time"
 )

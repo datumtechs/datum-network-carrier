@@ -2,8 +2,8 @@ package handler
 
 import (
 	"context"
-	"github.com/Metisnetwork/Metis-Carrier/common/traceutil"
-	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
+	"github.com/datumtechs/datum-network-carrier/common/traceutil"
+	carriertwopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
 	"github.com/libp2p/go-libp2p-core/peer"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	"go.opencensus.io/trace"
@@ -28,7 +28,7 @@ func (s *Service) validateConfirmVotePubSub(ctx context.Context, pid peer.ID, ms
 		return pubsub.ValidationReject
 	}
 
-	message, ok := m.(*twopcpb.ConfirmVote)
+	message, ok := m.(*carriertwopcpb.ConfirmVote)
 	if !ok {
 		log.Errorf("Invalid message type in the validateConfirmVotePubSub, typ: %T", m)
 		return pubsub.ValidationReject

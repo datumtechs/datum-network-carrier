@@ -2,12 +2,12 @@ package handler
 
 import (
 	"context"
-	"github.com/Metisnetwork/Metis-Carrier/common/runutil"
-	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
-	pb "github.com/Metisnetwork/Metis-Carrier/lib/p2p/v1"
-	"github.com/Metisnetwork/Metis-Carrier/p2p"
-	"github.com/Metisnetwork/Metis-Carrier/p2p/peers"
-	p2ptypes "github.com/Metisnetwork/Metis-Carrier/p2p/types"
+	"github.com/datumtechs/datum-network-carrier/common/runutil"
+	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	carrierp2ppbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
+	"github.com/datumtechs/datum-network-carrier/p2p"
+	"github.com/datumtechs/datum-network-carrier/p2p/peers"
+	p2ptypes "github.com/datumtechs/datum-network-carrier/p2p/types"
 	libp2pcore "github.com/libp2p/go-libp2p-core"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -89,7 +89,7 @@ func (s *Service) sendRPCStatusRequest(ctx context.Context, id peer.ID) error {
 		return err
 	}
 	//TODO: need to change....
-	resp := &pb.Status{
+	resp := &carrierp2ppbv1.Status{
 		ForkDigest:     forkDigest[:],
 		FinalizedRoot:  make([]byte, 32),
 		FinalizedEpoch: 0,
@@ -116,7 +116,7 @@ func (s *Service) sendRPCStatusRequest(ctx context.Context, id peer.ID) error {
 		return errors.New(errMsg)
 	}
 
-	msg := &pb.Status{}
+	msg := &carrierp2ppbv1.Status{}
 	if err := s.cfg.P2P.Encoding().DecodeWithMaxLength(stream, msg); err != nil {
 		log.WithField("peer", id).WithError(err).Debug("sendRPCStatusRequest:TODO: DecodeWithMaxLength failed")
 		return err
@@ -152,9 +152,9 @@ func (s *Service) statusRPCHandler(ctx context.Context, msg interface{}, stream 
 	defer cancel()
 	SetRPCStreamDeadlines(stream)
 	log := log.WithField("handler", "status")
-	m, ok := msg.(*pb.Status)
+	m, ok := msg.(*carrierp2ppbv1.Status)
 	if !ok {
-		return errors.New("message is not type *pb.Status")
+		return errors.New("message is not type *carrierp2ppbv1.Status")
 	}
 	log.WithField("peer", stream.Conn().ID()).Debug("statusRPCHandler:TODO: receive status message")
 	if err := s.rateLimiter.validateRequest(stream, 1); err != nil {
@@ -220,7 +220,7 @@ func (s *Service) respondWithStatus(ctx context.Context, stream network.Stream) 
 	if err != nil {
 		return err
 	}
-	resp := &pb.Status{
+	resp := &carrierp2ppbv1.Status{
 		ForkDigest:     forkDigest[:],
 		FinalizedRoot:  make([]byte, 32),
 		FinalizedEpoch: 0,
@@ -235,6 +235,6 @@ func (s *Service) respondWithStatus(ctx context.Context, stream network.Stream) 
 	return err
 }
 
-func (s *Service) validateStatusMessage(ctx context.Context, msg *pb.Status) error {
+func (s *Service) validateStatusMessage(ctx context.Context, msg *carrierp2ppbv1.Status) error {
 	return nil
 }

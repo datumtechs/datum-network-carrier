@@ -2,8 +2,8 @@ package handler
 
 import (
 	"context"
-	"github.com/Metisnetwork/Metis-Carrier/common/traceutil"
-	librpcpb "github.com/Metisnetwork/Metis-Carrier/lib/rpc/debug/v1"
+	"github.com/datumtechs/datum-network-carrier/common/traceutil"
+	carrierrpcdebugpbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
 	"github.com/libp2p/go-libp2p-core/peer"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	"go.opencensus.io/trace"
@@ -29,7 +29,7 @@ func (s *Service) validateGossipTestData(ctx context.Context, pid peer.ID, msg *
 		return pubsub.ValidationReject
 	}
 
-	gossip, ok := m.(*librpcpb.GossipTestData)
+	gossip, ok := m.(*carrierrpcdebugpbv1.GossipTestData)
 	if !ok {
 		log.Errorf("Invalid message type in the validateGossipTestData, typ: %T", m)
 		return pubsub.ValidationReject

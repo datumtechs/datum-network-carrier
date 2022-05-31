@@ -3,16 +3,16 @@ package types
 import (
 	"bytes"
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/common"
-	"github.com/Metisnetwork/Metis-Carrier/common/bytesutil"
-	"github.com/Metisnetwork/Metis-Carrier/common/rlputil"
-	taskmngpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/taskmng"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/common"
+	"github.com/datumtechs/datum-network-carrier/common/bytesutil"
+	"github.com/datumtechs/datum-network-carrier/common/rlputil"
+	carriernetmsgtaskmngpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/taskmng"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 )
 
 type TaskResultMsg struct {
 	MsgOption     *MsgOption
-	TaskEventList []*libtypes.TaskEvent
+	TaskEventList []*carriertypespb.TaskEvent
 	CreateAt      uint64
 	Sign          []byte
 }
@@ -61,12 +61,12 @@ func (msg *TaskResultMsg) Hash() common.Hash {
 
 
 func (msg *TaskResultMsg) GetMsgOption() *MsgOption                { return msg.MsgOption }
-func (msg *TaskResultMsg) GetTaskEventList() []*libtypes.TaskEvent { return msg.TaskEventList }
+func (msg *TaskResultMsg) GetTaskEventList() []*carriertypespb.TaskEvent { return msg.TaskEventList }
 func (msg *TaskResultMsg) GetCreateAt() uint64                     { return msg.CreateAt }
 func (msg *TaskResultMsg) GetSign() []byte                         { return msg.Sign }
 
-func ConvertTaskResultMsg(msg *TaskResultMsg) *taskmngpb.TaskResultMsg {
-	return &taskmngpb.TaskResultMsg{
+func ConvertTaskResultMsg(msg *TaskResultMsg) *carriernetmsgtaskmngpb.TaskResultMsg {
+	return &carriernetmsgtaskmngpb.TaskResultMsg{
 		MsgOption:     ConvertMsgOption(msg.GetMsgOption()),
 		TaskEventList: ConvertTaskEventArr(msg.GetTaskEventList()),
 		CreateAt:      msg.GetCreateAt(),
@@ -74,7 +74,7 @@ func ConvertTaskResultMsg(msg *TaskResultMsg) *taskmngpb.TaskResultMsg {
 	}
 }
 
-func FetchTaskResultMsg(msg *taskmngpb.TaskResultMsg) *TaskResultMsg {
+func FetchTaskResultMsg(msg *carriernetmsgtaskmngpb.TaskResultMsg) *TaskResultMsg {
 	return &TaskResultMsg{
 		MsgOption:     FetchMsgOption(msg.GetMsgOption()),
 		TaskEventList: FetchTaskEventArr(msg.GetTaskEventList()),
@@ -117,7 +117,7 @@ func (msg *TaskResourceUsageMsg) GetUsage() *TaskResuorceUsage { return msg.Usag
 func (msg *TaskResourceUsageMsg) GetCreateAt() uint64          { return msg.CreateAt }
 func (msg *TaskResourceUsageMsg) GetSign() []byte              { return msg.Sign }
 
-func FetchTaskResourceUsageMsg(msg *taskmngpb.TaskResourceUsageMsg) *TaskResourceUsageMsg {
+func FetchTaskResourceUsageMsg(msg *carriernetmsgtaskmngpb.TaskResourceUsageMsg) *TaskResourceUsageMsg {
 	return &TaskResourceUsageMsg{
 		MsgOption: FetchMsgOption(msg.GetMsgOption()),
 		Usage: NewTaskResuorceUsage(
@@ -171,7 +171,7 @@ func (msg *TaskTerminateTaskMngMsg) GetTaskId() string        { return msg.TaskI
 func (msg *TaskTerminateTaskMngMsg) GetCreateAt() uint64      { return msg.CreateAt }
 func (msg *TaskTerminateTaskMngMsg) GetSign() []byte          { return msg.Sign }
 
-func FetchTaskTerminateTaskMngMsg(msg *taskmngpb.TaskTerminateMsg) *TaskTerminateTaskMngMsg {
+func FetchTaskTerminateTaskMngMsg(msg *carriernetmsgtaskmngpb.TaskTerminateMsg) *TaskTerminateTaskMngMsg {
 	return &TaskTerminateTaskMngMsg{
 		MsgOption: FetchMsgOption(msg.GetMsgOption()),
 		TaskId:    string(msg.GetTaskId()),

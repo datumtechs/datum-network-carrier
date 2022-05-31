@@ -2,9 +2,9 @@ package handler
 
 import (
 	"context"
-	pb "github.com/Metisnetwork/Metis-Carrier/lib/p2p/v1"
-	p2ptest "github.com/Metisnetwork/Metis-Carrier/p2p/testing"
-	p2ptypes "github.com/Metisnetwork/Metis-Carrier/p2p/types"
+	carrierp2ppbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
+	p2ptest "github.com/datumtechs/datum-network-carrier/p2p/testing"
+	p2ptypes "github.com/datumtechs/datum-network-carrier/p2p/types"
 	"github.com/ethereum/go-ethereum/p2p/enr"
 	"github.com/kevinms/leakybucket-go"
 	"github.com/libp2p/go-libp2p-core/network"
@@ -22,12 +22,12 @@ func TestPingRPCHandler_ReceivesPing(t *testing.T) {
 	p2 := p2ptest.NewTestP2P(t)
 	p1.Connect(p2)
 	assert.Equal(t, 1, len(p1.BHost.Network().Peers()), "Expected peers to be connected")
-	p1.LocalMetadata = &pb.MetaData{
+	p1.LocalMetadata = &carrierp2ppbv1.MetaData{
 		SeqNumber: 2,
 		Attnets:   []byte{'A', 'B'},
 	}
 
-	p2.LocalMetadata = &pb.MetaData{
+	p2.LocalMetadata = &carrierp2ppbv1.MetaData{
 		SeqNumber: 2,
 		Attnets:   []byte{'C', 'D'},
 	}
@@ -77,12 +77,12 @@ func TestPingRPCHandler_SendsPing(t *testing.T) {
 	p2 := p2ptest.NewTestP2P(t)
 	p1.Connect(p2)
 	assert.Equal(t, 1, len(p1.BHost.Network().Peers()), "Expected peers to be connected")
-	p1.LocalMetadata = &pb.MetaData{
+	p1.LocalMetadata = &carrierp2ppbv1.MetaData{
 		SeqNumber: 2,
 		Attnets:   []byte{'A', 'B'},
 	}
 
-	p2.LocalMetadata = &pb.MetaData{
+	p2.LocalMetadata = &carrierp2ppbv1.MetaData{
 		SeqNumber: 2,
 		Attnets:   []byte{'C', 'D'},
 	}
@@ -139,12 +139,12 @@ func TestPingRPCHandler_BadSequenceNumber(t *testing.T) {
 	p2 := p2ptest.NewTestP2P(t)
 	p1.Connect(p2)
 	assert.Equal(t, 1, len(p1.BHost.Network().Peers()), "Expected peers to be connected")
-	p1.LocalMetadata = &pb.MetaData{
+	p1.LocalMetadata = &carrierp2ppbv1.MetaData{
 		SeqNumber: 2,
 		Attnets:   []byte{'A', 'B'},
 	}
 
-	p2.LocalMetadata = &pb.MetaData{
+	p2.LocalMetadata = &carrierp2ppbv1.MetaData{
 		SeqNumber: 2,
 		Attnets:   []byte{'C', 'D'},
 	}
@@ -157,7 +157,7 @@ func TestPingRPCHandler_BadSequenceNumber(t *testing.T) {
 		rateLimiter: newRateLimiter(p1),
 	}
 
-	badMetadata := &pb.MetaData{
+	badMetadata := &carrierp2ppbv1.MetaData{
 		SeqNumber: 3,
 		Attnets:   []byte{'E', 'F'},
 	}

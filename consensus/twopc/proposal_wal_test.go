@@ -3,14 +3,14 @@ package twopc
 import (
 	"bytes"
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/common"
-	"github.com/Metisnetwork/Metis-Carrier/common/bytesutil"
-	"github.com/Metisnetwork/Metis-Carrier/common/rlputil"
-	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
-	ctypes "github.com/Metisnetwork/Metis-Carrier/consensus/twopc/types"
-	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/datumtechs/datum-network-carrier/common"
+	"github.com/datumtechs/datum-network-carrier/common/bytesutil"
+	"github.com/datumtechs/datum-network-carrier/common/rlputil"
+	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	ctypes "github.com/datumtechs/datum-network-carrier/consensus/twopc/types"
+	carriertwopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/gogo/protobuf/proto"
 	"gotest.tools/assert"
 	"math/rand"
@@ -70,13 +70,13 @@ func TestUpdateOrgProposalState(t *testing.T) {
 			generateProposalId(),
 			"TASK001",
 			3,
-			&libtypes.TaskOrganization{
+			&carriertypespb.TaskOrganization{
 				PartyId:    value + "",
 				NodeName:   value + "NodeName",
 				NodeId:     value + "NodeId",
 				IdentityId: value + "IdentityId",
 			},
-			&libtypes.TaskOrganization{
+			&carriertypespb.TaskOrganization{
 				PartyId:    value + "P2",
 				NodeName:   value + "NodeName",
 				NodeId:     value + "NodeId",
@@ -90,22 +90,22 @@ func TestUpdateOrgProposalState(t *testing.T) {
 func TestUpdateConfirmTaskPeerInfo(t *testing.T) {
 	db := generateWalDB()
 	proposalId := generateProposalId()
-	peerDesc := &twopcpb.ConfirmTaskPeerInfo{
-		DataSupplierPeerInfos: []*twopcpb.TaskPeerInfo{
+	peerDesc := &carriertwopcpb.ConfirmTaskPeerInfo{
+		DataSupplierPeerInfos: []*carriertwopcpb.TaskPeerInfo{
 			{
 				Ip:      []byte("192.157.222.112"),
 				Port:    []byte("8890"),
 				PartyId: []byte("P1"),
 			},
 		},
-		PowerSupplierPeerInfos: []*twopcpb.TaskPeerInfo{
+		PowerSupplierPeerInfos: []*carriertwopcpb.TaskPeerInfo{
 			{
 				Ip:      []byte("192.157.222.113"),
 				Port:    []byte("8889"),
 				PartyId: []byte("P0"),
 			},
 		},
-		ResultReceiverPeerInfos: []*twopcpb.TaskPeerInfo{
+		ResultReceiverPeerInfos: []*carriertwopcpb.TaskPeerInfo{
 			{
 				Ip:      []byte("192.157.222.114"),
 				Port:    []byte("8888"),
@@ -127,7 +127,7 @@ func TestUpdatePrepareVotes(t *testing.T) {
 				SenderPartyId:   value + "",
 				ReceiverRole:    2,
 				ReceiverPartyId: "P2",
-				Owner: &libtypes.TaskOrganization{
+				Owner: &carriertypespb.TaskOrganization{
 					PartyId:    "P1",
 					NodeName:   "NodeName",
 					NodeId:     "NodeId",
@@ -159,7 +159,7 @@ func TestUpdateConfirmVotes(t *testing.T) {
 				SenderPartyId:   value + "",
 				ReceiverRole:    2,
 				ReceiverPartyId: "P2",
-				Owner: &libtypes.TaskOrganization{
+				Owner: &carriertypespb.TaskOrganization{
 					PartyId:    "P1",
 					NodeName:   "NodeName",
 					NodeId:     "NodeId",
@@ -210,7 +210,7 @@ func TestRecoveryState(t *testing.T) {
 			if len(key) != 0 && len(value) != 0 {
 				proposalId := common.BytesToHash(key[prefixLength : prefixLength+32])
 
-				libOrgProposalState := &libtypes.OrgProposalState{}
+				libOrgProposalState := &carriertypespb.OrgProposalState{}
 				if err := proto.Unmarshal(value, libOrgProposalState); err != nil {
 					return fmt.Errorf("unmarshal org proposalState failed, %s", err)
 				}
@@ -240,7 +240,7 @@ func TestRecoveryState(t *testing.T) {
 
 	// recovery proposalPeerInfoCache (proposalId -> ConfirmTaskPeerInfo)
 	go func(wg *sync.WaitGroup, errCh chan<- error) {
-		proposalPeerInfoCache := make(map[common.Hash]*twopcpb.ConfirmTaskPeerInfo, 0)
+		proposalPeerInfoCache := make(map[common.Hash]*carriertwopcpb.ConfirmTaskPeerInfo, 0)
 		defer wg.Done()
 
 		prefixLength := len(proposalPeerInfoCachePrefix)
@@ -248,7 +248,7 @@ func TestRecoveryState(t *testing.T) {
 
 			if len(key) != 0 && len(value) != 0 {
 				proposalId := common.BytesToHash(key[prefixLength:])
-				confirmTaskPeerInfo := &twopcpb.ConfirmTaskPeerInfo{}
+				confirmTaskPeerInfo := &carriertwopcpb.ConfirmTaskPeerInfo{}
 				if err := proto.Unmarshal(value, confirmTaskPeerInfo); err != nil {
 					return fmt.Errorf("unmarshal confirmTaskPeerInfo failed, %s", err)
 				}

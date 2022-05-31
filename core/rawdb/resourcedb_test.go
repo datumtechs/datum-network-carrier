@@ -4,15 +4,15 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/common"
-	"github.com/Metisnetwork/Metis-Carrier/common/bytesutil"
-	"github.com/Metisnetwork/Metis-Carrier/common/rlputil"
-	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
-	"github.com/Metisnetwork/Metis-Carrier/db"
-	dbtype "github.com/Metisnetwork/Metis-Carrier/lib/db"
-	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/datumtechs/datum-network-carrier/common"
+	"github.com/datumtechs/datum-network-carrier/common/bytesutil"
+	"github.com/datumtechs/datum-network-carrier/common/rlputil"
+	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	"github.com/datumtechs/datum-network-carrier/db"
+	carrierdbpb "github.com/datumtechs/datum-network-carrier/pb/carrier/db"
+	carriertwopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -65,24 +65,24 @@ func RandStr(length int) string {
 	}
 	return string(result)
 }
-func NeedExecuteTask() (KeyValueStore, dbtype.TaskArrayPB) {
+func NeedExecuteTask() (KeyValueStore, carrierdbpb.TaskArrayPB) {
 	database := db.NewMemoryDatabase()
-	var taskList dbtype.TaskArrayPB
+	var taskList carrierdbpb.TaskArrayPB
 	for _, taskId := range taskIds {
-		taskPB := &libtypes.TaskPB{
+		taskPB := &carriertypespb.TaskPB{
 			TaskId: taskId,
 		}
 		task := types.NewTask(taskPB)
 		taskList.TaskList = append(taskList.TaskList, taskPB)
 		for _, partyId := range partyIds {
 			remotepid := "remotepid"
-			localTaskOrganization := &libtypes.TaskOrganization{
+			localTaskOrganization := &carriertypespb.TaskOrganization{
 				PartyId:    partyId,
 				NodeName:   "NodeName",
 				NodeId:     "NodeId_0001",
 				IdentityId: "IdentityId_0001",
 			}
-			remoteTaskOrganization := &libtypes.TaskOrganization{
+			remoteTaskOrganization := &carriertypespb.TaskOrganization{
 				PartyId:    partyId,
 				NodeName:   "NodeName",
 				NodeId:     "NodeId_0002",
@@ -94,7 +94,7 @@ func NeedExecuteTask() (KeyValueStore, dbtype.TaskArrayPB) {
 				Port:    "5555",
 				PartyId: partyId,
 			}
-			resources := &twopcpb.ConfirmTaskPeerInfo{}
+			resources := &carriertwopcpb.ConfirmTaskPeerInfo{}
 
 			_task := types.NewNeedExecuteTask(peer.ID(remotepid), 1, 2, localTaskOrganization, remoteTaskOrganization, task.GetTaskId(),
 				3, localResource, resources, nil)
@@ -125,7 +125,7 @@ func TestDeleteNeedExecuteTask(t *testing.T) {
 	RemoveNeedExecuteTaskByPartyId(database, taskId2, partyId)
 	assert.Equal(t, 11, count-1)
 }
-func MockQueryLocalTask(taskList dbtype.TaskArrayPB, taskId string) (*types.Task, error) {
+func MockQueryLocalTask(taskList carrierdbpb.TaskArrayPB, taskId string) (*types.Task, error) {
 	for _, task := range taskList.GetTaskList() {
 		if strings.EqualFold(task.TaskId, taskId) {
 			return types.NewTask(task), nil
@@ -149,7 +149,7 @@ func TestRecoveryNeedExecuteTask(t *testing.T) {
 				return fmt.Errorf("query local task failed on recover needExecuteTask from db, %s, taskId: {%s}", err, taskId)
 			}
 
-			var res libtypes.NeedExecuteTask
+			var res carriertypespb.NeedExecuteTask
 
 			if err := proto.Unmarshal(value, &res); nil != err {
 				return fmt.Errorf("Unmarshal needExecuteTask failed, %s", err)
@@ -221,8 +221,7 @@ func TestStoreMessageCache(t *testing.T) {
 	}
 
 	err = StoreMessageCache(database, &types.MetadataMsg{
-		MetadataId: "MetadataId",
-		MetadataSummary: &libtypes.MetadataSummary{
+		MetadataSummary: &carriertypespb.MetadataSummary{
 			MetadataId: "MetadataId",
 			Desc:       "",
 			Industry:   "",
@@ -239,7 +238,7 @@ func TestStoreMessageCache(t *testing.T) {
 		MetadataAuthId: "MetadataAuthId",
 		User:           "user1",
 		UserType:       2,
-		Auth:           &libtypes.MetadataAuthority{},
+		Auth:           &carriertypespb.MetadataAuthority{},
 		Sign:           []byte("sign"),
 		CreateAt:       9988,
 	})
@@ -248,7 +247,7 @@ func TestStoreMessageCache(t *testing.T) {
 	}
 
 	err = StoreMessageCache(database, &types.TaskMsg{
-		Data: types.NewTask(&libtypes.TaskPB{
+		Data: types.NewTask(&carriertypespb.TaskPB{
 			TaskId: "task:0xe7bdb5af4de9d851351c680fb0a9bfdff72bdc4ea86da3c2006d6a7a7d335e65",
 		}),
 	})
@@ -264,7 +263,7 @@ func TestQueryRemoveMetadataAuthorityMsgArr(t *testing.T) {
 		MetadataAuthId: "MetadataAuthId",
 		User:           "user1",
 		UserType:       2,
-		Auth:           &libtypes.MetadataAuthority{},
+		Auth:           &carriertypespb.MetadataAuthority{},
 		Sign:           []byte("sign"),
 		CreateAt:       9988,
 	})
@@ -318,8 +317,8 @@ func TestOrgWallet(t *testing.T) {
 	keyHex := hex.EncodeToString(crypto.FromECDSA(key))
 	addr := crypto.PubkeyToAddress(key.PublicKey)
 
-	/*if metisPay.Kms != nil {
-		if cipher, err := metisPay.Kms.Encrypt(keyHex); err != nil {
+	/*if token20Pay.Kms != nil {
+		if cipher, err := token20Pay.Kms.Encrypt(keyHex); err != nil {
 			return "", errors.New("cannot encrypt organization wallet private key")
 		} else {
 			keyHex = cipher

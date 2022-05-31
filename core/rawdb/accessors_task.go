@@ -3,9 +3,9 @@
 package rawdb
 
 import (
-	"github.com/Metisnetwork/Metis-Carrier/common"
-	dbtype "github.com/Metisnetwork/Metis-Carrier/lib/db"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/datumtechs/datum-network-carrier/common"
+	carrierdbpb "github.com/datumtechs/datum-network-carrier/pb/carrier/db"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/sirupsen/logrus"
 	"strings"
 )
@@ -86,7 +86,7 @@ func ReadRunningTask(db DatabaseReader, taskId string) *types.Task {
 	if err != nil {
 		return nil
 	}
-	var taskArray dbtype.TaskArrayPB
+	var taskArray carrierdbpb.TaskArrayPB
 	if err := taskArray.Unmarshal(blob); err != nil {
 		return nil
 	}
@@ -104,7 +104,7 @@ func ReadAllRunningTask(db DatabaseReader) []*types.Task {
 	if err != nil {
 		return nil
 	}
-	var array dbtype.TaskArrayPB
+	var array carrierdbpb.TaskArrayPB
 	if err := array.Unmarshal(blob); err != nil {
 		return nil
 	}
@@ -121,7 +121,7 @@ func WriteRunningTask(db KeyValueStore, task *types.Task) {
 	if err != nil {
 		log.Warn("Failed to load old running task", "error", err)
 	}
-	var array dbtype.TaskArrayPB
+	var array carrierdbpb.TaskArrayPB
 	if len(blob) > 0 {
 		if err := array.Unmarshal(blob); err != nil {
 			log.WithError(err).Fatal("Failed to decode old running task")
@@ -150,7 +150,7 @@ func DeleteRunningTask(db KeyValueStore, taskId string) {
 	if err != nil {
 		log.Warn("Failed to load old running task", "error", err)
 	}
-	var array dbtype.TaskArrayPB
+	var array carrierdbpb.TaskArrayPB
 	if len(blob) > 0 {
 		if err := array.Unmarshal(blob); err != nil {
 			log.WithError(err).Fatal("Failed to decode old running task")

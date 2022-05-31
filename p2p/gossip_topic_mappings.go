@@ -1,24 +1,24 @@
 package p2p
 
 import (
-	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
-	taskmngpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/taskmng"
-	librpcpb "github.com/Metisnetwork/Metis-Carrier/lib/rpc/debug/v1"
+	carriertwopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
+	carriernetmsgtaskmngpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/taskmng"
+	carrierrpcdebugpbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
 	"github.com/gogo/protobuf/proto"
 	"reflect"
 )
 
 // GossipTopicMappings represent the protocol ID to protobuf message type map for easy lookup.
 var GossipTopicMappings = map[string]proto.Message{
-	GossipTestDataTopicFormat:       &librpcpb.GossipTestData{},
-	TwoPcPrepareMsgTopicFormat:      &twopcpb.PrepareMsg{},
-	TwoPcPrepareVoteTopicFormat:     &twopcpb.PrepareVote{},
-	TwoPcConfirmMsgTopicFormat:      &twopcpb.ConfirmMsg{},
-	TwoPcConfirmVoteTopicFormat:     &twopcpb.ConfirmVote{},
-	TwoPcCommitMsgTopicFormat:       &twopcpb.CommitMsg{},
-	TaskResultMsgTopicFormat:        &taskmngpb.TaskResultMsg{},
-	TaskResourceUsageMsgTopicFormat: &taskmngpb.TaskResourceUsageMsg{},
-	TaskTerminateMsgTopicFormat:     &taskmngpb.TaskTerminateMsg{},
+	GossipTestDataTopicFormat:       &carrierrpcdebugpbv1.GossipTestData{},
+	TwoPcPrepareMsgTopicFormat:      &carriertwopcpb.PrepareMsg{},
+	TwoPcPrepareVoteTopicFormat:     &carriertwopcpb.PrepareVote{},
+	TwoPcConfirmMsgTopicFormat:      &carriertwopcpb.ConfirmMsg{},
+	TwoPcConfirmVoteTopicFormat:     &carriertwopcpb.ConfirmVote{},
+	TwoPcCommitMsgTopicFormat:       &carriertwopcpb.CommitMsg{},
+	TaskResultMsgTopicFormat:        &carriernetmsgtaskmngpb.TaskResultMsg{},
+	TaskResourceUsageMsgTopicFormat: &carriernetmsgtaskmngpb.TaskResourceUsageMsg{},
+	TaskTerminateMsgTopicFormat:     &carriernetmsgtaskmngpb.TaskTerminateMsg{},
 }
 
 // GossipTypeMapping is the inverse of GossipTopicMappings so that an arbitrary protobuf message

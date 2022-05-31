@@ -2,11 +2,11 @@ package testing
 
 import (
 	"errors"
-	"github.com/Metisnetwork/Metis-Carrier/common/feed"
-	"github.com/Metisnetwork/Metis-Carrier/event"
-	taskmngpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/taskmng"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/datumtechs/datum-network-carrier/common/feed"
+	"github.com/datumtechs/datum-network-carrier/event"
+	carriernetmsgtaskmngpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/taskmng"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"sync"
 )
@@ -88,21 +88,21 @@ type MockTaskManager struct {
 
 func (m *MockTaskManager) Start() error                                               { return nil }
 func (m *MockTaskManager) Stop() error                                                { return nil }
-func (m *MockTaskManager) ValidateTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResultMsg) error {
+func (m *MockTaskManager) ValidateTaskResultMsg(pid peer.ID, taskResultMsg *carriernetmsgtaskmngpb.TaskResultMsg) error {
 	return errors.New("invalid check")
 }
-func (m *MockTaskManager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResultMsg) error {
+func (m *MockTaskManager) OnTaskResultMsg(pid peer.ID, taskResultMsg *carriernetmsgtaskmngpb.TaskResultMsg) error {
 	return nil
 }
-func (m *MockTaskManager) ValidateTaskResourceUsageMsg(pid peer.ID, taskResourceUsageMsg *taskmngpb.TaskResourceUsageMsg) error {
+func (m *MockTaskManager) ValidateTaskResourceUsageMsg(pid peer.ID, taskResourceUsageMsg *carriernetmsgtaskmngpb.TaskResourceUsageMsg) error {
 	return errors.New("invalid check")
 }
-func (m *MockTaskManager) OnTaskResourceUsageMsg(pid peer.ID, taskResourceUsageMsg *taskmngpb.TaskResourceUsageMsg) error {
+func (m *MockTaskManager) OnTaskResourceUsageMsg(pid peer.ID, taskResourceUsageMsg *carriernetmsgtaskmngpb.TaskResourceUsageMsg) error {
 	return nil
 }
-func (m *MockTaskManager) ValidateTaskTerminateMsg(pid peer.ID, terminateMsg *taskmngpb.TaskTerminateMsg) error {
+func (m *MockTaskManager) ValidateTaskTerminateMsg(pid peer.ID, terminateMsg *carriernetmsgtaskmngpb.TaskTerminateMsg) error {
 	return errors.New("invalid check")
 }
-func (m *MockTaskManager) OnTaskTerminateMsg (pid peer.ID, terminateMsg *taskmngpb.TaskTerminateMsg) error { return nil }
-func (m *MockTaskManager) SendTaskEvent(event *libtypes.TaskEvent) error                  { return nil }
+func (m *MockTaskManager) OnTaskTerminateMsg (pid peer.ID, terminateMsg *carriernetmsgtaskmngpb.TaskTerminateMsg) error { return nil }
+func (m *MockTaskManager) SendTaskEvent(event *carriertypespb.TaskEvent) error                  { return nil }
 func (m *MockTaskManager) HandleReportResourceUsage(usage *types.TaskResuorceUsage) error { return nil }

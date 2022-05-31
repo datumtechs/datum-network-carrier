@@ -3,9 +3,9 @@ package p2p
 import (
 	"context"
 	"crypto/ecdsa"
-	pb "github.com/Metisnetwork/Metis-Carrier/lib/p2p/v1"
-	"github.com/Metisnetwork/Metis-Carrier/p2p/encoder"
-	"github.com/Metisnetwork/Metis-Carrier/p2p/peers"
+	carrierp2ppbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
+	"github.com/datumtechs/datum-network-carrier/p2p/encoder"
+	"github.com/datumtechs/datum-network-carrier/p2p/peers"
 	"github.com/ethereum/go-ethereum/p2p/enr"
 	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/connmgr"
@@ -33,7 +33,7 @@ type P2P interface {
 // Broadcaster broadcasts messages to peers over the p2p pubsub protocol.
 type Broadcaster interface {
 	Broadcast(ctx context.Context, message proto.Message) error
-	//BroadcastTask(ctx context.Context, task *libtypes.GetTaskData) error
+	//BroadcastTask(ctx context.Context, task *carriertypespb.GetTaskData) error
 }
 
 // SetStreamHandler configures p2p to handle streams of a certain topic ID.
@@ -95,6 +95,6 @@ type PeersProvider interface {
 
 // MetadataProvider returns the metadata related information for the local peer.
 type MetadataProvider interface {
-	Metadata() *pb.MetaData
+	Metadata() *carrierp2ppbv1.MetaData
 	MetadataSeq() uint64
 }
