@@ -305,6 +305,7 @@ func (metisPay *MetisPayManager) GenerateOrgWallet() (common.Address, error) {
 // Prepay returns hx.Hash, and error.
 // The complete procedure consists of two calls to MetisPay, the first is Prepay, the second is Settle.
 func (metisPay *MetisPayManager) Prepay(taskID *big.Int, taskSponsorAccount common.Address, dataTokenAddressList []common.Address) (common.Hash, error) {
+	taskIDHex := hexutil.EncodeBig(taskID)
 	if metisPay.getPrivateKey() == nil {
 		log.Errorf("cannot send Prepay transaction cause organization wallet missing")
 		return common.Hash{}, errors.New("organization private key is missing")
@@ -324,7 +325,7 @@ func (metisPay *MetisPayManager) Prepay(taskID *big.Int, taskSponsorAccount comm
 	//估算gas
 	gasEstimated, err := metisPay.estimateGas("prepay", taskID, taskSponsorAccount, new(big.Int).SetUint64(1), dataTokenAddressList, dataTokenAmountList)
 	if err != nil {
-		log.Errorf("failed to estimate gas for MetisPay.Prepay(), taskID: %s, error: %v", hexutil.EncodeBig(taskID), err)
+		log.Errorf("failed to estimate gas for MetisPay.Prepay(), taskID: %s, error: %v", taskIDHex, err)
 		return common.Hash{}, errors.New("failed to estimate gas for MetisPay.Prepay()")
 	}
 
@@ -339,14 +340,14 @@ func (metisPay *MetisPayManager) Prepay(taskID *big.Int, taskSponsorAccount comm
 	feePrepaid := new(big.Int).Mul(new(big.Int).SetUint64(gasEstimated), opts.GasPrice)
 
 	log.Debugf("Start call contract prepay(), taskID: %s, gasEstimated: %d, gasLimit: %d, gasPrice: %d, feePrepaid: %d, taskSponsorAccount: %s, dataTokenAddressList: %s, dataTokenAmountList: %s",
-		hexutil.EncodeBig(taskID), gasEstimated, opts.GasLimit, opts.GasPrice, feePrepaid, taskSponsorAccount.String(), "["+strings.Join(addrs, ",")+"]", "["+strings.Join(amounts, ",")+"]")
+		taskIDHex, gasEstimated, opts.GasLimit, opts.GasPrice, feePrepaid, taskSponsorAccount.String(), "["+strings.Join(addrs, ",")+"]", "["+strings.Join(amounts, ",")+"]")
 
 	tx, err := metisPay.contractMetisPayInstance.Prepay(opts, taskID, taskSponsorAccount, feePrepaid, dataTokenAddressList, dataTokenAmountList)
 	if err != nil {
-		log.WithError(err).Errorf("failed to call MetisPay.Prepay(), taskID: %s", hexutil.EncodeBig(taskID))
+		log.WithError(err).Errorf("failed to call MetisPay.Prepay(), taskID: %s", taskIDHex)
 		return common.Hash{}, errors.New("failed to call MetisPay.Prepay()")
 	}
-	log.Debugf("call MetisPay.Prepay() txHash:%v, taskID:%s", tx.Hash().Hex(), hexutil.EncodeBig(taskID))
+	log.Debugf("call MetisPay.Prepay() txHash:%v, taskID:%s", tx.Hash().Hex(), taskIDHex)
 
 	return tx.Hash(), nil
 }
@@ -359,6 +360,8 @@ func (metisPay *MetisPayManager) Prepay(taskID *big.Int, taskSponsorAccount comm
 // gasUsedPrepay - carrier used gas for Prepay()
 
 func (metisPay *MetisPayManager) Settle(taskID *big.Int, gasUsedPrepay uint64) (common.Hash, error) {
+	taskIDHex := hexutil.EncodeBig(taskID)
+
 	if metisPay.getPrivateKey() == nil {
 		log.Errorf("cannot send Settle transaction cause organization wallet missing")
 		return common.Hash{}, errors.New("organization private key is missing")
@@ -383,15 +386,15 @@ func (metisPay *MetisPayManager) Settle(taskID *big.Int, gasUsedPrepay uint64) (
 	//gas fee
 	totalFeeUsed := new(big.Int).Mul(new(big.Int).SetUint64(totalGasUsed), opts.GasPrice)
 
-	log.Debugf("call contract settle(),  taskID: %s, gasUsedPrepay: %d, gasEstimated: %d, gasLimit: %d, gasPrice: %d, totalFeeUsed: %d", hexutil.EncodeBig(taskID), gasUsedPrepay, gasEstimated, opts.GasLimit, opts.GasPrice, totalFeeUsed)
+	log.Debugf("call contract settle(),  taskID: %s, gasUsedPrepay: %d, gasEstimated: %d, gasLimit: %d, gasPrice: %d, totalFeeUsed: %d", taskIDHex, gasUsedPrepay, gasEstimated, opts.GasLimit, opts.GasPrice, totalFeeUsed)
 
 	//合约
 	tx, err := metisPay.contractMetisPayInstance.Settle(opts, taskID, totalFeeUsed)
 	if err != nil {
-		log.Errorf("failed to call MetisPay.Settle(), taskID: %s, error: %v", hexutil.EncodeBig(taskID), err)
+		log.Errorf("failed to call MetisPay.Settle(), taskID: %s, error: %v", taskIDHex, err)
 		return common.Hash{}, errors.New("failed to call MetisPay.Settle()")
 	}
-	log.Debugf("call MetisPay.Settle() txHash:%v, taskID:%s", tx.Hash().Hex(), hexutil.EncodeBig(taskID))
+	log.Debugf("call MetisPay.Settle() txHash:%v, taskID:%s", tx.Hash().Hex(), taskIDHex)
 
 	return tx.Hash(), nil
 }
