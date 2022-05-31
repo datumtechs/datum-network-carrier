@@ -16,31 +16,31 @@ const schemaVersionV1 = "/1"
 
 const (
 	// RPCStatusTopic defines the topic for the status rpc method.
-	RPCStatusTopic = "/rosettanet/carrier_chain/req/status" + schemaVersionV1
+	RPCStatusTopic = "/datum-network/carrier_chain/req/status" + schemaVersionV1
 	// RPCGoodByeTopic defines the topic for the goodbye rpc method.
-	RPCGoodByeTopic = "/rosettanet/carrier_chain/req/goodbye" + schemaVersionV1
+	RPCGoodByeTopic = "/datum-network/carrier_chain/req/goodbye" + schemaVersionV1
 	// RPCPingTopic defines the topic for the ping rpc method.
-	RPCPingTopic = "/rosettanet/carrier_chain/req/ping" + schemaVersionV1
+	RPCPingTopic = "/datum-network/carrier_chain/req/ping" + schemaVersionV1
 	// RPCMetaDataTopic defines the topic for the metadata rpc method.
-	RPCMetaDataTopic = "/rosettanet/carrier_chain/req/metadata" + schemaVersionV1
+	RPCMetaDataTopic = "/datum-network/carrier_chain/req/metadata" + schemaVersionV1
 
 	// RPCBlocksByRangeTopic defines the topic for the blocks by range rpc method.
-	RPCBlocksByRangeTopic = "/rosettanet/carrier_chain/req/carrier_blocks_by_range" + schemaVersionV1
+	RPCBlocksByRangeTopic = "/datum-network/carrier_chain/req/carrier_blocks_by_range" + schemaVersionV1
 
 	// for test communication.
-	RPCGossipTestDataByRangeTopic = "/rosettanet/carrier_chain/req/gossip_test_data_by_range" + schemaVersionV1
+	RPCGossipTestDataByRangeTopic = "/datum-network/carrier_chain/req/gossip_test_data_by_range" + schemaVersionV1
 
 	// for 2pc consensus
-	RPCTwoPcPrepareMsgTopic  = "/rosettanet/consensus/twopc/send_prepare_msg" + schemaVersionV1
-	RPCTwoPcPrepareVoteTopic = "/rosettanet/consensus/twopc/send_prepare_vote" + schemaVersionV1
-	RPCTwoPcConfirmMsgTopic  = "/rosettanet/consensus/twopc/send_confirm_msg" + schemaVersionV1
-	RPCTwoPcConfirmVoteTopic = "/rosettanet/consensus/twopc/send_confirm_vote" + schemaVersionV1
-	RPCTwoPcCommitMsgTopic   = "/rosettanet/consensus/twopc/send_commit_msg" + schemaVersionV1
+	RPCTwoPcPrepareMsgTopic  = "/datum-network/consensus/twopc/send_prepare_msg" + schemaVersionV1
+	RPCTwoPcPrepareVoteTopic = "/datum-network/consensus/twopc/send_prepare_vote" + schemaVersionV1
+	RPCTwoPcConfirmMsgTopic  = "/datum-network/consensus/twopc/send_confirm_msg" + schemaVersionV1
+	RPCTwoPcConfirmVoteTopic = "/datum-network/consensus/twopc/send_confirm_vote" + schemaVersionV1
+	RPCTwoPcCommitMsgTopic   = "/datum-network/consensus/twopc/send_commit_msg" + schemaVersionV1
 
 	// for task manager
-	RPCTaskResultMsgTopic        = "/rosettanet/consensus/task/send_task_result_msg" + schemaVersionV1
-	RPCTaskResourceUsageMsgTopic = "/rosettanet/consensus/task/send_task_resource_usage_msg" + schemaVersionV1
-	RPCTaskTerminateMsgTopic     = "/rosettanet/consensus/task/send_task_terminate_msg" + schemaVersionV1
+	RPCTaskResultMsgTopic        = "/datum-network/consensus/task/send_task_result_msg" + schemaVersionV1
+	RPCTaskResourceUsageMsgTopic = "/datum-network/consensus/task/send_task_resource_usage_msg" + schemaVersionV1
+	RPCTaskTerminateMsgTopic     = "/datum-network/consensus/task/send_task_terminate_msg" + schemaVersionV1
 )
 
 // RPCTopicMappings map the base message type to the rpc request.
