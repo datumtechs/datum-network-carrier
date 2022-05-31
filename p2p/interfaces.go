@@ -3,9 +3,10 @@ package p2p
 import (
 	"context"
 	"crypto/ecdsa"
-	carrierp2ppbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
+	"github.com/datumtechs/datum-network-carrier/blacklist"
 	"github.com/datumtechs/datum-network-carrier/p2p/encoder"
 	"github.com/datumtechs/datum-network-carrier/p2p/peers"
+	carrierp2ppbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
 	"github.com/ethereum/go-ethereum/p2p/enr"
 	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/connmgr"
@@ -80,6 +81,7 @@ type PeerManager interface {
 	FindPeersWithSubnet(ctx context.Context, topic string, index, threshold uint64) (bool, error)
 	AddPingMethod(reqFunc func(ctx context.Context, id peer.ID) error)
 	PeerFromAddress(addrs []string) ([]multiaddr.Multiaddr, error)
+	AddBlackList(blacklist *blacklist.IdentityBackListCache)
 }
 
 // Sender abstracts the sending functionality from libp2p.
