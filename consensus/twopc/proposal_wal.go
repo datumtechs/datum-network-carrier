@@ -1,6 +1,8 @@
 package twopc
 
 import (
+	"encoding/json"
+	"github.com/datumtechs/datum-network-carrier/blacklist"
 	"github.com/datumtechs/datum-network-carrier/common"
 	"github.com/datumtechs/datum-network-carrier/common/fileutil"
 	ctypes "github.com/datumtechs/datum-network-carrier/consensus/twopc/types"
@@ -253,7 +255,11 @@ func (w *walDB) StoreBlackTaskOrg(identityId string, info []*blacklist.Organizat
 		log.WithError(err).Errorf("Failed to query local walDB")
 		return
 	}
-	value, _ := json.Marshal(info)
+	value, err := json.Marshal(info)
+	if nil != err {
+		log.WithError(err).Errorf("marshal organization blocklist json failed")
+		return
+	}
 	if err := w.db.Put(key, value); err != nil {
 		log.WithError(err).Warnf("Warning save fail,identityId is %s", identityId)
 	}

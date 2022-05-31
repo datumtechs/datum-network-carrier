@@ -1510,9 +1510,9 @@ func (t *Twopc) Get2PcProposalConfirm(proposalId string) (*carrierrpcdebugpbv1.G
 		VoteStatus: voteStatus,
 	}, nil
 }
-func (t *Twopc) HasPrepareVoting(proposalId common.Hash, org *libtypes.TaskOrganization) bool   {
+func (t *Twopc) HasPrepareVoting(proposalId common.Hash, org *carriertypespb.TaskOrganization) bool   {
 	return t.state.HasPrepareVoting(proposalId,org)
 }
-func (t *Twopc) HasConfirmVoting(proposalId common.Hash, org *libtypes.TaskOrganization) bool   {
+func (t *Twopc) HasConfirmVoting(proposalId common.Hash, org *carriertypespb.TaskOrganization) bool   {
 	return t.state.HasConfirmVoting(proposalId,org)
 }
