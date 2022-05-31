@@ -6,7 +6,7 @@ import (
 	"github.com/datumtechs/datum-network-carrier/blacklist"
 	"github.com/datumtechs/datum-network-carrier/common"
 	"github.com/datumtechs/datum-network-carrier/consensus/twopc"
-	libtypes "github.com/datumtechs/datum-network-carrier/lib/types"
+	pbtypes "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"gotest.tools/assert"
 	"os"
@@ -59,8 +59,8 @@ func GenerateObg() *blacklist.IdentityBackListCache {
 
 func TestFindBlackOrgByWalPrefix(t *testing.T) {
 	taskOrgDatas := []*types.Task{
-		types.NewTask(&libtypes.TaskPB{
-			DataSuppliers: []*libtypes.TaskOrganization{
+		types.NewTask(&pbtypes.TaskPB{
+			DataSuppliers: []*pbtypes.TaskOrganization{
 				{
 					PartyId:    "p0",
 					NodeName:   "",
@@ -74,7 +74,7 @@ func TestFindBlackOrgByWalPrefix(t *testing.T) {
 					IdentityId: "identity:4d7b5f1f114b43b682d9c73d6d2bc189",
 				},
 			},
-			PowerSuppliers: []*libtypes.TaskOrganization{
+			PowerSuppliers: []*pbtypes.TaskOrganization{
 				{
 					PartyId:    "p2",
 					NodeName:   "",
@@ -88,7 +88,7 @@ func TestFindBlackOrgByWalPrefix(t *testing.T) {
 					IdentityId: "identity:4d7b5f1f114b43b682d9c73d6d2bc18e",
 				},
 			},
-			Receivers: []*libtypes.TaskOrganization{
+			Receivers: []*pbtypes.TaskOrganization{
 				{
 					PartyId:    "p4",
 					NodeName:   "",
@@ -97,8 +97,8 @@ func TestFindBlackOrgByWalPrefix(t *testing.T) {
 				},
 			},
 		}),
-		types.NewTask(&libtypes.TaskPB{
-			DataSuppliers: []*libtypes.TaskOrganization{
+		types.NewTask(&pbtypes.TaskPB{
+			DataSuppliers: []*pbtypes.TaskOrganization{
 				{
 					PartyId:    "p0",
 					NodeName:   "",
@@ -112,7 +112,7 @@ func TestFindBlackOrgByWalPrefix(t *testing.T) {
 					IdentityId: "identity:4d7b5f1f114b43b682d9c73d6d2bc189",
 				},
 			},
-			PowerSuppliers: []*libtypes.TaskOrganization{
+			PowerSuppliers: []*pbtypes.TaskOrganization{
 				{
 					PartyId:    "p2",
 					NodeName:   "",
@@ -126,7 +126,7 @@ func TestFindBlackOrgByWalPrefix(t *testing.T) {
 					IdentityId: "identity:4d7b5f1f114b43b682d9c73d6d2bc18e",
 				},
 			},
-			Receivers: []*libtypes.TaskOrganization{
+			Receivers: []*pbtypes.TaskOrganization{
 				{
 					PartyId:    "p4",
 					NodeName:   "",
@@ -135,8 +135,8 @@ func TestFindBlackOrgByWalPrefix(t *testing.T) {
 				},
 			},
 		}),
-		types.NewTask(&libtypes.TaskPB{
-			DataSuppliers: []*libtypes.TaskOrganization{
+		types.NewTask(&pbtypes.TaskPB{
+			DataSuppliers: []*pbtypes.TaskOrganization{
 				{
 					PartyId:    "p0",
 					NodeName:   "",
@@ -150,7 +150,7 @@ func TestFindBlackOrgByWalPrefix(t *testing.T) {
 					IdentityId: "identity:4d7b5f1f114b43b682d9c73d6d2bc189",
 				},
 			},
-			PowerSuppliers: []*libtypes.TaskOrganization{
+			PowerSuppliers: []*pbtypes.TaskOrganization{
 				{
 					PartyId:    "p2",
 					NodeName:   "",
@@ -164,7 +164,7 @@ func TestFindBlackOrgByWalPrefix(t *testing.T) {
 					IdentityId: "identity:4d7b5f1f114b43b682d9c73d6d2bc18e",
 				},
 			},
-			Receivers: []*libtypes.TaskOrganization{
+			Receivers: []*pbtypes.TaskOrganization{
 				{
 					PartyId:    "p4",
 					NodeName:   "",
@@ -173,8 +173,8 @@ func TestFindBlackOrgByWalPrefix(t *testing.T) {
 				},
 			},
 		}),
-		types.NewTask(&libtypes.TaskPB{
-			DataSuppliers: []*libtypes.TaskOrganization{
+		types.NewTask(&pbtypes.TaskPB{
+			DataSuppliers: []*pbtypes.TaskOrganization{
 				{
 					PartyId:    "p0",
 					NodeName:   "",
@@ -188,7 +188,7 @@ func TestFindBlackOrgByWalPrefix(t *testing.T) {
 					IdentityId: "identity:4d7b5f1f114b43b682d9c73d6d2bc18u",
 				},
 			},
-			PowerSuppliers: []*libtypes.TaskOrganization{
+			PowerSuppliers: []*pbtypes.TaskOrganization{
 				{
 					PartyId:    "p2",
 					NodeName:   "",
@@ -202,7 +202,7 @@ func TestFindBlackOrgByWalPrefix(t *testing.T) {
 					IdentityId: "identity:4d7b5f1f114b43b682d9c73d6d2bc18e",
 				},
 			},
-			Receivers: []*libtypes.TaskOrganization{
+			Receivers: []*pbtypes.TaskOrganization{
 				{
 					PartyId:    "p4",
 					NodeName:   "",
