@@ -1,13 +1,13 @@
-// Copyright (C) 2021 The RosettaNet Authors.
+// Copyright (C) 2021 The datum-network Authors.
 
 package rawdb
 
 import (
 	"encoding/binary"
-	"github.com/Metisnetwork/Metis-Carrier/common"
-	"github.com/Metisnetwork/Metis-Carrier/types"
-	"github.com/Metisnetwork/Metis-Carrier/db"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/common"
+	"github.com/datumtechs/datum-network-carrier/types"
+	"github.com/datumtechs/datum-network-carrier/db"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 )
 
 // ReadDataHash retrieves the hash assigned to a canonical block number
@@ -110,7 +110,7 @@ func ReadHeader(db DatabaseReader, hash common.Hash, number uint64) *types.Heade
 	if len(data) == 0 {
 		return nil
 	}
-	header := new(libtypes.HeaderPb)
+	header := new(carriertypespb.HeaderPb)
 	if err := header.Unmarshal(data); err != nil {
 		log.WithField("hash", hash).WithError(err).Fatal("Invalid block header ProtoBuf")
 		return nil
@@ -173,12 +173,12 @@ func HasBody(db DatabaseReader, hash common.Hash, number uint64) bool {
 }
 
 // ReadBody retrieves the block body corresponding to the hash.
-func ReadBody(db DatabaseReader, hash common.Hash, number uint64) *libtypes.BodyData {
+func ReadBody(db DatabaseReader, hash common.Hash, number uint64) *carriertypespb.BodyData {
 	data := ReadBodyPB(db, hash, number)
 	if len(data) == 0 {
 		return nil
 	}
-	body := new(libtypes.BodyData)
+	body := new(carriertypespb.BodyData)
 	if err := body.Unmarshal(data); err != nil {
 		log.WithField("hash", hash).WithError(err).Error("Invalid block body Protobuf")
 		return nil
@@ -187,7 +187,7 @@ func ReadBody(db DatabaseReader, hash common.Hash, number uint64) *libtypes.Body
 }
 
 // WriteBOdy store a block body into the database.
-func WriteBody(db DatabaseWriter, hash common.Hash, number uint64, body *libtypes.BodyData) {
+func WriteBody(db DatabaseWriter, hash common.Hash, number uint64, body *carriertypespb.BodyData) {
 	data, err := body.Marshal()
 	if err != nil {
 		log.WithError(err).Fatal("Failed to ProtoBuf encode body")
@@ -220,7 +220,7 @@ func ReadBlock(db DatabaseReader, hash common.Hash, number uint64) *types.Block 
 }
 
 // WriteBlock serializes a block into the database, header and body separately.
-func WriteBlock(db DatabaseWriter, block *libtypes.BlockData) {
+func WriteBlock(db DatabaseWriter, block *carriertypespb.BlockData) {
 	//WriteBody(db, block.Hash(), block.NumberU64(), block.Body())
 	//WriteHeader(db, &block.Header)
 }

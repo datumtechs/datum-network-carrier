@@ -5,17 +5,18 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/common/bytesutil"
-	"github.com/Metisnetwork/Metis-Carrier/common/rlputil"
-	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
-	"github.com/Metisnetwork/Metis-Carrier/core/rawdb"
-	"github.com/Metisnetwork/Metis-Carrier/grpclient"
-	pb "github.com/Metisnetwork/Metis-Carrier/lib/api"
-	"github.com/Metisnetwork/Metis-Carrier/lib/fighter/computesvc"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/params"
-	"github.com/Metisnetwork/Metis-Carrier/policy"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/datumtechs/datum-network-carrier/common/bytesutil"
+	"github.com/datumtechs/datum-network-carrier/common/rlputil"
+	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	"github.com/datumtechs/datum-network-carrier/core/rawdb"
+	"github.com/datumtechs/datum-network-carrier/grpclient"
+	"github.com/datumtechs/datum-network-carrier/params"
+	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
+	fighterapicomputepb "github.com/datumtechs/datum-network-carrier/pb/fighter/api/compute"
+	"github.com/datumtechs/datum-network-carrier/policy"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"math/big"
@@ -40,7 +41,7 @@ func (s *CarrierAPIBackend) SendMsg(msg types.Msg) error {
 }
 
 // system (the yarn node self info)
-func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
+func (s *CarrierAPIBackend) GetNodeInfo() (*carrierapipb.YarnNodeInfo, error) {
 
 	identity, err := s.carrier.carrierDB.QueryIdentity()
 	if nil != err {
@@ -61,13 +62,13 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 	b64 := base64.RawURLEncoding.EncodeToString(enc)
 	enrStr := "enr:" + b64
 
-	nodeInfo := &pb.YarnNodeInfo{
-		NodeType:           pb.NodeType_NodeType_YarnNode,
+	nodeInfo := &carrierapipb.YarnNodeInfo{
+		NodeType:           carrierapipb.NodeType_NodeType_YarnNode,
 		NodeId:             nodeId,
 		IdentityType:       types.IDENTITY_TYPE_DID, // default: DID
 		IdentityId:         identityId,
 		Name:               nodeName,
-		State:              pb.YarnNodeState_State_Active,
+		State:              carrierapipb.YarnNodeState_State_Active,
 		RelatePeers:        uint32(len(s.carrier.config.P2P.Peers().Active())),
 		LocalBootstrapNode: enrStr,
 	}
@@ -85,7 +86,7 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 		nodeInfo.LocalMultiAddr = selfMultiAddrs[0].String()
 	}
 
-	if addr, err := s.carrier.metisPayManager.QueryOrgWallet(); err == nil {
+	if addr, err := s.carrier.token20PayManager.QueryOrgWallet(); err == nil {
 		nodeInfo.ObserverProxyWalletAddress = addr.Hex()
 	} else {
 		log.WithError(err).Errorf("cannot load organization wallet of node info: %v", err)
@@ -95,32 +96,32 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 	return nodeInfo, nil
 }
 
-func (s *CarrierAPIBackend) SetSeedNode(seed *pb.SeedPeer) (pb.ConnState, error) {
+func (s *CarrierAPIBackend) SetSeedNode(seed *carrierapipb.SeedPeer) (carrierapipb.ConnState, error) {
 	// format: enr:-xxxxxx
 	if err := s.carrier.config.P2P.AddPeer(seed.GetAddr()); nil != err {
 		log.WithError(err).Errorf("Failed to call p2p.AddPeer() with seed.Addr on SetSeedNode(), addr: {%s}", seed.GetAddr())
-		return pb.ConnState_ConnState_UnConnected, err
+		return carrierapipb.ConnState_ConnState_UnConnected, err
 	}
 	if err := s.carrier.carrierDB.SetSeedNode(seed); nil != err {
 		log.WithError(err).Errorf("Failed to call SetSeedNode() to store seedNode on SetSeedNode(), seed: {%s}", seed.String())
-		return pb.ConnState_ConnState_UnConnected, err
+		return carrierapipb.ConnState_ConnState_UnConnected, err
 	}
 	addrs, err := s.carrier.config.P2P.PeerFromAddress([]string{seed.GetAddr()})
 	if err != nil || len(addrs) == 0 {
 		log.WithError(err).Errorf("Failed to parse addr")
-		return pb.ConnState_ConnState_UnConnected, err
+		return carrierapipb.ConnState_ConnState_UnConnected, err
 	}
 	addrInfo, err := peer.AddrInfoFromP2pAddr(addrs[0])
 	if nil != err {
 		log.WithError(err).Errorf("Failed to call peer.AddrInfoFromP2pAddr() with multiAddr on SetSeedNode(), addr: {%s}", addrs[0].String())
-		return pb.ConnState_ConnState_UnConnected, err
+		return carrierapipb.ConnState_ConnState_UnConnected, err
 	}
 	for _, active := range s.carrier.config.P2P.Peers().Active() {
 		if active.String() == addrInfo.ID.String() {
-			return pb.ConnState_ConnState_Connected, nil
+			return carrierapipb.ConnState_ConnState_Connected, nil
 		}
 	}
-	return pb.ConnState_ConnState_UnConnected, nil
+	return carrierapipb.ConnState_ConnState_UnConnected, nil
 }
 
 func (s *CarrierAPIBackend) DeleteSeedNode(addrStr string) error {
@@ -142,7 +143,7 @@ func (s *CarrierAPIBackend) DeleteSeedNode(addrStr string) error {
 	return s.carrier.carrierDB.RemoveSeedNode(addrStr)
 }
 
-func (s *CarrierAPIBackend) GetSeedNodeList() ([]*pb.SeedPeer, error) {
+func (s *CarrierAPIBackend) GetSeedNodeList() ([]*carrierapipb.SeedPeer, error) {
 	// load seed node from default bootstrap
 	bootstrapNodeStrs, err := s.carrier.config.P2P.BootstrapAddresses()
 	if nil != err {
@@ -150,12 +151,12 @@ func (s *CarrierAPIBackend) GetSeedNodeList() ([]*pb.SeedPeer, error) {
 		return nil, err
 	}
 
-	bootstrapNodes := make([]*pb.SeedPeer, len(bootstrapNodeStrs))
+	bootstrapNodes := make([]*carrierapipb.SeedPeer, len(bootstrapNodeStrs))
 	for i, addr := range bootstrapNodeStrs {
-		bootstrapNodes[i] = &pb.SeedPeer{
+		bootstrapNodes[i] = &carrierapipb.SeedPeer{
 			Addr:      addr,
 			IsDefault: true,
-			ConnState: pb.ConnState_ConnState_UnConnected,
+			ConnState: carrierapipb.ConnState_ConnState_UnConnected,
 		}
 	}
 
@@ -187,22 +188,22 @@ func (s *CarrierAPIBackend) GetSeedNodeList() ([]*pb.SeedPeer, error) {
 		}
 
 		if _, ok := tmp[addrInfo.ID]; ok {
-			seeds[i].ConnState = pb.ConnState_ConnState_Connected
+			seeds[i].ConnState = carrierapipb.ConnState_ConnState_Connected
 		}
 	}
 	return seeds, nil
 }
 
-func (s *CarrierAPIBackend) storeLocalResource(identity *libtypes.Organization, jobNodeId string, jobNodeStatus *computesvc.GetStatusReply) error {
+func (s *CarrierAPIBackend) storeLocalResource(identity *carriertypespb.Organization, jobNodeId string, jobNodeStatus *fighterapicomputepb.GetStatusReply) error {
 
 	// store into local db
-	if err := s.carrier.carrierDB.StoreLocalResource(types.NewLocalResource(&libtypes.LocalResourcePB{
+	if err := s.carrier.carrierDB.StoreLocalResource(types.NewLocalResource(&carriertypespb.LocalResourcePB{
 		Owner:      identity,
 		JobNodeId:  jobNodeId,
 		DataId:     "", // can not own powerId now, because power have not publish
-		DataStatus: libtypes.DataStatus_DataStatus_Valid,
+		DataStatus: commonconstantpb.DataStatus_DataStatus_Valid,
 		// resource status, eg: create/release/revoke
-		State: libtypes.PowerState_PowerState_Created,
+		State: commonconstantpb.PowerState_PowerState_Created,
 		// unit: byte
 		TotalMem: jobNodeStatus.GetTotalMemory(),
 		UsedMem:  0,
@@ -222,95 +223,95 @@ func (s *CarrierAPIBackend) storeLocalResource(identity *libtypes.Organization, 
 	return nil
 }
 
-func (s *CarrierAPIBackend) SetRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRegisteredPeerDetail) (pb.ConnState, error) {
+func (s *CarrierAPIBackend) SetRegisterNode(typ carrierapipb.RegisteredNodeType, node *carrierapipb.YarnRegisteredPeerDetail) (carrierapipb.ConnState, error) {
 
 	identity, err := s.carrier.carrierDB.QueryIdentity()
 	if nil != err {
-		return pb.ConnState_ConnState_UnConnected, fmt.Errorf("query local identity failed, %s", err)
+		return carrierapipb.ConnState_ConnState_UnConnected, fmt.Errorf("query local identity failed, %s", err)
 	}
 
 	switch typ {
-	case pb.PrefixTypeDataNode, pb.PrefixTypeJobNode:
+	case carrierapipb.PrefixTypeDataNode, carrierapipb.PrefixTypeJobNode:
 	default:
-		return pb.ConnState_ConnState_UnConnected, fmt.Errorf("invalid nodeType")
+		return carrierapipb.ConnState_ConnState_UnConnected, fmt.Errorf("invalid nodeType")
 	}
-	if typ == pb.PrefixTypeJobNode {
+	if typ == carrierapipb.PrefixTypeJobNode {
 		client, err := grpclient.NewJobNodeClient(s.carrier.ctx, fmt.Sprintf("%s:%s", node.GetInternalIp(), node.GetInternalPort()), node.GetId())
 		if err != nil {
-			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect new jobNode failed, %s", err)
+			return carrierapipb.ConnState_ConnState_UnConnected, fmt.Errorf("connect new jobNode failed, %s", err)
 		}
 		s.carrier.resourceManager.StoreJobNodeClient(node.GetId(), client)
 
 		jobNodeStatus, err := client.GetStatus()
 		if err != nil {
 			client.Close()
-			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect jobNode query status failed, %s", err)
+			return carrierapipb.ConnState_ConnState_UnConnected, fmt.Errorf("connect jobNode query status failed, %s", err)
 		}
 		// add resource usage first, but not own power now (mem, proccessor, bandwidth)
 		if err = s.storeLocalResource(identity, node.GetId(), jobNodeStatus); nil != err {
-			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("store jobNode local resource failed, %s", err)
+			return carrierapipb.ConnState_ConnState_UnConnected, fmt.Errorf("store jobNode local resource failed, %s", err)
 		}
 	}
-	if typ == pb.PrefixTypeDataNode {
+	if typ == carrierapipb.PrefixTypeDataNode {
 		client, err := grpclient.NewDataNodeClient(s.carrier.ctx, fmt.Sprintf("%s:%s", node.GetInternalIp(), node.GetInternalPort()), node.GetId())
 		if err != nil {
-			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect new dataNode failed, %s", err)
+			return carrierapipb.ConnState_ConnState_UnConnected, fmt.Errorf("connect new dataNode failed, %s", err)
 		}
 		s.carrier.resourceManager.StoreDataNodeClient(node.GetId(), client)
 
 		dataNodeStatus, err := client.GetStatus()
 		if err != nil {
 			client.Close()
-			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect dataNode query status failed, %s", err)
+			return carrierapipb.ConnState_ConnState_UnConnected, fmt.Errorf("connect dataNode query status failed, %s", err)
 		}
 		// add data resource  (disk)
 		err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.GetId(), dataNodeStatus.GetTotalDisk(), dataNodeStatus.GetUsedDisk(), true))
 		//err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.Id, types.DefaultDisk, 0))
 		if err != nil {
-			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("store disk summary of new dataNode failed, %s", err)
+			return carrierapipb.ConnState_ConnState_UnConnected, fmt.Errorf("store disk summary of new dataNode failed, %s", err)
 		}
 		log.Debugf("Add dataNode resource table succeed, nodeId: {%s}, totalDisk: {%d}, usedDisk: {%d}", node.GetId(), dataNodeStatus.GetTotalDisk(), dataNodeStatus.GetUsedDisk())
 	}
-	node.ConnState = pb.ConnState_ConnState_Connected
+	node.ConnState = carrierapipb.ConnState_ConnState_Connected
 	if err = s.carrier.carrierDB.SetRegisterNode(typ, node); err != nil {
-		return pb.ConnState_ConnState_UnConnected, fmt.Errorf("Store registerNode to db failed, %s", err)
+		return carrierapipb.ConnState_ConnState_UnConnected, fmt.Errorf("Store registerNode to db failed, %s", err)
 	}
-	return pb.ConnState_ConnState_Connected, nil
+	return carrierapipb.ConnState_ConnState_Connected, nil
 }
 
-func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRegisteredPeerDetail) (pb.ConnState, error) {
+func (s *CarrierAPIBackend) UpdateRegisterNode(typ carrierapipb.RegisteredNodeType, node *carrierapipb.YarnRegisteredPeerDetail) (carrierapipb.ConnState, error) {
 
 	identity, err := s.carrier.carrierDB.QueryIdentity()
 	if nil != err {
-		return pb.ConnState_ConnState_UnConnected, fmt.Errorf("query local identity failed, %s", err)
+		return carrierapipb.ConnState_ConnState_UnConnected, fmt.Errorf("query local identity failed, %s", err)
 	}
 
 	switch typ {
-	case pb.PrefixTypeDataNode, pb.PrefixTypeJobNode:
+	case carrierapipb.PrefixTypeDataNode, carrierapipb.PrefixTypeJobNode:
 	default:
-		return pb.ConnState_ConnState_UnConnected, fmt.Errorf("invalid nodeType")
+		return carrierapipb.ConnState_ConnState_UnConnected, fmt.Errorf("invalid nodeType")
 	}
-	if typ == pb.PrefixTypeJobNode {
+	if typ == carrierapipb.PrefixTypeJobNode {
 
 		// The published jobNode cannot be updated directly
 		resourceTable, err := s.carrier.carrierDB.QueryLocalResourceTable(node.GetId())
 		if rawdb.IsNoDBNotFoundErr(err) {
-			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("query local power resource on old jobNode failed, %s", err)
+			return carrierapipb.ConnState_ConnState_UnConnected, fmt.Errorf("query local power resource on old jobNode failed, %s", err)
 		}
 
 		if nil != resourceTable {
 			log.Debugf("still have the published computing power information on old jobNode on UpdateRegisterNode, %s", resourceTable.String())
-			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("still have the published computing power information on old jobNode failed, input jobNodeId: {%s}, old jobNodeId: {%s}, old powerId: {%s}",
+			return carrierapipb.ConnState_ConnState_UnConnected, fmt.Errorf("still have the published computing power information on old jobNode failed, input jobNodeId: {%s}, old jobNodeId: {%s}, old powerId: {%s}",
 				node.Id, resourceTable.GetNodeId(), resourceTable.GetPowerId())
 		}
 
 		// First check whether there is a task being executed on jobNode
 		runningTaskCount, err := s.carrier.carrierDB.QueryJobNodeRunningTaskCount(node.GetId())
 		if rawdb.IsNoDBNotFoundErr(err) {
-			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("query local running taskCount on old jobNode failed, %s", err)
+			return carrierapipb.ConnState_ConnState_UnConnected, fmt.Errorf("query local running taskCount on old jobNode failed, %s", err)
 		}
 		if runningTaskCount > 0 {
-			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("the old jobNode have been running {%d} task current, don't remove it", runningTaskCount)
+			return carrierapipb.ConnState_ConnState_UnConnected, fmt.Errorf("the old jobNode have been running {%d} task current, don't remove it", runningTaskCount)
 		}
 
 		if client, ok := s.carrier.resourceManager.QueryJobNodeClient(node.GetId()); ok {
@@ -322,23 +323,23 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *
 		// generate new client
 		client, err := grpclient.NewJobNodeClient(s.carrier.ctx, fmt.Sprintf("%s:%s", node.GetInternalIp(), node.GetInternalPort()), node.GetId())
 		if err != nil {
-			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect new jobNode failed, %s", err)
+			return carrierapipb.ConnState_ConnState_UnConnected, fmt.Errorf("connect new jobNode failed, %s", err)
 		}
 		s.carrier.resourceManager.StoreJobNodeClient(node.GetId(), client)
 
 		jobNodeStatus, err := client.GetStatus()
 		if err != nil {
 			client.Close()
-			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect jobNode query status failed, %s", err)
+			return carrierapipb.ConnState_ConnState_UnConnected, fmt.Errorf("connect jobNode query status failed, %s", err)
 		}
 		// add resource usage first, but not own power now (mem, proccessor, bandwidth)
 		if err = s.storeLocalResource(identity, node.GetId(), jobNodeStatus); nil != err {
-			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("store jobNode local resource failed, %s", err)
+			return carrierapipb.ConnState_ConnState_UnConnected, fmt.Errorf("store jobNode local resource failed, %s", err)
 		}
 
 	}
 
-	if typ == pb.PrefixTypeDataNode {
+	if typ == carrierapipb.PrefixTypeDataNode {
 
 		if client, ok := s.carrier.resourceManager.QueryDataNodeClient(node.GetId()); ok {
 			// remove old client instanse
@@ -348,43 +349,43 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *
 
 		// remove old data resource  (disk)
 		if err := s.carrier.carrierDB.RemoveDataResourceTable(node.GetId()); rawdb.IsNoDBNotFoundErr(err) {
-			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("remove disk summary of old dataNode, %s", err)
+			return carrierapipb.ConnState_ConnState_UnConnected, fmt.Errorf("remove disk summary of old dataNode, %s", err)
 		}
 
 		client, err := grpclient.NewDataNodeClient(s.carrier.ctx, fmt.Sprintf("%s:%s", node.GetInternalIp(), node.GetInternalPort()), node.GetId())
 		if err != nil {
-			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect new dataNode failed, %s", err)
+			return carrierapipb.ConnState_ConnState_UnConnected, fmt.Errorf("connect new dataNode failed, %s", err)
 		}
 		s.carrier.resourceManager.StoreDataNodeClient(node.GetId(), client)
 
 		dataNodeStatus, err := client.GetStatus()
 		if err != nil {
 			client.Close()
-			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect dataNode query status failed, %s", err)
+			return carrierapipb.ConnState_ConnState_UnConnected, fmt.Errorf("connect dataNode query status failed, %s", err)
 		}
 		// add new data resource  (disk)
 		err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.GetId(), dataNodeStatus.GetTotalDisk(), dataNodeStatus.GetUsedDisk(), true))
 		//err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.Id, types.DefaultDisk, 0))
 		if err != nil {
-			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("store disk summary of new dataNode failed, %s", err)
+			return carrierapipb.ConnState_ConnState_UnConnected, fmt.Errorf("store disk summary of new dataNode failed, %s", err)
 		}
 		log.Debugf("Update dataNode resource table succeed, nodeId: {%s}, totalDisk: {%d}, usedDisk: {%d}", node.GetId(), dataNodeStatus.GetTotalDisk(), dataNodeStatus.GetUsedDisk())
 	}
 
 	// remove  old jobNode from db
 	if err := s.carrier.carrierDB.DeleteRegisterNode(typ, node.GetId()); nil != err {
-		return pb.ConnState_ConnState_UnConnected, fmt.Errorf("remove old registerNode from db failed, %s", err)
+		return carrierapipb.ConnState_ConnState_UnConnected, fmt.Errorf("remove old registerNode from db failed, %s", err)
 	}
 
 	// add new node to db
-	node.ConnState = pb.ConnState_ConnState_Connected
+	node.ConnState = carrierapipb.ConnState_ConnState_Connected
 	if err = s.carrier.carrierDB.SetRegisterNode(typ, node); err != nil {
-		return pb.ConnState_ConnState_UnConnected, fmt.Errorf("update registerNode to db failed, %s", err)
+		return carrierapipb.ConnState_ConnState_UnConnected, fmt.Errorf("update registerNode to db failed, %s", err)
 	}
-	return pb.ConnState_ConnState_Connected, nil
+	return carrierapipb.ConnState_ConnState_Connected, nil
 }
 
-func (s *CarrierAPIBackend) DeleteRegisterNode(typ pb.RegisteredNodeType, id string) error {
+func (s *CarrierAPIBackend) DeleteRegisterNode(typ carrierapipb.RegisteredNodeType, id string) error {
 
 	identity, err := s.carrier.carrierDB.QueryIdentity()
 	if nil != err {
@@ -392,11 +393,11 @@ func (s *CarrierAPIBackend) DeleteRegisterNode(typ pb.RegisteredNodeType, id str
 	}
 
 	switch typ {
-	case pb.PrefixTypeDataNode, pb.PrefixTypeJobNode:
+	case carrierapipb.PrefixTypeDataNode, carrierapipb.PrefixTypeJobNode:
 	default:
 		return fmt.Errorf("invalid nodeType")
 	}
-	if typ == pb.PrefixTypeJobNode {
+	if typ == carrierapipb.PrefixTypeJobNode {
 
 		// release resource of jobNode by jobNodeId
 		if err = s.carrier.resourceManager.UnLockLocalResourceWithJobNodeId(id); nil != err {
@@ -436,13 +437,13 @@ func (s *CarrierAPIBackend) DeleteRegisterNode(typ pb.RegisteredNodeType, id str
 			}
 
 			// 3. revoke power about jobNode from global
-			if err := s.carrier.carrierDB.RevokeResource(types.NewResource(&libtypes.ResourcePB{
+			if err := s.carrier.carrierDB.RevokeResource(types.NewResource(&carriertypespb.ResourcePB{
 				Owner:  identity,
 				DataId: resourceTable.GetPowerId(),
 				// the status of data, N means normal, D means deleted.
-				DataStatus: libtypes.DataStatus_DataStatus_Invalid,
+				DataStatus: commonconstantpb.DataStatus_DataStatus_Invalid,
 				// resource status, eg: create/release/revoke
-				State:    libtypes.PowerState_PowerState_Revoked,
+				State:    commonconstantpb.PowerState_PowerState_Revoked,
 				UpdateAt: timeutils.UnixMsecUint64(),
 			})); nil != err {
 				log.WithError(err).Errorf("Failed to remove dataCenter resource on RemoveRegisterNode with revoke power, powerId: {%s}, jobNodeId: {%s}",
@@ -474,7 +475,7 @@ func (s *CarrierAPIBackend) DeleteRegisterNode(typ pb.RegisteredNodeType, id str
 		// 4. goto `Finally`
 	}
 
-	if typ == pb.PrefixTypeDataNode {
+	if typ == carrierapipb.PrefixTypeDataNode {
 
 		// 1. remove data resource  (disk)
 		if err := s.carrier.carrierDB.RemoveDataResourceTable(id); rawdb.IsNoDBNotFoundErr(err) {
@@ -492,22 +493,22 @@ func (s *CarrierAPIBackend) DeleteRegisterNode(typ pb.RegisteredNodeType, id str
 	return s.carrier.carrierDB.DeleteRegisterNode(typ, id)
 }
 
-func (s *CarrierAPIBackend) GetRegisterNode(typ pb.RegisteredNodeType, id string) (*pb.YarnRegisteredPeerDetail, error) {
+func (s *CarrierAPIBackend) GetRegisterNode(typ carrierapipb.RegisteredNodeType, id string) (*carrierapipb.YarnRegisteredPeerDetail, error) {
 	node, err := s.carrier.carrierDB.QueryRegisterNode(typ, id)
 	if nil != err {
 		return nil, err
 	}
 
-	if typ == pb.PrefixTypeJobNode {
+	if typ == carrierapipb.PrefixTypeJobNode {
 
 		client, ok := s.carrier.resourceManager.QueryJobNodeClient(id)
 		if !ok {
-			node.ConnState = pb.ConnState_ConnState_UnConnected
+			node.ConnState = carrierapipb.ConnState_ConnState_UnConnected
 		} else {
 			if !client.IsConnected() {
-				node.ConnState = pb.ConnState_ConnState_UnConnected
+				node.ConnState = carrierapipb.ConnState_ConnState_UnConnected
 			} else {
-				node.ConnState = pb.ConnState_ConnState_Connected
+				node.ConnState = carrierapipb.ConnState_ConnState_Connected
 			}
 		}
 
@@ -515,12 +516,12 @@ func (s *CarrierAPIBackend) GetRegisterNode(typ pb.RegisteredNodeType, id string
 
 		client, ok := s.carrier.resourceManager.QueryDataNodeClient(id)
 		if !ok {
-			node.ConnState = pb.ConnState_ConnState_UnConnected
+			node.ConnState = carrierapipb.ConnState_ConnState_UnConnected
 		} else {
 			if !client.IsConnected() {
-				node.ConnState = pb.ConnState_ConnState_UnConnected
+				node.ConnState = carrierapipb.ConnState_ConnState_UnConnected
 			} else {
-				node.ConnState = pb.ConnState_ConnState_Connected
+				node.ConnState = carrierapipb.ConnState_ConnState_Connected
 			}
 		}
 
@@ -528,10 +529,10 @@ func (s *CarrierAPIBackend) GetRegisterNode(typ pb.RegisteredNodeType, id string
 	return node, nil
 }
 
-func (s *CarrierAPIBackend) GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*pb.YarnRegisteredPeerDetail, error) {
+func (s *CarrierAPIBackend) GetRegisterNodeList(typ carrierapipb.RegisteredNodeType) ([]*carrierapipb.YarnRegisteredPeerDetail, error) {
 
-	if typ != pb.PrefixTypeJobNode &&
-		typ != pb.PrefixTypeDataNode {
+	if typ != carrierapipb.PrefixTypeJobNode &&
+		typ != carrierapipb.PrefixTypeDataNode {
 
 		return nil, fmt.Errorf("Invalid nodeType")
 	}
@@ -543,24 +544,24 @@ func (s *CarrierAPIBackend) GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*p
 
 	for i, n := range nodeList {
 
-		var connState pb.ConnState
+		var connState carrierapipb.ConnState
 		var duration uint64
 		var taskCount uint32
 		var taskIdList []string
 		var fileCount uint32
 		var fileTotalSize uint32
 
-		if typ == pb.PrefixTypeJobNode {
+		if typ == carrierapipb.PrefixTypeJobNode {
 
 			client, ok := s.carrier.resourceManager.QueryJobNodeClient(n.GetId())
 			if !ok {
-				connState = pb.ConnState_ConnState_UnConnected
+				connState = carrierapipb.ConnState_ConnState_UnConnected
 			} else {
 				duration = uint64(client.RunningDuration())
 				if !client.IsConnected() {
-					connState = pb.ConnState_ConnState_UnConnected
+					connState = carrierapipb.ConnState_ConnState_UnConnected
 				} else {
-					connState = pb.ConnState_ConnState_Connected
+					connState = carrierapipb.ConnState_ConnState_Connected
 				}
 			}
 
@@ -572,13 +573,13 @@ func (s *CarrierAPIBackend) GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*p
 
 			client, ok := s.carrier.resourceManager.QueryDataNodeClient(n.GetId())
 			if !ok {
-				connState = pb.ConnState_ConnState_UnConnected
+				connState = carrierapipb.ConnState_ConnState_UnConnected
 			} else {
 				duration = uint64(client.RunningDuration())
 				if !client.IsConnected() {
-					connState = pb.ConnState_ConnState_UnConnected
+					connState = carrierapipb.ConnState_ConnState_UnConnected
 				} else {
-					connState = pb.ConnState_ConnState_Connected
+					connState = carrierapipb.ConnState_ConnState_Connected
 				}
 			}
 
@@ -600,11 +601,11 @@ func (s *CarrierAPIBackend) GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*p
 	return nodeList, nil
 }
 
-func (s *CarrierAPIBackend) SendTaskEvent(event *libtypes.TaskEvent) error {
+func (s *CarrierAPIBackend) SendTaskEvent(event *carriertypespb.TaskEvent) error {
 	return s.carrier.TaskManager.SendTaskEvent(event)
 }
 
-func (s *CarrierAPIBackend) ReportTaskResourceUsage(nodeType pb.NodeType, ip, port string, usage *types.TaskResuorceUsage) error {
+func (s *CarrierAPIBackend) ReportTaskResourceUsage(nodeType carrierapipb.NodeType, ip, port string, usage *types.TaskResuorceUsage) error {
 
 	if err := s.carrier.TaskManager.HandleReportResourceUsage(usage); nil != err {
 		log.WithError(err).Errorf("Failed to call HandleReportResourceUsage() on CarrierAPIBackend.ReportTaskResourceUsage(), taskId: {%s}, partyId: {%s}, nodeType: {%s}, ip:{%s}, port: {%s}",
@@ -615,8 +616,8 @@ func (s *CarrierAPIBackend) ReportTaskResourceUsage(nodeType pb.NodeType, ip, po
 }
 
 func (s *CarrierAPIBackend) GenerateObServerProxyWalletAddress() (string, error) {
-	if s.carrier.metisPayManager != nil {
-		if addr, err := s.carrier.metisPayManager.GenerateOrgWallet(); nil != err {
+	if s.carrier.token20PayManager != nil {
+		if addr, err := s.carrier.token20PayManager.GenerateOrgWallet(); nil != err {
 			log.WithError(err).Error("Failed to call GenerateOrgWallet() on CarrierAPIBackend.GenerateObServerProxyWalletAddress()")
 			return "", err
 		} else {
@@ -624,7 +625,7 @@ func (s *CarrierAPIBackend) GenerateObServerProxyWalletAddress() (string, error)
 			return addr.Hex(), nil
 		}
 	} else {
-		return "", errors.New("MetisPay manager not initialized properly")
+		return "", errors.New("token20Pay manager not initialized properly")
 	}
 }
 
@@ -652,10 +653,10 @@ func (s *CarrierAPIBackend) GetMetadataDetail(metadataId string) (*types.Metadat
 }
 
 // GetMetadataDetailList returns a list of all metadata details in the network.
-func (s *CarrierAPIBackend) GetGlobalMetadataDetailList(lastUpdate, pageSize uint64) ([]*pb.GetGlobalMetadataDetail, error) {
+func (s *CarrierAPIBackend) GetGlobalMetadataDetailList(lastUpdate, pageSize uint64) ([]*carrierapipb.GetGlobalMetadataDetail, error) {
 	log.Debug("Invoke: GetGlobalMetadataDetailList executing...")
 	var (
-		arr []*pb.GetGlobalMetadataDetail
+		arr []*carrierapipb.GetGlobalMetadataDetail
 		err error
 	)
 
@@ -680,10 +681,10 @@ func (s *CarrierAPIBackend) GetGlobalMetadataDetailList(lastUpdate, pageSize uin
 }
 
 // GetGlobalMetadataDetailListByIdentityId returns a list of all metadata details in the network by identityId.
-func (s *CarrierAPIBackend) GetGlobalMetadataDetailListByIdentityId(identityId string, lastUpdate, pageSize uint64) ([]*pb.GetGlobalMetadataDetail, error) {
+func (s *CarrierAPIBackend) GetGlobalMetadataDetailListByIdentityId(identityId string, lastUpdate, pageSize uint64) ([]*carrierapipb.GetGlobalMetadataDetail, error) {
 	log.Debug("Invoke: GetGlobalMetadataDetailListByIdentityId executing...")
 	var (
-		arr []*pb.GetGlobalMetadataDetail
+		arr []*carrierapipb.GetGlobalMetadataDetail
 		err error
 	)
 
@@ -707,11 +708,11 @@ func (s *CarrierAPIBackend) GetGlobalMetadataDetailListByIdentityId(identityId s
 	return arr, err
 }
 
-func (s *CarrierAPIBackend) GetLocalMetadataDetailList(lastUpdate uint64, pageSize uint64) ([]*pb.GetLocalMetadataDetail, error) {
+func (s *CarrierAPIBackend) GetLocalMetadataDetailList(lastUpdate uint64, pageSize uint64) ([]*carrierapipb.GetLocalMetadataDetail, error) {
 	log.Debug("Invoke: GetLocalMetadataDetailList executing...")
 
 	var (
-		arr []*pb.GetLocalMetadataDetail
+		arr []*carrierapipb.GetLocalMetadataDetail
 		err error
 	)
 
@@ -741,11 +742,11 @@ func (s *CarrierAPIBackend) GetLocalMetadataDetailList(lastUpdate uint64, pageSi
 	return arr, nil
 }
 
-func (s *CarrierAPIBackend) GetLocalInternalMetadataDetailList() ([]*pb.GetLocalMetadataDetail, error) {
+func (s *CarrierAPIBackend) GetLocalInternalMetadataDetailList() ([]*carrierapipb.GetLocalMetadataDetail, error) {
 	log.Debug("Invoke: GetLocalInternalMetadataDetailList executing...")
 
 	var (
-		arr []*pb.GetLocalMetadataDetail
+		arr []*carrierapipb.GetLocalMetadataDetail
 		err error
 	)
 
@@ -789,22 +790,22 @@ func (s *CarrierAPIBackend) UpdateGlobalMetadata(metadata *types.Metadata) error
 
 // power api
 
-func (s *CarrierAPIBackend) GetGlobalPowerSummaryList() ([]*pb.GetGlobalPowerSummary, error) {
+func (s *CarrierAPIBackend) GetGlobalPowerSummaryList() ([]*carrierapipb.GetGlobalPowerSummary, error) {
 	log.Debug("Invoke: GetGlobalPowerSummaryList executing...")
 	resourceList, err := s.carrier.carrierDB.QueryGlobalResourceSummaryList()
 	if err != nil {
 		return nil, err
 	}
 	log.Debugf("Query all org's power summary list, len: {%d}", len(resourceList))
-	powerList := make([]*pb.GetGlobalPowerSummary, 0, resourceList.Len())
+	powerList := make([]*carrierapipb.GetGlobalPowerSummary, 0, resourceList.Len())
 	for _, resource := range resourceList.To() {
-		powerList = append(powerList, &pb.GetGlobalPowerSummary{
+		powerList = append(powerList, &carrierapipb.GetGlobalPowerSummary{
 			Owner: resource.GetOwner(),
-			Information: &libtypes.PowerUsageDetail{
+			Information: &carriertypespb.PowerUsageDetail{
 				TotalTaskCount:   0,
 				CurrentTaskCount: 0,
-				Tasks:            make([]*libtypes.PowerTask, 0),
-				Information: &libtypes.ResourceUsageOverview{
+				Tasks:            make([]*carriertypespb.PowerTask, 0),
+				Information: &carriertypespb.ResourceUsageOverview{
 					TotalMem:       resource.GetTotalMem(),
 					UsedMem:        resource.GetUsedMem(),
 					TotalProcessor: resource.GetTotalProcessor(),
@@ -820,14 +821,14 @@ func (s *CarrierAPIBackend) GetGlobalPowerSummaryList() ([]*pb.GetGlobalPowerSum
 	return powerList, nil
 }
 
-func (s *CarrierAPIBackend) GetGlobalPowerDetailList(lastUpdate uint64, pageSize uint64) ([]*pb.GetGlobalPowerDetail, error) {
+func (s *CarrierAPIBackend) GetGlobalPowerDetailList(lastUpdate uint64, pageSize uint64) ([]*carrierapipb.GetGlobalPowerDetail, error) {
 	log.Debug("Invoke: GetGlobalPowerDetailList executing...")
 	resourceList, err := s.carrier.carrierDB.QueryGlobalResourceDetailList(lastUpdate, pageSize)
 	if err != nil {
 		return nil, err
 	}
 	log.Debugf("Query all org's power detail list, len: {%d}", len(resourceList))
-	powerList := make([]*pb.GetGlobalPowerDetail, 0, resourceList.Len())
+	powerList := make([]*carrierapipb.GetGlobalPowerDetail, 0, resourceList.Len())
 	for _, resource := range resourceList.To() {
 
 		jobNodeId, _ := s.carrier.carrierDB.QueryJobNodeIdByPowerId(resource.GetDataId())
@@ -840,14 +841,14 @@ func (s *CarrierAPIBackend) GetGlobalPowerDetailList(lastUpdate uint64, pageSize
 			currentTaskCount, _ = s.carrier.carrierDB.QueryJobNodeRunningTaskCount(jobNodeId)
 		}
 
-		powerList = append(powerList, &pb.GetGlobalPowerDetail{
+		powerList = append(powerList, &carrierapipb.GetGlobalPowerDetail{
 			Owner:   resource.GetOwner(),
 			PowerId: resource.GetDataId(),
-			Information: &libtypes.PowerUsageDetail{
+			Information: &carriertypespb.PowerUsageDetail{
 				TotalTaskCount:   totalTaskCount,
 				CurrentTaskCount: currentTaskCount,
-				Tasks:            make([]*libtypes.PowerTask, 0),
-				Information: &libtypes.ResourceUsageOverview{
+				Tasks:            make([]*carriertypespb.PowerTask, 0),
+				Information: &carriertypespb.ResourceUsageOverview{
 					TotalMem:       resource.GetTotalMem(),
 					UsedMem:        resource.GetUsedMem(),
 					TotalProcessor: resource.GetTotalProcessor(),
@@ -867,7 +868,7 @@ func (s *CarrierAPIBackend) GetGlobalPowerDetailList(lastUpdate uint64, pageSize
 	return powerList, nil
 }
 
-func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail, error) {
+func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*carrierapipb.GetLocalPowerDetail, error) {
 	log.Debug("Invoke:GetLocalPowerDetailList executing...")
 	// query local resource list from db.
 	machineList, err := s.carrier.carrierDB.QueryLocalResourceList()
@@ -876,9 +877,9 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 	}
 	log.Debugf("Invoke:GetLocalPowerDetailList, call QueryLocalResourceList, machineList: %s", machineList.String())
 
-	buildPowerTaskList := func(jobNodeId string) []*libtypes.PowerTask {
+	buildPowerTaskList := func(jobNodeId string) []*carriertypespb.PowerTask {
 
-		powerTaskList := make([]*libtypes.PowerTask, 0)
+		powerTaskList := make([]*carriertypespb.PowerTask, 0)
 
 		taskIds, err := s.carrier.carrierDB.QueryJobNodeRunningTaskIdList(jobNodeId)
 		if rawdb.IsNoDBNotFoundErr(err) {
@@ -900,16 +901,16 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 				continue
 			}
 			// build powerTask info
-			powerTask := &libtypes.PowerTask{
+			powerTask := &carriertypespb.PowerTask{
 				TaskId:   taskId,
 				TaskName: task.GetTaskData().TaskName,
-				Owner: &libtypes.Organization{
+				Owner: &carriertypespb.Organization{
 					NodeName:   task.GetTaskSender().GetNodeName(),
 					NodeId:     task.GetTaskSender().GetNodeId(),
 					IdentityId: task.GetTaskSender().GetIdentityId(),
 				},
-				Receivers: make([]*libtypes.Organization, 0),
-				OperationCost: &libtypes.TaskResourceCostDeclare{
+				Receivers: make([]*carriertypespb.Organization, 0),
+				OperationCost: &carriertypespb.TaskResourceCostDeclare{
 					Processor: task.GetTaskData().GetOperationCost().GetProcessor(),
 					Memory:    task.GetTaskData().GetOperationCost().GetMemory(),
 					Bandwidth: task.GetTaskData().GetOperationCost().GetBandwidth(),
@@ -920,7 +921,7 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 			}
 			// build dataSuppliers of task info
 			for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
-				powerTask.Partners = append(powerTask.GetPartners(), &libtypes.Organization{
+				powerTask.Partners = append(powerTask.GetPartners(), &carriertypespb.Organization{
 					NodeName:   dataSupplier.GetNodeName(),
 					NodeId:     dataSupplier.GetNodeId(),
 					IdentityId: dataSupplier.GetIdentityId(),
@@ -928,7 +929,7 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 			}
 			// build receivers of task info
 			for _, receiver := range task.GetTaskData().GetReceivers() {
-				powerTask.Receivers = append(powerTask.GetReceivers(), &libtypes.Organization{
+				powerTask.Receivers = append(powerTask.GetReceivers(), &carriertypespb.Organization{
 					NodeName:   receiver.GetNodeName(),
 					NodeId:     receiver.GetNodeId(),
 					IdentityId: receiver.GetIdentityId(),
@@ -958,7 +959,7 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 			if task.GetTaskData().GetStartAt() != 0 {
 				duration = timeutils.UnixMsecUint64() - task.GetTaskData().GetStartAt()
 			}
-			powerTask.OperationSpend = &libtypes.TaskResourceCostDeclare{
+			powerTask.OperationSpend = &carriertypespb.TaskResourceCostDeclare{
 				Processor: processor,
 				Memory:    memory,
 				Bandwidth: bandwidth,
@@ -990,18 +991,18 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 
 	resourceList := machineList.To()
 	// handle  resource one by one
-	result := make([]*pb.GetLocalPowerDetail, len(resourceList))
+	result := make([]*carrierapipb.GetLocalPowerDetail, len(resourceList))
 	for i, resource := range resourceList {
 
-		nodePowerDetail := &pb.GetLocalPowerDetail{
+		nodePowerDetail := &carrierapipb.GetLocalPowerDetail{
 			JobNodeId: resource.GetJobNodeId(),
 			PowerId:   resource.GetDataId(),
 			Owner:     resource.GetOwner(),
-			Power: &libtypes.PowerUsageDetail{
+			Power: &carriertypespb.PowerUsageDetail{
 				TotalTaskCount:   taskTotalCount(resource.GetJobNodeId()),
 				CurrentTaskCount: taskRunningCount(resource.GetJobNodeId()),
-				Tasks:            make([]*libtypes.PowerTask, 0),
-				Information: &libtypes.ResourceUsageOverview{
+				Tasks:            make([]*carriertypespb.PowerTask, 0),
+				Information: &carriertypespb.ResourceUsageOverview{
 					TotalMem:       resource.GetTotalMem(),
 					UsedMem:        resource.GetUsedMem(),
 					TotalProcessor: resource.GetTotalProcessor(),
@@ -1029,7 +1030,7 @@ func (s *CarrierAPIBackend) GetNodeIdentity() (*types.Identity, error) {
 	if nil != err {
 		return nil, err
 	}
-	return types.NewIdentity(&libtypes.IdentityPB{
+	return types.NewIdentity(&carriertypespb.IdentityPB{
 		IdentityId: nodeAlias.GetIdentityId(),
 		NodeId:     nodeAlias.GetNodeId(),
 		NodeName:   nodeAlias.GetNodeName(),
@@ -1044,7 +1045,7 @@ func (s *CarrierAPIBackend) GetIdentityList(lastUpdate uint64, pageSize uint64) 
 
 // for metadataAuthority
 
-func (s *CarrierAPIBackend) AuditMetadataAuthority(audit *types.MetadataAuthAudit) (libtypes.AuditMetadataOption, error) {
+func (s *CarrierAPIBackend) AuditMetadataAuthority(audit *types.MetadataAuthAudit) (commonconstantpb.AuditMetadataOption, error) {
 	return s.carrier.authManager.AuditMetadataAuthority(audit)
 }
 
@@ -1056,12 +1057,12 @@ func (s *CarrierAPIBackend) GetGlobalMetadataAuthorityList(lastUpdate, pageSize 
 	return s.carrier.authManager.GetGlobalMetadataAuthorityList(lastUpdate, pageSize)
 }
 
-func (s *CarrierAPIBackend) HasValidMetadataAuth(userType libtypes.UserType, user, identityId, metadataId string) (bool, error) {
+func (s *CarrierAPIBackend) HasValidMetadataAuth(userType commonconstantpb.UserType, user, identityId, metadataId string) (bool, error) {
 	return s.carrier.authManager.HasValidMetadataAuth(userType, user, identityId, metadataId)
 }
 
 // task api
-func (s *CarrierAPIBackend) GetLocalTask(taskId string) (*libtypes.TaskDetail, error) {
+func (s *CarrierAPIBackend) GetLocalTask(taskId string) (*carriertypespb.TaskDetail, error) {
 	// the task is executing.
 	localTask, err := s.carrier.carrierDB.QueryLocalTask(taskId)
 	if nil != err {
@@ -1074,8 +1075,8 @@ func (s *CarrierAPIBackend) GetLocalTask(taskId string) (*libtypes.TaskDetail, e
 		return nil, fmt.Errorf("not found local task")
 	}
 
-	return &libtypes.TaskDetail{
-		Information: &libtypes.TaskDetailSummary{
+	return &carriertypespb.TaskDetail{
+		Information: &carriertypespb.TaskDetailSummary{
 			TaskId:                   localTask.GetTaskData().GetTaskId(),
 			TaskName:                 localTask.GetTaskData().GetTaskName(),
 			UserType:                 localTask.GetTaskData().GetUserType(),
@@ -1109,7 +1110,7 @@ func (s *CarrierAPIBackend) GetLocalTask(taskId string) (*libtypes.TaskDetail, e
 	}, nil
 }
 
-func (s *CarrierAPIBackend) GetLocalTaskDetailList(lastUpdate, pageSize uint64) ([]*libtypes.TaskDetail, error) {
+func (s *CarrierAPIBackend) GetLocalTaskDetailList(lastUpdate, pageSize uint64) ([]*carriertypespb.TaskDetail, error) {
 
 	identity, err := s.carrier.carrierDB.QueryIdentity()
 	if nil != err {
@@ -1128,11 +1129,11 @@ func (s *CarrierAPIBackend) GetLocalTaskDetailList(lastUpdate, pageSize uint64) 
 		return nil, err
 	}
 
-	makeTaskViewFn := func(task *types.Task) *libtypes.TaskDetail {
+	makeTaskViewFn := func(task *types.Task) *carriertypespb.TaskDetail {
 		return policy.NewTaskDetailShowFromTaskData(task)
 	}
 
-	result := make([]*libtypes.TaskDetail, 0)
+	result := make([]*carriertypespb.TaskDetail, 0)
 
 next:
 	for _, task := range localTaskArray {
@@ -1152,7 +1153,7 @@ next:
 
 		// For the initiator's local task, when the task has not started execution
 		// (i.e. the status is still: pending), the 'powersuppliers' of the task should not be returned.
-		if identity.GetIdentityId() == task.GetTaskSender().GetIdentityId() && task.GetTaskData().GetState() == libtypes.TaskState_TaskState_Pending {
+		if identity.GetIdentityId() == task.GetTaskSender().GetIdentityId() && task.GetTaskData().GetState() == commonconstantpb.TaskState_TaskState_Pending {
 			task.RemovePowerSuppliers() // clean powerSupplier when before return.
 		}
 
@@ -1169,7 +1170,7 @@ next:
 }
 
 // v0.4.0
-func (s *CarrierAPIBackend) GetGlobalTaskDetailList(lastUpdate, pageSize uint64) ([]*libtypes.TaskDetail, error) {
+func (s *CarrierAPIBackend) GetGlobalTaskDetailList(lastUpdate, pageSize uint64) ([]*carriertypespb.TaskDetail, error) {
 
 	// the task has been executed.
 	networkTaskList, err := s.carrier.carrierDB.QueryGlobalTaskList(lastUpdate, pageSize)
@@ -1177,10 +1178,10 @@ func (s *CarrierAPIBackend) GetGlobalTaskDetailList(lastUpdate, pageSize uint64)
 		return nil, err
 	}
 
-	makeTaskViewFn := func(task *types.Task) *libtypes.TaskDetail {
+	makeTaskViewFn := func(task *types.Task) *carriertypespb.TaskDetail {
 		return policy.NewTaskDetailShowFromTaskData(task)
 	}
-	result := make([]*libtypes.TaskDetail, 0)
+	result := make([]*carriertypespb.TaskDetail, 0)
 
 	for _, networkTask := range networkTaskList {
 		if taskView := makeTaskViewFn(networkTask); nil != taskView {
@@ -1191,7 +1192,7 @@ func (s *CarrierAPIBackend) GetGlobalTaskDetailList(lastUpdate, pageSize uint64)
 }
 
 // v0.3.0
-func (s *CarrierAPIBackend) GetTaskDetailListByTaskIds(taskIds []string) ([]*libtypes.TaskDetail, error) {
+func (s *CarrierAPIBackend) GetTaskDetailListByTaskIds(taskIds []string) ([]*carriertypespb.TaskDetail, error) {
 
 	identity, err := s.carrier.carrierDB.QueryIdentity()
 	if nil != err {
@@ -1230,11 +1231,11 @@ func (s *CarrierAPIBackend) GetTaskDetailListByTaskIds(taskIds []string) ([]*lib
 		return nil, err
 	}
 
-	makeTaskViewFn := func(task *types.Task) *libtypes.TaskDetail {
+	makeTaskViewFn := func(task *types.Task) *carriertypespb.TaskDetail {
 		return policy.NewTaskDetailShowFromTaskData(task)
 	}
 
-	result := make([]*libtypes.TaskDetail, 0)
+	result := make([]*carriertypespb.TaskDetail, 0)
 
 next:
 	for _, task := range localTaskList {
@@ -1258,7 +1259,7 @@ next:
 		//
 		// For the initiator's local task, when the task has not started execution
 		// (i.e. the status is still: pending), the 'powersuppliers' of the task should not be returned.
-		if identity.GetIdentityId() == task.GetTaskSender().GetIdentityId() && task.GetTaskData().GetState() == libtypes.TaskState_TaskState_Pending {
+		if identity.GetIdentityId() == task.GetTaskSender().GetIdentityId() && task.GetTaskData().GetState() == commonconstantpb.TaskState_TaskState_Pending {
 			task.RemovePowerSuppliers() // clean powerSupplier when before return.
 		}
 
@@ -1274,7 +1275,7 @@ next:
 	return result, err
 }
 
-func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*libtypes.TaskEvent, error) {
+func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*carriertypespb.TaskEvent, error) {
 
 	// 1、 If it is a local task, first find out the local eventList of the task
 	eventList, err := s.carrier.carrierDB.QueryTaskEventList(taskId)
@@ -1290,9 +1291,9 @@ func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*libtypes.TaskEve
 	return eventList, nil
 }
 
-func (s *CarrierAPIBackend) GetTaskEventListByTaskIds(taskIds []string) ([]*libtypes.TaskEvent, error) {
+func (s *CarrierAPIBackend) GetTaskEventListByTaskIds(taskIds []string) ([]*carriertypespb.TaskEvent, error) {
 
-	evenList := make([]*libtypes.TaskEvent, 0)
+	evenList := make([]*carriertypespb.TaskEvent, 0)
 
 	// 1、 If it is a local task, first find out the local eventList of the task
 	for _, taskId := range taskIds {
@@ -1381,7 +1382,7 @@ func (s *CarrierAPIBackend) QueryDataResourceFileUploads() ([]*types.DataResourc
 	return s.carrier.carrierDB.QueryDataResourceFileUploads()
 }
 
-func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, dataHash, metadataOption, dataNodeId, extra string, dataType libtypes.OrigindataType) error {
+func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, dataHash, metadataOption, dataNodeId, extra string, dataType commonconstantpb.OrigindataType) error {
 	// generate metadataId
 	var buf bytes.Buffer
 	buf.Write([]byte(originId))
@@ -1398,7 +1399,7 @@ func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, dataHas
 	}
 
 	// store local metadata (about task result file)
-	metadata := types.NewMetadata(&libtypes.MetadataPB{
+	metadata := types.NewMetadata(&carriertypespb.MetadataPB{
 		/**
 		MetadataId           string
 		Owner                *Organization
@@ -1422,15 +1423,15 @@ func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, dataHas
 		MetadataId:     metadataId,
 		Owner:          identity,
 		DataId:         metadataId,
-		DataStatus:     libtypes.DataStatus_DataStatus_Valid,
+		DataStatus:     commonconstantpb.DataStatus_DataStatus_Valid,
 		MetadataName:   fmt.Sprintf("task `%s` result file", taskId),
-		MetadataType:   libtypes.MetadataType_MetadataType_Unknown, // It means this is a module or psi result ??? so we don't known it.
+		MetadataType:   commonconstantpb.MetadataType_MetadataType_Unknown, // It means this is a module or psi result ??? so we don't known it.
 		DataHash:       dataHash,
 		Desc:           fmt.Sprintf("the task `%s` result file after executed", taskId),
-		LocationType:   libtypes.DataLocationType_DataLocationType_Local,
+		LocationType:   commonconstantpb.DataLocationType_DataLocationType_Local,
 		DataType:       dataType,
 		Industry:       "Unknown",
-		State:          libtypes.MetadataState_MetadataState_Created, // metaData status, eg: create/release/revoke
+		State:          commonconstantpb.MetadataState_MetadataState_Created, // metaData status, eg: create/release/revoke
 		PublishAt:      0,                                            // have not publish
 		UpdateAt:       timeutils.UnixMsecUint64(),
 		Nonce:          0,
@@ -1537,13 +1538,13 @@ func (s *CarrierAPIBackend) QueryTaskResultFileSummaryList() (types.TaskResultFi
 }
 
 func (s *CarrierAPIBackend) EstimateTaskGas(taskSponsorAddress string, dataTokenAddressList []string) (gasLimit uint64, gasPrice *big.Int, err error) {
-	gasLimit, gasPrice, err = s.carrier.metisPayManager.EstimateTaskGas(taskSponsorAddress, dataTokenAddressList)
+	gasLimit, gasPrice, err = s.carrier.token20PayManager.EstimateTaskGas(taskSponsorAddress, dataTokenAddressList)
 	if err != nil {
 		log.WithError(err).Error("Failed to call EstimateTaskGas() on CarrierAPIBackend.EstimateTaskGas()")
 	}
 	return
 
-	/*if gasLimit, gasPrice, err = s.carrier.metisPayManager.EstimateTaskGas(dataTokenTransferList); nil != err {
+	/*if gasLimit, gasPrice, err = s.carrier.token20PayManager.EstimateTaskGas(dataTokenTransferList); nil != err {
 		log.WithError(err).Error("Failed to call EstimateTaskGas() on CarrierAPIBackend.EstimateTaskGas()")
 		return 0, nil, err
 	} else {

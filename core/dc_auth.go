@@ -3,17 +3,17 @@ package core
 import (
 	"errors"
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
-	"github.com/Metisnetwork/Metis-Carrier/core/rawdb"
-	"github.com/Metisnetwork/Metis-Carrier/lib/center/api"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/rpc/backend"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	"github.com/datumtechs/datum-network-carrier/core/rawdb"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	datacenterapipb "github.com/datumtechs/datum-network-carrier/pb/datacenter/api"
+	"github.com/datumtechs/datum-network-carrier/rpc/backend"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"strings"
 )
 
 // about identity on local
-func (dc *DataCenter) StoreIdentity(identity *libtypes.Organization) error {
+func (dc *DataCenter) StoreIdentity(identity *carriertypespb.Organization) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.StoreLocalIdentity(dc.db, identity)
@@ -35,17 +35,17 @@ func (dc *DataCenter) QueryIdentityId() (string, error) {
 	return identity.GetIdentityId(), nil
 }
 
-func (dc *DataCenter) QueryIdentity() (*libtypes.Organization, error) {
+func (dc *DataCenter) QueryIdentity() (*carriertypespb.Organization, error) {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.QueryLocalIdentity(dc.db)
 }
 
 // about identity on datacenter
-func (dc *DataCenter) HasIdentity(identity *libtypes.Organization) (bool, error) {
+func (dc *DataCenter) HasIdentity(identity *carriertypespb.Organization) (bool, error) {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
-	responses, err := dc.client.GetIdentityList(dc.ctx, &api.ListIdentityRequest{
+	responses, err := dc.client.GetIdentityList(dc.ctx, &datacenterapipb.ListIdentityRequest{
 		LastUpdated: timeutils.BeforeYearUnixMsecUint64(),
 		PageSize:    backend.DefaultMaxPageSize,
 	})
@@ -77,7 +77,7 @@ func (dc *DataCenter) InsertIdentity(identity *types.Identity) error {
 func (dc *DataCenter) RevokeIdentity(identity *types.Identity) error {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
-	response, err := dc.client.RevokeIdentityJoin(dc.ctx, &api.RevokeIdentityRequest{
+	response, err := dc.client.RevokeIdentityJoin(dc.ctx, &datacenterapipb.RevokeIdentityRequest{
 		IdentityId: identity.GetIdentityId(),
 	})
 	if err != nil {
@@ -92,14 +92,14 @@ func (dc *DataCenter) RevokeIdentity(identity *types.Identity) error {
 func (dc *DataCenter) QueryIdentityList(lastUpdate uint64, pageSize uint64) (types.IdentityArray, error) {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
-	identityListResponse, err := dc.client.GetIdentityList(dc.ctx, &api.ListIdentityRequest{LastUpdated: lastUpdate, PageSize: pageSize})
+	identityListResponse, err := dc.client.GetIdentityList(dc.ctx, &datacenterapipb.ListIdentityRequest{LastUpdated: lastUpdate, PageSize: pageSize})
 	return types.NewIdentityArrayFromIdentityListResponse(identityListResponse), err
 }
 
 func (dc *DataCenter) InsertMetadataAuthority(metadataAuth *types.MetadataAuthority) error {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
-	_, err := dc.client.SaveMetadataAuthority(dc.ctx, &api.MetadataAuthorityRequest{
+	_, err := dc.client.SaveMetadataAuthority(dc.ctx, &datacenterapipb.MetadataAuthorityRequest{
 		MetadataAuthority: metadataAuth.GetData(),
 	})
 	if err != nil {
@@ -112,7 +112,7 @@ func (dc *DataCenter) InsertMetadataAuthority(metadataAuth *types.MetadataAuthor
 func (dc *DataCenter) UpdateMetadataAuthority(metadataAuth *types.MetadataAuthority) error {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
-	response, err := dc.client.UpdateMetadataAuthority(dc.ctx, &api.MetadataAuthorityRequest{
+	response, err := dc.client.UpdateMetadataAuthority(dc.ctx, &datacenterapipb.MetadataAuthorityRequest{
 		MetadataAuthority: metadataAuth.GetData(),
 	})
 	if err != nil {
@@ -125,7 +125,7 @@ func (dc *DataCenter) UpdateMetadataAuthority(metadataAuth *types.MetadataAuthor
 }
 
 func (dc *DataCenter) QueryMetadataAuthority(metadataAuthId string) (*types.MetadataAuthority, error) {
-	response, err := dc.client.FindMetadataAuthority(dc.ctx, &api.FindMetadataAuthorityRequest{
+	response, err := dc.client.FindMetadataAuthority(dc.ctx, &datacenterapipb.FindMetadataAuthorityRequest{
 		MetadataAuthId: metadataAuthId,
 	})
 	if err != nil {
@@ -143,7 +143,7 @@ func (dc *DataCenter) QueryMetadataAuthorityListByIds(metadataAuthIds []string) 
 func (dc *DataCenter) QueryMetadataAuthorityListByIdentityId(identityId string, lastUpdate uint64, pageSize uint64) (types.MetadataAuthArray, error) {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
-	response, err := dc.client.GetMetadataAuthorityList(dc.ctx, &api.ListMetadataAuthorityRequest{
+	response, err := dc.client.GetMetadataAuthorityList(dc.ctx, &datacenterapipb.ListMetadataAuthorityRequest{
 		IdentityId:  identityId,
 		LastUpdated: lastUpdate,
 		PageSize:    pageSize,
@@ -157,7 +157,7 @@ func (dc *DataCenter) QueryMetadataAuthorityListByIdentityId(identityId string, 
 func (dc *DataCenter) QueryMetadataAuthorityList(lastUpdate uint64, pageSize uint64) (types.MetadataAuthArray, error) {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
-	response, err := dc.client.GetMetadataAuthorityList(dc.ctx, &api.ListMetadataAuthorityRequest{
+	response, err := dc.client.GetMetadataAuthorityList(dc.ctx, &datacenterapipb.ListMetadataAuthorityRequest{
 		LastUpdated: lastUpdate,
 		PageSize:    pageSize,
 	})

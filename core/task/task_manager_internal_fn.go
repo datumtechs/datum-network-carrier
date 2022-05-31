@@ -4,28 +4,29 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	carriercommon "github.com/Metisnetwork/Metis-Carrier/common"
-	"github.com/Metisnetwork/Metis-Carrier/common/hexutil"
-	"github.com/Metisnetwork/Metis-Carrier/common/runutil"
-	"github.com/Metisnetwork/Metis-Carrier/common/signutil"
-	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
-	"github.com/Metisnetwork/Metis-Carrier/common/traceutil"
-	ev "github.com/Metisnetwork/Metis-Carrier/core/evengine"
-	"github.com/Metisnetwork/Metis-Carrier/core/rawdb"
-	"github.com/Metisnetwork/Metis-Carrier/core/resource"
-	"github.com/Metisnetwork/Metis-Carrier/core/schedule"
+	carriercommon "github.com/datumtechs/datum-network-carrier/common"
+	"github.com/datumtechs/datum-network-carrier/common/hexutil"
+	"github.com/datumtechs/datum-network-carrier/common/runutil"
+	"github.com/datumtechs/datum-network-carrier/common/signutil"
+	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	"github.com/datumtechs/datum-network-carrier/common/traceutil"
+	ev "github.com/datumtechs/datum-network-carrier/core/evengine"
+	"github.com/datumtechs/datum-network-carrier/core/rawdb"
+	"github.com/datumtechs/datum-network-carrier/core/resource"
+	"github.com/datumtechs/datum-network-carrier/core/schedule"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	ethereumcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/prysmaticlabs/prysm/shared/hashutil"
 	"math/big"
 
-	libapipb "github.com/Metisnetwork/Metis-Carrier/lib/api"
-	fightercommon "github.com/Metisnetwork/Metis-Carrier/lib/fighter/common"
-	msgcommonpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/common"
-	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
-	taskmngpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/taskmng"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/policy"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
+	carriernetmsgcommonpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/common"
+	carriertwopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
+	carriernetmsgtaskmngpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/taskmng"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	fighterpbtypes "github.com/datumtechs/datum-network-carrier/pb/fighter/types"
+	"github.com/datumtechs/datum-network-carrier/policy"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"strconv"
 	"strings"
@@ -45,14 +46,14 @@ func (m *Manager) tryScheduleTask() error {
 		log.WithError(err).Errorf("Failed to call scheduler.TrySchedule(), then remove bullet task, taskId: {%s}", taskId)
 		m.sendNeedExecuteTaskByAction(types.NewNeedExecuteTask(
 			"",
-			libtypes.TaskRole_TaskRole_Sender,
-			libtypes.TaskRole_TaskRole_Sender,
+			commonconstantpb.TaskRole_TaskRole_Sender,
+			commonconstantpb.TaskRole_TaskRole_Sender,
 			nonConsTask.GetTask().GetTaskSender(),
 			nonConsTask.GetTask().GetTaskSender(),
 			nonConsTask.GetTask().GetTaskId(),
 			types.TaskScheduleFailed,
 			&types.PrepareVoteResource{},   // zero value
-			&twopcpb.ConfirmTaskPeerInfo{}, // zero value
+			&carriertwopcpb.ConfirmTaskPeerInfo{}, // zero value
 			fmt.Errorf("schedule failed: "+schedule.ErrAbandonTaskWithNotFoundPowerPartyIds.Error()),
 		))
 		return err
@@ -70,14 +71,14 @@ func (m *Manager) tryScheduleTask() error {
 				m.scheduler.RemoveTask(nonConsTask.GetTask().GetTaskId())
 				m.sendNeedExecuteTaskByAction(types.NewNeedExecuteTask(
 					"",
-					libtypes.TaskRole_TaskRole_Sender,
-					libtypes.TaskRole_TaskRole_Sender,
+					commonconstantpb.TaskRole_TaskRole_Sender,
+					commonconstantpb.TaskRole_TaskRole_Sender,
 					nonConsTask.GetTask().GetTaskSender(),
 					nonConsTask.GetTask().GetTaskSender(),
 					nonConsTask.GetTask().GetTaskId(),
 					types.TaskScheduleFailed,
 					&types.PrepareVoteResource{},   // zero value
-					&twopcpb.ConfirmTaskPeerInfo{}, // zero value
+					&carriertwopcpb.ConfirmTaskPeerInfo{}, // zero value
 					fmt.Errorf("schedule failed: "+err.Error()+" and "+schedule.ErrRescheduleLargeThreshold.Error()),
 				))
 			}
@@ -99,14 +100,14 @@ func (m *Manager) tryScheduleTask() error {
 				m.scheduler.RemoveTask(nonConsTask.GetTask().GetTaskId())
 				m.sendNeedExecuteTaskByAction(types.NewNeedExecuteTask(
 					"",
-					libtypes.TaskRole_TaskRole_Sender,
-					libtypes.TaskRole_TaskRole_Sender,
+					commonconstantpb.TaskRole_TaskRole_Sender,
+					commonconstantpb.TaskRole_TaskRole_Sender,
 					nonConsTask.GetTask().GetTaskSender(),
 					nonConsTask.GetTask().GetTaskSender(),
 					nonConsTask.GetTask().GetTaskId(),
 					types.TaskScheduleFailed,
 					&types.PrepareVoteResource{},   // zero value
-					&twopcpb.ConfirmTaskPeerInfo{}, // zero value
+					&carriertwopcpb.ConfirmTaskPeerInfo{}, // zero value
 					fmt.Errorf("consensus onPrepare failed: "+err.Error()+" and "+schedule.ErrRescheduleLargeThreshold.Error()),
 				))
 			} else {
@@ -138,9 +139,9 @@ func (m *Manager) beginConsumeByMetadataAuth(task *types.NeedExecuteTask, localT
 	partyId := task.GetLocalTaskOrganization().GetPartyId()
 
 	switch task.GetLocalTaskRole() {
-	case libtypes.TaskRole_TaskRole_Sender:
+	case commonconstantpb.TaskRole_TaskRole_Sender:
 		return nil // do nothing ...
-	case libtypes.TaskRole_TaskRole_DataSupplier:
+	case commonconstantpb.TaskRole_TaskRole_DataSupplier:
 		for _, dataSupplier := range localTask.GetTaskData().GetDataSuppliers() {
 			if partyId == dataSupplier.GetPartyId() {
 
@@ -182,9 +183,9 @@ func (m *Manager) beginConsumeByMetadataAuth(task *types.NeedExecuteTask, localT
 			}
 		}
 		return nil
-	case libtypes.TaskRole_TaskRole_PowerSupplier:
+	case commonconstantpb.TaskRole_TaskRole_PowerSupplier:
 		return nil // do nothing ...
-	case libtypes.TaskRole_TaskRole_Receiver:
+	case commonconstantpb.TaskRole_TaskRole_Receiver:
 		return nil // do nothing ...
 	default:
 		return fmt.Errorf("unknown task role on beginConsumeByMetadataAuth()")
@@ -196,7 +197,7 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 	partyId := task.GetLocalTaskOrganization().GetPartyId()
 
 	switch task.GetLocalTaskRole() {
-	case libtypes.TaskRole_TaskRole_Sender:
+	case commonconstantpb.TaskRole_TaskRole_Sender:
 
 		if partyId != localTask.GetTaskSender().GetPartyId() {
 			return fmt.Errorf("this partyId is not task sender on beginConsumeByDataToken()")
@@ -236,13 +237,13 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 
 		user := ethereumcommon.HexToAddress(localTask.GetTaskData().GetUser())
 
-		log.Debugf("Start call metisPayManager.prepay(), taskId: {%s}, partyId: {%s}, call params{taskIdBigInt: %d, taskSponsorAccount: %s, dataTokenAaddresses: %s}",
+		log.Debugf("Start call token20PayManager.prepay(), taskId: {%s}, partyId: {%s}, call params{taskIdBigInt: %d, taskSponsorAccount: %s, dataTokenAaddresses: %s}",
 			task.GetTaskId(), partyId, taskIdBigInt, user.String(), "["+strings.Join(addrs, ",")+"]")
 
 		// start prepay dataToken
-		txHash, err := m.metisPayMng.Prepay(taskIdBigInt, user, dataTokenAaddresses)
+		txHash, err := m.token20PayMng.Prepay(taskIdBigInt, user, dataTokenAaddresses)
 		if nil != err {
-			return fmt.Errorf("cannot call metisPay to prepay datatoken on beginConsumeByDataToken(), %s", err)
+			return fmt.Errorf("cannot call token20Pay to prepay datatoken on beginConsumeByDataToken(), %s", err)
 		}
 
 		log.Debugf("Succeed send `contract prepay()` tx to blockchain on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}, txHash: {%s}",
@@ -254,7 +255,7 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		//ctx, cancelFn := context.WithCancel(context.Background())
 		defer cancelFn()
 
-		receipt := m.metisPayMng.GetReceipt(ctx, txHash, time.Duration(500)*time.Millisecond) // period 500 ms
+		receipt := m.token20PayMng.GetReceipt(ctx, txHash, time.Duration(500)*time.Millisecond) // period 500 ms
 		if nil == receipt {
 			return fmt.Errorf("prepay dataToken failed, the transaction had not receipt on beginConsumeByDataToken(), txHash: {%s}", txHash.String())
 		}
@@ -264,10 +265,10 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		}
 
 		// query task state
-		state, err := m.metisPayMng.GetTaskState(taskIdBigInt)
+		state, err := m.token20PayMng.GetTaskState(taskIdBigInt)
 		if nil != err {
 			//including NotFound
-			return fmt.Errorf("query task state of metisPay failed, %s on beginConsumeByDataToken()", err)
+			return fmt.Errorf("query task state of token20Pay failed, %s on beginConsumeByDataToken()", err)
 		}
 		// task state in contract
 		// constant int8 private NOTEXIST = -1;
@@ -276,7 +277,7 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		// constant int8 private SETTLE = 2;
 		// constant int8 private END = 3;
 		if state == -1 { //  We need to know if the task status value is 1.
-			return fmt.Errorf("task state is not existing in MetisPay contract on beginConsumeByDataToken()")
+			return fmt.Errorf("task state is not existing in token20Pay contract on beginConsumeByDataToken()")
 		}
 
 		log.Debugf("Succeed execute `contract prepay()` tx on blockchain on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}, txHash: {%s}, task.state: {%d}",
@@ -310,7 +311,7 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		m.updateNeedExecuteTaskCache(task)
 
 		return nil
-	case libtypes.TaskRole_TaskRole_DataSupplier, libtypes.TaskRole_TaskRole_PowerSupplier, libtypes.TaskRole_TaskRole_Receiver:
+	case commonconstantpb.TaskRole_TaskRole_DataSupplier, commonconstantpb.TaskRole_TaskRole_PowerSupplier, commonconstantpb.TaskRole_TaskRole_Receiver:
 
 		taskIdBigInt, err := hexutil.DecodeBig("0x" + strings.TrimLeft(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID+"0x"), "\x00"))
 		if nil != err {
@@ -335,15 +336,15 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 
 					end := timeutils.UnixMsec()
 					// time.Unix(end/1000, 0)
-					log.Warnf("Warning query task state of metisPay time out on blockchain on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}, startTime: {%d <==> %s}, endTime: {%d <==> %s}, duration: %d ms",
+					log.Warnf("Warning query task state of token20Pay time out on blockchain on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}, startTime: {%d <==> %s}, endTime: {%d <==> %s}, duration: %d ms",
 						task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt, start, time.Unix(start/1000, 0).Format("2006-01-02 15:04:05"), end, time.Unix(end/1000, 0).Format("2006-01-02 15:04:05"), end-start)
 
-					return 0, fmt.Errorf("query task state of metisPay time out")
+					return 0, fmt.Errorf("query task state of token20Pay time out")
 				case <-ticker.C:
-					state, err := m.metisPayMng.GetTaskState(taskIdBigInt)
+					state, err := m.token20PayMng.GetTaskState(taskIdBigInt)
 					if nil != err {
 						//including NotFound
-						log.WithError(err).Warnf("Warning cannot query task state of metisPay on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}",
+						log.WithError(err).Warnf("Warning cannot query task state of token20Pay on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}",
 							task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt)
 						continue
 					}
@@ -374,9 +375,9 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		}
 
 		return nil
-	//case libtypes.TaskRole_TaskRole_PowerSupplier:
+	//case carriertypespb.TaskRole_TaskRole_PowerSupplier:
 	//	return nil // do nothing ...
-	//case libtypes.TaskRole_TaskRole_Receiver:
+	//case carriertypespb.TaskRole_TaskRole_Receiver:
 	//	return nil // do nothing ...
 	default:
 		return fmt.Errorf("unknown task role on beginConsumeByDataToken()")
@@ -401,7 +402,7 @@ func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *
 	partyId := task.GetLocalTaskOrganization().GetPartyId()
 
 	switch task.GetLocalTaskRole() {
-	case libtypes.TaskRole_TaskRole_Sender:
+	case commonconstantpb.TaskRole_TaskRole_Sender:
 
 		// query consumeSpec of task
 		var consumeSpec *types.DatatokenPaySpec
@@ -434,13 +435,13 @@ func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *
 			return fmt.Errorf("cannot decode taskId to big.Int on endConsumeByDataToken(), %s", err)
 		}
 
-		log.Debugf("Start call metisPayManager.settle(), taskId: {%s}, partyId: {%s}, call params{taskIdBigInt: %d, gasUsedPrepay: %d}",
+		log.Debugf("Start call token20Pay.settle(), taskId: {%s}, partyId: {%s}, call params{taskIdBigInt: %d, gasUsedPrepay: %d}",
 			task.GetTaskId(), partyId, taskIdBigInt, consumeSpec.GetGasUsed())
 
 		// start prepay dataToken
-		txHash, err := m.metisPayMng.Settle(taskIdBigInt, consumeSpec.GetGasUsed())
+		txHash, err := m.token20PayMng.Settle(taskIdBigInt, consumeSpec.GetGasUsed())
 		if nil != err {
-			return fmt.Errorf("cannot call metisPay to settle datatoken on endConsumeByDataToken(), %s", err)
+			return fmt.Errorf("cannot call token20Pay to settle datatoken on endConsumeByDataToken(), %s", err)
 		}
 
 		log.Debugf("Succeed send `contract settle()` tx to blockchain on endConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}, txHash: {%s}",
@@ -452,7 +453,7 @@ func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *
 		//ctx, cancelFn := context.WithCancel(context.Background())
 		defer cancelFn()
 
-		receipt := m.metisPayMng.GetReceipt(ctx, txHash, time.Duration(500)*time.Millisecond) // period 500 ms
+		receipt := m.token20PayMng.GetReceipt(ctx, txHash, time.Duration(500)*time.Millisecond) // period 500 ms
 		if nil == receipt {
 			return fmt.Errorf("settle dataToken failed, the transaction had not receipt on endConsumeByDataToken(), txHash: {%s}", txHash.String())
 		}
@@ -466,11 +467,11 @@ func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *
 			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt, txHash.String())
 
 		return nil
-	case libtypes.TaskRole_TaskRole_DataSupplier:
+	case commonconstantpb.TaskRole_TaskRole_DataSupplier:
 		return nil // do nothing ...
-	case libtypes.TaskRole_TaskRole_PowerSupplier:
+	case commonconstantpb.TaskRole_TaskRole_PowerSupplier:
 		return nil // do nothing ...
-	case libtypes.TaskRole_TaskRole_Receiver:
+	case commonconstantpb.TaskRole_TaskRole_Receiver:
 		return nil // do nothing ...
 	default:
 		return fmt.Errorf("unknown task role on endConsumeByDataToken()")
@@ -492,9 +493,9 @@ func (m *Manager) driveTaskForExecute(task *types.NeedExecuteTask, localTask *ty
 	}
 	// 3、 let's task execute
 	switch task.GetLocalTaskRole() {
-	case libtypes.TaskRole_TaskRole_DataSupplier, libtypes.TaskRole_TaskRole_Receiver:
+	case commonconstantpb.TaskRole_TaskRole_DataSupplier, commonconstantpb.TaskRole_TaskRole_Receiver:
 		return m.executeTaskOnDataNode(task, localTask)
-	case libtypes.TaskRole_TaskRole_PowerSupplier:
+	case commonconstantpb.TaskRole_TaskRole_PowerSupplier:
 		return m.executeTaskOnJobNode(task, localTask)
 	default:
 		return nil
@@ -505,7 +506,7 @@ func (m *Manager) executeTaskOnDataNode(task *types.NeedExecuteTask, localTask *
 
 	// find dataNodeId with self vote
 	var dataNodeId string
-	dataNodes, err := m.resourceMng.GetDB().QueryRegisterNodeList(libapipb.PrefixTypeDataNode)
+	dataNodes, err := m.resourceMng.GetDB().QueryRegisterNodeList(carrierapipb.PrefixTypeDataNode)
 	if nil != err {
 		log.Errorf("Failed to query internal dataNode arr on `taskManager.executeTaskOnDataNode()`, taskId: {%s}, role: {%s}, partyId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
@@ -566,7 +567,7 @@ func (m *Manager) executeTaskOnJobNode(task *types.NeedExecuteTask, localTask *t
 
 	// find jobNodeId with self vote
 	var jobNodeId string
-	jobNodes, err := m.resourceMng.GetDB().QueryRegisterNodeList(libapipb.PrefixTypeJobNode)
+	jobNodes, err := m.resourceMng.GetDB().QueryRegisterNodeList(carrierapipb.PrefixTypeJobNode)
 	if nil != err {
 		log.Errorf("Failed to query internal jobNode arr on `taskManager.executeTaskOnJobNode()`, taskId: {%s}, role: {%s}, partyId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
@@ -629,9 +630,9 @@ func (m *Manager) driveTaskForTerminate(task *types.NeedExecuteTask) error {
 
 	// annonce fighter processor to terminate this task
 	switch task.GetLocalTaskRole() {
-	case libtypes.TaskRole_TaskRole_DataSupplier, libtypes.TaskRole_TaskRole_Receiver:
+	case commonconstantpb.TaskRole_TaskRole_DataSupplier, commonconstantpb.TaskRole_TaskRole_Receiver:
 		return m.terminateTaskOnDataNode(task)
-	case libtypes.TaskRole_TaskRole_PowerSupplier:
+	case commonconstantpb.TaskRole_TaskRole_PowerSupplier:
 		return m.terminateTaskOnJobNode(task)
 	default:
 		log.Errorf("Faided to driveTaskForTerminate(), Unknown task role, taskId: {%s}, taskRole: {%s}", task.GetTaskId(), task.GetLocalTaskRole().String())
@@ -642,7 +643,7 @@ func (m *Manager) terminateTaskOnDataNode(task *types.NeedExecuteTask) error {
 
 	// find dataNodeId with self vote
 	var dataNodeId string
-	dataNodes, err := m.resourceMng.GetDB().QueryRegisterNodeList(libapipb.PrefixTypeDataNode)
+	dataNodes, err := m.resourceMng.GetDB().QueryRegisterNodeList(carrierapipb.PrefixTypeDataNode)
 	if nil != err {
 		log.Errorf("Failed to query internal dataNode arr on `taskManager.terminateTaskOnDataNode()`, taskId: {%s}, role: {%s}, partyId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
@@ -703,7 +704,7 @@ func (m *Manager) terminateTaskOnJobNode(task *types.NeedExecuteTask) error {
 
 	// find jobNodeId with self vote
 	var jobNodeId string
-	jobNodes, err := m.resourceMng.GetDB().QueryRegisterNodeList(libapipb.PrefixTypeJobNode)
+	jobNodes, err := m.resourceMng.GetDB().QueryRegisterNodeList(carrierapipb.PrefixTypeJobNode)
 	if nil != err {
 		log.Errorf("Failed to query internal jobNode arr on `taskManager.terminateTaskOnJobNode()`, taskId: {%s}, role: {%s}, partyId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
@@ -786,11 +787,11 @@ func (m *Manager) publishFinishedTaskToDataCenter(task *types.NeedExecuteTask, l
 				break
 			}
 		}
-		var taskState libtypes.TaskState
+		var taskState commonconstantpb.TaskState
 		if isFailed {
-			taskState = libtypes.TaskState_TaskState_Failed
+			taskState = commonconstantpb.TaskState_TaskState_Failed
 		} else {
-			taskState = libtypes.TaskState_TaskState_Succeed
+			taskState = commonconstantpb.TaskState_TaskState_Succeed
 		}
 
 		// 1、settle metadata or power usage.
@@ -844,7 +845,7 @@ func (m *Manager) sendTaskResultMsgToTaskSender(task *types.NeedExecuteTask, loc
 
 	var (
 		option resource.ReleaseResourceOption
-		msg *taskmngpb.TaskResultMsg
+		msg *carriernetmsgtaskmngpb.TaskResultMsg
 	)
 
 	// when other task partner and task sender is same identity,
@@ -914,14 +915,14 @@ func (m *Manager) sendTaskTerminateMsg(task *types.Task) error {
 		return false
 	}
 
-	terminateMsg := &taskmngpb.TaskTerminateMsg{
-		MsgOption: &msgcommonpb.MsgOption{
+	terminateMsg := &carriernetmsgtaskmngpb.TaskTerminateMsg{
+		MsgOption: &carriernetmsgcommonpb.MsgOption{
 			ProposalId:      carriercommon.Hash{}.Bytes(),
-			SenderRole:      uint64(libtypes.TaskRole_TaskRole_Sender),
+			SenderRole:      uint64(commonconstantpb.TaskRole_TaskRole_Sender),
 			SenderPartyId:   []byte(sender.GetPartyId()),
-			ReceiverRole:    uint64(libtypes.TaskRole_TaskRole_Unknown),
+			ReceiverRole:    uint64(commonconstantpb.TaskRole_TaskRole_Unknown),
 			ReceiverPartyId: []byte{},
-			MsgOwner: &msgcommonpb.TaskOrganizationIdentityInfo{
+			MsgOwner: &carriernetmsgcommonpb.TaskOrganizationIdentityInfo{
 				Name:       []byte(sender.GetNodeName()),
 				NodeId:     []byte(sender.GetNodeId()),
 				IdentityId: []byte(sender.GetIdentityId()),
@@ -968,8 +969,8 @@ func (m *Manager) sendTaskTerminateMsg(task *types.Task) error {
 
 	return nil
 }
-func (m *Manager) sendTaskEvent(event *libtypes.TaskEvent) {
-	go func(event *libtypes.TaskEvent) {
+func (m *Manager) sendTaskEvent(event *carriertypespb.TaskEvent) {
+	go func(event *carriertypespb.TaskEvent) {
 		m.eventCh <- event
 		log.Debugf("Succeed send a task event to manager.loop() on taskManager.sendTaskEvent(), event: %s", event.String())
 	}(event)
@@ -1010,9 +1011,9 @@ func (m *Manager) RemoveExecuteTaskStateAfterExecuteTask(logdesc, taskId, partyI
 
 
 
-func (m *Manager) publishBadTaskToDataCenter(task *types.Task, events []*libtypes.TaskEvent, reason string) error {
+func (m *Manager) publishBadTaskToDataCenter(task *types.Task, events []*carriertypespb.TaskEvent, reason string) error {
 	task.GetTaskData().TaskEvents = events
-	task.GetTaskData().State = libtypes.TaskState_TaskState_Failed
+	task.GetTaskData().State = commonconstantpb.TaskState_TaskState_Failed
 	task.GetTaskData().Reason = reason
 	task.GetTaskData().EndAt = timeutils.UnixMsecUint64()
 
@@ -1022,20 +1023,20 @@ func (m *Manager) publishBadTaskToDataCenter(task *types.Task, events []*libtype
 	return m.resourceMng.GetDB().InsertTask(task)
 }
 
-func (m *Manager) fillTaskEventAndFinishedState(task *types.Task, eventList []*libtypes.TaskEvent, state libtypes.TaskState) *types.Task {
+func (m *Manager) fillTaskEventAndFinishedState(task *types.Task, eventList []*carriertypespb.TaskEvent, state commonconstantpb.TaskState) *types.Task {
 	task.GetTaskData().TaskEvents = eventList
 	task.GetTaskData().EndAt = timeutils.UnixMsecUint64()
 	task.GetTaskData().State = state
 	return task
 }
 
-func (m *Manager) makeTaskReadyGoReq(task *types.NeedExecuteTask, localTask *types.Task) (*fightercommon.TaskReadyGoReq, error) {
+func (m *Manager) makeTaskReadyGoReq(task *types.NeedExecuteTask, localTask *types.Task) (*fighterpbtypes.TaskReadyGoReq, error) {
 
 	var dataPartyArr []string
 	var powerPartyArr []string
 	var receiverPartyArr []string
 
-	peerList := make([]*fightercommon.Party, 0)
+	peerList := make([]*fighterpbtypes.Party, 0)
 
 	for _, dataSupplier := range task.GetResources().GetDataSupplierPeerInfos() {
 		portStr := string(dataSupplier.GetPort())
@@ -1043,7 +1044,7 @@ func (m *Manager) makeTaskReadyGoReq(task *types.NeedExecuteTask, localTask *typ
 		if nil != err {
 			return nil, err
 		}
-		peerList = append(peerList, &fightercommon.Party{
+		peerList = append(peerList, &fighterpbtypes.Party{
 			Ip:      string(dataSupplier.GetIp()),
 			Port:    int32(port),
 			PartyId: string(dataSupplier.GetPartyId()),
@@ -1057,7 +1058,7 @@ func (m *Manager) makeTaskReadyGoReq(task *types.NeedExecuteTask, localTask *typ
 		if nil != err {
 			return nil, err
 		}
-		peerList = append(peerList, &fightercommon.Party{
+		peerList = append(peerList, &fighterpbtypes.Party{
 			Ip:      string(powerSupplier.GetIp()),
 			Port:    int32(port),
 			PartyId: string(powerSupplier.GetPartyId()),
@@ -1072,7 +1073,7 @@ func (m *Manager) makeTaskReadyGoReq(task *types.NeedExecuteTask, localTask *typ
 		if nil != err {
 			return nil, err
 		}
-		peerList = append(peerList, &fightercommon.Party{
+		peerList = append(peerList, &fighterpbtypes.Party{
 			Ip:      string(receiver.GetIp()),
 			Port:    int32(port),
 			PartyId: string(receiver.GetPartyId()),
@@ -1093,7 +1094,7 @@ func (m *Manager) makeTaskReadyGoReq(task *types.NeedExecuteTask, localTask *typ
 	log.Debugf("Succeed make selfCfgParams field of req, taskId:{%s}, partyId: {%s}, selfCfgParams: %s, connectPolicyType: %s, connectPolicy: %s",
 		task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), selfCfgParams, connectPolicyFormat.String(), connectPolicy)
 
-	req := &fightercommon.TaskReadyGoReq{
+	req := &fighterpbtypes.TaskReadyGoReq{
 
 		/**
 		TaskId                 string
@@ -1164,12 +1165,12 @@ func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types
 	inputDataArr := make([]interface{}, 0)
 
 	switch task.GetLocalTaskRole() {
-	case libtypes.TaskRole_TaskRole_DataSupplier:
+	case commonconstantpb.TaskRole_TaskRole_DataSupplier:
 
 		for i, policyType := range localTask.GetTaskData().GetDataPolicyTypes() {
 
 			switch policyType {
-			case uint32(libtypes.OrigindataType_OrigindataType_CSV):
+			case uint32(commonconstantpb.OrigindataType_OrigindataType_CSV):
 
 				var dataPolicy *types.TaskMetadataPolicyCSV
 				if err := json.Unmarshal([]byte(localTask.GetTaskData().GetDataPolicyOptions()[i]), &dataPolicy); nil != err {
@@ -1184,7 +1185,7 @@ func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types
 					}
 					inputDataArr = append(inputDataArr, inputData)
 				}
-			case uint32(libtypes.OrigindataType_OrigindataType_DIR):
+			case uint32(commonconstantpb.OrigindataType_OrigindataType_DIR):
 				var dataPolicy *types.TaskMetadataPolicyDIR
 				if err := json.Unmarshal([]byte(localTask.GetTaskData().GetDataPolicyOptions()[i]), &dataPolicy); nil != err {
 					return "", fmt.Errorf("can not unmarshal dataPolicyOption, %s, taskId: {%s}, partyId: {%s}", err, localTask.GetTaskId(), partyId)
@@ -1199,7 +1200,7 @@ func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types
 					inputDataArr = append(inputDataArr, inputData)
 				}
 
-			case uint32(libtypes.OrigindataType_OrigindataType_BINARY):
+			case uint32(commonconstantpb.OrigindataType_OrigindataType_BINARY):
 				var dataPolicy *types.TaskMetadataPolicyBINARY
 				if err := json.Unmarshal([]byte(localTask.GetTaskData().GetDataPolicyOptions()[i]), &dataPolicy); nil != err {
 					return "", fmt.Errorf("can not unmarshal dataPolicyOption, %s, taskId: {%s}, partyId: {%s}", err, localTask.GetTaskId(), partyId)
@@ -1217,7 +1218,7 @@ func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types
 				return "", fmt.Errorf("unknown dataPolicy type, taskId: {%s}, partyId: {%s}, dataPolicyType: {%d}", task.GetTaskId(), partyId, policyType)
 			}
 		}
-	case libtypes.TaskRole_TaskRole_PowerSupplier:
+	case commonconstantpb.TaskRole_TaskRole_PowerSupplier:
 		// do nothing...
 	}
 
@@ -1406,12 +1407,12 @@ func (m *Manager) metadataInputBINARY(task *types.NeedExecuteTask, localTask *ty
 	}, nil
 }
 
-func (m *Manager) makeConnectPolicy(task *types.NeedExecuteTask, localTask *types.Task) (fightercommon.ConnectPolicyFormat, string, error) {
+func (m *Manager) makeConnectPolicy(task *types.NeedExecuteTask, localTask *types.Task) (commonconstantpb.ConnectPolicyFormat, string, error) {
 
 	//partyId := task.GetLocalTaskOrganization().GetPartyId()
 
 	var (
-		format        fightercommon.ConnectPolicyFormat
+		format        commonconstantpb.ConnectPolicyFormat
 		connectPolicy string
 		err           error
 	)
@@ -1422,11 +1423,11 @@ func (m *Manager) makeConnectPolicy(task *types.NeedExecuteTask, localTask *type
 
 		switch policyType {
 		case types.TASK_DATAFLOW_POLICY_GENERAL_FULL_CONNECT, types.TASK_DATAFLOW_POLICY_GENERAL_DIRECTIONAL_CONNECT:
-			format = fightercommon.ConnectPolicyFormat_ConnectPolicyFormat_Json
+			format = commonconstantpb.ConnectPolicyFormat_ConnectPolicyFormat_Json
 			connectPolicy = policy
 		default:
 			format, connectPolicy, err =
-				fightercommon.ConnectPolicyFormat_ConnectPolicyFormat_Unknown, "", fmt.Errorf("unknown dataFlowPolicyType")
+				commonconstantpb.ConnectPolicyFormat_ConnectPolicyFormat_Unknown, "", fmt.Errorf("unknown dataFlowPolicyType")
 		}
 		break
 	}
@@ -1434,8 +1435,8 @@ func (m *Manager) makeConnectPolicy(task *types.NeedExecuteTask, localTask *type
 }
 
 // make terminate rpc req
-func (m *Manager) makeTerminateTaskReq(task *types.NeedExecuteTask) (*fightercommon.TaskCancelReq, error) {
-	return &fightercommon.TaskCancelReq{
+func (m *Manager) makeTerminateTaskReq(task *types.NeedExecuteTask) (*fighterpbtypes.TaskCancelReq, error) {
+	return &fighterpbtypes.TaskCancelReq{
 		TaskId:  task.GetTaskId(),
 		PartyId: task.GetLocalTaskOrganization().GetPartyId(),
 	}, nil
@@ -1527,7 +1528,7 @@ func (m *Manager) addmonitor(task *types.NeedExecuteTask, when int64) {
 		}
 
 		// 3、 handle ExpireTask
-		if localTask.GetTaskData().GetState() == libtypes.TaskState_TaskState_Running && localTask.GetTaskData().GetStartAt() != 0 {
+		if localTask.GetTaskData().GetState() == commonconstantpb.TaskState_TaskState_Running && localTask.GetTaskData().GetStartAt() != 0 {
 			var duration uint64
 
 			duration = timeutils.UnixMsecUint64() - localTask.GetTaskData().GetStartAt()
@@ -1541,7 +1542,7 @@ func (m *Manager) addmonitor(task *types.NeedExecuteTask, when int64) {
 				fmt.Sprintf("task running expire")))
 
 			switch nt.GetLocalTaskRole() {
-			case libtypes.TaskRole_TaskRole_Sender:
+			case commonconstantpb.TaskRole_TaskRole_Sender:
 				m.publishFinishedTaskToDataCenter(nt, localTask, true)
 			default:
 				// 2、terminate fighter processor for this task with current party
@@ -1662,9 +1663,9 @@ func (m *Manager) mustQueryNeedExecuteTaskCache(taskId, partyId string) *types.N
 	return task
 }
 
-func (m *Manager) makeTaskResultMsgWithEventList(task *types.NeedExecuteTask) *taskmngpb.TaskResultMsg {
+func (m *Manager) makeTaskResultMsgWithEventList(task *types.NeedExecuteTask) *carriernetmsgtaskmngpb.TaskResultMsg {
 
-	if task.GetLocalTaskRole() == libtypes.TaskRole_TaskRole_Sender {
+	if task.GetLocalTaskRole() == commonconstantpb.TaskRole_TaskRole_Sender {
 		log.Errorf("the task sender can not make taskResultMsg")
 		return nil
 	}
@@ -1682,14 +1683,14 @@ func (m *Manager) makeTaskResultMsgWithEventList(task *types.NeedExecuteTask) *t
 		return nil
 	}
 
-	return &taskmngpb.TaskResultMsg{
-		MsgOption: &msgcommonpb.MsgOption{
+	return &carriernetmsgtaskmngpb.TaskResultMsg{
+		MsgOption: &carriernetmsgcommonpb.MsgOption{
 			ProposalId:      carriercommon.Hash{}.Bytes(),
 			SenderRole:      uint64(task.GetLocalTaskRole()),
 			SenderPartyId:   []byte(task.GetLocalTaskOrganization().GetPartyId()),
 			ReceiverRole:    uint64(task.GetRemoteTaskRole()),
 			ReceiverPartyId: []byte(task.GetRemoteTaskOrganization().GetPartyId()),
-			MsgOwner: &msgcommonpb.TaskOrganizationIdentityInfo{
+			MsgOwner: &carriernetmsgcommonpb.TaskOrganizationIdentityInfo{
 				Name:       []byte(task.GetLocalTaskOrganization().GetNodeName()),
 				NodeId:     []byte(task.GetLocalTaskOrganization().GetNodeId()),
 				IdentityId: []byte(task.GetLocalTaskOrganization().GetIdentityId()),
@@ -1702,7 +1703,7 @@ func (m *Manager) makeTaskResultMsgWithEventList(task *types.NeedExecuteTask) *t
 	}
 }
 
-func (m *Manager) handleTaskEventWithCurrentOranization(event *libtypes.TaskEvent) error {
+func (m *Manager) handleTaskEventWithCurrentOranization(event *carriertypespb.TaskEvent) error {
 	if len(event.GetType()) != ev.EventTypeCharLen {
 		return ev.IncEventType
 	}
@@ -1761,14 +1762,14 @@ func (m *Manager) handleNeedExecuteTask(task *types.NeedExecuteTask, localTask *
 		return
 	}
 
-	if localTask.GetTaskData().GetState() == libtypes.TaskState_TaskState_Pending &&
+	if localTask.GetTaskData().GetState() == commonconstantpb.TaskState_TaskState_Pending &&
 		localTask.GetTaskData().GetStartAt() == 0 {
 
-		localTask.GetTaskData().State = libtypes.TaskState_TaskState_Running
+		localTask.GetTaskData().State = commonconstantpb.TaskState_TaskState_Running
 		localTask.GetTaskData().StartAt = timeutils.UnixMsecUint64()
 		if err := m.resourceMng.GetDB().StoreLocalTask(localTask); nil != err {
 			log.WithError(err).Errorf("Failed to update local task state before executing task on handleNeedExecuteTask(), taskId: {%s}, need update state: {%s}",
-				task.GetTaskId(), libtypes.TaskState_TaskState_Running.String())
+				task.GetTaskId(), commonconstantpb.TaskState_TaskState_Running.String())
 		}
 	}
 
@@ -1787,7 +1788,7 @@ func (m *Manager) handleNeedExecuteTask(task *types.NeedExecuteTask, localTask *
 	}
 }
 
-func (m *Manager) executeTaskEvent(logkeyword string, symbol types.NetworkMsgLocationSymbol, event *libtypes.TaskEvent, localNeedtask *types.NeedExecuteTask, localTask *types.Task) error {
+func (m *Manager) executeTaskEvent(logkeyword string, symbol types.NetworkMsgLocationSymbol, event *carriertypespb.TaskEvent, localNeedtask *types.NeedExecuteTask, localTask *types.Task) error {
 
 	if err := m.resourceMng.GetDB().StoreTaskEvent(event); nil != err {
 		log.WithError(err).Errorf("Failed to store %s taskEvent %s, event: %s", symbol.String(), logkeyword, event.String())
@@ -1891,7 +1892,7 @@ func (m *Manager) storeMetadataUsedTaskId(task *types.Task) error {
 	return nil
 }
 
-func (m *Manager) checkTaskSenderPublishOpportunity(task *types.Task, event *libtypes.TaskEvent) (bool, error) {
+func (m *Manager) checkTaskSenderPublishOpportunity(task *types.Task, event *carriertypespb.TaskEvent) (bool, error) {
 
 	if "" == strings.Trim(event.GetPartyId(), "") {
 		log.Errorf("Failed to check partyId of event, partyId is empty on taskManager.checkTaskSenderPublishOpportunity(), event: %s", event.String())
@@ -1997,12 +1998,12 @@ func (m *Manager) handleResourceUsage(keyword, usageIdentityId string, usage *ty
 
 	var needUpdate bool
 
-	//resourceCache := make(map[string]*libtypes.TaskPowerResourceOption)
+	//resourceCache := make(map[string]*carriertypespb.TaskPowerResourceOption)
 	//for _, powerOption := range localTask.GetTaskData().GetPowerResourceOptions() {
 	//	resourceCache[powerOption.GetPartyId()] = powerOption
 	//}
 
-	powerCache := make(map[string]*libtypes.TaskOrganization)
+	powerCache := make(map[string]*carriertypespb.TaskOrganization)
 	for _, power := range localTask.GetTaskData().GetPowerSuppliers() {
 		powerCache[power.GetPartyId()] = power
 	}
@@ -2067,7 +2068,7 @@ func (m *Manager) handleResourceUsage(keyword, usageIdentityId string, usage *ty
 	return needUpdate, nil
 }
 
-func (m *Manager) ValidateTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResultMsg) error {
+func (m *Manager) ValidateTaskResultMsg(pid peer.ID, taskResultMsg *carriernetmsgtaskmngpb.TaskResultMsg) error {
 	msg := types.FetchTaskResultMsg(taskResultMsg) // fetchTaskResultMsg(taskResultMsg)
 
 	if len(msg.GetTaskEventList()) == 0 {
@@ -2085,7 +2086,7 @@ func (m *Manager) ValidateTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.Ta
 	return nil
 }
 
-func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResultMsg) error {
+func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *carriernetmsgtaskmngpb.TaskResultMsg) error {
 
 	if err := m.ContainsOrAddMsg(taskResultMsg); nil != err {
 		return err
@@ -2169,15 +2170,15 @@ func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResu
 	return nil
 }
 
-func (m *Manager) ValidateTaskResourceUsageMsg(pid peer.ID, taskResourceUsageMsg *taskmngpb.TaskResourceUsageMsg) error {
+func (m *Manager) ValidateTaskResourceUsageMsg(pid peer.ID, taskResourceUsageMsg *carriernetmsgtaskmngpb.TaskResourceUsageMsg) error {
 	return nil
 }
 
-func (m *Manager) OnTaskResourceUsageMsg(pid peer.ID, usageMsg *taskmngpb.TaskResourceUsageMsg) error {
+func (m *Manager) OnTaskResourceUsageMsg(pid peer.ID, usageMsg *carriernetmsgtaskmngpb.TaskResourceUsageMsg) error {
 	return m.onTaskResourceUsageMsg(pid, usageMsg, types.RemoteNetworkMsg)
 }
 
-func (m *Manager) onTaskResourceUsageMsg(pid peer.ID, usageMsg *taskmngpb.TaskResourceUsageMsg, nmls types.NetworkMsgLocationSymbol) error {
+func (m *Manager) onTaskResourceUsageMsg(pid peer.ID, usageMsg *carriernetmsgtaskmngpb.TaskResourceUsageMsg, nmls types.NetworkMsgLocationSymbol) error {
 
 	if err := m.ContainsOrAddMsg(usageMsg); nil != err {
 		return err
@@ -2249,15 +2250,15 @@ func (m *Manager) onTaskResourceUsageMsg(pid peer.ID, usageMsg *taskmngpb.TaskRe
 	return nil
 }
 
-func (m *Manager) ValidateTaskTerminateMsg(pid peer.ID, terminateMsg *taskmngpb.TaskTerminateMsg) error {
+func (m *Manager) ValidateTaskTerminateMsg(pid peer.ID, terminateMsg *carriernetmsgtaskmngpb.TaskTerminateMsg) error {
 	return nil
 }
 
-func (m *Manager) OnTaskTerminateMsg(pid peer.ID, terminateMsg *taskmngpb.TaskTerminateMsg) error {
+func (m *Manager) OnTaskTerminateMsg(pid peer.ID, terminateMsg *carriernetmsgtaskmngpb.TaskTerminateMsg) error {
 	return m.onTaskTerminateMsg(pid, terminateMsg, types.RemoteNetworkMsg)
 }
 
-func (m *Manager) onTaskTerminateMsg(pid peer.ID, terminateMsg *taskmngpb.TaskTerminateMsg, nmls types.NetworkMsgLocationSymbol) error {
+func (m *Manager) onTaskTerminateMsg(pid peer.ID, terminateMsg *carriernetmsgtaskmngpb.TaskTerminateMsg, nmls types.NetworkMsgLocationSymbol) error {
 
 	if err := m.ContainsOrAddMsg(terminateMsg); nil != err {
 		return err
@@ -2380,7 +2381,7 @@ func (m *Manager) startTerminateWithNeedExecuteTask(needExecuteTask *types.NeedE
 		return err
 	}
 	// 2、 store task terminate (failed or succeed) event with current party
-	m.resourceMng.GetDB().StoreTaskEvent(&libtypes.TaskEvent{
+	m.resourceMng.GetDB().StoreTaskEvent(&carriertypespb.TaskEvent{
 		Type:       ev.TaskTerminated.GetType(),
 		TaskId:     needExecuteTask.GetTaskId(),
 		IdentityId: needExecuteTask.GetLocalTaskOrganization().GetIdentityId(),
@@ -2406,7 +2407,7 @@ func (m *Manager) startTerminateWithNeedExecuteTask(needExecuteTask *types.NeedE
 		needExecuteTask.GetTaskId(),
 		types.TaskTerminate,
 		&types.PrepareVoteResource{},   // zero value
-		&twopcpb.ConfirmTaskPeerInfo{}, // zero value
+		&carriertwopcpb.ConfirmTaskPeerInfo{}, // zero value
 		fmt.Errorf("task was terminated"),
 	))
 	return nil
@@ -2422,18 +2423,18 @@ func (m *Manager) needExecuteTaskMonitorTimer() *time.Timer {
 
 func (m *Manager) AddMsg(msg interface{}) bool {
 	switch msg.(type) {
-	case *taskmngpb.TaskResourceUsageMsg:
-		pure := msg.(*taskmngpb.TaskResourceUsageMsg)
+	case *carriernetmsgtaskmngpb.TaskResourceUsageMsg:
+		pure := msg.(*carriernetmsgtaskmngpb.TaskResourceUsageMsg)
 		v := hashutil.Hash([]byte(pure.String()))
 		key := append(taskResourceUsageMsgCacheKeyPrefix, v[:]...)
 		return m.msgCache.Add(string(key), struct {}{})
-	case *taskmngpb.TaskResultMsg:
-		pure := msg.(*taskmngpb.TaskResultMsg)
+	case *carriernetmsgtaskmngpb.TaskResultMsg:
+		pure := msg.(*carriernetmsgtaskmngpb.TaskResultMsg)
 		v := hashutil.Hash([]byte(pure.String()))
 		key := append(taskResultMsgCacheKeyPrefix, v[:]...)
 		return m.msgCache.Add(string(key), struct {}{})
-	case *taskmngpb.TaskTerminateMsg:
-		pure := msg.(*taskmngpb.TaskTerminateMsg)
+	case *carriernetmsgtaskmngpb.TaskTerminateMsg:
+		pure := msg.(*carriernetmsgtaskmngpb.TaskTerminateMsg)
 		v := hashutil.Hash([]byte(pure.String()))
 		key := append(taskTerminateMsgCacheKeyPrefix, v[:]...)
 		return m.msgCache.Add(string(key), struct {}{})
@@ -2444,18 +2445,18 @@ func (m *Manager) AddMsg(msg interface{}) bool {
 
 func (m *Manager) ContainMsg(msg interface{}) bool {
 	switch msg.(type) {
-	case *taskmngpb.TaskResourceUsageMsg:
-		pure := msg.(*taskmngpb.TaskResourceUsageMsg)
+	case *carriernetmsgtaskmngpb.TaskResourceUsageMsg:
+		pure := msg.(*carriernetmsgtaskmngpb.TaskResourceUsageMsg)
 		v := hashutil.Hash([]byte(pure.String()))
 		key := append(taskResourceUsageMsgCacheKeyPrefix, v[:]...)
 		return m.msgCache.Contains(string(key))
-	case *taskmngpb.TaskResultMsg:
-		pure := msg.(*taskmngpb.TaskResultMsg)
+	case *carriernetmsgtaskmngpb.TaskResultMsg:
+		pure := msg.(*carriernetmsgtaskmngpb.TaskResultMsg)
 		v := hashutil.Hash([]byte(pure.String()))
 		key := append(taskResultMsgCacheKeyPrefix, v[:]...)
 		return m.msgCache.Contains(string(key))
-	case *taskmngpb.TaskTerminateMsg:
-		pure := msg.(*taskmngpb.TaskTerminateMsg)
+	case *carriernetmsgtaskmngpb.TaskTerminateMsg:
+		pure := msg.(*carriernetmsgtaskmngpb.TaskTerminateMsg)
 		v := hashutil.Hash([]byte(pure.String()))
 		key := append(taskTerminateMsgCacheKeyPrefix, v[:]...)
 		return m.msgCache.Contains(string(key))
@@ -2471,18 +2472,18 @@ func (m *Manager) ContainsOrAddMsg(msg interface{}) error {
 		evict bool
 	)
 	switch msg.(type) {
-	case *taskmngpb.TaskResourceUsageMsg:
-		pure := msg.(*taskmngpb.TaskResourceUsageMsg)
+	case *carriernetmsgtaskmngpb.TaskResourceUsageMsg:
+		pure := msg.(*carriernetmsgtaskmngpb.TaskResourceUsageMsg)
 		v := hashutil.Hash([]byte(pure.String()))
 		key := append(taskResourceUsageMsgCacheKeyPrefix, v[:]...)
 		has, evict = m.msgCache.ContainsOrAdd(string(key), struct {}{})
-	case *taskmngpb.TaskResultMsg:
-		pure := msg.(*taskmngpb.TaskResultMsg)
+	case *carriernetmsgtaskmngpb.TaskResultMsg:
+		pure := msg.(*carriernetmsgtaskmngpb.TaskResultMsg)
 		v := hashutil.Hash([]byte(pure.String()))
 		key := append(taskResultMsgCacheKeyPrefix, v[:]...)
 		has, evict = m.msgCache.ContainsOrAdd(string(key), struct {}{})
-	case *taskmngpb.TaskTerminateMsg:
-		pure := msg.(*taskmngpb.TaskTerminateMsg)
+	case *carriernetmsgtaskmngpb.TaskTerminateMsg:
+		pure := msg.(*carriernetmsgtaskmngpb.TaskTerminateMsg)
 		v := hashutil.Hash([]byte(pure.String()))
 		key := append(taskTerminateMsgCacheKeyPrefix, v[:]...)
 		has, evict = m.msgCache.ContainsOrAdd(string(key), struct {}{})
@@ -2498,26 +2499,26 @@ func (m *Manager) ContainsOrAddMsg(msg interface{}) error {
 	return nil
 }
 
-func fetchOrgByPartyRole(partyId string, role libtypes.TaskRole, task *types.Task) *libtypes.TaskOrganization {
+func fetchOrgByPartyRole(partyId string, role commonconstantpb.TaskRole, task *types.Task) *carriertypespb.TaskOrganization {
 
 	switch role {
-	case libtypes.TaskRole_TaskRole_Sender:
+	case commonconstantpb.TaskRole_TaskRole_Sender:
 		if partyId == task.GetTaskSender().GetPartyId() {
 			return task.GetTaskSender()
 		}
-	case libtypes.TaskRole_TaskRole_DataSupplier:
+	case commonconstantpb.TaskRole_TaskRole_DataSupplier:
 		for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
 			if partyId == dataSupplier.GetPartyId() {
 				return dataSupplier
 			}
 		}
-	case libtypes.TaskRole_TaskRole_PowerSupplier:
+	case commonconstantpb.TaskRole_TaskRole_PowerSupplier:
 		for _, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
 			if partyId == powerSupplier.GetPartyId() {
 				return powerSupplier
 			}
 		}
-	case libtypes.TaskRole_TaskRole_Receiver:
+	case commonconstantpb.TaskRole_TaskRole_Receiver:
 		for _, receiver := range task.GetTaskData().GetReceivers() {
 			if partyId == receiver.GetPartyId() {
 				return receiver

@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"github.com/Metisnetwork/Metis-Carrier/p2p"
+	"github.com/datumtechs/datum-network-carrier/p2p"
 	"github.com/gogo/protobuf/proto"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	"github.com/pkg/errors"

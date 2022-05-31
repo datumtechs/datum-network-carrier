@@ -3,10 +3,10 @@ package grpclient
 import (
 	"context"
 	"errors"
-	"github.com/Metisnetwork/Metis-Carrier/common/runutil"
-	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
-	"github.com/Metisnetwork/Metis-Carrier/lib/fighter/common"
-	"github.com/Metisnetwork/Metis-Carrier/lib/fighter/datasvc"
+	"github.com/datumtechs/datum-network-carrier/common/runutil"
+	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	fighterapipb "github.com/datumtechs/datum-network-carrier/pb/fighter/api/data"
+	fightertypespb "github.com/datumtechs/datum-network-carrier/pb/fighter/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -26,7 +26,7 @@ type DataNodeClient struct {
 	connStartAt int64
 
 	//TODO: define some client...
-	dataProviderClient datasvc.DataProviderClient
+	dataProviderClient fighterapipb.DataProviderClient
 }
 
 func NewDataNodeClient(ctx context.Context, addr string, nodeId string) (*DataNodeClient, error) {
@@ -42,7 +42,7 @@ func NewDataNodeClient(ctx context.Context, addr string, nodeId string) (*DataNo
 		nodeId:             nodeId,
 		conn:               conn,
 		connStartAt:        timeutils.UnixMsec(),
-		dataProviderClient: datasvc.NewDataProviderClient(conn),
+		dataProviderClient: fighterapipb.NewDataProviderClient(conn),
 	}
 	log.Debugf("New a dataNode Client, dataNodeId: {%s}, timestamp: {%d}", nodeId, client.connStartAt)
 	// try to connect grpc server.
@@ -73,7 +73,7 @@ func (c *DataNodeClient) connecting() error {
 		log.WithError(err).WithField("id", c.nodeId).WithField("adrr", c.addr).Error("Connect GRPC server(for datanode) failed")
 		return err
 	}
-	c.dataProviderClient = datasvc.NewDataProviderClient(conn)
+	c.dataProviderClient = fighterapipb.NewDataProviderClient(conn)
 	c.conn = conn
 	c.connStartAt = timeutils.UnixMsec()
 	log.Debugf("Update a dataNode Client, dataNodeId: {%s}, timestamp: {%d}", c.nodeId, c.connStartAt)
@@ -132,44 +132,44 @@ func (c *DataNodeClient) RunningDuration() int64 {
 	return timeutils.UnixMsec() - c.connStartAt
 }
 
-func (c *DataNodeClient) GetStatus() (*datasvc.GetStatusReply, error) {
+func (c *DataNodeClient) GetStatus() (*fighterapipb.GetStatusReply, error) {
 	ctx, cancel := context.WithTimeout(c.ctx, 20*defaultRequestTime)
 	defer cancel()
 	in := new(emptypb.Empty)
 	return c.dataProviderClient.GetStatus(ctx, in)
 }
 
-func (c *DataNodeClient) ListData() (*datasvc.ListDataReply, error) {
+func (c *DataNodeClient) ListData() (*fighterapipb.ListDataReply, error) {
 	return nil, errors.New("method ListData not implemented")
 }
 
-func (c *DataNodeClient) UploadData(content []byte, metadata *datasvc.UploadRequest) (*datasvc.UploadReply, error) {
+func (c *DataNodeClient) UploadData(content []byte, metadata *fighterapipb.UploadRequest) (*fighterapipb.UploadReply, error) {
 	return nil, errors.New("method UploadData not implemented")
 }
 
-func (c *DataNodeClient) BatchUpload() (datasvc.DataProvider_BatchUploadClient, error) {
+func (c *DataNodeClient) BatchUpload() (fighterapipb.DataProvider_BatchUploadClient, error) {
 	return nil, errors.New("method BatchUpload not implemented")
 }
 
-func (c *DataNodeClient) DownloadData(in *datasvc.DownloadRequest) (datasvc.DataProvider_DownloadDataClient, error) {
+func (c *DataNodeClient) DownloadData(in *fighterapipb.DownloadRequest) (fighterapipb.DataProvider_DownloadDataClient, error) {
 	return nil, errors.New("method DownloadData not implemented")
 }
 
-func (c *DataNodeClient) DeleteData(in *datasvc.DownloadRequest) (*datasvc.UploadReply, error) {
+func (c *DataNodeClient) DeleteData(in *fighterapipb.DownloadRequest) (*fighterapipb.UploadReply, error) {
 	return nil, errors.New("method DeleteData not implemented")
 }
 
-func (c *DataNodeClient) SendSharesData(in *datasvc.SendSharesDataRequest) (*datasvc.SendSharesDataReply, error) {
+func (c *DataNodeClient) SendSharesData(in *fighterapipb.SendSharesDataRequest) (*fighterapipb.SendSharesDataReply, error) {
 	return nil, errors.New("method SendSharesData not implemented")
 }
 
-func (c *DataNodeClient) HandleTaskReadyGo(req *common.TaskReadyGoReq) (*common.TaskReadyGoReply, error) {
+func (c *DataNodeClient) HandleTaskReadyGo(req *fightertypespb.TaskReadyGoReq) (*fightertypespb.TaskReadyGoReply, error) {
 	ctx, cancel := context.WithTimeout(c.ctx, 20*defaultRequestTime)
 	defer cancel()
 	return c.dataProviderClient.HandleTaskReadyGo(ctx, req)
 }
 
-func (c *DataNodeClient) HandleCancelTask(req *common.TaskCancelReq) (*common.TaskCancelReply, error) {
+func (c *DataNodeClient) HandleCancelTask(req *fightertypespb.TaskCancelReq) (*fightertypespb.TaskCancelReply, error) {
 	ctx, cancel := context.WithTimeout(c.ctx, 20*defaultRequestTime)
 	defer cancel()
 	return c.dataProviderClient.HandleCancelTask(ctx, req)

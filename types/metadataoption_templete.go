@@ -2,32 +2,32 @@ package types
 
 import (
 	"fmt"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 )
 
 var (
 	CannotMatchMetadataOption = fmt.Errorf("cannot match metadata option")
 )
 
-func IsNotCSVdata(dataType libtypes.OrigindataType) bool { return !IsCSVdata(dataType) }
-func IsCSVdata(dataType libtypes.OrigindataType) bool {
-	if dataType == libtypes.OrigindataType_OrigindataType_CSV {
+func IsNotCSVdata(dataType commonconstantpb.OrigindataType) bool { return !IsCSVdata(dataType) }
+func IsCSVdata(dataType commonconstantpb.OrigindataType) bool {
+	if dataType == commonconstantpb.OrigindataType_OrigindataType_CSV {
 		return true
 	}
 	return false
 }
 
-func IsNotDIRdata(dataType libtypes.OrigindataType) bool { return !IsDIRdata(dataType) }
-func IsDIRdata(dataType libtypes.OrigindataType) bool {
-	if dataType == libtypes.OrigindataType_OrigindataType_DIR {
+func IsNotDIRdata(dataType commonconstantpb.OrigindataType) bool { return !IsDIRdata(dataType) }
+func IsDIRdata(dataType commonconstantpb.OrigindataType) bool {
+	if dataType == commonconstantpb.OrigindataType_OrigindataType_DIR {
 		return true
 	}
 	return false
 }
 
-func IsNotBINARYdata(dataType libtypes.OrigindataType) bool { return !IsBINARYdata(dataType) }
-func IsBINARYdata(dataType libtypes.OrigindataType) bool {
-	if dataType == libtypes.OrigindataType_OrigindataType_BINARY {
+func IsNotBINARYdata(dataType commonconstantpb.OrigindataType) bool { return !IsBINARYdata(dataType) }
+func IsBINARYdata(dataType commonconstantpb.OrigindataType) bool {
+	if dataType == commonconstantpb.OrigindataType_OrigindataType_BINARY {
 		return true
 	}
 	return false
@@ -54,7 +54,7 @@ func IsBINARYdata(dataType libtypes.OrigindataType) bool {
     ],
 }
 */
-// libtypes.OrigindataType_CSV
+// carriertypespb.OrigindataType_CSV
 type MetadataOptionCSV struct {
 	OriginId        string            `json:"originId"`
 	DataPath        string            `json:"dataPath"`
@@ -106,7 +106,7 @@ func (mc *MetadataColumn) GetSize() uint64    { return mc.Size }
 	"filePaths": ["/home/user1/data/data_root/bank_predict_partyA_20220218-090241.csv"]
 }
 */
-// libtypes.OrigindataType_DIR |
+// carriertypespb.OrigindataType_DIR |
 type MetadataOptionDIR struct {
 	OriginId  string               `json:"originId"`
 	DirPath   string               `json:"dirPath"`
@@ -128,7 +128,7 @@ func (option *MetadataOptionDIR) GetFilePaths() []string          { return optio
     "size": 12,
 }
 */
-// libtypes.OrigindataType_BINARY |
+// carriertypespb.OrigindataType_BINARY |
 type MetadataOptionBINARY struct {
 	OriginId string `json:"originId"`
 	DataPath string `json:"dataPath"`

@@ -2,7 +2,7 @@ package addressutil
 
 import (
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/common/bech32util"
+	"github.com/datumtechs/datum-network-carrier/common/bech32util"
 	"github.com/btcsuite/btcutil/bech32"
 	"github.com/ethereum/go-ethereum/common"
 

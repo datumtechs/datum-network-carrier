@@ -1,10 +1,10 @@
 package node
 
 import (
-	"github.com/Metisnetwork/Metis-Carrier/carrier"
-	"github.com/Metisnetwork/Metis-Carrier/common/flags"
-	"github.com/Metisnetwork/Metis-Carrier/common/tracing"
-	"github.com/Metisnetwork/Metis-Carrier/params"
+	"github.com/datumtechs/datum-network-carrier/carrier"
+	"github.com/datumtechs/datum-network-carrier/common/flags"
+	"github.com/datumtechs/datum-network-carrier/common/tracing"
+	"github.com/datumtechs/datum-network-carrier/params"
 	"github.com/urfave/cli/v2"
 )
 

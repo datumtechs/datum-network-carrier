@@ -3,12 +3,12 @@ package core
 import (
 	"context"
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/core/rawdb"
-	"github.com/Metisnetwork/Metis-Carrier/db"
-	"github.com/Metisnetwork/Metis-Carrier/grpclient"
-	pb "github.com/Metisnetwork/Metis-Carrier/lib/api"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/datumtechs/datum-network-carrier/core/rawdb"
+	"github.com/datumtechs/datum-network-carrier/db"
+	"github.com/datumtechs/datum-network-carrier/grpclient"
+	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/sirupsen/logrus"
 	"sync"
 	"sync/atomic"
@@ -122,7 +122,7 @@ func (dc *DataCenter) InsertData(blocks types.Blocks) (int, error) {
 }
 
 // on yarn node api
-func (dc *DataCenter) SetSeedNode(seed *pb.SeedPeer) error {
+func (dc *DataCenter) SetSeedNode(seed *carrierapipb.SeedPeer) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.StoreSeedNode(dc.db, seed)
@@ -134,31 +134,31 @@ func (dc *DataCenter) RemoveSeedNode(addr string) error {
 	return rawdb.RemoveSeedNode(dc.db, addr)
 }
 
-func (dc *DataCenter) QuerySeedNodeList() ([]*pb.SeedPeer, error) {
+func (dc *DataCenter) QuerySeedNodeList() ([]*carrierapipb.SeedPeer, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.QueryAllSeedNodes(dc.db)
 }
 
-func (dc *DataCenter) SetRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRegisteredPeerDetail) error {
+func (dc *DataCenter) SetRegisterNode(typ carrierapipb.RegisteredNodeType, node *carrierapipb.YarnRegisteredPeerDetail) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.StoreRegisterNode(dc.db, typ, node)
 }
 
-func (dc *DataCenter) DeleteRegisterNode(typ pb.RegisteredNodeType, id string) error {
+func (dc *DataCenter) DeleteRegisterNode(typ carrierapipb.RegisteredNodeType, id string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.RemoveRegisterNode(dc.db, typ, id)
 }
 
-func (dc *DataCenter) QueryRegisterNode(typ pb.RegisteredNodeType, id string) (*pb.YarnRegisteredPeerDetail, error) {
+func (dc *DataCenter) QueryRegisterNode(typ carrierapipb.RegisteredNodeType, id string) (*carrierapipb.YarnRegisteredPeerDetail, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.QueryRegisterNode(dc.db, typ, id)
 }
 
-func (dc *DataCenter) QueryRegisterNodeList(typ pb.RegisteredNodeType) ([]*pb.YarnRegisteredPeerDetail, error) {
+func (dc *DataCenter) QueryRegisterNodeList(typ carrierapipb.RegisteredNodeType) ([]*carrierapipb.YarnRegisteredPeerDetail, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.QueryAllRegisterNodes(dc.db, typ)
@@ -245,25 +245,25 @@ func (dc *DataCenter) QueryDataResourceDiskUsed(metadataId string) (*types.DataR
 	return rawdb.QueryDataResourceDiskUsed(dc.db, metadataId)
 }
 
-func (dc *DataCenter) StoreUserMetadataAuthIdByMetadataId (userType libtypes.UserType, user, metadataId, metadataAuthId string) error {
+func (dc *DataCenter) StoreUserMetadataAuthIdByMetadataId (userType commonconstantpb.UserType, user, metadataId, metadataAuthId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.StoreUserMetadataAuthIdByMetadataId(dc.db, userType, user, metadataId, metadataAuthId)
 }
 
-func (dc *DataCenter) QueryUserMetadataAuthIdByMetadataId (userType libtypes.UserType, user, metadataId string) (string, error) {
+func (dc *DataCenter) QueryUserMetadataAuthIdByMetadataId (userType commonconstantpb.UserType, user, metadataId string) (string, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.QueryUserMetadataAuthIdByMetadataId(dc.db, userType, user, metadataId)
 }
 
-func (dc *DataCenter) HasUserMetadataAuthIdByMetadataId (userType libtypes.UserType, user, metadataId string) (bool, error) {
+func (dc *DataCenter) HasUserMetadataAuthIdByMetadataId (userType commonconstantpb.UserType, user, metadataId string) (bool, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.HasUserMetadataAuthIdByMetadataId(dc.db, userType, user, metadataId)
 }
 
-func (dc *DataCenter) RemoveUserMetadataAuthIdByMetadataId (userType libtypes.UserType, user, metadataId string) error {
+func (dc *DataCenter) RemoveUserMetadataAuthIdByMetadataId (userType commonconstantpb.UserType, user, metadataId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.RemoveUserMetadataAuthIdByMetadataId(dc.db, userType, user, metadataId)

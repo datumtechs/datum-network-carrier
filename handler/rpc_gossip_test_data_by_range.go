@@ -2,8 +2,8 @@ package handler
 
 import (
 	"context"
-	libp2ppb "github.com/Metisnetwork/Metis-Carrier/lib/rpc/debug/v1"
-	p2ptypes "github.com/Metisnetwork/Metis-Carrier/p2p/types"
+	carrierrpcdebugpbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
+	p2ptypes "github.com/datumtechs/datum-network-carrier/p2p/types"
 	libp2pcore "github.com/libp2p/go-libp2p-core"
 	"github.com/pkg/errors"
 	"github.com/prysmaticlabs/prysm/shared/traceutil"
@@ -24,7 +24,7 @@ func (s *Service) gossipTestDataByRangeRPCHandler(ctx context.Context, msg inter
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
 
-	m, ok := msg.(*libp2ppb.GossipTestData)	// as request.
+	m, ok := msg.(*carrierrpcdebugpbv1.GossipTestData) // as request.
 	if !ok {
 		return errors.New("message is not type *p2ppb.GossipTestData")
 	}
@@ -70,7 +70,7 @@ func (s *Service) writeGossipTestDataRangeToStream(ctx context.Context, stream l
 	return err
 }
 
-func (s *Service) validateGossipRangeRequest(r *libp2ppb.GossipTestData) error {
+func (s *Service) validateGossipRangeRequest(r *carrierrpcdebugpbv1.GossipTestData) error {
 	count := r.Count
 	step := r.Step
 	if count < 10 {
@@ -82,10 +82,10 @@ func (s *Service) validateGossipRangeRequest(r *libp2ppb.GossipTestData) error {
 	return nil
 }
 
-func generateTestData() ([]*libp2ppb.SignedGossipTestData, error) {
-	return []*libp2ppb.SignedGossipTestData{
+func generateTestData() ([]*carrierrpcdebugpbv1.SignedGossipTestData, error) {
+	return []*carrierrpcdebugpbv1.SignedGossipTestData{
 		{
-			Data:                 &libp2ppb.GossipTestData{
+			Data:                 &carrierrpcdebugpbv1.GossipTestData{
 				Data:                 []byte("data01"),
 				Count:                uint64(rand.Int63n(100)),
 				Step:                 uint64(rand.Int63n(100)),
@@ -93,7 +93,7 @@ func generateTestData() ([]*libp2ppb.SignedGossipTestData, error) {
 			Signature:            make([]byte, 48),
 		},
 		{
-			Data:                 &libp2ppb.GossipTestData{
+			Data:                 &carrierrpcdebugpbv1.GossipTestData{
 				Data:                 []byte("data02"),
 				Count:                uint64(rand.Int63n(100)),
 				Step:                 uint64(rand.Int63n(100)),
@@ -101,7 +101,7 @@ func generateTestData() ([]*libp2ppb.SignedGossipTestData, error) {
 			Signature:            make([]byte, 48),
 		},
 		{
-			Data:                 &libp2ppb.GossipTestData{
+			Data:                 &carrierrpcdebugpbv1.GossipTestData{
 				Data:                 []byte("data03"),
 				Count:                uint64(rand.Int63n(100)),
 				Step:                 uint64(rand.Int63n(100)),

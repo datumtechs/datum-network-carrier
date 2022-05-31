@@ -4,26 +4,27 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/ach/auth"
-	"github.com/Metisnetwork/Metis-Carrier/ach/metispay"
-	"github.com/Metisnetwork/Metis-Carrier/common"
-	"github.com/Metisnetwork/Metis-Carrier/common/bytesutil"
-	"github.com/Metisnetwork/Metis-Carrier/common/signutil"
-	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
-	"github.com/Metisnetwork/Metis-Carrier/common/traceutil"
-	"github.com/Metisnetwork/Metis-Carrier/consensus"
-	ev "github.com/Metisnetwork/Metis-Carrier/core/evengine"
-	"github.com/Metisnetwork/Metis-Carrier/core/rawdb"
-	"github.com/Metisnetwork/Metis-Carrier/core/resource"
-	"github.com/Metisnetwork/Metis-Carrier/core/schedule"
-	msgcommonpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/common"
-	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
-	taskmngpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/taskmng"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/p2p"
-	"github.com/Metisnetwork/Metis-Carrier/params"
-	"github.com/Metisnetwork/Metis-Carrier/policy"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/datumtechs/datum-network-carrier/ach/auth"
+	"github.com/datumtechs/datum-network-carrier/ach/token"
+	"github.com/datumtechs/datum-network-carrier/common"
+	"github.com/datumtechs/datum-network-carrier/common/bytesutil"
+	"github.com/datumtechs/datum-network-carrier/common/signutil"
+	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	"github.com/datumtechs/datum-network-carrier/common/traceutil"
+	"github.com/datumtechs/datum-network-carrier/consensus"
+	ev "github.com/datumtechs/datum-network-carrier/core/evengine"
+	"github.com/datumtechs/datum-network-carrier/core/rawdb"
+	"github.com/datumtechs/datum-network-carrier/core/resource"
+	"github.com/datumtechs/datum-network-carrier/core/schedule"
+	"github.com/datumtechs/datum-network-carrier/p2p"
+	"github.com/datumtechs/datum-network-carrier/params"
+	carriernetmsgcommonpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/common"
+	carriertwopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
+	carriernetmsgtaskmngpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/taskmng"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
+	"github.com/datumtechs/datum-network-carrier/policy"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"strings"
@@ -44,10 +45,10 @@ type Manager struct {
 	eventEngine     *ev.EventEngine
 	resourceMng     *resource.Manager
 	authMng         *auth.AuthorityManager
-	metisPayMng     *metispay.MetisPayManager
+	token20PayMng   *token.Token20PayManager
 	parser          *TaskParser
 	validator       *TaskValidator
-	eventCh         chan *libtypes.TaskEvent
+	eventCh         chan *carriertypespb.TaskEvent
 
 	// send the validated taskMsgs to scheduler
 	localTasksCh             chan types.TaskDataArray
@@ -71,7 +72,7 @@ func NewTaskManager(
 	eventEngine *ev.EventEngine,
 	resourceMng *resource.Manager,
 	authMng *auth.AuthorityManager,
-	metisPayMng *metispay.MetisPayManager,
+	token20PayMng *token.Token20PayManager,
 	needReplayScheduleTaskCh chan *types.NeedReplayScheduleTask,
 	needExecuteTaskCh chan *types.NeedExecuteTask,
 	taskConsResultCh chan *types.TaskConsResult,
@@ -91,10 +92,10 @@ func NewTaskManager(
 		eventEngine:              eventEngine,
 		resourceMng:              resourceMng,
 		authMng:                  authMng,
-		metisPayMng:              metisPayMng,
+		token20PayMng:            token20PayMng,
 		parser:                   newTaskParser(resourceMng),
 		validator:                newTaskValidator(resourceMng, authMng),
-		eventCh:                  make(chan *libtypes.TaskEvent, 800),
+		eventCh:                  make(chan *carriertypespb.TaskEvent, 800),
 		needReplayScheduleTaskCh: needReplayScheduleTaskCh,
 		needExecuteTaskCh:        needExecuteTaskCh,
 		taskConsResultCh:         taskConsResultCh,
@@ -115,7 +116,7 @@ func (m *Manager) recoveryNeedExecuteTask() {
 			taskId := string(key[len(prefix) : len(prefix)+71])
 			partyId := string(key[len(prefix)+71:])
 
-			var res libtypes.NeedExecuteTask
+			var res carriertypespb.NeedExecuteTask
 
 			if err := proto.Unmarshal(value, &res); nil != err {
 				//return fmt.Errorf("Unmarshal needExecuteTask failed, %s", err)
@@ -192,7 +193,7 @@ func (m *Manager) loop() {
 
 		// handle reported event from fighter of self organization
 		case event := <-m.eventCh:
-			go func(event *libtypes.TaskEvent) {
+			go func(event *carriertypespb.TaskEvent) {
 				if err := m.handleTaskEventWithCurrentOranization(event); nil != err {
 					log.WithError(err).Errorf("Failed to call handleTaskEventWithCurrentOranization() on taskManager.loop(), taskId: {%s}, event: %s", event.GetTaskId(), event.String())
 				}
@@ -231,7 +232,7 @@ func (m *Manager) loop() {
 
 					if result.GetStatus() == types.TaskConsensusFinished {
 						// store task consensus result (failed or succeed) event with sender party
-						m.resourceMng.GetDB().StoreTaskEvent(&libtypes.TaskEvent{
+						m.resourceMng.GetDB().StoreTaskEvent(&carriertypespb.TaskEvent{
 							Type:       ev.TaskSucceedConsensus.GetType(),
 							TaskId:     task.GetTaskId(),
 							IdentityId: task.GetTaskSender().GetIdentityId(),
@@ -248,14 +249,14 @@ func (m *Manager) loop() {
 					}
 					m.sendNeedExecuteTaskByAction(types.NewNeedExecuteTask(
 						"",
-						libtypes.TaskRole_TaskRole_Sender,
-						libtypes.TaskRole_TaskRole_Sender,
+						commonconstantpb.TaskRole_TaskRole_Sender,
+						commonconstantpb.TaskRole_TaskRole_Sender,
 						task.GetTaskSender(),
 						task.GetTaskSender(),
 						task.GetTaskId(),
 						result.GetStatus(),
 						&types.PrepareVoteResource{},   // zero value
-						&twopcpb.ConfirmTaskPeerInfo{}, // zero value
+						&carriertwopcpb.ConfirmTaskPeerInfo{}, // zero value
 						result.GetErr(),
 					))
 				case types.TaskConsensusInterrupt:
@@ -275,14 +276,14 @@ func (m *Manager) loop() {
 						m.scheduler.RemoveTask(task.GetTaskId())
 						m.sendNeedExecuteTaskByAction(types.NewNeedExecuteTask(
 							"",
-							libtypes.TaskRole_TaskRole_Sender,
-							libtypes.TaskRole_TaskRole_Sender,
+							commonconstantpb.TaskRole_TaskRole_Sender,
+							commonconstantpb.TaskRole_TaskRole_Sender,
 							task.GetTaskSender(),
 							task.GetTaskSender(),
 							task.GetTaskId(),
 							types.TaskScheduleFailed,
 							&types.PrepareVoteResource{},   // zero value
-							&twopcpb.ConfirmTaskPeerInfo{}, // zero value
+							&carriertwopcpb.ConfirmTaskPeerInfo{}, // zero value
 							fmt.Errorf("consensus interrupted: "+result.GetErr().Error()+" and "+schedule.ErrRescheduleLargeThreshold.Error()),
 						))
 					} else {
@@ -377,7 +378,7 @@ func (m *Manager) loop() {
 						task.GetLocalTaskOrganization().GetPartyId(), task.GetErr().Error()))
 
 					switch task.GetLocalTaskRole() {
-					case libtypes.TaskRole_TaskRole_Sender:
+					case commonconstantpb.TaskRole_TaskRole_Sender:
 						m.publishFinishedTaskToDataCenter(task, localTask, true)
 					default:
 						m.sendTaskResultMsgToTaskSender(task, localTask)
@@ -467,8 +468,8 @@ func (m *Manager) TerminateTask(terminate *types.TaskTerminateMsg) {
 		if err = m.consensusEngine.OnConsensusMsg(
 			"", types.NewInterruptMsgWrap(task.GetTaskId(),
 				types.MakeMsgOption(common.Hash{},
-					libtypes.TaskRole_TaskRole_Sender,
-					libtypes.TaskRole_TaskRole_Sender,
+					commonconstantpb.TaskRole_TaskRole_Sender,
+					commonconstantpb.TaskRole_TaskRole_Sender,
 					task.GetTaskSender().GetPartyId(),
 					task.GetTaskSender().GetPartyId(),
 					task.GetTaskSender()))); nil != err {
@@ -489,7 +490,7 @@ func (m *Manager) onTerminateExecuteTask(taskId, partyId string, task *types.Tas
 	if m.hasNeedExecuteTaskCache(task.GetTaskId(), task.GetTaskSender().GetPartyId()) {
 
 		// 1、 store task terminate (failed or succeed) event with current party
-		m.resourceMng.GetDB().StoreTaskEvent(&libtypes.TaskEvent{
+		m.resourceMng.GetDB().StoreTaskEvent(&carriertypespb.TaskEvent{
 			Type:       ev.TaskTerminated.Type,
 			TaskId:     task.GetTaskId(),
 			IdentityId: task.GetTaskSender().GetIdentityId(),
@@ -508,14 +509,14 @@ func (m *Manager) onTerminateExecuteTask(taskId, partyId string, task *types.Tas
 		// 4、 send a new needExecuteTask(status: types.TaskTerminate) for terminate with sender
 		m.sendNeedExecuteTaskByAction(types.NewNeedExecuteTask(
 			"",
-			libtypes.TaskRole_TaskRole_Sender,
-			libtypes.TaskRole_TaskRole_Sender,
+			commonconstantpb.TaskRole_TaskRole_Sender,
+			commonconstantpb.TaskRole_TaskRole_Sender,
 			task.GetTaskSender(),
 			task.GetTaskSender(),
 			task.GetTaskId(),
 			types.TaskTerminate,
 			&types.PrepareVoteResource{},   // zero value
-			&twopcpb.ConfirmTaskPeerInfo{}, // zero value
+			&carriertwopcpb.ConfirmTaskPeerInfo{}, // zero value
 			fmt.Errorf("task was terminated"),
 		))
 
@@ -544,7 +545,7 @@ func (m *Manager) HandleTaskMsgs(msgArr types.TaskMsgArr) error {
 	nonParsedMsgArr, parsedMsgArr := m.parser.ParseTask(msgArr)
 	for _, badMsg := range nonParsedMsgArr {
 
-		events := []*libtypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskFailed.GetType(),
+		events := []*carriertypespb.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskFailed.GetType(),
 			badMsg.GetTaskMsg().GetTaskId(), badMsg.GetTaskMsg().GetSenderIdentityId(), badMsg.GetTaskMsg().GetSenderPartyId(), badMsg.GetErrStr())}
 
 		if e := m.publishBadTaskToDataCenter(badMsg.GetTaskMsg().GetTask(), events, "failed to parse taskMsg"); nil != e {
@@ -556,7 +557,7 @@ func (m *Manager) HandleTaskMsgs(msgArr types.TaskMsgArr) error {
 	nonValidatedMsgArr, validatedMsgArr := m.validator.validateTaskMsg(parsedMsgArr)
 	for _, badMsg := range nonValidatedMsgArr {
 
-		events := []*libtypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskFailed.GetType(),
+		events := []*carriertypespb.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskFailed.GetType(),
 			badMsg.GetTaskMsg().GetTaskId(), badMsg.GetTaskMsg().GetSenderIdentityId(), badMsg.GetTaskMsg().GetSenderPartyId(), badMsg.GetErrStr())}
 
 		if e := m.publishBadTaskToDataCenter(badMsg.GetTaskMsg().GetTask(), events, "failed to validate taskMsg"); nil != e {
@@ -591,7 +592,7 @@ func (m *Manager) HandleTaskMsgs(msgArr types.TaskMsgArr) error {
 			log.Errorf("failed to call StoreLocalTask on taskManager with schedule task on taskManager.HandleTaskMsgs(), err: %s",
 				"\n["+strings.Join(storeErrs, ",")+"]")
 
-			events := []*libtypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskDiscarded.Type,
+			events := []*carriertypespb.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskDiscarded.Type,
 				task.GetTaskId(), task.GetTaskSender().GetIdentityId(), task.GetTaskSender().GetPartyId(), "store local task failed")}
 			if err := m.publishBadTaskToDataCenter(task, events, "store local task failed"); nil != err {
 				log.WithError(err).Errorf("Failed to sending the task to datacenter on taskManager.HandleTaskMsgs(), taskId: {%s}", task.GetTaskId())
@@ -619,7 +620,7 @@ func (m *Manager) HandleTaskTerminateMsgs(msgArr types.TaskTerminateMsgArr) erro
 	return nil
 }
 
-func (m *Manager) SendTaskEvent(event *libtypes.TaskEvent) error {
+func (m *Manager) SendTaskEvent(event *carriertypespb.TaskEvent) error {
 	m.sendTaskEvent(event)
 	return nil
 }
@@ -666,14 +667,14 @@ func (m *Manager) HandleReportResourceUsage(usage *types.TaskResuorceUsage) erro
 		needExecuteTask.GetRemoteTaskOrganization().GetIdentityId() != identityId &&
 		needExecuteTask.GetRemoteTaskOrganization().GetIdentityId() == task.GetTaskSender().GetIdentityId() {
 
-		usageMsg := &taskmngpb.TaskResourceUsageMsg{
-			MsgOption: &msgcommonpb.MsgOption{
+		usageMsg := &carriernetmsgtaskmngpb.TaskResourceUsageMsg{
+			MsgOption: &carriernetmsgcommonpb.MsgOption{
 				ProposalId:      common.Hash{}.Bytes(),
 				SenderRole:      uint64(needExecuteTask.GetLocalTaskRole()),
 				SenderPartyId:   []byte(needExecuteTask.GetLocalTaskOrganization().GetPartyId()),
 				ReceiverRole:    uint64(needExecuteTask.GetRemoteTaskRole()),
 				ReceiverPartyId: []byte(needExecuteTask.GetRemoteTaskOrganization().GetPartyId()),
-				MsgOwner: &msgcommonpb.TaskOrganizationIdentityInfo{
+				MsgOwner: &carriernetmsgcommonpb.TaskOrganizationIdentityInfo{
 					Name:       []byte(needExecuteTask.GetLocalTaskOrganization().GetNodeName()),
 					NodeId:     []byte(needExecuteTask.GetLocalTaskOrganization().GetNodeId()),
 					IdentityId: []byte(needExecuteTask.GetLocalTaskOrganization().GetIdentityId()),
@@ -681,7 +682,7 @@ func (m *Manager) HandleReportResourceUsage(usage *types.TaskResuorceUsage) erro
 				},
 			},
 			TaskId: []byte(task.GetTaskId()),
-			Usage: &msgcommonpb.ResourceUsage{
+			Usage: &carriernetmsgcommonpb.ResourceUsage{
 				TotalMem:       usage.GetTotalMem(),
 				UsedMem:        usage.GetUsedMem(),
 				TotalProcessor: uint64(usage.GetTotalProcessor()),

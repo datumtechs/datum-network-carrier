@@ -2,10 +2,10 @@ package twopc
 
 import (
 	"fmt"
-	ctypes "github.com/Metisnetwork/Metis-Carrier/consensus/twopc/types"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/p2p"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	ctypes "github.com/datumtechs/datum-network-carrier/consensus/twopc/types"
+	"github.com/datumtechs/datum-network-carrier/p2p"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"strings"
 )
@@ -89,7 +89,7 @@ func (t *Twopc) validateTaskOfPrepareMsg(pid peer.ID, msg *types.PrepareMsg) err
 	return nil
 }
 
-func (t *Twopc) validateOranization(identity *libtypes.TaskOrganization) error {
+func (t *Twopc) validateOranization(identity *carriertypespb.TaskOrganization) error {
 	if "" == identity.GetNodeName() {
 		return ctypes.ErrOrganizationIdentity
 	}
@@ -97,7 +97,7 @@ func (t *Twopc) validateOranization(identity *libtypes.TaskOrganization) error {
 	if nil != err {
 		return ctypes.ErrOrganizationIdentity
 	}
-	has, err := t.resourceMng.GetDB().HasIdentity(&libtypes.Organization{
+	has, err := t.resourceMng.GetDB().HasIdentity(&carriertypespb.Organization{
 		NodeName:   identity.GetNodeName(),
 		NodeId:     identity.GetNodeId(),
 		IdentityId: identity.GetIdentityId(),

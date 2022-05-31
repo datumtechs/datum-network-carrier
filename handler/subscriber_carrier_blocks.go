@@ -2,15 +2,15 @@ package handler
 
 import (
 	"context"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/gogo/protobuf/proto"
 	"github.com/pkg/errors"
 )
 
 func (s *Service) carrierBlockSubscriber(ctx context.Context, msg proto.Message) error {
-	block, ok := msg.(*libtypes.BlockData)
+	block, ok := msg.(*carriertypespb.BlockData)
 	if !ok {
-		return errors.New("message is not type *libtypes.BlockData")
+		return errors.New("message is not type *carriertypespb.BlockData")
 	}
 
 	if block == nil {

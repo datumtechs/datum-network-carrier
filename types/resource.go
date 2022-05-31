@@ -2,22 +2,23 @@ package types
 
 import (
 	"bytes"
-	"github.com/Metisnetwork/Metis-Carrier/common"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/common"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"io"
 	"strings"
 	"sync/atomic"
 )
 
 type Resource struct {
-	data *libtypes.ResourcePB
+	data *carriertypespb.ResourcePB
 
 	// caches
 	hash atomic.Value
 	size atomic.Value
 }
 
-func NewResource(data *libtypes.ResourcePB) *Resource {
+func NewResource(data *carriertypespb.ResourcePB) *Resource {
 	return &Resource{data: data}
 }
 func (m *Resource) EncodePb(w io.Writer) error {
@@ -30,7 +31,7 @@ func (m *Resource) EncodePb(w io.Writer) error {
 
 func (m *Resource) DecodePb(data []byte) error {
 	if m.data == nil {
-		m.data = new(libtypes.ResourcePB)
+		m.data = new(carriertypespb.ResourcePB)
 	}
 	m.size.Store(common.StorageSize(len(data)))
 	return m.data.Unmarshal(data)
@@ -47,20 +48,20 @@ func (m *Resource) Hash() common.Hash {
 	return v
 }
 
-func (m *Resource) GetIdentityId() string                 { return m.data.GetOwner().IdentityId }
-func (m *Resource) GetNodeId() string                     { return m.data.GetOwner().NodeId }
-func (m *Resource) GetNodeName() string                   { return m.data.GetOwner().NodeName }
-func (m *Resource) GetDataStatus() libtypes.DataStatus { return m.data.DataStatus }
-func (m *Resource) GetDataId() string                     { return m.data.DataId }
-func (m *Resource) GetState() libtypes.PowerState      { return m.data.State }
-func (m *Resource) GetTotalMem() uint64                   { return m.data.TotalMem }
-func (m *Resource) GetUsedMem() uint64                    { return m.data.UsedMem }
-func (m *Resource) GetTotalBandWidth() uint64             { return m.data.TotalBandwidth }
-func (m *Resource) GetUsedBandWidth() uint64              { return m.data.UsedBandwidth }
-func (m *Resource) GetTotalDisk() uint64                  { return m.data.TotalDisk }
-func (m *Resource) GetUsedDisk() uint64                   { return m.data.UsedDisk }
-func (m *Resource) GetTotalProcessor() uint32             { return m.data.TotalProcessor }
-func (m *Resource) GetUsedProcessor() uint32              { return m.data.UsedProcessor }
+func (m *Resource) GetIdentityId() string                      { return m.data.GetOwner().IdentityId }
+func (m *Resource) GetNodeId() string                          { return m.data.GetOwner().NodeId }
+func (m *Resource) GetNodeName() string                        { return m.data.GetOwner().NodeName }
+func (m *Resource) GetDataStatus() commonconstantpb.DataStatus { return m.data.DataStatus }
+func (m *Resource) GetDataId() string                          { return m.data.DataId }
+func (m *Resource) GetState() commonconstantpb.PowerState      { return m.data.State }
+func (m *Resource) GetTotalMem() uint64                        { return m.data.TotalMem }
+func (m *Resource) GetUsedMem() uint64                         { return m.data.UsedMem }
+func (m *Resource) GetTotalBandWidth() uint64                  { return m.data.TotalBandwidth }
+func (m *Resource) GetUsedBandWidth() uint64                   { return m.data.UsedBandwidth }
+func (m *Resource) GetTotalDisk() uint64                       { return m.data.TotalDisk }
+func (m *Resource) GetUsedDisk() uint64                        { return m.data.UsedDisk }
+func (m *Resource) GetTotalProcessor() uint32                  { return m.data.TotalProcessor }
+func (m *Resource) GetUsedProcessor() uint32                   { return m.data.UsedProcessor }
 func (m *Resource) String() string {
 	//return fmt.Sprintf(`{"identity": %s, "nodeId": %s, "nodeName": %s, "dataId": %s, "dataStatus": %s, "state": %s, "totalMem": %d, "usedMem": %d, "totalProcessor": %d, "usedProcessor": %d, "totalBandWidth": %d, "usedBandWidth": %d}`)
 	return m.data.String()
@@ -81,7 +82,7 @@ func (s ResourceArray) GetPb(i int) []byte {
 	return buffer.Bytes()
 }
 
-func NewResourceArray(metadataArr []*libtypes.ResourcePB) ResourceArray {
+func NewResourceArray(metadataArr []*carriertypespb.ResourcePB) ResourceArray {
 	var s ResourceArray
 	for _, v := range metadataArr {
 		s = append(s, NewResource(v))
@@ -89,8 +90,8 @@ func NewResourceArray(metadataArr []*libtypes.ResourcePB) ResourceArray {
 	return s
 }
 
-func (s ResourceArray) To() []*libtypes.ResourcePB {
-	arr := make([]*libtypes.ResourcePB, 0, s.Len())
+func (s ResourceArray) To() []*carriertypespb.ResourcePB {
+	arr := make([]*carriertypespb.ResourcePB, 0, s.Len())
 	for _, v := range s {
 		arr = append(arr, v.data)
 	}
@@ -110,19 +111,19 @@ func (s ResourceArray) String() string {
 
 // add local Resource
 type LocalResource struct {
-	data *libtypes.LocalResourcePB
+	data *carriertypespb.LocalResourcePB
 
 	// caches
 	hash atomic.Value
 	size atomic.Value
 }
 
-func NewLocalResource(data *libtypes.LocalResourcePB) *LocalResource {
+func NewLocalResource(data *carriertypespb.LocalResourcePB) *LocalResource {
 	return &LocalResource{data: data}
 }
-func (m *LocalResource) GetData() *libtypes.LocalResourcePB { return m.data }
-func (m *LocalResource) GetIdentityId() string              { return m.data.GetOwner().IdentityId }
-func (m *LocalResource) GetJobNodeId() string               { return m.data.JobNodeId }
+func (m *LocalResource) GetData() *carriertypespb.LocalResourcePB { return m.data }
+func (m *LocalResource) GetIdentityId() string                    { return m.data.GetOwner().IdentityId }
+func (m *LocalResource) GetJobNodeId() string                     { return m.data.JobNodeId }
 func (m *LocalResource) EncodePb(w io.Writer) error {
 	data, err := m.data.Marshal()
 	if err == nil {
@@ -133,7 +134,7 @@ func (m *LocalResource) EncodePb(w io.Writer) error {
 
 func (m *LocalResource) DecodePb(data []byte) error {
 	if m.data == nil {
-		m.data = new(libtypes.LocalResourcePB)
+		m.data = new(carriertypespb.LocalResourcePB)
 	}
 	m.size.Store(common.StorageSize(len(data)))
 	return m.data.Unmarshal(data)
@@ -165,7 +166,7 @@ func (s LocalResourceArray) GetPb(i int) []byte {
 	return buffer.Bytes()
 }
 
-func NewLocalResourceArray(metadataArr []*libtypes.LocalResourcePB) LocalResourceArray {
+func NewLocalResourceArray(metadataArr []*carriertypespb.LocalResourcePB) LocalResourceArray {
 	var s LocalResourceArray
 	for _, v := range metadataArr {
 		s = append(s, NewLocalResource(v))
@@ -173,8 +174,8 @@ func NewLocalResourceArray(metadataArr []*libtypes.LocalResourcePB) LocalResourc
 	return s
 }
 
-func (s LocalResourceArray) To() []*libtypes.LocalResourcePB {
-	arr := make([]*libtypes.LocalResourcePB, 0, s.Len())
+func (s LocalResourceArray) To() []*carriertypespb.LocalResourcePB {
+	arr := make([]*carriertypespb.LocalResourcePB, 0, s.Len())
 	for _, v := range s {
 		arr = append(arr, v.data)
 	}

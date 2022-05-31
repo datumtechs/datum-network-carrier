@@ -3,12 +3,12 @@ package types
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/Metisnetwork/Metis-Carrier/common"
-	"github.com/Metisnetwork/Metis-Carrier/common/bytesutil"
-	"github.com/Metisnetwork/Metis-Carrier/common/rlputil"
-	"github.com/Metisnetwork/Metis-Carrier/crypto/sha3"
-	commonpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/common"
-	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
+	"github.com/datumtechs/datum-network-carrier/common"
+	"github.com/datumtechs/datum-network-carrier/common/bytesutil"
+	"github.com/datumtechs/datum-network-carrier/common/rlputil"
+	"github.com/datumtechs/datum-network-carrier/crypto/sha3"
+	commonpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/common"
+	carriertwopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
 	"github.com/ethereum/go-ethereum/rlp"
 	"sync/atomic"
 )
@@ -30,13 +30,13 @@ func (dir ProposalTaskDir) String() string {
 
 // ------------------------------- About PrepareMsg -------------------------------
 type PrepareMsgWrap struct {
-	*twopcpb.PrepareMsg
+	*carriertwopcpb.PrepareMsg
 	// caches
 	sealHash atomic.Value `json:"-" rlp:"-"`
 	hash     atomic.Value `json:"-" rlp:"-"`
 }
 
-func (msg *PrepareMsgWrap) GetData() *twopcpb.PrepareMsg { return msg.PrepareMsg }
+func (msg *PrepareMsgWrap) GetData() *carriertwopcpb.PrepareMsg { return msg.PrepareMsg }
 
 func (msg *PrepareMsgWrap) String() string {
 	result, err := json.Marshal(msg)
@@ -84,13 +84,13 @@ func (msg *PrepareMsgWrap) Signature() []byte { return msg.Sign }
 
 // ------------------------------- About PrepareVote -------------------------------
 type PrepareVoteWrap struct {
-	*twopcpb.PrepareVote
+	*carriertwopcpb.PrepareVote
 	// caches
 	sealHash atomic.Value `json:"-" rlp:"-"`
 	hash     atomic.Value `json:"-" rlp:"-"`
 }
 
-func (msg *PrepareVoteWrap) GetData () *twopcpb.PrepareVote { return msg.PrepareVote }
+func (msg *PrepareVoteWrap) GetData () *carriertwopcpb.PrepareVote { return msg.PrepareVote }
 
 func (msg *PrepareVoteWrap) String() string {
 	result, err := json.Marshal(msg)
@@ -140,13 +140,13 @@ func (msg *PrepareVoteWrap) Signature() []byte { return msg.Sign }
 
 // ------------------------------- About ConfirmMsg -------------------------------
 type ConfirmMsgWrap struct {
-	*twopcpb.ConfirmMsg
+	*carriertwopcpb.ConfirmMsg
 	// caches
 	sealHash atomic.Value `json:"-" rlp:"-"`
 	hash     atomic.Value `json:"-" rlp:"-"`
 }
 
-func (msg *ConfirmMsgWrap) GetData () *twopcpb.ConfirmMsg { return msg.ConfirmMsg }
+func (msg *ConfirmMsgWrap) GetData () *carriertwopcpb.ConfirmMsg { return msg.ConfirmMsg }
 
 func (msg *ConfirmMsgWrap) String() string {
 	result, err := json.Marshal(msg)
@@ -192,13 +192,13 @@ func (msg *ConfirmMsgWrap) Signature() []byte { return msg.Sign }
 
 // ------------------------------- About ConfirmVote -------------------------------
 type ConfirmVoteWrap struct {
-	*twopcpb.ConfirmVote
+	*carriertwopcpb.ConfirmVote
 	// caches
 	sealHash atomic.Value `json:"-" rlp:"-"`
 	hash     atomic.Value `json:"-" rlp:"-"`
 }
 
-func (msg *ConfirmVoteWrap) GetData () *twopcpb.ConfirmVote { return msg.ConfirmVote }
+func (msg *ConfirmVoteWrap) GetData () *carriertwopcpb.ConfirmVote { return msg.ConfirmVote }
 
 func (msg *ConfirmVoteWrap) String() string {
 	result, err := json.Marshal(msg)
@@ -245,13 +245,13 @@ func (msg *ConfirmVoteWrap) Signature() []byte { return msg.Sign }
 
 // ------------------------------- About CommitMsg -------------------------------
 type CommitMsgWrap struct {
-	*twopcpb.CommitMsg
+	*carriertwopcpb.CommitMsg
 	// caches
 	sealHash atomic.Value `json:"-" rlp:"-"`
 	hash     atomic.Value `json:"-" rlp:"-"`
 }
 
-func (msg *CommitMsgWrap) GetData() *twopcpb.CommitMsg { return msg.CommitMsg }
+func (msg *CommitMsgWrap) GetData() *carriertwopcpb.CommitMsg { return msg.CommitMsg }
 
 func (msg *CommitMsgWrap) String() string {
 	result, err := json.Marshal(msg)

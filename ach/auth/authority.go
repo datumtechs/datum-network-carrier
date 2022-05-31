@@ -2,12 +2,12 @@ package auth
 
 import (
 	"fmt"
-	metadata2 "github.com/Metisnetwork/Metis-Carrier/ach/auth/metadata"
-	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
-	"github.com/Metisnetwork/Metis-Carrier/core"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/rpc/backend"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	metadata2 "github.com/datumtechs/datum-network-carrier/ach/auth/metadata"
+	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	"github.com/datumtechs/datum-network-carrier/core"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
+	"github.com/datumtechs/datum-network-carrier/rpc/backend"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"time"
 )
 
@@ -60,28 +60,28 @@ func (am *AuthorityManager) refreshMetadataAuthority () {
 
 		// Regularly check the validity of metadata auth information in 'pending' status,
 		// and decide whether to automatically issue 'refused' audit suggestions.
-		if metadataAuth.GetData().GetAuditOption() == libtypes.AuditMetadataOption_Audit_Pending {
+		if metadataAuth.GetData().GetAuditOption() == commonconstantpb.AuditMetadataOption_Audit_Pending {
 			var invalid bool
 
 			switch metadataAuth.GetData().GetAuth().GetUsageRule().GetUsageType() {
-			case libtypes.MetadataUsageType_Usage_Period:
+			case commonconstantpb.MetadataUsageType_Usage_Period:
 				if timeutils.UnixMsecUint64() >= metadataAuth.GetData().GetAuth().GetUsageRule().GetEndAt() {
 					metadataAuth.GetData().GetUsedQuo().Expire = true
-					metadataAuth.GetData().State = libtypes.MetadataAuthorityState_MAState_Invalid
+					metadataAuth.GetData().State = commonconstantpb.MetadataAuthorityState_MAState_Invalid
 					// refuse it for audit suggestion.
 					// update audit things.
-					metadataAuth.GetData().AuditOption = libtypes.AuditMetadataOption_Audit_Refused
+					metadataAuth.GetData().AuditOption = commonconstantpb.AuditMetadataOption_Audit_Refused
 					metadataAuth.GetData().AuditSuggestion = "metadataAuth has expired, refused it"
 					metadataAuth.GetData().AuditAt = timeutils.UnixMsecUint64()
 					invalid = true
 				}
-			case libtypes.MetadataUsageType_Usage_Times:
+			case commonconstantpb.MetadataUsageType_Usage_Times:
 				if metadataAuth.GetData().GetUsedQuo().GetUsedTimes() >= metadataAuth.GetData().GetAuth().GetUsageRule().GetTimes() {
-					metadataAuth.GetData().State = libtypes.MetadataAuthorityState_MAState_Invalid
+					metadataAuth.GetData().State = commonconstantpb.MetadataAuthorityState_MAState_Invalid
 
 					// refuse it for audit suggestion.
 					// update audit things.
-					metadataAuth.GetData().AuditOption = libtypes.AuditMetadataOption_Audit_Refused
+					metadataAuth.GetData().AuditOption = commonconstantpb.AuditMetadataOption_Audit_Refused
 					metadataAuth.GetData().AuditSuggestion = "metadataAuth has no enough remain times, refused it"
 					metadataAuth.GetData().AuditAt = timeutils.UnixMsecUint64()
 					invalid = true
@@ -112,7 +112,7 @@ func (am *AuthorityManager) ApplyMetadataAuthority (metadataAuth *types.Metadata
 	return am.metadataAuth.ApplyMetadataAuthority(metadataAuth)
 }
 
-func (am *AuthorityManager) AuditMetadataAuthority (audit *types.MetadataAuthAudit) (libtypes.AuditMetadataOption, error) {
+func (am *AuthorityManager) AuditMetadataAuthority (audit *types.MetadataAuthAudit) (commonconstantpb.AuditMetadataOption, error) {
 	return am.metadataAuth.AuditMetadataAuthority(audit)
 }
 
@@ -123,14 +123,14 @@ func (am *AuthorityManager) ConsumeMetadataAuthority (metadataAuthId string) err
 func filterMetadataAuth (list types.MetadataAuthArray) (types.MetadataAuthArray, error) {
 	for i, metadataAuth := range list {
 		switch metadataAuth.GetData().GetAuth().GetUsageRule().GetUsageType() {
-		case libtypes.MetadataUsageType_Usage_Period:
+		case commonconstantpb.MetadataUsageType_Usage_Period:
 			if timeutils.UnixMsecUint64() >= metadataAuth.GetData().GetAuth().GetUsageRule().GetEndAt() {
 				metadataAuth.GetData().GetUsedQuo().Expire = true
-				metadataAuth.GetData().State = libtypes.MetadataAuthorityState_MAState_Invalid
+				metadataAuth.GetData().State = commonconstantpb.MetadataAuthorityState_MAState_Invalid
 			}
-		case libtypes.MetadataUsageType_Usage_Times:
+		case commonconstantpb.MetadataUsageType_Usage_Times:
 			if metadataAuth.GetData().GetUsedQuo().GetUsedTimes() >= metadataAuth.GetData().GetAuth().GetUsageRule().GetTimes() {
-				metadataAuth.GetData().State = libtypes.MetadataAuthorityState_MAState_Invalid
+				metadataAuth.GetData().State = commonconstantpb.MetadataAuthorityState_MAState_Invalid
 			}
 		default:
 			log.Errorf("unknown usageType of the old metadataAuth on AuthorityManager.filterMetadataAuth(), metadataAuthId: {%s}", metadataAuth.GetData().GetMetadataAuthId())
@@ -179,15 +179,15 @@ func (am *AuthorityManager) GetMetadataAuthorityListByIds (metadataAuthIds  []st
 	return am.metadataAuth.GetMetadataAuthorityListByIds(metadataAuthIds)
 }
 
-func (am *AuthorityManager)  HasValidMetadataAuth(userType libtypes.UserType, user, identityId, metadataId string) (bool, error) {
+func (am *AuthorityManager)  HasValidMetadataAuth(userType commonconstantpb.UserType, user, identityId, metadataId string) (bool, error) {
 	return am.metadataAuth.HasValidMetadataAuth(userType, user, identityId, metadataId)
 }
 
-func (am *AuthorityManager) VerifyMetadataAuth (userType libtypes.UserType, user, metadataId string) error {
+func (am *AuthorityManager) VerifyMetadataAuth (userType commonconstantpb.UserType, user, metadataId string) error {
 	return am.metadataAuth.VerifyMetadataAuth(userType, user, metadataId)
 }
 
-func  (am *AuthorityManager) QueryMetadataAuthIdByMetadataId(userType libtypes.UserType, user, metadataId string) (string, error) {
+func  (am *AuthorityManager) QueryMetadataAuthIdByMetadataId(userType commonconstantpb.UserType, user, metadataId string) (string, error) {
 	return am.metadataAuth.QueryMetadataAuthIdByMetadataId(userType, user, metadataId)
 }
 

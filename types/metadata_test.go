@@ -2,29 +2,29 @@ package types
 
 import (
 	"bytes"
-	"github.com/Metisnetwork/Metis-Carrier/common"
-	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
-	"github.com/Metisnetwork/Metis-Carrier/lib/types"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/common"
+	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"gotest.tools/assert"
 	"reflect"
 	"testing"
 )
 
-var metadata = NewMetadata(&types.MetadataPB{
+var metadata = NewMetadata(&carriertypespb.MetadataPB{
 	MetadataId: "xxxxx",
-	Owner: &libtypes.Organization{
+	Owner: &carriertypespb.Organization{
 		IdentityId: "identity",
 		NodeId:     "nodeId",
 		NodeName:   "nodeName",
 	},
 	DataId:         "dataId",
-	DataStatus:     libtypes.DataStatus_DataStatus_Valid,
+	DataStatus:     commonconstantpb.DataStatus_DataStatus_Valid,
 	MetadataName:   "this is a metadata",
 	MetadataType:   1,
 	Desc:           "desc",
 	Industry:       "1",
-	State:          libtypes.MetadataState_MetadataState_Created,
+	State:          commonconstantpb.MetadataState_MetadataState_Created,
 	PublishAt:      timeutils.UnixMsecUint64(),
 	UpdateAt:       timeutils.UnixMsecUint64(),
 	Nonce:          1,

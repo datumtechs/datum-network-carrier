@@ -3,9 +3,9 @@ package p2p
 import (
 	"context"
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
-	"github.com/Metisnetwork/Metis-Carrier/p2p/peers"
-	"github.com/Metisnetwork/Metis-Carrier/p2p/peers/peerdata"
+	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	"github.com/datumtechs/datum-network-carrier/p2p/peers"
+	"github.com/datumtechs/datum-network-carrier/p2p/peers/peerdata"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/pkg/errors"

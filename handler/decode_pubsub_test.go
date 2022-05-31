@@ -2,9 +2,9 @@ package handler
 
 import (
 	"bytes"
-	libp2ppb "github.com/Metisnetwork/Metis-Carrier/lib/rpc/debug/v1"
-	"github.com/Metisnetwork/Metis-Carrier/p2p"
-	p2ptesting "github.com/Metisnetwork/Metis-Carrier/p2p/testing"
+	carrierrpcdebugpbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
+	"github.com/datumtechs/datum-network-carrier/p2p"
+	p2ptesting "github.com/datumtechs/datum-network-carrier/p2p/testing"
 	"github.com/d4l3k/messagediff"
 	"github.com/gogo/protobuf/proto"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
@@ -47,7 +47,7 @@ func TestService_decodePubsubMessage(t *testing.T) {
 		},
 		{
 			name:  "valid message -- beacon block",
-			topic: p2p.GossipTypeMapping[reflect.TypeOf(&libp2ppb.GossipTestData{})],
+			topic: p2p.GossipTypeMapping[reflect.TypeOf(&carrierrpcdebugpbv1.GossipTestData{})],
 			input: &pubsub.Message{
 				Message: &pb.Message{
 					Data: func() []byte {
@@ -90,8 +90,8 @@ func TestService_decodePubsubMessage(t *testing.T) {
 	}
 }
 
-func NewGossipTestData() *libp2ppb.GossipTestData {
-	return  &libp2ppb.GossipTestData{
+func NewGossipTestData() *carrierrpcdebugpbv1.GossipTestData {
+	return  &carrierrpcdebugpbv1.GossipTestData{
 		Data:                 []byte("data"),
 		Count:                11,
 		Step:                 23,

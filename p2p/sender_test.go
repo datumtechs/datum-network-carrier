@@ -2,8 +2,8 @@ package p2p
 
 import (
 	"context"
-	librpcpb "github.com/Metisnetwork/Metis-Carrier/lib/rpc/debug/v1"
-	testp2p "github.com/Metisnetwork/Metis-Carrier/p2p/testing"
+	carrierrpcdebugpbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
+	testp2p "github.com/datumtechs/datum-network-carrier/p2p/testing"
 	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/stretchr/testify/assert"
@@ -23,7 +23,7 @@ func TestService_Send(t *testing.T) {
 		cfg:  &Config{},
 	}
 
-	msg := &librpcpb.GossipTestData{
+	msg := &carrierrpcdebugpbv1.GossipTestData{
 		Data:                 nil,
 		Count:                1,
 		Step:                 3,
@@ -33,12 +33,12 @@ func TestService_Send(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	topic := "/testing/1"
-	RPCTopicMappings[topic] = new(librpcpb.GossipTestData)
+	RPCTopicMappings[topic] = new(carrierrpcdebugpbv1.GossipTestData)
 	defer func() {
 		delete(RPCTopicMappings, topic)
 	}()
 	p2.SetStreamHandler(topic+"/ssz_snappy", func(stream network.Stream) {
-		rcvd := &librpcpb.GossipTestData{}
+		rcvd := &carrierrpcdebugpbv1.GossipTestData{}
 		require.NoError(t, svc.Encoding().DecodeWithMaxLength(stream, rcvd))
 		_, err := svc.Encoding().EncodeWithMaxLength(stream, rcvd)
 		require.NoError(t, err)
@@ -51,7 +51,7 @@ func TestService_Send(t *testing.T) {
 
 	WaitTimeout(&wg, 1*time.Second)
 
-	rcvd := &librpcpb.GossipTestData{}
+	rcvd := &carrierrpcdebugpbv1.GossipTestData{}
 	require.NoError(t, svc.Encoding().DecodeWithMaxLength(stream, rcvd))
 	if !proto.Equal(rcvd, msg) {
 		t.Errorf("Expected identical message to be received. got %v want %v", rcvd, msg)

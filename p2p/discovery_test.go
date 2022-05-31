@@ -4,13 +4,13 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/common/bytesutil"
-	"github.com/Metisnetwork/Metis-Carrier/common/iputils"
-	pb "github.com/Metisnetwork/Metis-Carrier/lib/p2p/v1"
-	"github.com/Metisnetwork/Metis-Carrier/p2p/peers"
-	"github.com/Metisnetwork/Metis-Carrier/p2p/peers/peerdata"
-	"github.com/Metisnetwork/Metis-Carrier/p2p/peers/scorers"
-	testp2p "github.com/Metisnetwork/Metis-Carrier/p2p/testing"
+	"github.com/datumtechs/datum-network-carrier/common/bytesutil"
+	"github.com/datumtechs/datum-network-carrier/common/iputils"
+	carrierp2ppbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
+	"github.com/datumtechs/datum-network-carrier/p2p/peers"
+	"github.com/datumtechs/datum-network-carrier/p2p/peers/peerdata"
+	"github.com/datumtechs/datum-network-carrier/p2p/peers/scorers"
+	testp2p "github.com/datumtechs/datum-network-carrier/p2p/testing"
 	"github.com/ethereum/go-ethereum/p2p/discover"
 	"github.com/ethereum/go-ethereum/p2p/enode"
 	"github.com/ethereum/go-ethereum/p2p/enr"
@@ -325,7 +325,7 @@ func addPeer(t *testing.T, p *peers.Status, state peerdata.PeerConnectionState) 
 	require.NoError(t, err)
 	p.Add(new(enr.Record), id, nil, network.DirInbound)
 	p.SetConnectionState(id, state)
-	p.SetMetadata(id, &pb.MetaData{
+	p.SetMetadata(id, &carrierp2ppbv1.MetaData{
 		SeqNumber: 0,
 		Attnets:   bitfield.NewBitvector64(),
 	})

@@ -2,9 +2,9 @@ package handler
 
 import (
 	"context"
-	pb "github.com/Metisnetwork/Metis-Carrier/lib/p2p/v1"
-	"github.com/Metisnetwork/Metis-Carrier/p2p"
-	p2ptest "github.com/Metisnetwork/Metis-Carrier/p2p/testing"
+	carrierp2ppbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
+	"github.com/datumtechs/datum-network-carrier/p2p"
+	p2ptest "github.com/datumtechs/datum-network-carrier/p2p/testing"
 	"github.com/kevinms/leakybucket-go"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/protocol"
@@ -22,7 +22,7 @@ func TestMetaDataRPCHandler_ReceivesMetadata(t *testing.T) {
 	p1.Connect(p2)
 	assert.Equal(t, 1, len(p1.BHost.Network().Peers()), "Expected peers to be connected")
 	bitfield := [8]byte{'A', 'B'}
-	p1.LocalMetadata = &pb.MetaData{
+	p1.LocalMetadata = &carrierp2ppbv1.MetaData{
 		SeqNumber: 2,
 		Attnets:   bitfield[:],
 	}
@@ -44,7 +44,7 @@ func TestMetaDataRPCHandler_ReceivesMetadata(t *testing.T) {
 	p2.BHost.SetStreamHandler(pcl, func(stream network.Stream) {
 		defer wg.Done()
 		expectSuccess(t, stream)
-		out := new(pb.MetaData)
+		out := new(carrierp2ppbv1.MetaData)
 		require.NoError(t, r.cfg.P2P.Encoding().DecodeWithMaxLength(stream, out))
 		assert.DeepEqual(t, p1.LocalMetadata, out)
 	})
@@ -69,7 +69,7 @@ func TestMetadataRPCHandler_SendsMetadata(t *testing.T) {
 	p1.Connect(p2)
 	assert.Equal(t, 1, len(p1.BHost.Network().Peers()), "Expected peers to be connected")
 	bitfield := [8]byte{'A', 'B'}
-	p2.LocalMetadata = &pb.MetaData{
+	p2.LocalMetadata = &carrierp2ppbv1.MetaData{
 		SeqNumber: 2,
 		Attnets:   bitfield[:],
 	}

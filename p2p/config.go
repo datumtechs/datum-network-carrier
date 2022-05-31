@@ -1,8 +1,8 @@
 package p2p
 
 import (
-	"github.com/Metisnetwork/Metis-Carrier/blacklist"
-	statefeed "github.com/Metisnetwork/Metis-Carrier/common/feed/state"
+	"github.com/datumtechs/datum-network-carrier/blacklist"
+	statefeed "github.com/datumtechs/datum-network-carrier/common/feed/state"
 )
 
 // Config for the p2p service. These parameters are set from application

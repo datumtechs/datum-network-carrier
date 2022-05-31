@@ -2,11 +2,12 @@ package rawdb
 
 import (
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
-	"github.com/Metisnetwork/Metis-Carrier/db"
-	pb "github.com/Metisnetwork/Metis-Carrier/lib/api"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	"github.com/datumtechs/datum-network-carrier/db"
+	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/stretchr/testify/require"
 	"gotest.tools/assert"
 	"math/rand"
@@ -18,12 +19,12 @@ import (
 
 func TestLocalTask(t *testing.T) {
 	database := db.NewMemoryDatabase()
-	data01 := &libtypes.TaskPB{
+	data01 := &carriertypespb.TaskPB{
 		DataId:     "taskId",
-		DataStatus: libtypes.DataStatus_DataStatus_Invalid,
+		DataStatus: commonconstantpb.DataStatus_DataStatus_Invalid,
 		TaskId:     "taskID",
 		TaskName:   "taskName",
-		State:      libtypes.TaskState_TaskState_Failed,
+		State:      commonconstantpb.TaskState_TaskState_Failed,
 		Reason:     "reason",
 		Desc:       "desc",
 		CreateAt:   timeutils.UnixMsecUint64(),
@@ -35,7 +36,7 @@ func TestLocalTask(t *testing.T) {
 	assert.Assert(t, strings.EqualFold(data01.TaskId, res.GetTaskId()))
 
 	// test update state
-	res.GetTaskData().State = libtypes.TaskState_TaskState_Failed
+	res.GetTaskData().State = commonconstantpb.TaskState_TaskState_Failed
 	RemoveLocalTask(database, data01.TaskId)
 	StoreLocalTask(database, res)
 
@@ -61,7 +62,7 @@ func TestLocalTask(t *testing.T) {
 func TestSeedNode(t *testing.T) {
 	// write seed
 	database := db.NewMemoryDatabase()
-	seedNodeInfo := &pb.SeedPeer{
+	seedNodeInfo := &carrierapipb.SeedPeer{
 		Addr:"addr1",
 		IsDefault: false,
 		ConnState:    1,
@@ -88,7 +89,7 @@ func TestSeedNode(t *testing.T) {
 func TestRegisteredNode(t *testing.T) {
 	// write seed
 	database := db.NewMemoryDatabase()
-	registered := &pb.YarnRegisteredPeerDetail{
+	registered := &carrierapipb.YarnRegisteredPeerDetail{
 		Id:           "id",
 		InternalIp:   "internalIp",
 		InternalPort: "9999",
@@ -96,33 +97,33 @@ func TestRegisteredNode(t *testing.T) {
 		ExternalPort: "999",
 		ConnState:    1,
 	}
-	StoreRegisterNode(database, pb.PrefixTypeJobNode, registered)
+	StoreRegisterNode(database, carrierapipb.PrefixTypeJobNode, registered)
 
 	// get seed
-	r, _ := QueryRegisterNode(database, pb.PrefixTypeJobNode, "id")
+	r, _ := QueryRegisterNode(database, carrierapipb.PrefixTypeJobNode, "id")
 	t.Logf("registered info : %v", r)
 	assert.Assert(t, strings.EqualFold("id", r.Id))
 
 	// read all
-	registeredNodes, _ := QueryAllRegisterNodes(database, pb.PrefixTypeJobNode)
+	registeredNodes, _ := QueryAllRegisterNodes(database, carrierapipb.PrefixTypeJobNode)
 	assert.Assert(t, len(registeredNodes) == 1)
 
 	// delete
-	RemoveRegisterNode(database, pb.PrefixTypeJobNode, "id")
+	RemoveRegisterNode(database, carrierapipb.PrefixTypeJobNode, "id")
 
-	registeredNodes, _ = QueryAllRegisterNodes(database, pb.PrefixTypeJobNode)
+	registeredNodes, _ = QueryAllRegisterNodes(database, carrierapipb.PrefixTypeJobNode)
 	assert.Assert(t, len(registeredNodes) == 0)
 
 	// delete
-	RemoveRegisterNodes(database, pb.PrefixTypeJobNode)
+	RemoveRegisterNodes(database, carrierapipb.PrefixTypeJobNode)
 
-	registeredNodes, _ = QueryAllRegisterNodes(database, pb.PrefixTypeJobNode)
+	registeredNodes, _ = QueryAllRegisterNodes(database, carrierapipb.PrefixTypeJobNode)
 	assert.Assert(t, len(registeredNodes) == 0)
 }
 
 func TestTaskEvent(t *testing.T) {
 	database := db.NewMemoryDatabase()
-	taskEvent := &libtypes.TaskEvent{
+	taskEvent := &carriertypespb.TaskEvent{
 		Type:       "taskEventType",
 		IdentityId: "taskEventIdentity",
 		TaskId:     "taskEventTaskId",
@@ -131,7 +132,7 @@ func TestTaskEvent(t *testing.T) {
 	}
 	StoreTaskEvent(database, taskEvent)
 
-	taskEvent2 := &libtypes.TaskEvent{
+	taskEvent2 := &carriertypespb.TaskEvent{
 		Type:       "taskEventType-02",
 		IdentityId: "taskEventIdentity",
 		TaskId:     "taskEventTaskId",
@@ -157,7 +158,7 @@ func TestTaskEvent(t *testing.T) {
 
 func TestLocalIdentity(t *testing.T) {
 	database := db.NewMemoryDatabase()
-	nodeAlias := &libtypes.Organization{
+	nodeAlias := &carriertypespb.Organization{
 		NodeName:   "node-name",
 		NodeId:     "node-nodeId",
 		IdentityId: "node-identityId",
@@ -177,11 +178,11 @@ func TestLocalIdentity(t *testing.T) {
 
 func TestLocalResource(t *testing.T) {
 	database := db.NewMemoryDatabase()
-	localResource01 := &libtypes.LocalResourcePB{
+	localResource01 := &carriertypespb.LocalResourcePB{
 		JobNodeId:      "01",
 		DataId:         "01-dataId",
-		DataStatus:     libtypes.DataStatus_DataStatus_Invalid,
-		State:          libtypes.PowerState_PowerState_Created,
+		DataStatus:     commonconstantpb.DataStatus_DataStatus_Invalid,
+		State:          commonconstantpb.PowerState_PowerState_Created,
 		TotalMem:       111,
 		UsedMem:        222,
 		TotalProcessor: 11,
@@ -193,11 +194,11 @@ func TestLocalResource(t *testing.T) {
 	_ = b
 	StoreLocalResource(database, types.NewLocalResource(localResource01))
 
-	localResource02 := &libtypes.LocalResourcePB{
+	localResource02 := &carriertypespb.LocalResourcePB{
 		JobNodeId:      "02",
 		DataId:         "01-dataId",
-		DataStatus:     libtypes.DataStatus_DataStatus_Valid,
-		State:         libtypes.PowerState_PowerState_Created,
+		DataStatus:     commonconstantpb.DataStatus_DataStatus_Valid,
+		State:         commonconstantpb.PowerState_PowerState_Created,
 		TotalMem:       111,
 		UsedMem:        222,
 		TotalProcessor: 11,
@@ -220,7 +221,7 @@ func TestLocalResource(t *testing.T) {
 
 func TestLocalMetadata(t *testing.T) {
 	database := db.NewMemoryDatabase()
-	localMetadata01 := &libtypes.MetadataPB{
+	localMetadata01 := &carriertypespb.MetadataPB{
 		MetadataId:           "metadataId",
 		DataId:               "dataId",
 		DataStatus:           0,
@@ -232,7 +233,7 @@ func TestLocalMetadata(t *testing.T) {
 	_ = b
 	StoreLocalMetadata(database, types.NewMetadata(localMetadata01))
 
-	localMetadata02 := &libtypes.MetadataPB{
+	localMetadata02 := &carriertypespb.MetadataPB{
 		MetadataId:           "metadataId-02",
 		DataId:               "dataId",
 		DataStatus:           0,

@@ -1,8 +1,8 @@
-// Copyright (C) 2021 The RosettaNet Authors.
+// Copyright (C) 2021 The datum-network Authors.
 
 package rawdb
 
-import "github.com/Metisnetwork/Metis-Carrier/common"
+import "github.com/datumtechs/datum-network-carrier/common"
 
 // ReadIdentityHash retrieves the hash assigned to a canonical number and index.
 func ReadIdentityHash(db DatabaseReader, number uint64, index uint64) common.Hash {

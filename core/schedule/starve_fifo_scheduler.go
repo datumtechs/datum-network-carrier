@@ -4,19 +4,20 @@ import (
 	"container/heap"
 	"encoding/json"
 	"fmt"
-	auth2 "github.com/Metisnetwork/Metis-Carrier/ach/auth"
-	"github.com/Metisnetwork/Metis-Carrier/blacklist"
-	"github.com/Metisnetwork/Metis-Carrier/common/bytesutil"
-	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
-	ctypes "github.com/Metisnetwork/Metis-Carrier/consensus/twopc/types"
-	"github.com/Metisnetwork/Metis-Carrier/core/election"
-	"github.com/Metisnetwork/Metis-Carrier/core/evengine"
-	"github.com/Metisnetwork/Metis-Carrier/core/rawdb"
-	"github.com/Metisnetwork/Metis-Carrier/core/resource"
-	libapipb "github.com/Metisnetwork/Metis-Carrier/lib/api"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/policy"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	auth2 "github.com/datumtechs/datum-network-carrier/ach/auth"
+	"github.com/datumtechs/datum-network-carrier/blacklist"
+	"github.com/datumtechs/datum-network-carrier/common/bytesutil"
+	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	ctypes "github.com/datumtechs/datum-network-carrier/consensus/twopc/types"
+	"github.com/datumtechs/datum-network-carrier/core/election"
+	"github.com/datumtechs/datum-network-carrier/core/evengine"
+	"github.com/datumtechs/datum-network-carrier/core/rawdb"
+	"github.com/datumtechs/datum-network-carrier/core/resource"
+	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
+	"github.com/datumtechs/datum-network-carrier/policy"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/ethereum/go-ethereum/rlp"
 	log "github.com/sirupsen/logrus"
 	"strings"
@@ -224,8 +225,8 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (resTask *types.NeedConsensusTask
 
 	}
 
-	powerOrgs := make([]*libtypes.TaskOrganization, len(task.GetTaskData().GetPowerPolicyTypes()))
-	powerResources := make([]*libtypes.TaskPowerResourceOption, len(task.GetTaskData().GetPowerPolicyTypes()))
+	powerOrgs := make([]*carriertypespb.TaskOrganization, len(task.GetTaskData().GetPowerPolicyTypes()))
+	powerResources := make([]*carriertypespb.TaskPowerResourceOption, len(task.GetTaskData().GetPowerPolicyTypes()))
 
 	var (
 		evidence string
@@ -303,7 +304,7 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (resTask *types.NeedConsensusTask
 }
 
 func (sche *SchedulerStarveFIFO) ReplaySchedule(
-	partyId string, taskRole libtypes.TaskRole,
+	partyId string, taskRole commonconstantpb.TaskRole,
 	replayTask *types.NeedReplayScheduleTask) *types.ReplayScheduleResult {
 
 	task := replayTask.GetTask()
@@ -318,7 +319,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 		return types.NewReplayScheduleResult(task.GetTaskId(), fmt.Errorf("query local identity failed, %s", err), nil)
 	}
 
-	findDataNodeByMetadataIdFn := func(metadataId string) (*libapipb.YarnRegisteredPeerDetail, error) {
+	findDataNodeByMetadataIdFn := func(metadataId string) (*carrierapipb.YarnRegisteredPeerDetail, error) {
 		// Select the datanode where your metadata ID is located.
 		var dataNodeId string
 		// check the metadata whether internal metadata
@@ -360,7 +361,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 			dataNodeId = dataResourceDiskUsed.GetNodeId()
 		}
 
-		dataNode, err := sche.resourceMng.GetDB().QueryRegisterNode(libapipb.PrefixTypeDataNode, dataNodeId)
+		dataNode, err := sche.resourceMng.GetDB().QueryRegisterNode(carrierapipb.PrefixTypeDataNode, dataNodeId)
 		if nil != err {
 			log.WithError(err).Errorf("failed query internal data resource by metaDataId when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, metadataId: {%s}",
 				task.GetTaskId(), taskRole.String(), partyId, metadataId)
@@ -373,7 +374,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 
 	switch taskRole {
 
-	case libtypes.TaskRole_TaskRole_DataSupplier:
+	case commonconstantpb.TaskRole_TaskRole_DataSupplier:
 
 		// ## 1、verify the powsuppliers election result
 		caches := make(map[uint32]ReScheduleCollecter, 0)
@@ -387,8 +388,8 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 				cache, ok := caches[policyType]
 				if !ok {
 					collecter = &ReScheduleWithSymbolRandomElectionPower{
-						suppliers: make([]*libtypes.TaskOrganization, 0),
-						resources: make([]*libtypes.TaskPowerResourceOption, 0),
+						suppliers: make([]*carriertypespb.TaskOrganization, 0),
+						resources: make([]*carriertypespb.TaskPowerResourceOption, 0),
 					}
 				} else {
 					collecter = cache.(*ReScheduleWithSymbolRandomElectionPower)
@@ -408,7 +409,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 				cache, ok := caches[policyType]
 				if !ok {
 					collecter = &ReScheduleWithDataNodeProvidePower{
-						suppliers: make([]*libtypes.TaskOrganization, 0),
+						suppliers: make([]*carriertypespb.TaskOrganization, 0),
 						provides:  make([]*types.TaskPowerPolicyDataNodeProvide, 0),
 					}
 				} else {
@@ -438,7 +439,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 					return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)
 				}
 				if err := sche.reScheduleVrfElectionPower(task.GetTaskId(), task.GetTaskSender().GetNodeId(),
-					c.GetSuppliers(), c.GetResources(), replayTask.GetEvidence(),replayTask.GetBlackOrg()); nil != err {
+					c.GetSuppliers(), c.GetResources(), replayTask.GetEvidence(), replayTask.GetBlackOrg()); nil != err {
 					return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)
 				}
 
@@ -492,12 +493,12 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 	// select your own internal power resource and lock it,
 	// and finally click 'publishfinishedtasktodatacenter'
 	// or 'sendtaskresultmsgtotasksender' in taskmnager.
-	case libtypes.TaskRole_TaskRole_PowerSupplier:
+	case commonconstantpb.TaskRole_TaskRole_PowerSupplier:
 
 		// ## 1、choosing powerSupplier jobNode
 
 		var (
-			node *libapipb.YarnRegisteredPeerDetail
+			node *carrierapipb.YarnRegisteredPeerDetail
 			err  error
 		)
 
@@ -597,12 +598,12 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 
 	// If the current participant is resultsupplier.
 	// just select their own available datanodes.
-	case libtypes.TaskRole_TaskRole_Receiver:
+	case commonconstantpb.TaskRole_TaskRole_Receiver:
 
 		// ## 1、choosing receiver dataNode
 
 		var (
-			dataNode *libapipb.YarnRegisteredPeerDetail
+			dataNode *carrierapipb.YarnRegisteredPeerDetail
 			err      error
 		)
 
@@ -624,7 +625,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 						task.GetTaskId(), taskRole.String(), partyId, types.UtilDataResourceArrString(dataResourceTables))
 
 					resource := dataResourceTables[len(dataResourceTables)-1]
-					dataNode, err = sche.resourceMng.GetDB().QueryRegisterNode(libapipb.PrefixTypeDataNode, resource.GetNodeId())
+					dataNode, err = sche.resourceMng.GetDB().QueryRegisterNode(carrierapipb.PrefixTypeDataNode, resource.GetNodeId())
 					if nil != err {
 						log.WithError(err).Errorf("Failed to query internal data resource when role is receiver on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, dataNodeId: {%s}",
 							task.GetTaskId(), taskRole.String(), partyId, resource.GetNodeId())
@@ -695,14 +696,14 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 
 // NOTE: schedule powerSuppliers by powerPolicy of task
 func (sche *SchedulerStarveFIFO) scheduleVrfElectionPower(taskId string, cost *ctypes.TaskOperationCost, partyIds []string) (
-	string, []*libtypes.TaskOrganization, []*libtypes.TaskPowerResourceOption, error) {
+	string, []*carriertypespb.TaskOrganization, []*carriertypespb.TaskPowerResourceOption, error) {
 
 	now := timeutils.UnixMsecUint64()
 	vrfInput := append([]byte(taskId), bytesutil.Uint64ToBytes(now)...) // input == taskId + nowtime
 	// election other org's power resources
 	blackOrgList:=sche.identityBlackListCache.FilterEqualThresholdCountOrg()
 	powers, resources, nonce, weights, err := sche.elector.ElectionOrganization(taskId, partyIds,
-		nil, cost.GetMem(), cost.GetBandwidth(), 0, cost.GetProcessor(), vrfInput,blackOrgList)
+		nil, cost.GetMem(), cost.GetBandwidth(), 0, cost.GetProcessor(), vrfInput, blackOrgList)
 	if nil != err {
 		log.WithError(err).Errorf("Failed to election powers org on scheduleVrfElectionPower(), taskId: {%s}", taskId)
 		return "", nil, nil, fmt.Errorf("election powerOrg failed, %s", err)
@@ -717,11 +718,11 @@ func (sche *SchedulerStarveFIFO) scheduleVrfElectionPower(taskId string, cost *c
 }
 
 func (sche *SchedulerStarveFIFO) scheduleDataNodeProvidePower(task *types.Task, provides []*types.TaskPowerPolicyDataNodeProvide) (
-	[]*libtypes.TaskOrganization, []*libtypes.TaskPowerResourceOption, error) {
+	[]*carriertypespb.TaskOrganization, []*carriertypespb.TaskPowerResourceOption, error) {
 
-	dataSupplierCache := make(map[string]*libtypes.TaskOrganization)
+	dataSupplierCache := make(map[string]*carriertypespb.TaskOrganization)
 	for _, supplier := range task.GetTaskData().GetDataSuppliers() {
-		newPowerSupplier := &libtypes.TaskOrganization{
+		newPowerSupplier := &carriertypespb.TaskOrganization{
 			IdentityId: supplier.GetIdentityId(),
 			NodeId:     supplier.GetNodeId(),
 			NodeName:   supplier.GetNodeName(),
@@ -730,8 +731,8 @@ func (sche *SchedulerStarveFIFO) scheduleDataNodeProvidePower(task *types.Task, 
 		dataSupplierCache[supplier.GetPartyId()] = newPowerSupplier
 	}
 
-	powers := make([]*libtypes.TaskOrganization, len(provides))
-	resources := make([]*libtypes.TaskPowerResourceOption, len(provides))
+	powers := make([]*carriertypespb.TaskOrganization, len(provides))
+	resources := make([]*carriertypespb.TaskPowerResourceOption, len(provides))
 	//
 	for i, provide := range provides {
 		supplier, ok := dataSupplierCache[provide.GetProviderPartyId()]
@@ -742,9 +743,9 @@ func (sche *SchedulerStarveFIFO) scheduleDataNodeProvidePower(task *types.Task, 
 		}
 		supplier.PartyId = provide.GetPowerPartyId()
 		powers[i] = supplier
-		resources[i] = &libtypes.TaskPowerResourceOption{
+		resources[i] = &carriertypespb.TaskPowerResourceOption{
 			PartyId: provide.GetPowerPartyId(),
-			ResourceUsedOverview: &libtypes.ResourceUsageOverview{
+			ResourceUsedOverview: &carriertypespb.ResourceUsageOverview{
 				TotalMem:       0, // total resource value of org.
 				UsedMem:        0, // used resource of this task (real time max used)
 				TotalBandwidth: 0,
@@ -762,7 +763,7 @@ func (sche *SchedulerStarveFIFO) scheduleDataNodeProvidePower(task *types.Task, 
 
 // NOTE: reSchedule powerSuppliers by powerPolicy of task
 
-func (sche *SchedulerStarveFIFO) reScheduleVrfElectionPower(taskId, nodeId string, powerSuppliers []*libtypes.TaskOrganization, powerResources []*libtypes.TaskPowerResourceOption, evidenceJson,blackOrgJson string) error {
+func (sche *SchedulerStarveFIFO) reScheduleVrfElectionPower(taskId, nodeId string, powerSuppliers []*carriertypespb.TaskOrganization, powerResources []*carriertypespb.TaskPowerResourceOption, evidenceJson, blackOrgJson string) error {
 
 	if "" == strings.Trim(evidenceJson, "") {
 		return fmt.Errorf("received evidence of vrf election is empty")
@@ -786,24 +787,24 @@ func (sche *SchedulerStarveFIFO) reScheduleVrfElectionPower(taskId, nodeId strin
 	if err := sche.elector.VerifyElectionOrganization(
 		taskId, powerSuppliers,
 		powerResources, nodeId,
-		vrfInput, evidence.GetNonce(), evidence.GetWeights(),blackOrg); nil != err {
+		vrfInput, evidence.GetNonce(), evidence.GetWeights(), blackOrg); nil != err {
 		return fmt.Errorf("%s when election power organization", err)
 	}
 	return nil
 }
 
-func (sche *SchedulerStarveFIFO) reScheduleDataNodeProvidePower(taskId string, dataSuppliers, powerSuppliers []*libtypes.TaskOrganization, provides []*types.TaskPowerPolicyDataNodeProvide) error {
+func (sche *SchedulerStarveFIFO) reScheduleDataNodeProvidePower(taskId string, dataSuppliers, powerSuppliers []*carriertypespb.TaskOrganization, provides []*types.TaskPowerPolicyDataNodeProvide) error {
 
 	if len(powerSuppliers) != len(provides) {
 		return fmt.Errorf("powerSuppliers count AND partyIds count is not same, powerSuppliers: {%d}, provides: {%d}",
 			len(powerSuppliers), len(provides))
 	}
 
-	dataSupplierCache := make(map[string]*libtypes.TaskOrganization)
+	dataSupplierCache := make(map[string]*carriertypespb.TaskOrganization)
 	for _, supplier := range dataSuppliers {
 		dataSupplierCache[supplier.GetPartyId()] = supplier
 	}
-	powerSupplierCache := make(map[string]*libtypes.TaskOrganization)
+	powerSupplierCache := make(map[string]*carriertypespb.TaskOrganization)
 	for _, supplier := range powerSuppliers {
 		powerSupplierCache[supplier.GetPartyId()] = supplier
 	}

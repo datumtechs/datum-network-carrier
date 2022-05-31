@@ -2,10 +2,10 @@ package handler
 
 import (
 	"context"
-	"github.com/Metisnetwork/Metis-Carrier/common/abool"
-	libp2ppb "github.com/Metisnetwork/Metis-Carrier/lib/rpc/debug/v1"
-	"github.com/Metisnetwork/Metis-Carrier/p2p"
-	p2ptest "github.com/Metisnetwork/Metis-Carrier/p2p/testing"
+	"github.com/datumtechs/datum-network-carrier/common/abool"
+	carrierrpcdebugpbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
+	"github.com/datumtechs/datum-network-carrier/p2p"
+	p2ptest "github.com/datumtechs/datum-network-carrier/p2p/testing"
 	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/stretchr/testify/require"
@@ -33,7 +33,7 @@ func TestSubscribe_ReceivesValidMessage(t *testing.T) {
 	wg.Add(1)
 
 	r.subscribe(topic, r.noopValidator, func(_ context.Context, pid peer.ID, msg proto.Message) error {
-		m, ok := msg.(*libp2ppb.GossipTestData)
+		m, ok := msg.(*carrierrpcdebugpbv1.GossipTestData)
 		assert.Equal(t, true, ok, "Object is not of type *pb.GossipTestData")
 		if m.Step == 0 || m.Step != 55 {
 			t.Errorf("Unexpected incoming message: %+v", m)
@@ -43,7 +43,7 @@ func TestSubscribe_ReceivesValidMessage(t *testing.T) {
 	})
 	//r.markForChainStart()
 
-	p2pService.ReceivePubSub(topic, &libp2ppb.GossipTestData{Step: 55})
+	p2pService.ReceivePubSub(topic, &carrierrpcdebugpbv1.GossipTestData{Step: 55})
 
 	if WaitTimeout(&wg, 10 * time.Second) {
 		t.Fatal("Did not receive PubSub in 1 second")
@@ -63,7 +63,7 @@ func TestSubscribe_HandlesPanic(t *testing.T) {
 	p.Digest, err = r.forkDigest()
 	require.NoError(t, err)
 
-	topic := p2p.GossipTypeMapping[reflect.TypeOf(&libp2ppb.GossipTestData{})]
+	topic := p2p.GossipTypeMapping[reflect.TypeOf(&carrierrpcdebugpbv1.GossipTestData{})]
 	var wg sync.WaitGroup
 	wg.Add(1)
 
@@ -72,7 +72,7 @@ func TestSubscribe_HandlesPanic(t *testing.T) {
 		panic("bad")
 	})
 	r.markForChainStart()
-	p.ReceivePubSub(topic, &libp2ppb.GossipTestData{ Step: 55 })
+	p.ReceivePubSub(topic, &carrierrpcdebugpbv1.GossipTestData{ Step: 55 })
 
 	if WaitTimeout(&wg, time.Second) {
 		t.Fatal("Did not receive PubSub in 1 second")

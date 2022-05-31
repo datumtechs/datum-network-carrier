@@ -2,10 +2,10 @@ package handler
 
 import (
 	"errors"
-	libp2ppb "github.com/Metisnetwork/Metis-Carrier/lib/rpc/debug/v1"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/p2p"
-	"github.com/Metisnetwork/Metis-Carrier/p2p/encoder"
+	carrierrpcdebugpbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	"github.com/datumtechs/datum-network-carrier/p2p"
+	"github.com/datumtechs/datum-network-carrier/p2p/encoder"
 	libp2pcore "github.com/libp2p/go-libp2p-core"
 )
 
@@ -28,12 +28,12 @@ func WriteChunk(stream libp2pcore.Stream, encoding encoder.NetworkEncoding, msg 
 
 // ReadChunkedBlock handles each response chunk that is sent by the
 // peer and converts it into a beacon block.
-func ReadChunkedBlock(stream libp2pcore.Stream, p2p p2p.P2P, isFirstChunk bool) (*libtypes.BlockData, error) {
+func ReadChunkedBlock(stream libp2pcore.Stream, p2p p2p.P2P, isFirstChunk bool) (*carriertypespb.BlockData, error) {
 	// Handle deadlines differently for first chunk
 	if isFirstChunk {
 		return readFirstChunkedBlock(stream, p2p)
 	}
-	blk := &libtypes.BlockData{}
+	blk := &carriertypespb.BlockData{}
 	if err := readResponseChunk(stream, p2p, blk); err != nil {
 		return nil, err
 	}
@@ -42,8 +42,8 @@ func ReadChunkedBlock(stream libp2pcore.Stream, p2p p2p.P2P, isFirstChunk bool) 
 
 // readFirstChunkedBlock reads the first chunked block and applies the appropriate deadlines to
 // it.
-func readFirstChunkedBlock(stream libp2pcore.Stream, p2p p2p.P2P) (*libtypes.BlockData, error) {
-	blk := &libtypes.BlockData{}
+func readFirstChunkedBlock(stream libp2pcore.Stream, p2p p2p.P2P) (*carriertypespb.BlockData, error) {
+	blk := &carriertypespb.BlockData{}
 	code, errMsg, err := ReadStatusCode(stream, p2p.Encoding())
 	if err != nil {
 		return nil, err
@@ -70,19 +70,19 @@ func readResponseChunk(stream libp2pcore.Stream, p2p p2p.P2P, to interface{}) er
 	return p2p.Encoding().DecodeWithMaxLength(stream, to)
 }
 
-func ReadChunkedGossipTestData(stream libp2pcore.Stream, p2p p2p.P2P, isFirstChunk bool) (*libp2ppb.SignedGossipTestData, error) {
+func ReadChunkedGossipTestData(stream libp2pcore.Stream, p2p p2p.P2P, isFirstChunk bool) (*carrierrpcdebugpbv1.SignedGossipTestData, error) {
 	if isFirstChunk {
 		return readFirstChunkedGossipTestData(stream, p2p)
 	}
-	blk := &libp2ppb.SignedGossipTestData{}
+	blk := &carrierrpcdebugpbv1.SignedGossipTestData{}
 	if err := readResponseChunk(stream, p2p, blk); err != nil {
 		return nil, err
 	}
 	return blk, nil
 }
 
-func readFirstChunkedGossipTestData(stream libp2pcore.Stream, p2p p2p.P2P) (*libp2ppb.SignedGossipTestData, error) {
-	blk := &libp2ppb.SignedGossipTestData{}
+func readFirstChunkedGossipTestData(stream libp2pcore.Stream, p2p p2p.P2P) (*carrierrpcdebugpbv1.SignedGossipTestData, error) {
+	blk := &carrierrpcdebugpbv1.SignedGossipTestData{}
 	code, errMsg, err := ReadStatusCode(stream, p2p.Encoding())
 	if err != nil {
 		return nil, err

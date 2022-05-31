@@ -2,9 +2,9 @@ package core
 
 import (
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/core/rawdb"
-	"github.com/Metisnetwork/Metis-Carrier/lib/center/api"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/datumtechs/datum-network-carrier/core/rawdb"
+	datacenterapipb "github.com/datumtechs/datum-network-carrier/pb/datacenter/api"
+	"github.com/datumtechs/datum-network-carrier/types"
 )
 
 // on local
@@ -71,7 +71,7 @@ func (dc *DataCenter) RevokeMetadata(metadata *types.Metadata) error {
 func (dc *DataCenter) QueryMetadataById(metadataId string) (*types.Metadata, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
-	metadataByIdResponse, err := dc.client.GetMetadataById(dc.ctx, &api.FindMetadataByIdRequest{
+	metadataByIdResponse, err := dc.client.GetMetadataById(dc.ctx, &datacenterapipb.FindMetadataByIdRequest{
 		MetadataId: metadataId,
 	})
 	return types.NewMetadataFromResponse(metadataByIdResponse), err
@@ -80,7 +80,7 @@ func (dc *DataCenter) QueryMetadataById(metadataId string) (*types.Metadata, err
 func (dc *DataCenter) QueryMetadataByIds(metadataIds []string) ([]*types.Metadata, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
-	metaDataListResponse, err := dc.client.GetMetadataByIds(dc.ctx, &api.FindMetadataByIdsRequest{
+	metaDataListResponse, err := dc.client.GetMetadataByIds(dc.ctx, &datacenterapipb.FindMetadataByIdsRequest{
 		MetadataIds: metadataIds,
 	})
 	return types.NewMetadataArrayFromDetailListResponse(metaDataListResponse), err
@@ -89,7 +89,7 @@ func (dc *DataCenter) QueryMetadataByIds(metadataIds []string) ([]*types.Metadat
 func (dc *DataCenter) QueryMetadataList(lastUpdate, pageSize uint64) (types.MetadataArray, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
-	metaDataListResponse, err := dc.client.GetMetadataList(dc.ctx, &api.ListMetadataRequest{
+	metaDataListResponse, err := dc.client.GetMetadataList(dc.ctx, &datacenterapipb.ListMetadataRequest{
 		LastUpdated: lastUpdate,
 		PageSize:    pageSize,
 	})
@@ -99,7 +99,7 @@ func (dc *DataCenter) QueryMetadataList(lastUpdate, pageSize uint64) (types.Meta
 func (dc *DataCenter) QueryMetadataListByIdentity(identityId string, lastUpdate, pageSize uint64) (types.MetadataArray, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
-	metaDataListResponse, err := dc.client.GetMetadataListByIdentityId(dc.ctx, &api.ListMetadataByIdentityIdRequest{
+	metaDataListResponse, err := dc.client.GetMetadataListByIdentityId(dc.ctx, &datacenterapipb.ListMetadataByIdentityIdRequest{
 		LastUpdated: lastUpdate,
 		PageSize:    pageSize,
 		IdentityId:  identityId,

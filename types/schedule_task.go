@@ -3,10 +3,11 @@ package types
 import (
 	"bytes"
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
-	msgcommonpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/common"
-	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	carriernetmsgcommonpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/common"
+	carriertwopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"strings"
 	"sync"
@@ -69,7 +70,7 @@ type NeedConsensusTask struct {
 	blackOrg string
 }
 
-func NewNeedConsensusTask(task *Task, evidence string,blackOrg string) *NeedConsensusTask {
+func NewNeedConsensusTask(task *Task, evidence string, blackOrg string) *NeedConsensusTask {
 	return &NeedConsensusTask{
 		task:     task,
 		evidence: evidence,
@@ -92,14 +93,14 @@ func (nct *NeedConsensusTask) String() string {
 // (those that are in the process of consensus and need to be scheduled again after receiving the proposal from the opposite end)
 type NeedReplayScheduleTask struct {
 	partyId  string
-	taskRole libtypes.TaskRole
+	taskRole commonconstantpb.TaskRole
 	task     *Task
 	evidence string
 	resultCh chan *ReplayScheduleResult
 	blackOrg string
 }
 
-func NewNeedReplayScheduleTask(role libtypes.TaskRole, partyId string, task *Task, evidence,blackOrg string) *NeedReplayScheduleTask {
+func NewNeedReplayScheduleTask(role commonconstantpb.TaskRole, partyId string, task *Task, evidence, blackOrg string) *NeedReplayScheduleTask {
 	return &NeedReplayScheduleTask{
 		taskRole: role,
 		partyId:  partyId,
@@ -122,7 +123,7 @@ func (nrst *NeedReplayScheduleTask) SendResult(result *ReplayScheduleResult) {
 func (nrst *NeedReplayScheduleTask) ReceiveResult() *ReplayScheduleResult {
 	return <-nrst.resultCh
 }
-func (nrst *NeedReplayScheduleTask) GetLocalTaskRole() libtypes.TaskRole     { return nrst.taskRole }
+func (nrst *NeedReplayScheduleTask) GetLocalTaskRole() commonconstantpb.TaskRole     { return nrst.taskRole }
 func (nrst *NeedReplayScheduleTask) GetLocalPartyId() string                 { return nrst.partyId }
 func (nrst *NeedReplayScheduleTask) GetTask() *Task                          { return nrst.task }
 func (nrst *NeedReplayScheduleTask) GetEvidence() string                     { return nrst.evidence }
@@ -186,13 +187,13 @@ func (s *DatatokenPaySpec) GetGasUsed() uint64      { return s.GasUsed }
 // Tasks to be executed (local and remote, which have been completed by consensus and can be executed by issuing fighter)
 type NeedExecuteTask struct {
 	remotepid              peer.ID
-	localTaskRole          libtypes.TaskRole
-	localTaskOrganization  *libtypes.TaskOrganization
-	remoteTaskRole         libtypes.TaskRole
-	remoteTaskOrganization *libtypes.TaskOrganization
+	localTaskRole          commonconstantpb.TaskRole
+	localTaskOrganization  *carriertypespb.TaskOrganization
+	remoteTaskRole         commonconstantpb.TaskRole
+	remoteTaskOrganization *carriertypespb.TaskOrganization
 	status                 TaskActionStatus
 	localResource          *PrepareVoteResource
-	resources              *twopcpb.ConfirmTaskPeerInfo
+	resources              *carriertwopcpb.ConfirmTaskPeerInfo
 	taskId                 string
 	consumeQueryId         string // The query Id used to query the consumption status of the task
 	consumeSpec            string // Consumption special of the task  (json format)
@@ -201,12 +202,12 @@ type NeedExecuteTask struct {
 
 func NewNeedExecuteTask(
 	remotepid peer.ID,
-	localTaskRole, remoteTaskRole libtypes.TaskRole,
-	localTaskOrganization, remoteTaskOrganization *libtypes.TaskOrganization,
+	localTaskRole, remoteTaskRole commonconstantpb.TaskRole,
+	localTaskOrganization, remoteTaskOrganization *carriertypespb.TaskOrganization,
 	taskId string,
 	status TaskActionStatus,
 	localResource *PrepareVoteResource,
-	resources *twopcpb.ConfirmTaskPeerInfo,
+	resources *carriertwopcpb.ConfirmTaskPeerInfo,
 	err error,
 ) *NeedExecuteTask {
 	return &NeedExecuteTask{
@@ -225,18 +226,18 @@ func NewNeedExecuteTask(
 func (net *NeedExecuteTask) HasRemotePID() bool                   { return strings.Trim(string(net.remotepid), "") != "" }
 func (net *NeedExecuteTask) HasEmptyRemotePID() bool              { return !net.HasRemotePID() }
 func (net *NeedExecuteTask) GetRemotePID() peer.ID                { return net.remotepid }
-func (net *NeedExecuteTask) GetLocalTaskRole() libtypes.TaskRole  { return net.localTaskRole }
-func (net *NeedExecuteTask) GetRemoteTaskRole() libtypes.TaskRole { return net.remoteTaskRole }
-func (net *NeedExecuteTask) GetLocalTaskOrganization() *libtypes.TaskOrganization {
+func (net *NeedExecuteTask) GetLocalTaskRole() commonconstantpb.TaskRole  { return net.localTaskRole }
+func (net *NeedExecuteTask) GetRemoteTaskRole() commonconstantpb.TaskRole { return net.remoteTaskRole }
+func (net *NeedExecuteTask) GetLocalTaskOrganization() *carriertypespb.TaskOrganization {
 	return net.localTaskOrganization
 }
-func (net *NeedExecuteTask) GetRemoteTaskOrganization() *libtypes.TaskOrganization {
+func (net *NeedExecuteTask) GetRemoteTaskOrganization() *carriertypespb.TaskOrganization {
 	return net.remoteTaskOrganization
 }
 func (net *NeedExecuteTask) GetTaskId() string                          { return net.taskId }
 func (net *NeedExecuteTask) GetConsStatus() TaskActionStatus            { return net.status }
 func (net *NeedExecuteTask) GetLocalResource() *PrepareVoteResource     { return net.localResource }
-func (net *NeedExecuteTask) GetResources() *twopcpb.ConfirmTaskPeerInfo { return net.resources }
+func (net *NeedExecuteTask) GetResources() *carriertwopcpb.ConfirmTaskPeerInfo { return net.resources }
 func (net *NeedExecuteTask) GetConsumeQueryId() string                  { return net.consumeQueryId }
 func (net *NeedExecuteTask) GetConsumeSpec() string                     { return net.consumeSpec }
 func (net *NeedExecuteTask) GetErr() error                              { return net.err }
@@ -536,7 +537,7 @@ func (syncQueue *SyncExecuteTaskMonitorQueue) siftDownMonitor(i int) {
 	}
 }
 
-func ConfirmTaskPeerInfoString(resources *twopcpb.ConfirmTaskPeerInfo) string {
+func ConfirmTaskPeerInfoString(resources *carriertwopcpb.ConfirmTaskPeerInfo) string {
 	if nil == resources {
 		return "{}"
 	}
@@ -592,32 +593,32 @@ func ConfirmTaskPeerInfoString(resources *twopcpb.ConfirmTaskPeerInfo) string {
 		dataSupplierListStr, powerSupplierListStr, receiverListStr)
 }
 
-func IsSameTaskOrgByte(org1, org2 *msgcommonpb.TaskOrganizationIdentityInfo) bool {
+func IsSameTaskOrgByte(org1, org2 *carriernetmsgcommonpb.TaskOrganizationIdentityInfo) bool {
 	if bytes.Compare(org1.GetPartyId(), org2.GetPartyId()) == 0 && bytes.Compare(org1.GetIdentityId(), org2.GetIdentityId()) == 0 {
 		return true
 	}
 	return false
 }
-func IsNotSameTaskOrgByte(org1, org2 *msgcommonpb.TaskOrganizationIdentityInfo) bool {
+func IsNotSameTaskOrgByte(org1, org2 *carriernetmsgcommonpb.TaskOrganizationIdentityInfo) bool {
 	return !IsSameTaskOrgByte(org1, org2)
 }
 
-func IsSameTaskOrgParty(org1, org2 *libtypes.TaskOrganization) bool {
+func IsSameTaskOrgParty(org1, org2 *carriertypespb.TaskOrganization) bool {
 	if org1.GetPartyId() == org2.GetPartyId() && org1.GetIdentityId() == org2.GetIdentityId() {
 		return true
 	}
 	return false
 }
-func IsNotSameTaskOrgParty(org1, org2 *libtypes.TaskOrganization) bool {
+func IsNotSameTaskOrgParty(org1, org2 *carriertypespb.TaskOrganization) bool {
 	return !IsSameTaskOrgParty(org1, org2)
 }
 
-func IsSameTaskOrg(org1, org2 *libtypes.TaskOrganization) bool {
+func IsSameTaskOrg(org1, org2 *carriertypespb.TaskOrganization) bool {
 	if org1.GetIdentityId() == org2.GetIdentityId() {
 		return true
 	}
 	return false
 }
-func IsNotSameTaskOrg(org1, org2 *libtypes.TaskOrganization) bool {
+func IsNotSameTaskOrg(org1, org2 *carriertypespb.TaskOrganization) bool {
 	return !IsSameTaskOrg(org1, org2)
 }

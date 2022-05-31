@@ -2,12 +2,12 @@ package peers
 
 import (
 	"context"
-	"github.com/Metisnetwork/Metis-Carrier/common/rand"
-	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
-	pb "github.com/Metisnetwork/Metis-Carrier/lib/p2p/v1"
-	"github.com/Metisnetwork/Metis-Carrier/p2p/peers/peerdata"
-	"github.com/Metisnetwork/Metis-Carrier/p2p/peers/scorers"
-	"github.com/Metisnetwork/Metis-Carrier/params"
+	"github.com/datumtechs/datum-network-carrier/common/rand"
+	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	carrierp2ppbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/p2p/v1"
+	"github.com/datumtechs/datum-network-carrier/p2p/peers/peerdata"
+	"github.com/datumtechs/datum-network-carrier/p2p/peers/scorers"
+	"github.com/datumtechs/datum-network-carrier/params"
 	"github.com/ethereum/go-ethereum/p2p/enr"
 	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/network"
@@ -159,14 +159,14 @@ func (p *Status) ENR(pid peer.ID) (*enr.Record, error) {
 
 // SetChainState sets the chain state of the given remote peer.
 // TODO: status of chain need to update.....
-func (p *Status) SetChainState(pid peer.ID, chainState *pb.Status) {
+func (p *Status) SetChainState(pid peer.ID, chainState *carrierp2ppbv1.Status) {
 	p.scorers.PeerStatusScorer().SetPeerStatus(pid, chainState, nil)
 }
 
 // ChainState gets the chain state of the given remote peer.
 // This can return nil if there is no known chain state for the peer.
 // This will error if the peer does not exist.
-func (p *Status) ChainState(pid peer.ID) (*pb.Status, error) {
+func (p *Status) ChainState(pid peer.ID) (*carrierp2ppbv1.Status, error) {
 	return p.scorers.PeerStatusScorer().PeerStatus(pid)
 }
 
@@ -203,7 +203,7 @@ func (p *Status) InboundLimit() int {
 }
 
 // SetMetadata sets the metadata of the given remote peer.
-func (p *Status) SetMetadata(pid peer.ID, metaData *pb.MetaData) {
+func (p *Status) SetMetadata(pid peer.ID, metaData *carrierp2ppbv1.MetaData) {
 	p.store.Lock()
 	defer p.store.Unlock()
 
@@ -213,12 +213,12 @@ func (p *Status) SetMetadata(pid peer.ID, metaData *pb.MetaData) {
 
 // Metadata returns a copy of the metadata corresponding to the provided
 // peer id.
-func (p *Status) Metadata(pid peer.ID) (*pb.MetaData, error) {
+func (p *Status) Metadata(pid peer.ID) (*carrierp2ppbv1.MetaData, error) {
 	p.store.RLock()
 	defer p.store.RUnlock()
 
 	if peerData, ok := p.store.PeerData(pid); ok {
-		return proto.Clone(peerData.MetaData).(*pb.MetaData), nil
+		return proto.Clone(peerData.MetaData).(*carrierp2ppbv1.MetaData), nil
 	}
 	return nil, peerdata.ErrPeerUnknown
 }

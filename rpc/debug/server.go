@@ -2,8 +2,8 @@ package debug
 
 import (
 	"context"
-	pbrpc "github.com/Metisnetwork/Metis-Carrier/lib/rpc/debug/v1"
-	"github.com/Metisnetwork/Metis-Carrier/p2p"
+	carrierrpcdebugpbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
+	"github.com/datumtechs/datum-network-carrier/p2p"
 	gethlog "github.com/ethereum/go-ethereum/log"
 	"github.com/golang/protobuf/ptypes/empty"
 	golog "github.com/ipfs/go-log/v2"
@@ -24,14 +24,14 @@ type Server struct {
 
 // SetLoggingLevel of a beacon node according to a request type,
 // either INFO, DEBUG, or TRACE.
-func (ds *Server) SetLoggingLevel(_ context.Context, req *pbrpc.LoggingLevelRequest) (*empty.Empty, error) {
+func (ds *Server) SetLoggingLevel(_ context.Context, req *carrierrpcdebugpbv1.LoggingLevelRequest) (*empty.Empty, error) {
 	var verbosity string
 	switch req.Level {
-	case pbrpc.LoggingLevelRequest_INFO:
+	case carrierrpcdebugpbv1.LoggingLevelRequest_INFO:
 		verbosity = "info"
-	case pbrpc.LoggingLevelRequest_DEBUG:
+	case carrierrpcdebugpbv1.LoggingLevelRequest_DEBUG:
 		verbosity = "debug"
-	case pbrpc.LoggingLevelRequest_TRACE:
+	case carrierrpcdebugpbv1.LoggingLevelRequest_TRACE:
 		verbosity = "trace"
 	default:
 		return nil, status.Error(codes.InvalidArgument, "Expected valid verbosity level as argument")

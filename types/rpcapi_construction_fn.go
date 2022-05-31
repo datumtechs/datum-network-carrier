@@ -1,28 +1,29 @@
 package types
 
 import (
-	"github.com/Metisnetwork/Metis-Carrier/lib/center/api"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
+	datacenterapipb "github.com/datumtechs/datum-network-carrier/pb/datacenter/api"
 )
 
 // NewMetadataSaveRequest converts Metadata object to SaveMetadataRequest object.
-func NewMetadataSaveRequest(metadata *Metadata) *api.SaveMetadataRequest {
-	request := &api.SaveMetadataRequest{
+func NewMetadataSaveRequest(metadata *Metadata) *datacenterapipb.SaveMetadataRequest {
+	request := &datacenterapipb.SaveMetadataRequest{
 		Metadata: metadata.GetData(),
 	}
 	return request
 }
 
-func NewMetadataUpdateRequest(metadata *Metadata) *api.UpdateMetadataRequest {
-	request := &api.UpdateMetadataRequest{
+func NewMetadataUpdateRequest(metadata *Metadata) *datacenterapipb.UpdateMetadataRequest {
+	request := &datacenterapipb.UpdateMetadataRequest{
 		Metadata: metadata.GetData(),
 	}
 	return request
 }
 
-func NewMetadataRevokeRequest(metadata *Metadata) *api.RevokeMetadataRequest {
-	request := &api.RevokeMetadataRequest{
-		Owner: &libtypes.Organization{
+func NewMetadataRevokeRequest(metadata *Metadata) *datacenterapipb.RevokeMetadataRequest {
+	request := &datacenterapipb.RevokeMetadataRequest{
+		Owner: &carriertypespb.Organization{
 			IdentityId: metadata.GetData().GetOwner().GetIdentityId(),
 			NodeId:     metadata.GetData().GetOwner().GetNodeId(),
 			NodeName:   metadata.GetData().GetOwner().GetNodeName(),
@@ -32,16 +33,16 @@ func NewMetadataRevokeRequest(metadata *Metadata) *api.RevokeMetadataRequest {
 	return request
 }
 
-func NewPublishPowerRequest(resource *Resource) *api.PublishPowerRequest {
-	request := &api.PublishPowerRequest{
+func NewPublishPowerRequest(resource *Resource) *datacenterapipb.PublishPowerRequest {
+	request := &datacenterapipb.PublishPowerRequest{
 		Power: resource.data,
 	}
 	return request
 }
 
-func RevokePowerRequest(resource *Resource) *api.RevokePowerRequest {
-	request := &api.RevokePowerRequest{
-		Owner: &libtypes.Organization{
+func RevokePowerRequest(resource *Resource) *datacenterapipb.RevokePowerRequest {
+	request := &datacenterapipb.RevokePowerRequest{
+		Owner: &carriertypespb.Organization{
 			NodeName:   resource.GetNodeName(),
 			NodeId:     resource.GetNodeId(),
 			IdentityId: resource.GetIdentityId(),
@@ -51,27 +52,27 @@ func RevokePowerRequest(resource *Resource) *api.RevokePowerRequest {
 	return request
 }
 
-func NewSyncPowerRequest(resource *LocalResource) *api.SyncPowerRequest {
-	return &api.SyncPowerRequest{
+func NewSyncPowerRequest(resource *LocalResource) *datacenterapipb.SyncPowerRequest {
+	return &datacenterapipb.SyncPowerRequest{
 		Power: resource.GetData(),
 	}
 }
 
-func NewSaveIdentityRequest(identity *Identity) *api.SaveIdentityRequest {
-	request := &api.SaveIdentityRequest{
+func NewSaveIdentityRequest(identity *Identity) *datacenterapipb.SaveIdentityRequest {
+	request := &datacenterapipb.SaveIdentityRequest{
 		Information: identity.data,
 	}
 	return request
 }
 
-func NewSaveTaskRequest(task *Task) *api.SaveTaskRequest {
-	request := &api.SaveTaskRequest{
+func NewSaveTaskRequest(task *Task) *datacenterapipb.SaveTaskRequest {
+	request := &datacenterapipb.SaveTaskRequest{
 		Task: task.data,
 	}
 	return request
 }
 
-func NewMetadataArrayFromDetailListResponse(response *api.ListMetadataResponse) MetadataArray {
+func NewMetadataArrayFromDetailListResponse(response *datacenterapipb.ListMetadataResponse) MetadataArray {
 	var metadataArray MetadataArray
 	for _, v := range response.GetMetadata() {
 		metadataArray = append(metadataArray, NewMetadata(v))
@@ -79,10 +80,10 @@ func NewMetadataArrayFromDetailListResponse(response *api.ListMetadataResponse) 
 	return metadataArray
 }
 
-func NewResourceArrayFromPowerTotalSummaryListResponse(response *api.ListPowerSummaryResponse) ResourceArray {
+func NewResourceArrayFromPowerTotalSummaryListResponse(response *datacenterapipb.ListPowerSummaryResponse) ResourceArray {
 	resourceArray := make(ResourceArray, 0, len(response.GetPowers()))
 	for _, v := range response.GetPowers() {
-		resourceArray = append(resourceArray, NewResource(&libtypes.ResourcePB{
+		resourceArray = append(resourceArray, NewResource(&carriertypespb.ResourcePB{
 			/**
 			Owner                *Organization
 			DataId               string
@@ -102,7 +103,7 @@ func NewResourceArrayFromPowerTotalSummaryListResponse(response *api.ListPowerSu
 			*/
 			Owner:          v.GetOwner(),
 			DataId:         "", // todo: to be determined
-			DataStatus:     libtypes.DataStatus_DataStatus_Valid,
+			DataStatus:     commonconstantpb.DataStatus_DataStatus_Valid,
 			State:          v.GetPowerSummary().GetState(),
 			TotalMem:       v.GetPowerSummary().GetInformation().GetTotalMem(),
 			TotalProcessor: v.GetPowerSummary().GetInformation().GetTotalProcessor(),
@@ -118,7 +119,7 @@ func NewResourceArrayFromPowerTotalSummaryListResponse(response *api.ListPowerSu
 	return resourceArray
 }
 
-func NewResourceArrayFromPowerDetailListResponse(response *api.ListPowerResponse) ResourceArray {
+func NewResourceArrayFromPowerDetailListResponse(response *datacenterapipb.ListPowerResponse) ResourceArray {
 	resourceArray := make(ResourceArray, 0, len(response.GetPowers()))
 	for _, v := range response.GetPowers() {
 		resourceArray = append(resourceArray, NewResource(v))
@@ -126,9 +127,9 @@ func NewResourceArrayFromPowerDetailListResponse(response *api.ListPowerResponse
 	return resourceArray
 }
 
-func NewResourceFromPowerSummaryResponse(response *api.PowerSummaryResponse) ResourceArray {
+func NewResourceFromPowerSummaryResponse(response *datacenterapipb.PowerSummaryResponse) ResourceArray {
 	resourceArray := make(ResourceArray, 0)
-	resource := NewResource(&libtypes.ResourcePB{
+	resource := NewResource(&carriertypespb.ResourcePB{
 		/**
 		// todo summary 不需要加上 nonce 字段
 		Owner                *Organization
@@ -149,7 +150,7 @@ func NewResourceFromPowerSummaryResponse(response *api.PowerSummaryResponse) Res
 		*/
 		Owner:          response.GetOwner(),
 		DataId:         "",
-		DataStatus:     libtypes.DataStatus_DataStatus_Valid,
+		DataStatus:     commonconstantpb.DataStatus_DataStatus_Valid,
 		State:          response.GetPowerSummary().GetState(),
 		TotalMem:       response.GetPowerSummary().GetInformation().GetTotalMem(),
 		TotalProcessor: response.GetPowerSummary().GetInformation().GetTotalProcessor(),
@@ -167,7 +168,7 @@ func NewResourceFromPowerSummaryResponse(response *api.PowerSummaryResponse) Res
 	return resourceArray
 }
 
-func NewTaskArrayFromResponse(response *api.ListTaskResponse) TaskDataArray {
+func NewTaskArrayFromResponse(response *datacenterapipb.ListTaskResponse) TaskDataArray {
 	taskArray := make(TaskDataArray, 0, len(response.GetTasks()))
 	for _, v := range response.GetTasks() {
 		taskArray = append(taskArray, NewTask(v))
@@ -175,20 +176,20 @@ func NewTaskArrayFromResponse(response *api.ListTaskResponse) TaskDataArray {
 	return taskArray
 }
 
-func NewMetadataFromResponse(response *api.FindMetadataByIdResponse) *Metadata {
+func NewMetadataFromResponse(response *datacenterapipb.FindMetadataByIdResponse) *Metadata {
 	if response == nil {
 		return nil
 	}
 	return NewMetadata(response.GetMetadata())
 }
 
-func NewIdentityArrayFromIdentityListResponse(response *api.ListIdentityResponse) IdentityArray {
+func NewIdentityArrayFromIdentityListResponse(response *datacenterapipb.ListIdentityResponse) IdentityArray {
 	if response == nil {
 		return nil
 	}
 	var result IdentityArray
 	for _, organization := range response.GetIdentities() {
-		result = append(result, NewIdentity(&libtypes.IdentityPB{
+		result = append(result, NewIdentity(&carriertypespb.IdentityPB{
 
 			/**
 			IdentityId           string
@@ -219,7 +220,7 @@ func NewIdentityArrayFromIdentityListResponse(response *api.ListIdentityResponse
 	return result
 }
 
-func NewMetadataAuthArrayFromResponse(responseList []*libtypes.MetadataAuthorityPB) MetadataAuthArray {
+func NewMetadataAuthArrayFromResponse(responseList []*carriertypespb.MetadataAuthorityPB) MetadataAuthArray {
 	if responseList == nil {
 		return nil
 	}

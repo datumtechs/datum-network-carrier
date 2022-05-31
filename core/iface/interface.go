@@ -1,9 +1,10 @@
 package iface
 
 import (
-	libapipb "github.com/Metisnetwork/Metis-Carrier/lib/api"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
+	"github.com/datumtechs/datum-network-carrier/types"
 )
 
 type LocalStoreCarrierDB interface {
@@ -11,13 +12,13 @@ type LocalStoreCarrierDB interface {
 	SetConfig(config *types.CarrierChainConfig) error
 	// about carrier
 	QueryYarnName() (string, error)
-	SetSeedNode(seed *libapipb.SeedPeer) error
+	SetSeedNode(seed *carrierapipb.SeedPeer) error
 	RemoveSeedNode(addr string) error
-	QuerySeedNodeList() ([]*libapipb.SeedPeer, error)
-	SetRegisterNode(typ libapipb.RegisteredNodeType, node *libapipb.YarnRegisteredPeerDetail) error
-	DeleteRegisterNode(typ libapipb.RegisteredNodeType, id string) error
-	QueryRegisterNode(typ libapipb.RegisteredNodeType, id string) (*libapipb.YarnRegisteredPeerDetail, error)
-	QueryRegisterNodeList(typ libapipb.RegisteredNodeType) ([]*libapipb.YarnRegisteredPeerDetail, error)
+	QuerySeedNodeList() ([]*carrierapipb.SeedPeer, error)
+	SetRegisterNode(typ carrierapipb.RegisteredNodeType, node *carrierapipb.YarnRegisteredPeerDetail) error
+	DeleteRegisterNode(typ carrierapipb.RegisteredNodeType, id string) error
+	QueryRegisterNode(typ carrierapipb.RegisteredNodeType, id string) (*carrierapipb.YarnRegisteredPeerDetail, error)
+	QueryRegisterNodeList(typ carrierapipb.RegisteredNodeType) ([]*carrierapipb.YarnRegisteredPeerDetail, error)
 	// about powerId -> jobNodeId
 	StoreJobNodeIdIdByPowerId(powerId, jobNodeId string) error
 	RemoveJobNodeIdByPowerId(powerId string) error
@@ -45,10 +46,10 @@ type LocalStoreCarrierDB interface {
 	RemoveDataResourceDiskUsed(metaDataId string) error
 	QueryDataResourceDiskUsed(metaDataId string) (*types.DataResourceDiskUsed, error)
 	// v 0.2.0  about user metadataAuthUsed by metadataId (userType + user + metadataId -> metadataAuthId)
-	StoreUserMetadataAuthIdByMetadataId(userType libtypes.UserType, user, metadataId, metadataAuthId string) error
-	QueryUserMetadataAuthIdByMetadataId(userType libtypes.UserType, user, metadataId string) (string, error)
-	HasUserMetadataAuthIdByMetadataId(userType libtypes.UserType, user, metadataId string) (bool, error)
-	RemoveUserMetadataAuthIdByMetadataId(userType libtypes.UserType, user, metadataId string) error
+	StoreUserMetadataAuthIdByMetadataId(userType commonconstantpb.UserType, user, metadataId, metadataAuthId string) error
+	QueryUserMetadataAuthIdByMetadataId(userType commonconstantpb.UserType, user, metadataId string) (string, error)
+	HasUserMetadataAuthIdByMetadataId(userType commonconstantpb.UserType, user, metadataId string) (bool, error)
+	RemoveUserMetadataAuthIdByMetadataId(userType commonconstantpb.UserType, user, metadataId string) error
 	// v 0.2.0 about metadata used taskId    (metadataId -> [taskId, taskId, ..., taskId])
 	StoreMetadataHistoryTaskId(metadataId, taskId string) error
 	HasMetadataHistoryTaskId(metadataId, taskId string) (bool, error)
@@ -111,11 +112,11 @@ type IdentityCarrierDB interface {
 	QueryIdentityList(lastUpdate, pageSize uint64) (types.IdentityArray, error)
 	//QueryIdentityListByIds(identityIds []string) (types.IdentityArray, error)
 	// about local identity
-	HasIdentity(identity *libtypes.Organization) (bool, error)
-	StoreIdentity(identity *libtypes.Organization) error
+	HasIdentity(identity *carriertypespb.Organization) (bool, error)
+	StoreIdentity(identity *carriertypespb.Organization) error
 	RemoveIdentity() error
 	QueryIdentityId() (string, error)
-	QueryIdentity() (*libtypes.Organization, error)
+	QueryIdentity() (*carriertypespb.Organization, error)
 }
 
 type MetadataAuthorityCarrierDB interface {
@@ -140,9 +141,9 @@ type TaskCarrierDB interface {
 	QueryLocalTaskAndEventsListByIds(taskIds []string) (types.TaskDataArray, error)
 	QueryLocalTaskAndEventsList() (types.TaskDataArray, error)
 	// about local task event
-	StoreTaskEvent(event *libtypes.TaskEvent) error
-	QueryTaskEventList(taskId string) ([]*libtypes.TaskEvent, error)
-	QueryTaskEventListByPartyId(taskId, partyId string) ([]*libtypes.TaskEvent, error)
+	StoreTaskEvent(event *carriertypespb.TaskEvent) error
+	QueryTaskEventList(taskId string) ([]*carriertypespb.TaskEvent, error)
+	QueryTaskEventListByPartyId(taskId, partyId string) ([]*carriertypespb.TaskEvent, error)
 	RemoveTaskEventList(taskId string) error
 	RemoveTaskEventListByPartyId(taskId, partyId string) error
 	// about global task on datacenter
@@ -150,8 +151,8 @@ type TaskCarrierDB interface {
 	QueryGlobalTaskList(lastUpdate, pageSize uint64) (types.TaskDataArray, error)
 	QueryTaskListByIdentityId(identityId string, lastUpdate, pageSize uint64) (types.TaskDataArray, error)
 	QueryTaskListByTaskIds(taskIds []string) (types.TaskDataArray, error)
-	QueryTaskEventListByTaskId(taskId string) ([]*libtypes.TaskEvent, error)
-	QueryTaskEventListByTaskIds(taskIds []string) ([]*libtypes.TaskEvent, error)
+	QueryTaskEventListByTaskId(taskId string) ([]*carriertypespb.TaskEvent, error)
+	QueryTaskEventListByTaskIds(taskIds []string) ([]*carriertypespb.TaskEvent, error)
 	// v 1.0 about TaskPowerUsed  (prefix + taskId + partyId -> {taskId, partId, jobNodeId, slotCount})
 	StoreLocalTaskPowerUsed(taskPowerUsed *types.LocalTaskPowerUsed) error
 	StoreLocalTaskPowerUseds(taskPowerUseds []*types.LocalTaskPowerUsed) error

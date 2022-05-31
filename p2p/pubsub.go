@@ -2,10 +2,10 @@ package p2p
 
 import (
 	"context"
-	"github.com/Metisnetwork/Metis-Carrier/common/hashutil"
-	pbrpc "github.com/Metisnetwork/Metis-Carrier/lib/rpc/debug/v1"
-	"github.com/Metisnetwork/Metis-Carrier/p2p/encoder"
-	"github.com/Metisnetwork/Metis-Carrier/params"
+	"github.com/datumtechs/datum-network-carrier/common/hashutil"
+	carrierrpcdebugpbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
+	"github.com/datumtechs/datum-network-carrier/p2p/encoder"
+	"github.com/datumtechs/datum-network-carrier/params"
 	"github.com/libp2p/go-libp2p-core/peer"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	pubsub_pb "github.com/libp2p/go-libp2p-pubsub/pb"
@@ -161,10 +161,10 @@ func setPubSubParameters() {
 }
 
 // convert from libp2p's internal schema to a compatible protobuf format.
-func convertTopicScores(topicMap map[string]*pubsub.TopicScoreSnapshot) map[string]*pbrpc.TopicScoreSnapshot {
-	newMap := make(map[string]*pbrpc.TopicScoreSnapshot, len(topicMap))
+func convertTopicScores(topicMap map[string]*pubsub.TopicScoreSnapshot) map[string]*carrierrpcdebugpbv1.TopicScoreSnapshot {
+	newMap := make(map[string]*carrierrpcdebugpbv1.TopicScoreSnapshot, len(topicMap))
 	for t, s := range topicMap {
-		newMap[t] = &pbrpc.TopicScoreSnapshot{
+		newMap[t] = &carrierrpcdebugpbv1.TopicScoreSnapshot{
 			TimeInMesh:               uint64(s.TimeInMesh.Milliseconds()),
 			FirstMessageDeliveries:   float32(s.FirstMessageDeliveries),
 			MeshMessageDeliveries:    float32(s.MeshMessageDeliveries),

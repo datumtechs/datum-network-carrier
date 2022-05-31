@@ -1,6 +1,6 @@
 package power
 
-import "github.com/Metisnetwork/Metis-Carrier/rpc/backend"
+import "github.com/datumtechs/datum-network-carrier/rpc/backend"
 
 
 type Server struct {

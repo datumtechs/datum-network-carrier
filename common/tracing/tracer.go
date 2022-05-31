@@ -3,7 +3,7 @@ package tracing
 
 import (
 	"errors"
-	"github.com/Metisnetwork/Metis-Carrier/cmd/common"
+	"github.com/datumtechs/datum-network-carrier/cmd/common"
 
 	"contrib.go.opencensus.io/exporter/jaeger"
 	"github.com/sirupsen/logrus"

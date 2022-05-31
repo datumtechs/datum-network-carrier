@@ -2,19 +2,19 @@ package types
 
 import (
 	"bytes"
-	"github.com/Metisnetwork/Metis-Carrier/common"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/common"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"testing"
 )
 
-var identities = NewIdentity(&types.IdentityPB{
+var identities = NewIdentity(&carriertypespb.IdentityPB{
 	IdentityId: "",
 	NodeId:     "",
 	NodeName:   "",
 	DataId:     "",
-	DataStatus: libtypes.DataStatus_DataStatus_Unknown,
-	Status:     libtypes.CommonStatus_CommonStatus_Unknown,
+	DataStatus: commonconstantpb.DataStatus_DataStatus_Unknown,
+	Status:     commonconstantpb.CommonStatus_CommonStatus_Unknown,
 	Credential: "",
 })
 

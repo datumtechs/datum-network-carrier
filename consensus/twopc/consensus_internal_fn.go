@@ -3,16 +3,17 @@ package twopc
 import (
 	"context"
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/common"
-	"github.com/Metisnetwork/Metis-Carrier/common/signutil"
-	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
-	"github.com/Metisnetwork/Metis-Carrier/common/traceutil"
-	ctypes "github.com/Metisnetwork/Metis-Carrier/consensus/twopc/types"
-	"github.com/Metisnetwork/Metis-Carrier/core/evengine"
-	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/p2p"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/datumtechs/datum-network-carrier/common"
+	"github.com/datumtechs/datum-network-carrier/common/signutil"
+	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	"github.com/datumtechs/datum-network-carrier/common/traceutil"
+	ctypes "github.com/datumtechs/datum-network-carrier/consensus/twopc/types"
+	"github.com/datumtechs/datum-network-carrier/core/evengine"
+	"github.com/datumtechs/datum-network-carrier/p2p"
+	carriertwopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"strings"
@@ -160,7 +161,7 @@ func (t *Twopc) addmonitor(orgState *ctypes.OrgProposalState) {
 				_, err = t.resourceMng.GetDB().QueryLocalTask(orgState.GetTaskId())
 				if nil == err {
 					// release local resource and clean some data  (on task partenr)
-					t.resourceMng.GetDB().StoreTaskEvent(&libtypes.TaskEvent{
+					t.resourceMng.GetDB().StoreTaskEvent(&carriertypespb.TaskEvent{
 						Type:       evengine.TaskProposalStateDeadline.GetType(),
 						IdentityId: identity.GetIdentityId(),
 						PartyId:    orgState.GetTaskOrg().GetPartyId(),
@@ -173,8 +174,8 @@ func (t *Twopc) addmonitor(orgState *ctypes.OrgProposalState) {
 						orgState.GetProposalId(),
 						orgState.GetTaskId(),
 						orgState.GetTaskRole(),
-						libtypes.TaskRole_TaskRole_Sender,
-						&libtypes.TaskOrganization{
+						commonconstantpb.TaskRole_TaskRole_Sender,
+						&carriertypespb.TaskOrganization{
 							PartyId:    orgState.GetTaskOrg().GetPartyId(),
 							NodeName:   identity.GetNodeName(),
 							NodeId:     identity.GetNodeId(),
@@ -211,31 +212,31 @@ func (t *Twopc) addmonitor(orgState *ctypes.OrgProposalState) {
 	t.state.AddMonitor(monitor)
 }
 
-func (t *Twopc) makeEmptyConfirmTaskPeerDesc() *twopcpb.ConfirmTaskPeerInfo {
-	return &twopcpb.ConfirmTaskPeerInfo{
-		DataSupplierPeerInfos:   make([]*twopcpb.TaskPeerInfo, 0),
-		PowerSupplierPeerInfos:  make([]*twopcpb.TaskPeerInfo, 0),
-		ResultReceiverPeerInfos: make([]*twopcpb.TaskPeerInfo, 0),
+func (t *Twopc) makeEmptyConfirmTaskPeerDesc() *carriertwopcpb.ConfirmTaskPeerInfo {
+	return &carriertwopcpb.ConfirmTaskPeerInfo{
+		DataSupplierPeerInfos:   make([]*carriertwopcpb.TaskPeerInfo, 0),
+		PowerSupplierPeerInfos:  make([]*carriertwopcpb.TaskPeerInfo, 0),
+		ResultReceiverPeerInfos: make([]*carriertwopcpb.TaskPeerInfo, 0),
 	}
 }
 
-func (t *Twopc) makeConfirmTaskPeerDesc(proposalId common.Hash) *twopcpb.ConfirmTaskPeerInfo {
+func (t *Twopc) makeConfirmTaskPeerDesc(proposalId common.Hash) *carriertwopcpb.ConfirmTaskPeerInfo {
 
-	dataSuppliers, powerSuppliers, receivers := make([]*twopcpb.TaskPeerInfo, 0), make([]*twopcpb.TaskPeerInfo, 0), make([]*twopcpb.TaskPeerInfo, 0)
+	dataSuppliers, powerSuppliers, receivers := make([]*carriertwopcpb.TaskPeerInfo, 0), make([]*carriertwopcpb.TaskPeerInfo, 0), make([]*carriertwopcpb.TaskPeerInfo, 0)
 
 	for _, vote := range t.state.GetPrepareVoteArr(proposalId) {
 
-		if vote.GetMsgOption().GetSenderRole() == libtypes.TaskRole_TaskRole_DataSupplier && nil != vote.GetPeerInfo() {
+		if vote.GetMsgOption().GetSenderRole() == commonconstantpb.TaskRole_TaskRole_DataSupplier && nil != vote.GetPeerInfo() {
 			dataSuppliers = append(dataSuppliers, types.ConvertTaskPeerInfo(vote.GetPeerInfo()))
 		}
-		if vote.GetMsgOption().GetSenderRole() == libtypes.TaskRole_TaskRole_PowerSupplier && nil != vote.GetPeerInfo() {
+		if vote.GetMsgOption().GetSenderRole() == commonconstantpb.TaskRole_TaskRole_PowerSupplier && nil != vote.GetPeerInfo() {
 			powerSuppliers = append(powerSuppliers, types.ConvertTaskPeerInfo(vote.GetPeerInfo()))
 		}
-		if vote.GetMsgOption().GetSenderRole() == libtypes.TaskRole_TaskRole_Receiver && nil != vote.GetPeerInfo() {
+		if vote.GetMsgOption().GetSenderRole() == commonconstantpb.TaskRole_TaskRole_Receiver && nil != vote.GetPeerInfo() {
 			receivers = append(receivers, types.ConvertTaskPeerInfo(vote.GetPeerInfo()))
 		}
 	}
-	return &twopcpb.ConfirmTaskPeerInfo{
+	return &carriertwopcpb.ConfirmTaskPeerInfo{
 		DataSupplierPeerInfos:   dataSuppliers,
 		PowerSupplierPeerInfos:  powerSuppliers,
 		ResultReceiverPeerInfos: receivers,
@@ -258,15 +259,15 @@ func (t *Twopc) stopTaskConsensus(
 	reason string,
 	proposalId common.Hash,
 	taskId string,
-	senderRole, receiverRole libtypes.TaskRole,
-	sender, receiver *libtypes.TaskOrganization,
+	senderRole, receiverRole commonconstantpb.TaskRole,
+	sender, receiver *carriertypespb.TaskOrganization,
 	taskActionStatus types.TaskActionStatus,
 ) {
 
 	log.Debugf("Call stopTaskConsensus() to interrupt consensus msg %s with role is %s, proposalId: {%s}, taskId: {%s}, partyId: {%s}, remote partyId: {%s}, taskActionStatus: {%s}",
 		reason, senderRole, proposalId.String(), taskId, sender.GetPartyId(), receiver.GetPartyId(), taskActionStatus.String())
 	// Send consensus result to interrupt consensus epoch and clean some data (on task sender)
-	if senderRole == libtypes.TaskRole_TaskRole_Sender {
+	if senderRole == commonconstantpb.TaskRole_TaskRole_Sender {
 		t.replyTaskConsensusResult(types.NewTaskConsResult(taskId, taskActionStatus, fmt.Errorf(reason)))
 		task, err := t.resourceMng.GetDB().QueryLocalTask(taskId)
 		if err!=nil{
@@ -296,7 +297,7 @@ func (t *Twopc) stopTaskConsensus(
 			taskId,
 			taskActionStatus,
 			&types.PrepareVoteResource{},   // zero value
-			&twopcpb.ConfirmTaskPeerInfo{}, // zero value
+			&carriertwopcpb.ConfirmTaskPeerInfo{}, // zero value
 			fmt.Errorf(reason),
 		))
 		// Finally, release local task cache that task manager will do it. (to call `resourceMng.ReleaseLocalResourceWithTask()` by taskManager)
@@ -306,10 +307,10 @@ func (t *Twopc) stopTaskConsensus(
 func (t *Twopc) driveTask(
 	remotePid peer.ID,
 	proposalId common.Hash,
-	localTaskRole libtypes.TaskRole,
-	localTaskOrganization *libtypes.TaskOrganization,
-	remoteTaskRole libtypes.TaskRole,
-	remoteTaskOrganization *libtypes.TaskOrganization,
+	localTaskRole commonconstantpb.TaskRole,
+	localTaskOrganization *carriertypespb.TaskOrganization,
+	remoteTaskRole commonconstantpb.TaskRole,
+	remoteTaskOrganization *carriertypespb.TaskOrganization,
 	taskId string,
 ) {
 
@@ -394,7 +395,7 @@ func (t *Twopc) sendPrepareMsg(proposalId common.Hash, nonConsTask *types.NeedCo
 		return false
 	}
 
-	prepareMsg, err := makePrepareMsg(proposalId, libtypes.TaskRole_TaskRole_Sender, libtypes.TaskRole_TaskRole_Unknown,
+	prepareMsg, err := makePrepareMsg(proposalId, commonconstantpb.TaskRole_TaskRole_Sender, commonconstantpb.TaskRole_TaskRole_Unknown,
 		sender.GetPartyId(), "", nonConsTask, startTime)
 	if nil != err {
 		return fmt.Errorf("failed to make prepareMsg, proposalId: %s, taskId: %s, err: %s",
@@ -440,7 +441,7 @@ func (t *Twopc) sendPrepareMsg(proposalId common.Hash, nonConsTask *types.NeedCo
 }
 
 
-func (t *Twopc) sendPrepareVote(pid peer.ID, sender, receiver *libtypes.TaskOrganization, req *twopcpb.PrepareVote) error {
+func (t *Twopc) sendPrepareVote(pid peer.ID, sender, receiver *carriertypespb.TaskOrganization, req *carriertwopcpb.PrepareVote) error {
 
 	vote := &types.PrepareVote{
 		MsgOption:  types.FetchMsgOption(req.GetMsgOption()),
@@ -465,7 +466,7 @@ func (t *Twopc) sendPrepareVote(pid peer.ID, sender, receiver *libtypes.TaskOrga
 	}
 }
 
-func (t *Twopc) sendConfirmMsg(proposalId common.Hash, task *types.Task, peers *twopcpb.ConfirmTaskPeerInfo, option types.TwopcMsgOption, startTime uint64) error {
+func (t *Twopc) sendConfirmMsg(proposalId common.Hash, task *types.Task, peers *carriertwopcpb.ConfirmTaskPeerInfo, option types.TwopcMsgOption, startTime uint64) error {
 
 	sender := task.GetTaskSender()
 
@@ -490,7 +491,7 @@ func (t *Twopc) sendConfirmMsg(proposalId common.Hash, task *types.Task, peers *
 		return false
 	}
 
-	confirmMsg := makeConfirmMsg(proposalId, libtypes.TaskRole_TaskRole_Sender, libtypes.TaskRole_TaskRole_Unknown,
+	confirmMsg := makeConfirmMsg(proposalId, commonconstantpb.TaskRole_TaskRole_Sender, commonconstantpb.TaskRole_TaskRole_Unknown,
 		sender.GetPartyId(), "", sender, peers, option, startTime)
 
 	msg := &types.ConfirmMsg{
@@ -531,7 +532,7 @@ func (t *Twopc) sendConfirmMsg(proposalId common.Hash, task *types.Task, peers *
 	return nil
 }
 
-func (t *Twopc) sendConfirmVote(pid peer.ID, sender, receiver *libtypes.TaskOrganization, req *twopcpb.ConfirmVote) error {
+func (t *Twopc) sendConfirmVote(pid peer.ID, sender, receiver *carriertypespb.TaskOrganization, req *carriertwopcpb.ConfirmVote) error {
 
 	vote := &types.ConfirmVote{
 		MsgOption:  types.FetchMsgOption(req.GetMsgOption()),
@@ -581,7 +582,7 @@ func (t *Twopc) sendCommitMsg(proposalId common.Hash, task *types.Task, option t
 		return false
 	}
 
-	commitMsg := makeCommitMsg(proposalId, libtypes.TaskRole_TaskRole_Sender, libtypes.TaskRole_TaskRole_Unknown,
+	commitMsg := makeCommitMsg(proposalId, commonconstantpb.TaskRole_TaskRole_Sender, commonconstantpb.TaskRole_TaskRole_Unknown,
 		sender.GetPartyId(), "", sender, option, startTime)
 
 	msg := &types.CommitMsg{
@@ -623,26 +624,26 @@ func (t *Twopc) sendCommitMsg(proposalId common.Hash, task *types.Task, option t
 	return nil
 }
 
-func verifyPartyRole(partyId string, role libtypes.TaskRole, task *types.Task) bool {
+func verifyPartyRole(partyId string, role commonconstantpb.TaskRole, task *types.Task) bool {
 
 	switch role {
-	case libtypes.TaskRole_TaskRole_Sender:
+	case commonconstantpb.TaskRole_TaskRole_Sender:
 		if partyId == task.GetTaskSender().GetPartyId() {
 			return true
 		}
-	case libtypes.TaskRole_TaskRole_DataSupplier:
+	case commonconstantpb.TaskRole_TaskRole_DataSupplier:
 		for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
 			if partyId == dataSupplier.GetPartyId() {
 				return true
 			}
 		}
-	case libtypes.TaskRole_TaskRole_PowerSupplier:
+	case commonconstantpb.TaskRole_TaskRole_PowerSupplier:
 		for _, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
 			if partyId == powerSupplier.GetPartyId() {
 				return true
 			}
 		}
-	case libtypes.TaskRole_TaskRole_Receiver:
+	case commonconstantpb.TaskRole_TaskRole_Receiver:
 		for _, receiver := range task.GetTaskData().GetReceivers() {
 			if partyId == receiver.GetPartyId() {
 				return true
@@ -652,26 +653,26 @@ func verifyPartyRole(partyId string, role libtypes.TaskRole, task *types.Task) b
 	return false
 }
 
-func fetchOrgByPartyRole(partyId string, role libtypes.TaskRole, task *types.Task) *libtypes.TaskOrganization {
+func fetchOrgByPartyRole(partyId string, role commonconstantpb.TaskRole, task *types.Task) *carriertypespb.TaskOrganization {
 
 	switch role {
-	case libtypes.TaskRole_TaskRole_Sender:
+	case commonconstantpb.TaskRole_TaskRole_Sender:
 		if partyId == task.GetTaskSender().GetPartyId() {
 			return task.GetTaskSender()
 		}
-	case libtypes.TaskRole_TaskRole_DataSupplier:
+	case commonconstantpb.TaskRole_TaskRole_DataSupplier:
 		for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
 			if partyId == dataSupplier.GetPartyId() {
 				return dataSupplier
 			}
 		}
-	case libtypes.TaskRole_TaskRole_PowerSupplier:
+	case commonconstantpb.TaskRole_TaskRole_PowerSupplier:
 		for _, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
 			if partyId == powerSupplier.GetPartyId() {
 				return powerSupplier
 			}
 		}
-	case libtypes.TaskRole_TaskRole_Receiver:
+	case commonconstantpb.TaskRole_TaskRole_Receiver:
 		for _, receiver := range task.GetTaskData().GetReceivers() {
 			if partyId == receiver.GetPartyId() {
 				return receiver
@@ -681,10 +682,10 @@ func fetchOrgByPartyRole(partyId string, role libtypes.TaskRole, task *types.Tas
 	return nil
 }
 
-func (t *Twopc) verifyPartyAndTaskPartner(role libtypes.TaskRole, party *libtypes.TaskOrganization, task *types.Task) (bool, error) {
+func (t *Twopc) verifyPartyAndTaskPartner(role commonconstantpb.TaskRole, party *carriertypespb.TaskOrganization, task *types.Task) (bool, error) {
 	var identityValid bool
 	switch role {
-	case libtypes.TaskRole_TaskRole_DataSupplier:
+	case commonconstantpb.TaskRole_TaskRole_DataSupplier:
 
 		for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
 			// identity + partyId
@@ -693,7 +694,7 @@ func (t *Twopc) verifyPartyAndTaskPartner(role libtypes.TaskRole, party *libtype
 				break
 			}
 		}
-	case libtypes.TaskRole_TaskRole_PowerSupplier:
+	case commonconstantpb.TaskRole_TaskRole_PowerSupplier:
 
 		for _, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
 			// identity + partyId
@@ -702,7 +703,7 @@ func (t *Twopc) verifyPartyAndTaskPartner(role libtypes.TaskRole, party *libtype
 				break
 			}
 		}
-	case libtypes.TaskRole_TaskRole_Receiver:
+	case commonconstantpb.TaskRole_TaskRole_Receiver:
 
 		for _, receiver := range task.GetTaskData().GetReceivers() {
 			// identity + partyId
@@ -727,7 +728,7 @@ func (t *Twopc) getConfirmVote(proposalId common.Hash, partyId string) *types.Co
 	return t.state.GetConfirmVote(proposalId, partyId)
 }
 
-func (t *Twopc) storeConfirmTaskPeerInfo(proposalId common.Hash, peers *twopcpb.ConfirmTaskPeerInfo) {
+func (t *Twopc) storeConfirmTaskPeerInfo(proposalId common.Hash, peers *carriertwopcpb.ConfirmTaskPeerInfo) {
 	t.state.StoreConfirmTaskPeerInfo(proposalId, peers)
 }
 
@@ -735,11 +736,11 @@ func (t *Twopc) hasConfirmTaskPeerInfo(proposalId common.Hash) bool {
 	return t.state.HasConfirmTaskPeerInfo(proposalId)
 }
 
-func (t *Twopc) getConfirmTaskPeerInfo(proposalId common.Hash) (*twopcpb.ConfirmTaskPeerInfo, bool) {
+func (t *Twopc) getConfirmTaskPeerInfo(proposalId common.Hash) (*carriertwopcpb.ConfirmTaskPeerInfo, bool) {
 	return t.state.QueryConfirmTaskPeerInfo(proposalId)
 }
 
-func (t *Twopc) mustGetConfirmTaskPeerInfo(proposalId common.Hash) *twopcpb.ConfirmTaskPeerInfo {
+func (t *Twopc) mustGetConfirmTaskPeerInfo(proposalId common.Hash) *carriertwopcpb.ConfirmTaskPeerInfo {
 	return t.state.MustQueryConfirmTaskPeerInfo(proposalId)
 }
 
@@ -762,7 +763,7 @@ func (t *Twopc) recoverCache() {
 
 			if len(key) != 0 && len(value) != 0 {
 				taskId, partyId := string(key[prefixLength:prefixLength+71]), string(key[prefixLength+71:])
-				proposalTaskPB := &libtypes.ProposalTask{}
+				proposalTaskPB := &carriertypespb.ProposalTask{}
 				if err := proto.Unmarshal(value, proposalTaskPB); err != nil {
 					t.wal.DeleteState(key)
 					return fmt.Errorf("unmarshal proposalTask failed, %s", err)
@@ -795,7 +796,7 @@ func (t *Twopc) recoverCache() {
 				// prefix + len(common.Hash) == prefix + len(proposalId)
 				proposalId := common.BytesToHash(key[prefixLength : prefixLength+32])
 
-				libOrgProposalState := &libtypes.OrgProposalState{}
+				libOrgProposalState := &carriertypespb.OrgProposalState{}
 				if err := proto.Unmarshal(value, libOrgProposalState); err != nil {
 					return fmt.Errorf("unmarshal org proposalState failed, %s", err)
 				}
@@ -833,7 +834,7 @@ func (t *Twopc) recoverCache() {
 			if len(key) != 0 && len(value) != 0 {
 				proposalId, partyId := common.BytesToHash(key[prefixLength:prefixLength+33]), string(key[prefixLength+34:])
 
-				vote := &libtypes.PrepareVote{}
+				vote := &carriertypespb.PrepareVote{}
 				if err := proto.Unmarshal(value, vote); err != nil {
 					return fmt.Errorf("unmarshal org prepareVote failed, %s", err)
 				}
@@ -881,7 +882,7 @@ func (t *Twopc) recoverCache() {
 			if len(key) != 0 && len(value) != 0 {
 				proposalId, partyId := common.BytesToHash(key[prefixLength:prefixLength+32]), string(key[prefixLength+32:])
 
-				vote := &libtypes.ConfirmVote{}
+				vote := &carriertypespb.ConfirmVote{}
 				if err := proto.Unmarshal(value, vote); err != nil {
 					return fmt.Errorf("unmarshal org confirmVote failed, %s", err)
 				}
@@ -921,7 +922,7 @@ func (t *Twopc) recoverCache() {
 
 			if len(key) != 0 && len(value) != 0 {
 				proposalId := common.BytesToHash(key[prefixLength:])
-				confirmTaskPeerInfo := &twopcpb.ConfirmTaskPeerInfo{}
+				confirmTaskPeerInfo := &carriertwopcpb.ConfirmTaskPeerInfo{}
 				if err := proto.Unmarshal(value, confirmTaskPeerInfo); err != nil {
 					return fmt.Errorf("unmarshal confirmTaskPeerInfo failed, %s", err)
 				}

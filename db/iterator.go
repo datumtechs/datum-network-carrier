@@ -1,4 +1,4 @@
-// Copyright (C) 2021 The RosettaNet Authors.
+// Copyright (C) 2021 The datum-network Authors.
 
 package db
 

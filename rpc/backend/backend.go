@@ -1,9 +1,10 @@
 package backend
 
 import (
-	pb "github.com/Metisnetwork/Metis-Carrier/lib/api"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"math/big"
 )
 
@@ -14,23 +15,23 @@ type Backend interface {
 	SendMsg(msg types.Msg) error
 
 	// system (the yarn node self info)
-	GetNodeInfo() (*pb.YarnNodeInfo, error)
+	GetNodeInfo() (*carrierapipb.YarnNodeInfo, error)
 
 	// local node resource api
 
-	SetSeedNode(seed *pb.SeedPeer) (pb.ConnState, error)
+	SetSeedNode(seed *carrierapipb.SeedPeer) (carrierapipb.ConnState, error)
 	DeleteSeedNode(addr string) error
-	GetSeedNodeList() ([]*pb.SeedPeer, error)
-	SetRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRegisteredPeerDetail) (pb.ConnState, error)
-	UpdateRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRegisteredPeerDetail) (pb.ConnState, error)
-	DeleteRegisterNode(typ pb.RegisteredNodeType, id string) error
-	GetRegisterNode(typ pb.RegisteredNodeType, id string) (*pb.YarnRegisteredPeerDetail, error)
-	GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*pb.YarnRegisteredPeerDetail, error)
+	GetSeedNodeList() ([]*carrierapipb.SeedPeer, error)
+	SetRegisterNode(typ carrierapipb.RegisteredNodeType, node *carrierapipb.YarnRegisteredPeerDetail) (carrierapipb.ConnState, error)
+	UpdateRegisterNode(typ carrierapipb.RegisteredNodeType, node *carrierapipb.YarnRegisteredPeerDetail) (carrierapipb.ConnState, error)
+	DeleteRegisterNode(typ carrierapipb.RegisteredNodeType, id string) error
+	GetRegisterNode(typ carrierapipb.RegisteredNodeType, id string) (*carrierapipb.YarnRegisteredPeerDetail, error)
+	GetRegisterNodeList(typ carrierapipb.RegisteredNodeType) ([]*carrierapipb.YarnRegisteredPeerDetail, error)
 
-	SendTaskEvent(event *libtypes.TaskEvent) error
+	SendTaskEvent(event *carriertypespb.TaskEvent) error
 
 	// v 2.0
-	ReportTaskResourceUsage(nodeType pb.NodeType, ip, port string, usage *types.TaskResuorceUsage) error
+	ReportTaskResourceUsage(nodeType carrierapipb.NodeType, ip, port string, usage *types.TaskResuorceUsage) error
 
 	// v 0.4.0
 	GenerateObServerProxyWalletAddress() (string, error)
@@ -39,23 +40,23 @@ type Backend interface {
 	IsInternalMetadata(metadataId string) (bool, error)
 	GetInternalMetadataDetail(metadataId string) (*types.Metadata, error)
 	GetMetadataDetail(metadataId string) (*types.Metadata, error)
-	GetGlobalMetadataDetailList(lastUpdate, pageSize uint64) ([]*pb.GetGlobalMetadataDetail, error)
-	GetGlobalMetadataDetailListByIdentityId(identityId string, lastUpdate, pageSize uint64) ([]*pb.GetGlobalMetadataDetail, error)
-	GetLocalMetadataDetailList(lastUpdate, pageSize uint64) ([]*pb.GetLocalMetadataDetail, error)
-	GetLocalInternalMetadataDetailList() ([]*pb.GetLocalMetadataDetail, error) // add by v 0.3.0
+	GetGlobalMetadataDetailList(lastUpdate, pageSize uint64) ([]*carrierapipb.GetGlobalMetadataDetail, error)
+	GetGlobalMetadataDetailListByIdentityId(identityId string, lastUpdate, pageSize uint64) ([]*carrierapipb.GetGlobalMetadataDetail, error)
+	GetLocalMetadataDetailList(lastUpdate, pageSize uint64) ([]*carrierapipb.GetLocalMetadataDetail, error)
+	GetLocalInternalMetadataDetailList() ([]*carrierapipb.GetLocalMetadataDetail, error) // add by v 0.3.0
 	GetMetadataUsedTaskIdList(identityId, metadataId string) ([]string, error)
 	UpdateGlobalMetadata(metadata *types.Metadata) error // add by v 0.4.0
 
 	// metadataAuthority api
-	AuditMetadataAuthority(audit *types.MetadataAuthAudit) (libtypes.AuditMetadataOption, error)
+	AuditMetadataAuthority(audit *types.MetadataAuthAudit) (commonconstantpb.AuditMetadataOption, error)
 	GetLocalMetadataAuthorityList(lastUpdate, pageSize uint64) (types.MetadataAuthArray, error)
 	GetGlobalMetadataAuthorityList(lastUpdate, pageSize uint64) (types.MetadataAuthArray, error)
-	HasValidMetadataAuth(userType libtypes.UserType, user, identityId, metadataId string) (bool, error)
+	HasValidMetadataAuth(userType commonconstantpb.UserType, user, identityId, metadataId string) (bool, error)
 
 	// power api
-	GetGlobalPowerSummaryList() ([]*pb.GetGlobalPowerSummary, error)
-	GetGlobalPowerDetailList(lastUpdate, pageSize uint64) ([]*pb.GetGlobalPowerDetail, error)
-	GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail, error)
+	GetGlobalPowerSummaryList() ([]*carrierapipb.GetGlobalPowerSummary, error)
+	GetGlobalPowerDetailList(lastUpdate, pageSize uint64) ([]*carrierapipb.GetGlobalPowerDetail, error)
+	GetLocalPowerDetailList() ([]*carrierapipb.GetLocalPowerDetail, error)
 
 	// identity api
 
@@ -63,12 +64,12 @@ type Backend interface {
 	GetIdentityList(lastUpdate, pageSize uint64) ([]*types.Identity, error)
 
 	// task api
-	GetLocalTask(taskId string) (*libtypes.TaskDetail, error)
-	GetLocalTaskDetailList(lastUpdate, pageSize uint64) ([]*libtypes.TaskDetail, error)
-	GetGlobalTaskDetailList(lastUpdate, pageSize uint64) ([]*libtypes.TaskDetail, error)
-	GetTaskDetailListByTaskIds(taskIds []string) ([]*libtypes.TaskDetail, error) // v3.0
-	GetTaskEventList(taskId string) ([]*libtypes.TaskEvent, error)
-	GetTaskEventListByTaskIds(taskIds []string) ([]*libtypes.TaskEvent, error)
+	GetLocalTask(taskId string) (*carriertypespb.TaskDetail, error)
+	GetLocalTaskDetailList(lastUpdate, pageSize uint64) ([]*carriertypespb.TaskDetail, error)
+	GetGlobalTaskDetailList(lastUpdate, pageSize uint64) ([]*carriertypespb.TaskDetail, error)
+	GetTaskDetailListByTaskIds(taskIds []string) ([]*carriertypespb.TaskDetail, error) // v3.0
+	GetTaskEventList(taskId string) ([]*carriertypespb.TaskEvent, error)
+	GetTaskEventListByTaskIds(taskIds []string) ([]*carriertypespb.TaskEvent, error)
 	HasLocalTask() (bool, error)
 
 	// about jobResource
@@ -89,7 +90,7 @@ type Backend interface {
 	QueryDataResourceFileUploads() ([]*types.DataResourceFileUpload, error)
 
 	// about task result file
-	StoreTaskResultFileSummary(taskId, originId, dataHash, metadataOption, dataNodeId, extra string, dataType libtypes.OrigindataType) error
+	StoreTaskResultFileSummary(taskId, originId, dataHash, metadataOption, dataNodeId, extra string, dataType commonconstantpb.OrigindataType) error
 	QueryTaskResultFileSummary(taskId string) (*types.TaskResultFileSummary, error)
 	QueryTaskResultFileSummaryList() (types.TaskResultFileSummaryArr, error)
 

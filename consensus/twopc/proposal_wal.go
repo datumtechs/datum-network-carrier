@@ -1,27 +1,25 @@
 package twopc
 
 import (
-	"encoding/json"
-	"github.com/Metisnetwork/Metis-Carrier/blacklist"
-	"github.com/Metisnetwork/Metis-Carrier/common"
-	"github.com/Metisnetwork/Metis-Carrier/common/fileutil"
-	ctypes "github.com/Metisnetwork/Metis-Carrier/consensus/twopc/types"
-	"github.com/Metisnetwork/Metis-Carrier/core/rawdb"
-	"github.com/Metisnetwork/Metis-Carrier/db"
-	twopcpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/datumtechs/datum-network-carrier/common"
+	"github.com/datumtechs/datum-network-carrier/common/fileutil"
+	ctypes "github.com/datumtechs/datum-network-carrier/consensus/twopc/types"
+	"github.com/datumtechs/datum-network-carrier/core/rawdb"
+	"github.com/datumtechs/datum-network-carrier/db"
+	carriertwopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/gogo/protobuf/proto"
 	"os"
 	"path/filepath"
 )
 
 var (
-	proposalTaskCachePrefix     = []byte("proposalTaskCache:")     //	taskId -> partyId -> proposalTask
-	proposalSetPrefix           = []byte("proposalSet:")           // 	proposalId -> partyId -> orgState
-	prepareVotesPrefix          = []byte("prepareVotes:")          //  proposalId -> partyId -> prepareVote
-	confirmVotesPrefix          = []byte("confirmVotes:")          //  proposalId -> partyId -> confirmVote
-	proposalPeerInfoCachePrefix = []byte("proposalPeerInfoCache:") //  proposalId -> ConfirmTaskPeerInfo
+	proposalTaskCachePrefix     = []byte("proposalTaskCache:")  	//	taskId -> partyId -> proposalTask
+	proposalSetPrefix           = []byte("proposalSet:")			// 	proposalId -> partyId -> orgState
+	prepareVotesPrefix          = []byte("prepareVotes:")			//  proposalId -> partyId -> prepareVote
+	confirmVotesPrefix          = []byte("confirmVotes:")			//  proposalId -> partyId -> confirmVote
+	proposalPeerInfoCachePrefix = []byte("proposalPeerInfoCache:")	//  proposalId -> ConfirmTaskPeerInfo
 	orgBlacklistCachePrefix     = []byte("orgBlacklistCache:")     // identityId  -> map[string][]*organizationTaskInfo
 )
 
@@ -97,10 +95,10 @@ func (w *walDB) GetOrgBlacklistCacheKey(identityId string) []byte {
 }
 
 func (w *walDB) StoreProposalTask(partyId string, task *ctypes.ProposalTask) {
-	data, err := proto.Marshal(&libtypes.ProposalTask{
+	data, err := proto.Marshal(&carriertypespb.ProposalTask{
 		ProposalId: task.GetProposalId().String(),
-		TaskId:     task.GetTaskId(),
-		CreateAt:   task.GetCreateAt(),
+		TaskId: task.GetTaskId(),
+		CreateAt: task.GetCreateAt(),
 	})
 	if err != nil {
 		log.WithError(err).Fatalf("marshal proposalTask failed, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
@@ -113,15 +111,15 @@ func (w *walDB) StoreProposalTask(partyId string, task *ctypes.ProposalTask) {
 }
 
 func (w *walDB) StoreOrgProposalState(orgState *ctypes.OrgProposalState) {
-	data, err := proto.Marshal(&libtypes.OrgProposalState{
-		TaskId:           orgState.GetTaskId(),
-		TaskSender:       orgState.GetTaskSender(),
-		StartAt:          orgState.GetStartAt(),
-		DeadlineDuration: orgState.GetDeadlineDuration(),
-		CreateAt:         orgState.GetCreateAt(),
-		TaskRole:         orgState.GetTaskRole(),
-		TaskOrg:          orgState.GetTaskOrg(),
-		PeriodNum:        uint32(orgState.GetPeriodNum()),
+	data, err := proto.Marshal(&carriertypespb.OrgProposalState{
+		TaskId:             orgState.GetTaskId(),
+		TaskSender:         orgState.GetTaskSender(),
+		StartAt:            orgState.GetStartAt(),
+		DeadlineDuration:   orgState.GetDeadlineDuration(),
+		CreateAt:           orgState.GetCreateAt(),
+		TaskRole:           orgState.GetTaskRole(),
+		TaskOrg:            orgState.GetTaskOrg(),
+		PeriodNum:          uint32(orgState.GetPeriodNum()),
 	})
 	if err != nil {
 		log.WithError(err).Fatalf("marshal org proposalState failed, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
@@ -134,8 +132,8 @@ func (w *walDB) StoreOrgProposalState(orgState *ctypes.OrgProposalState) {
 }
 
 func (w *walDB) StorePrepareVote(vote *types.PrepareVote) {
-	data, err := proto.Marshal(&libtypes.PrepareVote{
-		MsgOption: &libtypes.MsgOption{
+	data, err := proto.Marshal(&carriertypespb.PrepareVote{
+		MsgOption: &carriertypespb.MsgOption{
 			ProposalId:      vote.MsgOption.ProposalId.String(),
 			SenderRole:      vote.MsgOption.SenderRole,
 			SenderPartyId:   vote.MsgOption.SenderPartyId,
@@ -144,7 +142,7 @@ func (w *walDB) StorePrepareVote(vote *types.PrepareVote) {
 			Owner:           vote.MsgOption.Owner,
 		},
 		VoteOption: uint32(vote.VoteOption),
-		PeerInfo: &libtypes.PrepareVoteResource{
+		PeerInfo: &carriertypespb.PrepareVoteResource{
 			Id:      vote.PeerInfo.Id,
 			Ip:      vote.PeerInfo.Ip,
 			Port:    vote.PeerInfo.Port,
@@ -164,8 +162,8 @@ func (w *walDB) StorePrepareVote(vote *types.PrepareVote) {
 }
 
 func (w *walDB) StoreConfirmVote(vote *types.ConfirmVote) {
-	data, err := proto.Marshal(&libtypes.ConfirmVote{
-		MsgOption: &libtypes.MsgOption{
+	data, err := proto.Marshal(&carriertypespb.ConfirmVote{
+		MsgOption: &carriertypespb.MsgOption{
 			ProposalId:      vote.MsgOption.ProposalId.String(),
 			SenderRole:      vote.MsgOption.SenderRole,
 			SenderPartyId:   vote.MsgOption.SenderPartyId,
@@ -187,7 +185,7 @@ func (w *walDB) StoreConfirmVote(vote *types.ConfirmVote) {
 	}
 }
 
-func (w *walDB) StoreConfirmTaskPeerInfo(proposalId common.Hash, peerDesc *twopcpb.ConfirmTaskPeerInfo) {
+func (w *walDB) StoreConfirmTaskPeerInfo(proposalId common.Hash, peerDesc *carriertwopcpb.ConfirmTaskPeerInfo) {
 	data, err := proto.Marshal(peerDesc)
 	if err != nil {
 		log.WithError(err).Fatalf("marshal confirmTaskPeerInfo failed, proposalId: {%s}",
@@ -210,7 +208,7 @@ func (w *walDB) DeleteState(key []byte) error {
 	return w.db.Delete(key)
 }
 
-func (w *walDB) ForEachKV(f func(key, value []byte) error) error {
+func (w *walDB)  ForEachKV (f func(key, value []byte) error) error {
 	it := w.db.NewIterator()
 	defer it.Release()
 	for it.Next() {
@@ -221,7 +219,7 @@ func (w *walDB) ForEachKV(f func(key, value []byte) error) error {
 	return nil
 }
 
-func (w *walDB) ForEachKVWithPrefix(prefix []byte, f func(key, value []byte) error) error {
+func (w *walDB)  ForEachKVWithPrefix (prefix []byte, f func(key, value []byte) error) error {
 	it := w.db.NewIteratorWithPrefix(prefix)
 	defer it.Release()
 	for it.Next() {
@@ -235,9 +233,9 @@ func (w *walDB) ForEachKVWithPrefix(prefix []byte, f func(key, value []byte) err
 func (w *walDB) UnmarshalTest() {
 	it := w.db.NewIteratorWithPrefixAndStart(proposalPeerInfoCachePrefix, nil)
 	defer it.Release()
-	proposalPeerInfoCache := make(map[common.Hash]*twopcpb.ConfirmTaskPeerInfo, 0)
+	proposalPeerInfoCache := make(map[common.Hash]*carriertwopcpb.ConfirmTaskPeerInfo, 0)
 	prefixLength := len(proposalPeerInfoCachePrefix)
-	libProposalPeerInfoCache := &twopcpb.ConfirmTaskPeerInfo{}
+	libProposalPeerInfoCache := &carriertwopcpb.ConfirmTaskPeerInfo{}
 	for it.Next() {
 		key := it.Key()
 		proposalId := common.BytesToHash(key[prefixLength:])

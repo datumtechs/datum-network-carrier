@@ -2,17 +2,17 @@ package types
 
 import (
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/common"
-	"github.com/Metisnetwork/Metis-Carrier/crypto/sha3"
-	"github.com/Metisnetwork/Metis-Carrier/lib/types"
+	"github.com/datumtechs/datum-network-carrier/common"
+	"github.com/datumtechs/datum-network-carrier/crypto/sha3"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"math/big"
 	"sort"
 	"sync/atomic"
 	"time"
 )
 
-// Header represents a block header in the RosettaNet.
-type Header types.HeaderPb
+// Header represents a block header in the datum-network.
+type Header carriertypespb.HeaderPb
 
 // Hash returns the block hash of the header, which is simply the keccak256 hash of its ProtoBuf encoding.
 func (h *Header) Hash() common.Hash {
@@ -21,8 +21,8 @@ func (h *Header) Hash() common.Hash {
 	return protoBufHash(data)
 }
 
-func (h *Header) GetHeaderPb() *types.HeaderPb {
-	header := &types.HeaderPb{
+func (h *Header) GetHeaderPb() *carriertypespb.HeaderPb {
+	header := &carriertypespb.HeaderPb{
 		ParentHash: h.ParentHash,
 		Timestamp: h.Timestamp,
 		Version: h.Version,
@@ -52,7 +52,7 @@ func (h *Header) _sealHash() (hash common.Hash) {
 	if len(h.Extra) > 32 {
 		extra = h.Extra[0:32]
 	}
-	header := &types.HeaderPb{
+	header := &carriertypespb.HeaderPb{
 		ParentHash: h.ParentHash,
 		Timestamp: h.Timestamp,
 		Version: h.Version,
@@ -64,7 +64,7 @@ func (h *Header) _sealHash() (hash common.Hash) {
 	return hash
 }
 
-// Block represents an entire block in the RosettaNet.
+// Block represents an entire block in the datum-network.
 type Block struct {
 	header       *Header
 	metadatas 	 MetadataArray
@@ -125,9 +125,9 @@ func CopyHeader(h *Header) *Header {
 	return &cpy
 }
 
-// DecodePb decodes the RosettaNet
+// DecodePb decodes the datum-network
 func (b *Block) DecodePb(data []byte) error {
-	var blockData types.BlockData
+	var blockData carriertypespb.BlockData
 	blockData.Unmarshal(data)
 	b.header = (*Header)(blockData.Header)
 	//
@@ -141,7 +141,7 @@ func (b *Block) DecodePb(data []byte) error {
 
 // EncodePb serializes b into the RLP block format.
 func (b *Block) EncodePb() ([]byte, error) {
-	blockData := &types.BlockData{
+	blockData := &carriertypespb.BlockData{
 		Header: b.header.GetHeaderPb(),
 		Metadata: b.metadatas.To(),
 		Resourcedata: b.resources.To(),

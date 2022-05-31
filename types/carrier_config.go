@@ -1,7 +1,7 @@
 package types
 
 import (
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"github.com/mohae/deepcopy"
 	types "github.com/prysmaticlabs/eth2-types"
 	"math/big"
@@ -18,7 +18,7 @@ type CarrierChainConfig struct {
 	DiscoveryServiceName string
 	DiscoveryServiceTags []string
 	// add by v 0.4.0
-	BlockChainIdCache     map[libtypes.UserType]*big.Int   // blockchain {userAddress -> chainId}
+	BlockChainIdCache     map[commonconstantpb.UserType]*big.Int   // blockchain {userAddress -> chainId}
 }
 
 // Copy returns a copy of the config object.

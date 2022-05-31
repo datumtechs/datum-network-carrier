@@ -1,0 +1,1398 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "carrier/api/sys_rpc_api.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/carrier/v1/yarn/dataNodeList": {
+      "get": {
+        "summary": "查询数据服务列表",
+        "operationId": "YarnService_GetDataNodeList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiGetRegisteredNodeListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/deleteDataNode": {
+      "post": {
+        "summary": "删除数据服务信息",
+        "operationId": "YarnService_DeleteDataNode",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/typesSimpleResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiDeleteRegisteredNodeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/deleteJobNode": {
+      "post": {
+        "summary": "删除计算服务信息",
+        "operationId": "YarnService_DeleteJobNode",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/typesSimpleResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiDeleteRegisteredNodeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/deleteSeed": {
+      "post": {
+        "summary": "删除种子节点信息",
+        "operationId": "YarnService_DeleteSeedNode",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/typesSimpleResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiDeleteSeedNodeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/generateObserverProxyWallet": {
+      "get": {
+        "summary": "v 0.4.0 生成当前组织内置系统钱包地址 (见证人代理钱包, 全局只有一个)",
+        "operationId": "YarnService_GenerateObServerProxyWalletAddress",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiGenerateObServerProxyWalletAddressResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/jobNodeList": {
+      "get": {
+        "summary": "查询计算服务列表 (宿主机的物理信息和网络连接信息)",
+        "operationId": "YarnService_GetJobNodeList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiGetRegisteredNodeListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/nodeInfo": {
+      "get": {
+        "summary": "Getter YarnNode ...\n查看自身调度服务信息",
+        "operationId": "YarnService_GetNodeInfo",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiGetNodeInfoResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/queryAvailableDataNode": {
+      "post": {
+        "summary": "查询可用数据服务资源目标 ip:port 信息",
+        "operationId": "YarnService_QueryAvailableDataNode",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiQueryAvailableDataNodeResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiQueryAvailableDataNodeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/queryFilePosition": {
+      "post": {
+        "summary": "查询需要下载的目标原始文件所在的 数据服务信息和文件的完整相对路径",
+        "operationId": "YarnService_QueryFilePosition",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiQueryFilePositionResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiQueryFilePositionRequest"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/reportTaskEvent": {
+      "post": {
+        "summary": "about report\n数据/计算服务 上报任务事件",
+        "operationId": "YarnService_ReportTaskEvent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/typesSimpleResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiReportTaskEventRequest"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/reportTaskResourceUsage": {
+      "post": {
+        "summary": "数据/计算服务 上报资源使用实况",
+        "operationId": "YarnService_ReportTaskResourceUsage",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/typesSimpleResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiReportTaskResourceUsageRequest"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/reportTaskResultFileSummary": {
+      "post": {
+        "summary": "上报 任务结果文件摘要",
+        "operationId": "YarnService_ReportTaskResultFileSummary",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/typesSimpleResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiReportTaskResultFileSummaryRequest"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/reportUpFileSummary": {
+      "post": {
+        "summary": "上报 成功上传的原始文件Id",
+        "operationId": "YarnService_ReportUpFileSummary",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/typesSimpleResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiReportUpFileSummaryRequest"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/seedList": {
+      "get": {
+        "summary": "查询种子节点列表",
+        "operationId": "YarnService_GetSeedNodeList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiGetSeedNodeListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/setDataNode": {
+      "post": {
+        "summary": "about dataNode\n新增数据服务信息",
+        "operationId": "YarnService_SetDataNode",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiSetDataNodeResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiSetDataNodeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/setJobNode": {
+      "post": {
+        "summary": "about jobNode\n新增计算服务信息",
+        "operationId": "YarnService_SetJobNode",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiSetJobNodeResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiSetJobNodeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/setSeed": {
+      "post": {
+        "summary": "about seed\n新增种子节点信息",
+        "operationId": "YarnService_SetSeedNode",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiSetSeedNodeResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiSetSeedNodeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/taskResultFileSummary": {
+      "post": {
+        "summary": "查询 任务结果文件摘要",
+        "operationId": "YarnService_GetTaskResultFileSummary",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiGetTaskResultFileSummaryResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiGetTaskResultFileSummaryRequest"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/taskResultFileSummaryList": {
+      "get": {
+        "summary": "查询当前组织参与的所有任务结果文件摘要",
+        "operationId": "YarnService_GetTaskResultFileSummaryList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiGetTaskResultFileSummaryListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/updateDataNode": {
+      "post": {
+        "summary": "修改数据服务信息",
+        "operationId": "YarnService_UpdateDataNode",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiSetDataNodeResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiUpdateDataNodeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/updateJobNode": {
+      "post": {
+        "summary": "修改计算服务信息",
+        "operationId": "YarnService_UpdateJobNode",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiSetJobNodeResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiUpdateJobNodeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "apiConnState": {
+      "type": "string",
+      "enum": [
+        "ConnState_UnConnected",
+        "ConnState_Connected"
+      ],
+      "default": "ConnState_UnConnected",
+      "title": "调度服务和 种子节点 or 计算服务 or 数据服务 的连接状态\n调度服务自身的状态信息 (0: 未被调度服务连接上; 1: 连接上; )"
+    },
+    "apiDeleteRegisteredNodeRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        }
+      },
+      "title": "删除种子or计算or数据服务node信息 req"
+    },
+    "apiDeleteSeedNodeRequest": {
+      "type": "object",
+      "properties": {
+        "addr": {
+          "type": "string"
+        }
+      },
+      "title": "删除种子节点信息 req"
+    },
+    "apiGenerateObServerProxyWalletAddressResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "address": {
+          "type": "string"
+        }
+      }
+    },
+    "apiGetNodeInfoResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "information": {
+          "$ref": "#/definitions/apiYarnNodeInfo"
+        }
+      },
+      "title": "查看自身调度服务信息 resp"
+    },
+    "apiGetRegisteredNodeListResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "nodes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiYarnRegisteredPeer"
+          }
+        }
+      },
+      "title": "查询数据 or 计算 服务列表 resp"
+    },
+    "apiGetSeedNodeListResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "nodes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiSeedPeer"
+          }
+        }
+      },
+      "title": "查询种子节点列表 resp"
+    },
+    "apiGetTaskResultFileSummary": {
+      "type": "object",
+      "properties": {
+        "task_id": {
+          "type": "string"
+        },
+        "metadata_name": {
+          "type": "string"
+        },
+        "metadata_id": {
+          "type": "string"
+        },
+        "origin_id": {
+          "type": "string"
+        },
+        "ip": {
+          "type": "string"
+        },
+        "port": {
+          "type": "string"
+        },
+        "extra": {
+          "type": "string"
+        },
+        "data_hash": {
+          "type": "string"
+        },
+        "data_type": {
+          "$ref": "#/definitions/constantOrigindataType"
+        },
+        "metadata_option": {
+          "type": "string"
+        }
+      },
+      "title": "查询 任务结果文件摘要 resp"
+    },
+    "apiGetTaskResultFileSummaryListResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "task_result_files": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiGetTaskResultFileSummary"
+          }
+        }
+      },
+      "title": "查询当前组织参与的所有任务结果文件摘要 resp"
+    },
+    "apiGetTaskResultFileSummaryRequest": {
+      "type": "object",
+      "properties": {
+        "task_id": {
+          "type": "string"
+        }
+      },
+      "title": "查询 任务结果文件摘要 req"
+    },
+    "apiGetTaskResultFileSummaryResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "information": {
+          "$ref": "#/definitions/apiGetTaskResultFileSummary"
+        }
+      }
+    },
+    "apiNodeType": {
+      "type": "string",
+      "enum": [
+        "NodeType_Unknown",
+        "NodeType_SeedNode",
+        "NodeType_JobNode",
+        "NodeType_DataNode",
+        "NodeType_YarnNode"
+      ],
+      "default": "NodeType_Unknown",
+      "title": "节点进程类型"
+    },
+    "apiQueryAvailableDataNode": {
+      "type": "object",
+      "properties": {
+        "ip": {
+          "type": "string"
+        },
+        "port": {
+          "type": "string"
+        }
+      },
+      "title": "查询可用数据服务资源目标 ip:port 信息 resp"
+    },
+    "apiQueryAvailableDataNodeRequest": {
+      "type": "object",
+      "properties": {
+        "data_size": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "data_type": {
+          "$ref": "#/definitions/constantOrigindataType"
+        }
+      },
+      "title": "查询可用数据服务资源目标 ip:port 信息 req"
+    },
+    "apiQueryAvailableDataNodeResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "information": {
+          "$ref": "#/definitions/apiQueryAvailableDataNode"
+        }
+      }
+    },
+    "apiQueryFilePosition": {
+      "type": "object",
+      "properties": {
+        "ip": {
+          "type": "string"
+        },
+        "port": {
+          "type": "string"
+        },
+        "data_path": {
+          "type": "string"
+        }
+      },
+      "title": "查询需要下载的目标原始文件所在的 数据服务信息和文件的完整相对路径 resp"
+    },
+    "apiQueryFilePositionRequest": {
+      "type": "object",
+      "properties": {
+        "origin_id": {
+          "type": "string"
+        }
+      },
+      "title": "查询需要下载的目标原始文件所在的 数据服务信息和文件的完整相对路径 req"
+    },
+    "apiQueryFilePositionResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "information": {
+          "$ref": "#/definitions/apiQueryFilePosition"
+        }
+      }
+    },
+    "apiReportTaskEventRequest": {
+      "type": "object",
+      "properties": {
+        "task_event": {
+          "$ref": "#/definitions/typesTaskEvent"
+        }
+      },
+      "title": "数据/计算服务 上报任务事件 req"
+    },
+    "apiReportTaskResourceUsageRequest": {
+      "type": "object",
+      "properties": {
+        "task_id": {
+          "type": "string"
+        },
+        "party_id": {
+          "type": "string"
+        },
+        "node_type": {
+          "$ref": "#/definitions/apiNodeType"
+        },
+        "ip": {
+          "type": "string"
+        },
+        "port": {
+          "type": "string"
+        },
+        "usage": {
+          "$ref": "#/definitions/typesResourceUsageOverview"
+        }
+      },
+      "title": "数据/计算服务 上报任务资源使用实况 req"
+    },
+    "apiReportTaskResultFileSummaryRequest": {
+      "type": "object",
+      "properties": {
+        "task_id": {
+          "type": "string"
+        },
+        "origin_id": {
+          "type": "string"
+        },
+        "ip": {
+          "type": "string"
+        },
+        "port": {
+          "type": "string"
+        },
+        "extra": {
+          "type": "string"
+        },
+        "data_hash": {
+          "type": "string"
+        },
+        "data_type": {
+          "$ref": "#/definitions/constantOrigindataType"
+        },
+        "metadata_option": {
+          "type": "string"
+        }
+      },
+      "title": "上报 任务结果文件摘要 req"
+    },
+    "apiReportUpFileSummaryRequest": {
+      "type": "object",
+      "properties": {
+        "origin_id": {
+          "type": "string"
+        },
+        "ip": {
+          "type": "string"
+        },
+        "port": {
+          "type": "string"
+        },
+        "data_hash": {
+          "type": "string"
+        },
+        "data_type": {
+          "$ref": "#/definitions/constantOrigindataType"
+        },
+        "metadata_option": {
+          "type": "string"
+        }
+      },
+      "title": "上报 成功上传的原始文件Id req"
+    },
+    "apiSeedPeer": {
+      "type": "object",
+      "properties": {
+        "addr": {
+          "type": "string"
+        },
+        "is_default": {
+          "type": "boolean"
+        },
+        "conn_state": {
+          "$ref": "#/definitions/apiConnState"
+        }
+      }
+    },
+    "apiSetDataNodeRequest": {
+      "type": "object",
+      "properties": {
+        "internal_ip": {
+          "type": "string"
+        },
+        "external_ip": {
+          "type": "string"
+        },
+        "internal_port": {
+          "type": "string"
+        },
+        "external_port": {
+          "type": "string"
+        }
+      },
+      "title": "新增数据服务信息 req"
+    },
+    "apiSetDataNodeResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "node": {
+          "$ref": "#/definitions/apiYarnRegisteredPeerDetail"
+        }
+      },
+      "title": "新增|修改 数据服务信息 resp"
+    },
+    "apiSetJobNodeRequest": {
+      "type": "object",
+      "properties": {
+        "internal_ip": {
+          "type": "string"
+        },
+        "external_ip": {
+          "type": "string"
+        },
+        "internal_port": {
+          "type": "string"
+        },
+        "external_port": {
+          "type": "string"
+        }
+      },
+      "title": "新增计算服务信息 req"
+    },
+    "apiSetJobNodeResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "node": {
+          "$ref": "#/definitions/apiYarnRegisteredPeerDetail"
+        }
+      },
+      "title": "新增|修改 计算服务信息 resp"
+    },
+    "apiSetSeedNodeRequest": {
+      "type": "object",
+      "properties": {
+        "addr": {
+          "type": "string"
+        }
+      },
+      "title": "新增种子节点信息 req"
+    },
+    "apiSetSeedNodeResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "node": {
+          "$ref": "#/definitions/apiSeedPeer"
+        }
+      },
+      "title": "新增 种子节点信息 resp"
+    },
+    "apiUpdateDataNodeRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "internal_ip": {
+          "type": "string"
+        },
+        "external_ip": {
+          "type": "string"
+        },
+        "internal_port": {
+          "type": "string"
+        },
+        "external_port": {
+          "type": "string"
+        }
+      },
+      "title": "修改数据服务信息 req"
+    },
+    "apiUpdateJobNodeRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "internal_ip": {
+          "type": "string"
+        },
+        "external_ip": {
+          "type": "string"
+        },
+        "internal_port": {
+          "type": "string"
+        },
+        "external_port": {
+          "type": "string"
+        }
+      },
+      "title": "修改计算服务信息 req"
+    },
+    "apiYarnNodeInfo": {
+      "type": "object",
+      "properties": {
+        "node_type": {
+          "$ref": "#/definitions/apiNodeType"
+        },
+        "node_id": {
+          "type": "string"
+        },
+        "internal_ip": {
+          "type": "string"
+        },
+        "external_ip": {
+          "type": "string"
+        },
+        "internal_port": {
+          "type": "string"
+        },
+        "external_port": {
+          "type": "string"
+        },
+        "identity_type": {
+          "type": "string"
+        },
+        "identity_id": {
+          "type": "string"
+        },
+        "resource_used": {
+          "$ref": "#/definitions/typesResourceUsageOverview"
+        },
+        "state": {
+          "$ref": "#/definitions/apiYarnNodeState"
+        },
+        "name": {
+          "type": "string"
+        },
+        "relate_peers": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "local_bootstrap_node": {
+          "type": "string"
+        },
+        "local_multi_addr": {
+          "type": "string"
+        },
+        "observer_proxy_wallet_address": {
+          "type": "string"
+        }
+      },
+      "title": "调度服务的信息"
+    },
+    "apiYarnNodeState": {
+      "type": "string",
+      "enum": [
+        "State_Unknown",
+        "State_Active",
+        "State_Leave",
+        "State_Join",
+        "State_Unuseful"
+      ],
+      "default": "State_Unknown",
+      "title": "调度服务节点的状态"
+    },
+    "apiYarnRegisteredPeer": {
+      "type": "object",
+      "properties": {
+        "node_type": {
+          "$ref": "#/definitions/apiNodeType"
+        },
+        "node_detail": {
+          "$ref": "#/definitions/apiYarnRegisteredPeerDetail"
+        }
+      },
+      "title": "调度服务上被注册的资源节点信息"
+    },
+    "apiYarnRegisteredPeerDetail": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "internal_ip": {
+          "type": "string"
+        },
+        "external_ip": {
+          "type": "string"
+        },
+        "internal_port": {
+          "type": "string"
+        },
+        "external_port": {
+          "type": "string"
+        },
+        "conn_state": {
+          "$ref": "#/definitions/apiConnState"
+        },
+        "duration": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "task_count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "task_id_list": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "file_count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "file_total_size": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "constantOrigindataType": {
+      "type": "string",
+      "enum": [
+        "OrigindataType_Unknown",
+        "OrigindataType_CSV",
+        "OrigindataType_DIR",
+        "OrigindataType_BINARY",
+        "OrigindataType_XLS",
+        "OrigindataType_XLSX",
+        "OrigindataType_TXT",
+        "OrigindataType_JSON"
+      ],
+      "default": "OrigindataType_Unknown",
+      "title": "原始数据类型 (文件类型)"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "type_url": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "runtimeError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "typesResourceUsageOverview": {
+      "type": "object",
+      "properties": {
+        "total_mem": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "used_mem": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "total_processor": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "used_processor": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "total_bandwidth": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "used_bandwidth": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "total_disk": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "used_disk": {
+          "type": "string",
+          "format": "uint64"
+        }
+      },
+      "title": "系统资源消耗概览"
+    },
+    "typesSimpleResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32",
+          "title": "the code for response"
+        },
+        "msg": {
+          "type": "string",
+          "title": "the message for response"
+        }
+      }
+    },
+    "typesTaskEvent": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "identity_id": {
+          "type": "string"
+        },
+        "party_id": {
+          "type": "string"
+        },
+        "content": {
+          "type": "string"
+        },
+        "create_at": {
+          "type": "string",
+          "format": "uint64"
+        }
+      },
+      "title": "任务事件定义"
+    }
+  }
+}

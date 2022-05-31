@@ -2,9 +2,9 @@ package blacklist
 
 import (
 	"encoding/json"
-	"github.com/Metisnetwork/Metis-Carrier/common"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/datumtechs/datum-network-carrier/common"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/sirupsen/logrus"
 	"sync"
 )
@@ -15,8 +15,8 @@ const thresholdCount = 10
 var log = logrus.WithField("prefix", "blacklist")
 
 type BackListEngineAPI interface {
-	HasPrepareVoting(proposalId common.Hash, org *libtypes.TaskOrganization) bool
-	HasConfirmVoting(proposalId common.Hash, org *libtypes.TaskOrganization) bool
+	HasPrepareVoting(proposalId common.Hash, org *carriertypespb.TaskOrganization) bool
+	HasConfirmVoting(proposalId common.Hash, org *carriertypespb.TaskOrganization) bool
 }
 
 type WalDB interface {
@@ -54,11 +54,11 @@ func (iBlc *IdentityBackListCache) CheckConsensusResultOfNoVote(proposalId commo
 	iBlc.orgBlacklistLock.RLock()
 	defer iBlc.orgBlacklistLock.RUnlock()
 
-	mergeTaskOrgByIdentityId := make(map[string][]*libtypes.TaskOrganization, 0)
-	mergeTaskByOrg := func(org *libtypes.TaskOrganization) {
+	mergeTaskOrgByIdentityId := make(map[string][]*carriertypespb.TaskOrganization, 0)
+	mergeTaskByOrg := func(org *carriertypespb.TaskOrganization) {
 		taskOrgInfo, ok := mergeTaskOrgByIdentityId[org.GetIdentityId()]
 		if !ok {
-			taskOrgInfo = make([]*libtypes.TaskOrganization, 0)
+			taskOrgInfo = make([]*carriertypespb.TaskOrganization, 0)
 		}
 		taskOrgInfo = append(taskOrgInfo, org)
 		mergeTaskOrgByIdentityId[org.GetIdentityId()] = taskOrgInfo
@@ -146,6 +146,6 @@ func (iBlc *IdentityBackListCache) FindBlackOrgByWalPrefix() map[string][]*Organ
 	return orgBlacklistCache
 }
 
-func (iBlc *IdentityBackListCache) HasVoting(proposalId common.Hash, taskOrg *libtypes.TaskOrganization) bool {
+func (iBlc *IdentityBackListCache) HasVoting(proposalId common.Hash, taskOrg *carriertypespb.TaskOrganization) bool {
 	return iBlc.engine.HasPrepareVoting(proposalId, taskOrg) && iBlc.engine.HasConfirmVoting(proposalId, taskOrg)
 }

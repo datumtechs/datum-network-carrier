@@ -2,10 +2,11 @@ package rawdb
 
 import (
 	"fmt"
-	"github.com/Metisnetwork/Metis-Carrier/common/bytesutil"
-	"github.com/Metisnetwork/Metis-Carrier/db"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	"github.com/datumtechs/datum-network-carrier/common/bytesutil"
+	"github.com/datumtechs/datum-network-carrier/db"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/gogo/protobuf/proto"
 	leveldberr "github.com/syndtr/goleveldb/leveldb/errors"
@@ -982,7 +983,7 @@ func HasLocalTaskExecuteStatusTerminateByPartyId(db DatabaseReader, taskId, part
 	return true, nil
 }
 
-func StoreUserMetadataAuthIdByMetadataId(db DatabaseWriter, userType libtypes.UserType, user, metadataId, metadataAuthId string) error {
+func StoreUserMetadataAuthIdByMetadataId(db DatabaseWriter, userType commonconstantpb.UserType, user, metadataId, metadataAuthId string) error {
 
 	key := GetUserMetadataAuthByMetadataIdKey(userType, user, metadataId)
 	val, err := rlp.EncodeToBytes(metadataAuthId)
@@ -994,7 +995,7 @@ func StoreUserMetadataAuthIdByMetadataId(db DatabaseWriter, userType libtypes.Us
 	return db.Put(key, val)
 }
 
-func QueryUserMetadataAuthIdByMetadataId(db DatabaseReader, userType libtypes.UserType, user, metadataId string) (string, error) {
+func QueryUserMetadataAuthIdByMetadataId(db DatabaseReader, userType commonconstantpb.UserType, user, metadataId string) (string, error) {
 	key := GetUserMetadataAuthByMetadataIdKey(userType, user, metadataId)
 
 	val, err := db.Get(key)
@@ -1015,7 +1016,7 @@ func QueryUserMetadataAuthIdByMetadataId(db DatabaseReader, userType libtypes.Us
 	return metadataAuthId, nil
 }
 
-func HasUserMetadataAuthIdByMetadataId(db DatabaseReader, userType libtypes.UserType, user, metadataId string) (bool, error) {
+func HasUserMetadataAuthIdByMetadataId(db DatabaseReader, userType commonconstantpb.UserType, user, metadataId string) (bool, error) {
 	key := GetUserMetadataAuthByMetadataIdKey(userType, user, metadataId)
 
 	has, err := db.Has(key)
@@ -1029,7 +1030,7 @@ func HasUserMetadataAuthIdByMetadataId(db DatabaseReader, userType libtypes.User
 	return true, nil
 }
 
-func RemoveUserMetadataAuthIdByMetadataId(db KeyValueStore, userType libtypes.UserType, user, metadataId string) error {
+func RemoveUserMetadataAuthIdByMetadataId(db KeyValueStore, userType commonconstantpb.UserType, user, metadataId string) error {
 	key := GetUserMetadataAuthByMetadataIdKey(userType, user, metadataId)
 
 	has, err := db.Has(key)
@@ -1290,7 +1291,7 @@ func StoreMessageCache(db KeyValueStore, value interface{}) error {
 	case *types.PowerMsg:
 
 		key = GetPowerMsgKey(v.GetPowerId())
-		val, err = proto.Marshal(&libtypes.PowerMsg{
+		val, err = proto.Marshal(&carriertypespb.PowerMsg{
 			PowerId:   v.GetPowerId(),
 			JobNodeId: v.GetJobNodeId(),
 			CreateAt:  v.GetCreateAt(),
@@ -1301,7 +1302,7 @@ func StoreMessageCache(db KeyValueStore, value interface{}) error {
 
 	case *types.MetadataMsg:
 		key = GetMetadataMsgKey(v.GetMetadataId())
-		val, err = proto.Marshal(&libtypes.MetadataMsg{
+		val, err = proto.Marshal(&carriertypespb.MetadataMsg{
 			MetadataId:      v.GetMetadataId(),
 			MetadataSummary: v.GetMetadataSummary(),
 			CreateAt:        v.GetCreateAt(),
@@ -1311,7 +1312,7 @@ func StoreMessageCache(db KeyValueStore, value interface{}) error {
 		}
 	case *types.MetadataAuthorityMsg:
 		key = GetMetadataAuthMsgKey(v.GetMetadataAuthId())
-		val, err = proto.Marshal(&libtypes.MetadataAuthorityMsg{
+		val, err = proto.Marshal(&carriertypespb.MetadataAuthorityMsg{
 			MetadataAuthId: v.GetMetadataAuthId(),
 			User:           v.GetUser(),
 			UserType:       v.GetUserType(),
@@ -1324,7 +1325,7 @@ func StoreMessageCache(db KeyValueStore, value interface{}) error {
 		}
 	case *types.TaskMsg:
 		key = GetTaskMsgKey(v.GetTaskId())
-		val, err = proto.Marshal(&libtypes.TaskMsg{
+		val, err = proto.Marshal(&carriertypespb.TaskMsg{
 			Data: v.GetTaskData(),
 		})
 		if nil != err {
@@ -1439,7 +1440,7 @@ func QueryPowerMsgArr(db KeyValueStore) (types.PowerMsgArr, error) {
 
 	for it.Next() {
 		if val := it.Value(); len(val) != 0 {
-			var res libtypes.PowerMsg
+			var res carriertypespb.PowerMsg
 			if err := proto.Unmarshal(val, &res); nil != err {
 				continue
 			}
@@ -1464,7 +1465,7 @@ func QueryMetadataMsgArr(db KeyValueStore) (types.MetadataMsgArr, error) {
 
 	for it.Next() {
 		if val := it.Value(); len(val) != 0 {
-			var res libtypes.MetadataMsg
+			var res carriertypespb.MetadataMsg
 			if err := proto.Unmarshal(val, &res); nil != err {
 				continue
 			}
@@ -1488,7 +1489,7 @@ func QueryMetadataAuthorityMsgArr(db KeyValueStore) (types.MetadataAuthorityMsgA
 
 	for it.Next() {
 		if val := it.Value(); len(val) != 0 {
-			var res libtypes.MetadataAuthorityMsg
+			var res carriertypespb.MetadataAuthorityMsg
 			if err := proto.Unmarshal(val, &res); nil != err {
 				continue
 			}
@@ -1516,7 +1517,7 @@ func QueryTaskMsgArr(db KeyValueStore) (types.TaskMsgArr, error) {
 
 	for it.Next() {
 		if val := it.Value(); len(val) != 0 {
-			var res libtypes.TaskMsg
+			var res carriertypespb.TaskMsg
 			if err := proto.Unmarshal(val, &res); nil != err {
 				continue
 			}

@@ -2,7 +2,7 @@ package twopc
 
 import (
 	"crypto/ecdsa"
-	"github.com/Metisnetwork/Metis-Carrier/p2p"
+	"github.com/datumtechs/datum-network-carrier/p2p"
 )
 
 type OptionConfig struct {

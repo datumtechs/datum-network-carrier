@@ -3,11 +3,11 @@ package handler
 import (
 	"bytes"
 	"context"
-	"github.com/Metisnetwork/Metis-Carrier/common/timeutils"
-	"github.com/Metisnetwork/Metis-Carrier/lib/netmsg/common"
-	"github.com/Metisnetwork/Metis-Carrier/lib/netmsg/consensus/twopc"
-	"github.com/Metisnetwork/Metis-Carrier/p2p"
-	p2ptest "github.com/Metisnetwork/Metis-Carrier/p2p/testing"
+	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	carriernetmsgcommonpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/common"
+	carriertwopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
+	"github.com/datumtechs/datum-network-carrier/p2p"
+	p2ptest "github.com/datumtechs/datum-network-carrier/p2p/testing"
 	lru "github.com/hashicorp/golang-lru"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	pubsubpb "github.com/libp2p/go-libp2p-pubsub/pb"
@@ -30,8 +30,8 @@ func TestValidateTwopc_ValidConfirmVote(t *testing.T) {
 	}
 
 	buf := new(bytes.Buffer)
-	_, err = p.Encoding().EncodeGossip(buf, &twopc.ConfirmVote{
-		MsgOption: &common.MsgOption{
+	_, err = p.Encoding().EncodeGossip(buf, &carriertwopcpb.ConfirmVote{
+		MsgOption: &carriernetmsgcommonpb.MsgOption{
 			ProposalId:      []byte("proposalId"),
 			SenderRole:      0,
 			SenderPartyId:   []byte("SenderPartyId"),
@@ -44,7 +44,7 @@ func TestValidateTwopc_ValidConfirmVote(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	topic := p2p.GossipTypeMapping[reflect.TypeOf(&twopc.ConfirmVote{})]
+	topic := p2p.GossipTypeMapping[reflect.TypeOf(&carriertwopcpb.ConfirmVote{})]
 	msg := &pubsub.Message{
 		Message: &pubsubpb.Message{
 			Data:  buf.Bytes(),

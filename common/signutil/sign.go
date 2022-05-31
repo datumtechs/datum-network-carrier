@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"crypto/ecdsa"
 	"crypto/elliptic"
-	ctypes "github.com/Metisnetwork/Metis-Carrier/consensus/twopc/types"
-	"github.com/Metisnetwork/Metis-Carrier/p2p"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	ctypes "github.com/datumtechs/datum-network-carrier/consensus/twopc/types"
+	"github.com/datumtechs/datum-network-carrier/p2p"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/ethereum/go-ethereum/crypto"
 )
 

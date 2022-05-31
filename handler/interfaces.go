@@ -1,9 +1,9 @@
 package handler
 
 import (
-	taskmngpb "github.com/Metisnetwork/Metis-Carrier/lib/netmsg/taskmng"
-	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
-	"github.com/Metisnetwork/Metis-Carrier/types"
+	carriernetmsgtaskmngpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/taskmng"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/libp2p/go-libp2p-core/peer"
 )
 
@@ -34,12 +34,12 @@ type Engine interface {
 type TaskManager interface {
 	Start() error
 	Stop() error
-	ValidateTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResultMsg) error
-	OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResultMsg) error
-	ValidateTaskResourceUsageMsg(pid peer.ID, taskResourceUsageMsg *taskmngpb.TaskResourceUsageMsg) error
-	OnTaskResourceUsageMsg(pid peer.ID, taskResourceUsageMsg *taskmngpb.TaskResourceUsageMsg) error
-	ValidateTaskTerminateMsg(pid peer.ID, terminateMsg *taskmngpb.TaskTerminateMsg) error
-	OnTaskTerminateMsg (pid peer.ID, terminateMsg *taskmngpb.TaskTerminateMsg) error
-	SendTaskEvent(event *libtypes.TaskEvent) error
+	ValidateTaskResultMsg(pid peer.ID, taskResultMsg *carriernetmsgtaskmngpb.TaskResultMsg) error
+	OnTaskResultMsg(pid peer.ID, taskResultMsg *carriernetmsgtaskmngpb.TaskResultMsg) error
+	ValidateTaskResourceUsageMsg(pid peer.ID, taskResourceUsageMsg *carriernetmsgtaskmngpb.TaskResourceUsageMsg) error
+	OnTaskResourceUsageMsg(pid peer.ID, taskResourceUsageMsg *carriernetmsgtaskmngpb.TaskResourceUsageMsg) error
+	ValidateTaskTerminateMsg(pid peer.ID, terminateMsg *carriernetmsgtaskmngpb.TaskTerminateMsg) error
+	OnTaskTerminateMsg (pid peer.ID, terminateMsg *carriernetmsgtaskmngpb.TaskTerminateMsg) error
+	SendTaskEvent(event *carriertypespb.TaskEvent) error
 	HandleReportResourceUsage(usage *types.TaskResuorceUsage) error
 }

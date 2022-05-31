@@ -1,8 +1,8 @@
 package types
 //
 //import (
-//	"github.com/Metisnetwork/Metis-Carrier/common"
-//	libtypes "github.com/Metisnetwork/Metis-Carrier/lib/types"
+//	"github.com/datumtechs/datum-network-carrier/common"
+//	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 //	"reflect"
 //	"testing"
 //)
@@ -11,19 +11,19 @@ package types
 //	metadatas := func() MetadataArray {
 //		return MetadataArray{
 //			&Metadata{
-//				data: &libtypes.MetadataPB{
+//				data: &carriertypespb.MetadataPB{
 //					IdentityId: "identity",
 //					NodeId:     "NodeId",
 //					DataId:     "dataId",
-//					DataStatus: libtypes.DataStatus_DataStatus_Deleted,
+//					DataStatus: carriertypespb.DataStatus_DataStatus_Deleted,
 //					DataPath:   "/a/b/c",
 //					Desc:       "desc",
 //					Rows:       10,
 //					Columns:    100,
-//					FileType:   libtypes.OriginFileType_FileType_CSV,
-//					State:      libtypes.MetadataState_MetadataState_Unknown,
+//					FileType:   carriertypespb.OriginFileType_FileType_CSV,
+//					State:      carriertypespb.MetadataState_MetadataState_Unknown,
 //					HasTitle:   true,
-//					MetadataColumns: []*libtypes.MetadataColumn{
+//					MetadataColumns: []*carriertypespb.MetadataColumn{
 //						{
 //							CIndex: 0,
 //							CName:  "cname",
@@ -38,13 +38,13 @@ package types
 //	resources := func() ResourceArray {
 //		return ResourceArray{
 //			{
-//				data: &libtypes.ResourcePB{
+//				data: &carriertypespb.ResourcePB{
 //					IdentityId:     "resource-identity",
 //					NodeId:         "resource-nodeId",
 //					NodeName:       "resource-nodeName",
 //					DataId:         "resource-dataId",
-//					DataStatus:     libtypes.DataStatus_DataStatus_Deleted,
-//					State:          libtypes.PowerState_PowerState_Unknown,
+//					DataStatus:     carriertypespb.DataStatus_DataStatus_Deleted,
+//					State:          carriertypespb.PowerState_PowerState_Unknown,
 //					TotalMem:       100 * 1024,
 //					UsedMem:        100 * 2014,
 //					TotalProcessor: 0,
@@ -58,13 +58,13 @@ package types
 //	identities := func() IdentityArray {
 //		return IdentityArray{
 //			{
-//				data: &libtypes.IdentityPB{
+//				data: &carriertypespb.IdentityPB{
 //					IdentityId: "identity-identity",
 //					NodeId:     "identity-nodeId",
 //					NodeName:   "identity-nodeName",
 //					DataId:     "identity-nodeId",
-//					DataStatus: libtypes.DataStatus_DataStatus_Deleted,
-//					Status:     libtypes.CommonStatus_CommonStatus_NonNormal,
+//					DataStatus: carriertypespb.DataStatus_DataStatus_Deleted,
+//					Status:     carriertypespb.CommonStatus_CommonStatus_NonNormal,
 //					Credential: "{\"a\":\"b\"}",
 //				},
 //			},
@@ -73,18 +73,18 @@ package types
 //	taskdatas := func() TaskDataArray {
 //		return TaskDataArray{
 //			{
-//				data: &libtypes.TaskPB{
+//				data: &carriertypespb.TaskPB{
 //					IdentityId: "task-identity",
 //					NodeId:     "task-nodeId",
 //					NodeName:   "task-nodeName",
 //					DataId:     "task-dataId",
-//					DataStatus: libtypes.DataStatus_DataStatus_Deleted,
+//					DataStatus: carriertypespb.DataStatus_DataStatus_Deleted,
 //					TaskId:     "task-taskId",
-//					State:      libtypes.TaskState_TaskState_Unknown,
+//					State:      carriertypespb.TaskState_TaskState_Unknown,
 //					Reason:     "task-reason",
 //					EventCount: 1,
 //					Desc:       "task-desc",
-//					TaskEvents: []*libtypes.TaskEvent{
+//					TaskEvents: []*carriertypespb.TaskEvent{
 //						{
 //							TaskId: "1-evengine-taskId",
 //						},

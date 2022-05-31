@@ -1,8 +1,8 @@
 package twopc
 
 import (
-	"github.com/Metisnetwork/Metis-Carrier/common"
-	"github.com/Metisnetwork/Metis-Carrier/consensus/twopc/types"
+	"github.com/datumtechs/datum-network-carrier/common"
+	"github.com/datumtechs/datum-network-carrier/consensus/twopc/types"
 	lru "github.com/hashicorp/golang-lru"
 )
 

@@ -2,11 +2,11 @@ package handler
 
 import (
 	"context"
-	"github.com/Metisnetwork/Metis-Carrier/common/abool"
-	"github.com/Metisnetwork/Metis-Carrier/common/feed"
-	statefeed "github.com/Metisnetwork/Metis-Carrier/common/feed/state"
-	libp2ppb "github.com/Metisnetwork/Metis-Carrier/lib/rpc/debug/v1"
-	p2ptest "github.com/Metisnetwork/Metis-Carrier/p2p/testing"
+	"github.com/datumtechs/datum-network-carrier/common/abool"
+	"github.com/datumtechs/datum-network-carrier/common/feed"
+	statefeed "github.com/datumtechs/datum-network-carrier/common/feed/state"
+	carrierrpcdebugpbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
+	p2ptest "github.com/datumtechs/datum-network-carrier/p2p/testing"
 	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
@@ -37,8 +37,8 @@ func TestSyncHandlers_WaitToSync(t *testing.T) {
 		t.Fatal("didn't send genesis time to subscribers")
 	}
 
-	p2p.ReceivePubSub(topic, &libp2ppb.SignedGossipTestData{
-		Data:                 &libp2ppb.GossipTestData{
+	p2p.ReceivePubSub(topic, &carrierrpcdebugpbv1.SignedGossipTestData{
+		Data:                 &carrierrpcdebugpbv1.GossipTestData{
 			Data:                 []byte("xxxx"),
 			Count:                10,
 			Step:                 777,
