@@ -241,6 +241,7 @@ type PrepareMsg struct {
 	Evidence  string
 	CreateAt  uint64
 	Sign      []byte
+	BlackOrg  string
 }
 
 func (msg *PrepareMsg) String() string {
@@ -274,6 +275,7 @@ func (msg *PrepareMsg) Hash() common.Hash {
 func (msg *PrepareMsg) GetMsgOption() *MsgOption { return msg.MsgOption }
 func (msg *PrepareMsg) GetTask() *Task           { return msg.TaskInfo }
 func (msg *PrepareMsg) GetEvidence() string { return msg.Evidence }
+func (msg *PrepareMsg) GetBlackOrg() string { return msg.BlackOrg }
 func (msg *PrepareMsg) GetCreateAt() uint64 { return msg.CreateAt }
 func (msg *PrepareMsg) GetSign() []byte     { return msg.Sign }
 

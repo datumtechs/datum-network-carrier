@@ -6,6 +6,7 @@ import (
 	"github.com/Metisnetwork/Metis-Carrier/ach/auth"
 	"github.com/Metisnetwork/Metis-Carrier/ach/metispay"
 	"github.com/Metisnetwork/Metis-Carrier/ach/metispay/kms"
+	"github.com/Metisnetwork/Metis-Carrier/blacklist"
 	"github.com/Metisnetwork/Metis-Carrier/common/flags"
 	"github.com/Metisnetwork/Metis-Carrier/consensus/chaincons"
 	"github.com/Metisnetwork/Metis-Carrier/consensus/twopc"
@@ -42,7 +43,7 @@ type Service struct {
 	dataDb     db.Database
 	APIBackend *CarrierAPIBackend
 	DebugAPIBackend *CarrierDebugAPIBackend
-
+	BlackListAPI    *blacklist.IdentityBackListCache
 	resourceManager *resource.Manager
 	messageManager  *message.MessageHandler
 	TaskManager     handler.TaskManager
@@ -75,10 +76,12 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 	log.Debugf("Get some chan size value from config when carrier NewService, NeedReplayScheduleTaskChanSize: %d, NeedExecuteTaskChanSize: %d, TaskConsResultChanSize: %d",
 		config.TaskManagerConfig.NeedReplayScheduleTaskChanSize, config.TaskManagerConfig.NeedExecuteTaskChanSize, config.TaskManagerConfig.TaskConsResultChanSize)
 
+	identityBlackListCache := blacklist.NewIdentityBackListCache()
 	resourceClientSet := grpclient.NewInternalResourceNodeSet()
 	resourceMng := resource.NewResourceManager(config.CarrierDB, resourceClientSet, mockIdentityIdsFile)
 	authManager := auth.NewAuthorityManager(config.CarrierDB)
-	scheduler := schedule.NewSchedulerStarveFIFO(election.NewVrfElector(config.P2P.PirKey(), resourceMng), eventEngine, resourceMng, authManager)
+	scheduler := schedule.NewSchedulerStarveFIFO(election.NewVrfElector(config.P2P.PirKey(), resourceMng), eventEngine, resourceMng, authManager,identityBlackListCache)
+
 	twopcEngine, err := twopc.New(
 		&twopc.Config{
 			Option: &twopc.OptionConfig{
@@ -96,6 +99,7 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 		needReplayScheduleTaskCh,
 		needExecuteTaskCh,
 		taskConsResultCh,
+		identityBlackListCache,
 	)
 
 	if nil != err {
@@ -170,6 +174,7 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 	s.Engines = make(map[types.ConsensusEngineType]handler.Engine, 0)
 	s.Engines[types.TwopcTyp] = twopcEngine
 	s.Engines[types.ChainconsTyp] = chaincons.New()
+	s.BlackListAPI = identityBlackListCache
 
 	// load stored jobNode and dataNode
 	jobNodeList, err := s.carrierDB.QueryRegisterNodeList(pb.PrefixTypeJobNode)

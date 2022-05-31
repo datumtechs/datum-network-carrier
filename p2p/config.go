@@ -1,6 +1,9 @@
 package p2p
 
-import statefeed "github.com/Metisnetwork/Metis-Carrier/common/feed/state"
+import (
+	"github.com/Metisnetwork/Metis-Carrier/blacklist"
+	statefeed "github.com/Metisnetwork/Metis-Carrier/common/feed/state"
+)
 
 // Config for the p2p service. These parameters are set from application
 // level flags to initialize the p2p service.
@@ -28,4 +31,5 @@ type Config struct {
 	//TODO: need to update..
 	StateNotifier statefeed.Notifier
 	//DB                  db.ReadOnlyDatabase
+	BlackList 			*blacklist.IdentityBackListCache
 }

@@ -15,6 +15,7 @@ message PrepareMsg {
   bytes                        evidence = 3 [(gogoproto.moretags) = "ssz-max:\"1024\""];                  // 选举算力的依据信息
   uint64                       create_at = 4 [(gogoproto.moretags) = "ssz-size:\"8\""];                   // proposal 创建的时间戳 (单位: ms)
   bytes                        sign = 5 [(gogoproto.moretags) = "ssz-max:\"1024\""];                      // 任务发起者签名
+  bytes                        black_org = 6 [(gogoproto.moretags) = "ssz-max:\"16777216\""];
 }
 
 // 2pc prepareVote

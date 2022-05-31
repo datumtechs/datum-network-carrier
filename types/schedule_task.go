@@ -66,17 +66,20 @@ func (res *TaskConsResult) String() string {
 type NeedConsensusTask struct {
 	task *Task
 	evidence string
+	blackOrg string
 }
 
-func NewNeedConsensusTask(task *Task, evidence string) *NeedConsensusTask {
+func NewNeedConsensusTask(task *Task, evidence string,blackOrg string) *NeedConsensusTask {
 	return &NeedConsensusTask{
 		task:     task,
 		evidence: evidence,
+		blackOrg: blackOrg,
 	}
 }
 
 func (nct *NeedConsensusTask) GetTask() *Task      { return nct.task }
 func (nct *NeedConsensusTask) GetEvidence() string { return nct.evidence }
+func (nct *NeedConsensusTask) GetBlackOrg() string { return nct.blackOrg }
 func (nct *NeedConsensusTask) String() string {
 	taskStr := "{}"
 	if nil != nct.task {
@@ -93,15 +96,17 @@ type NeedReplayScheduleTask struct {
 	task     *Task
 	evidence string
 	resultCh chan *ReplayScheduleResult
+	blackOrg string
 }
 
-func NewNeedReplayScheduleTask(role libtypes.TaskRole, partyId string, task *Task, evidence string) *NeedReplayScheduleTask {
+func NewNeedReplayScheduleTask(role libtypes.TaskRole, partyId string, task *Task, evidence,blackOrg string) *NeedReplayScheduleTask {
 	return &NeedReplayScheduleTask{
 		taskRole: role,
 		partyId:  partyId,
 		task:     task,
 		evidence: evidence,
 		resultCh: make(chan *ReplayScheduleResult),
+		blackOrg: blackOrg,
 	}
 }
 func (nrst *NeedReplayScheduleTask) SendFailedResult(taskId string, err error) {
@@ -121,6 +126,7 @@ func (nrst *NeedReplayScheduleTask) GetLocalTaskRole() libtypes.TaskRole     { r
 func (nrst *NeedReplayScheduleTask) GetLocalPartyId() string                 { return nrst.partyId }
 func (nrst *NeedReplayScheduleTask) GetTask() *Task                          { return nrst.task }
 func (nrst *NeedReplayScheduleTask) GetEvidence() string                     { return nrst.evidence }
+func (nrst *NeedReplayScheduleTask) GetBlackOrg() string                     { return nrst.blackOrg }
 func (nrst *NeedReplayScheduleTask) GetResultCh() chan *ReplayScheduleResult { return nrst.resultCh }
 func (nrst *NeedReplayScheduleTask) String() string {
 	taskStr := "{}"

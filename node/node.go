@@ -3,6 +3,7 @@ package node
 import (
 	"context"
 	"fmt"
+	"github.com/Metisnetwork/Metis-Carrier/blacklist"
 	"github.com/Metisnetwork/Metis-Carrier/carrier"
 	"github.com/Metisnetwork/Metis-Carrier/common"
 	commondebug "github.com/Metisnetwork/Metis-Carrier/common/debug"
@@ -209,7 +210,8 @@ func (node *CarrierNode) registerP2P(cliCtx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-
+	//blackList
+	blackList := node.fetchBlackList()
 	// load local seed node.
 	seedNodeList, err := node.db.QuerySeedNodeList()
 	localBootstrapAddr := make([]string, 0)
@@ -240,6 +242,7 @@ func (node *CarrierNode) registerP2P(cliCtx *cli.Context) error {
 		EnableUPnP:         cliCtx.Bool(flags.EnableUPnPFlag.Name),
 		DisableDiscv5:      cliCtx.Bool(flags.DisableDiscv5.Name),
 		StateNotifier:      node,
+		BlackList:          blackList,
 	})
 	if err != nil {
 		return err
@@ -359,6 +362,13 @@ func (node *CarrierNode) fetchP2P() p2p.P2P {
 	return p
 }
 
+func (node *CarrierNode) fetchBlackList() *blacklist.IdentityBackListCache {
+	var s *carrier.Service
+	if err := node.services.FetchService(&s); err != nil {
+		panic(err)
+	}
+	return s.BlackListAPI
+}
 // StateFeed implements statefeed.Notifier.
 func (node *CarrierNode) StateFeed() *event.Feed {
 	return node.stateFeed
