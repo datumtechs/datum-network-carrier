@@ -16,6 +16,8 @@ import (
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"math/big"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -197,4 +199,28 @@ func Test_bigintmul(t *testing.T) {
 	totalFeeUsed := new(big.Int).Mul(new(big.Int).SetUint64(estimatedGas), gasPrice)
 
 	t.Logf("totalFeeUsed:%d", totalFeeUsed)
+}
+
+var (
+	nonceLocker  sync.Mutex
+	pendingNonce = uint64(0)
+)
+
+func getAndIncreaseNonce() uint64 {
+	nonceLocker.Lock()
+	defer nonceLocker.Unlock()
+
+	current := pendingNonce
+	atomic.AddUint64(&pendingNonce, 1)
+
+	return current
+}
+
+func Test_getAndIncreaseNonce(t *testing.T) {
+	for i := 0; i < 10; i++ {
+		go func() {
+			t.Logf("pendingNonce: %d", getAndIncreaseNonce())
+		}()
+	}
+	time.Sleep(time.Duration(2) * time.Second)
 }

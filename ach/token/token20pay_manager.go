@@ -5,6 +5,7 @@ import (
 	"crypto/ecdsa"
 	"encoding/hex"
 	"errors"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -52,7 +53,8 @@ type Token20PayManager struct {
 	chainID                    *big.Int
 	abi                        abi.ABI
 	contractToken20PayInstance *contracts.Token20Pay
-	pendingNonce             uint64
+	nonceLocker                sync.Mutex
+	pendingNonce               uint64
 }
 
 func (m *Token20PayManager) loadPrivateKey() {
@@ -150,7 +152,7 @@ func NewToken20PayManager(db core.CarrierDB, config *Config, kmsConfig *kms.Conf
 		}
 		m.loadPrivateKey()
 
-		m.initNonce()
+		m.initPendingNonce()
 	}
 
 	abiCode, err := abi.JSON(strings.NewReader(contracts.Token20PayABI))
@@ -161,7 +163,7 @@ func NewToken20PayManager(db core.CarrierDB, config *Config, kmsConfig *kms.Conf
 	return m
 }
 
-func (m *Token20PayManager) initNonce() {
+func (m *Token20PayManager) initPendingNonce() {
 	if pendingNonce, err := m.client.PendingNonceAt(context.Background(), m.Config.walletAddress); err != nil {
 		log.Fatalf("cannot init pending nonce: %v", err)
 	} else {
@@ -169,9 +171,17 @@ func (m *Token20PayManager) initNonce() {
 	}
 }
 
+func (m *Token20PayManager) getAndIncreasePendingNonce() uint64 {
+	m.nonceLocker.Lock()
+	defer m.nonceLocker.Unlock()
+
+	current := m.pendingNonce
+	atomic.AddUint64(&m.pendingNonce, 1)
+
+	return current
+}
+
 func (m *Token20PayManager) buildTxOpts(gasLimit uint64) (*bind.TransactOpts, error) {
-	// variable "nonce" is necessary
-	nonce := atomic.AddUint64(&m.pendingNonce, 1)
 
 	gasPrice, err := m.client.SuggestGasPrice(context.Background())
 	if err != nil {
@@ -184,7 +194,7 @@ func (m *Token20PayManager) buildTxOpts(gasLimit uint64) (*bind.TransactOpts, er
 		return nil, err
 	}
 
-	txOpts.Nonce = new(big.Int).SetUint64(nonce)
+	txOpts.Nonce = new(big.Int).SetUint64(m.getAndIncreasePendingNonce())
 	txOpts.Value = big.NewInt(0) // in wei
 	txOpts.GasLimit = gasLimit   // in units
 	txOpts.GasPrice = gasPrice
