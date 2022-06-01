@@ -197,7 +197,7 @@ func (m *Token20PayManager) buildTxOpts(gasLimit uint64) (*bind.TransactOpts, er
 	txOpts.Nonce = new(big.Int).SetUint64(m.getAndIncreasePendingNonce())
 	txOpts.Value = big.NewInt(0) // in wei
 	txOpts.GasLimit = gasLimit   // in units
-	txOpts.GasPrice = gasPrice
+	txOpts.GasPrice = gasPrice.Mul(gasPrice, big.NewInt(2))
 	return txOpts, nil
 }
 
