@@ -159,10 +159,6 @@ func (c *DataNodeClient) DeleteData(in *fighterapipb.DownloadRequest) (*fightera
 	return nil, errors.New("method DeleteData not implemented")
 }
 
-func (c *DataNodeClient) SendSharesData(in *fighterapipb.SendSharesDataRequest) (*fighterapipb.SendSharesDataReply, error) {
-	return nil, errors.New("method SendSharesData not implemented")
-}
-
 func (c *DataNodeClient) HandleTaskReadyGo(req *fightertypespb.TaskReadyGoReq) (*fightertypespb.TaskReadyGoReply, error) {
 	ctx, cancel := context.WithTimeout(c.ctx, 20*defaultRequestTime)
 	defer cancel()

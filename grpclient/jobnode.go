@@ -141,10 +141,6 @@ func (c *JobNodeClient) GetTaskDetails(ctx context.Context, taskIds []string) (*
 	return nil, errors.New("method GetTaskDetails not implemented")
 }
 
-func (c *JobNodeClient) UploadShard(ctx context.Context) (fighterapicomputepb.ComputeProvider_UploadShardClient, error) {
-	return nil, errors.New("method UploadShard not implemented")
-}
-
 func (c *JobNodeClient) HandleTaskReadyGo(req *fightertypespb.TaskReadyGoReq) (*fightertypespb.TaskReadyGoReply, error) {
 	ctx, cancel := context.WithTimeout(c.ctx, 20*defaultRequestTime)
 	defer cancel()
