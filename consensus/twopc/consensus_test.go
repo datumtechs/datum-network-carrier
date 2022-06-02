@@ -6,7 +6,9 @@ import (
 	"github.com/datumtechs/datum-network-carrier/common"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
 	ctypes "github.com/datumtechs/datum-network-carrier/consensus/twopc/types"
+	carriertwopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"gotest.tools/assert"
 	"math"
@@ -78,7 +80,7 @@ func TestProposalStateMonitor(t *testing.T) {
 		t.Log("Start add new one member into 2pc consensus proposalState monitor queue")
 		for i, tm := range arr {
 			orgState := ctypes.NewOrgProposalState(common.Hash{byte(uint8(i))},
-				fmt.Sprintf("taskId:%d", i), carriertypespb.TaskRole_TaskRole_Unknown,
+				fmt.Sprintf("taskId:%d", i), commonconstantpb.TaskRole_TaskRole_Unknown,
 				&carriertypespb.TaskOrganization{
 					PartyId:    fmt.Sprintf("senderPartyId:%d", i),
 					NodeName:   fmt.Sprintf("senderNodeName:%d", i),
@@ -101,7 +103,7 @@ func TestProposalStateMonitor(t *testing.T) {
 	<-ctx.Done()
 	assert.Equal(t, int(count), len(arr)*2, fmt.Sprintf("the number of monitors expected to be executed is %d, but the actual number is %d", len(arr)*2, count))
 }
-func mockTestData() *state {
+func mockTestData(t *testing.T) *state {
 	proposalIds := []common.Hash{
 		common.HexToHash("0x35af63cf9e8f90dcc8a8e024dc78acbb268caa711a8a7339a9492f5ef2f8833e"),
 		common.HexToHash("0x3ff6fea93531aa400789b3f8ea0d28409790499fb16391f0814e033eef1a2ccf"),
@@ -138,11 +140,11 @@ func mockTestData() *state {
 		}
 	}
 
-	yesVotes := make(map[carriertypespb.TaskRole]uint32, 0)
-	voteStatus := make(map[carriertypespb.TaskRole]uint32, 0)
+	yesVotes := make(map[commonconstantpb.TaskRole]uint32, 0)
+	voteStatus := make(map[commonconstantpb.TaskRole]uint32, 0)
 	for i := 0; i < 5; i++ {
-		yesVotes[carriertypespb.TaskRole(i)] = uint32(i + 1)
-		voteStatus[carriertypespb.TaskRole(i)] = uint32(i + 2)
+		yesVotes[commonconstantpb.TaskRole(i)] = uint32(i + 1)
+		voteStatus[commonconstantpb.TaskRole(i)] = uint32(i + 2)
 	}
 
 	prepareVotes := make(map[common.Hash]*prepareVoteState, 0)
@@ -153,9 +155,9 @@ func mockTestData() *state {
 			votesP[partyId] = &types.PrepareVote{
 				MsgOption: &types.MsgOption{
 					ProposalId:      proposalIds[i],
-					SenderRole:      carriertypespb.TaskRole(12),
+					SenderRole:      commonconstantpb.TaskRole(12),
 					SenderPartyId:   partyId,
-					ReceiverRole:    carriertypespb.TaskRole(23),
+					ReceiverRole:    commonconstantpb.TaskRole(23),
 					ReceiverPartyId: partyId,
 					Owner: &carriertypespb.TaskOrganization{
 						PartyId:    partyId,
@@ -182,9 +184,9 @@ func mockTestData() *state {
 			votesC[partyId] = &types.ConfirmVote{
 				MsgOption: &types.MsgOption{
 					ProposalId:      proposalIds[i],
-					SenderRole:      carriertypespb.TaskRole(12),
+					SenderRole:      commonconstantpb.TaskRole(12),
 					SenderPartyId:   partyId,
-					ReceiverRole:    carriertypespb.TaskRole(23),
+					ReceiverRole:    commonconstantpb.TaskRole(23),
 					ReceiverPartyId: partyId,
 					Owner: &carriertypespb.TaskOrganization{
 						PartyId:    partyId,
@@ -202,16 +204,22 @@ func mockTestData() *state {
 			}
 		}
 	}
+	cache, err := NewTwopcMsgCache(default2pcMsgCacheSize)
+	if nil != err {
+		t.Fatalf("cannot make twopcMsgCache, %s", err)
+	}
+
 	return &state{
 		proposalTaskCache: proposalTaskCache,
 		proposalSet:       proposalSet,
 		prepareVotes:      prepareVotes,
 		confirmVotes:      confirmVotes,
+		msgCache:          cache,
 	}
 }
 func TestTwopc_Get2PcProposalStateByTaskId(t *testing.T) {
 	twoPc := &Twopc{
-		state: mockTestData(),
+		state: mockTestData(t),
 	}
 	result1, _ := twoPc.Get2PcProposalStateByTaskId("task_00,0")
 	assert.Equal(t, "0x35af63cf9e8f90dcc8a8e024dc78acbb268caa711a8a7339a9492f5ef2f8833e", result1.ProposalId)
@@ -220,7 +228,7 @@ func TestTwopc_Get2PcProposalStateByTaskId(t *testing.T) {
 }
 func TestTwopc_Get2PcProposalStateByProposalId(t *testing.T) {
 	twoPc := &Twopc{
-		state: mockTestData(),
+		state: mockTestData(t),
 	}
 	result1, _ := twoPc.Get2PcProposalStateByProposalId("0x35af63cf9e8f90dcc8a8e024dc78acbb268caa711a8a7339a9492f5ef2f8833e")
 	assert.Equal(t, "task_00,0", result1.State["p,0"].TaskId)
@@ -229,15 +237,31 @@ func TestTwopc_Get2PcProposalStateByProposalId(t *testing.T) {
 }
 func TestTwopc_Get2PcProposalPrepare(t *testing.T) {
 	twoPc := &Twopc{
-		state: mockTestData(),
+		state: mockTestData(t),
 	}
 	_, err := twoPc.Get2PcProposalPrepare("0x35af63cf9e8f90dcc8a8e024dc78acbb268caa711a8a7339a9492f5ef2f8833e")
 	assert.NilError(t, err)
 }
 func TestTwopc_Get2PcProposalConfirm(t *testing.T) {
 	twoPc := &Twopc{
-		state: mockTestData(),
+		state: mockTestData(t),
 	}
 	_, err := twoPc.Get2PcProposalConfirm("0x35af63cf9e8f90dcc8a8e024dc78acbb268caa711a8a7339a9492f5ef2f8833e")
 	assert.NilError(t, err)
+}
+
+func TestNewTwopcMsgCacheAddMsg(t *testing.T) {
+	state := mockTestData(t)
+	assert.Equal(t, false, state.AddMsg(12), "expect return false, but true")
+	assert.Equal(t, true, state.AddMsg(&carriertwopcpb.PrepareMsg{}), "expect return true, but false")
+}
+
+func TestNewTwopcMsgCacheContainsOrAddMsg(t *testing.T) {
+	state := mockTestData(t)
+	state.ContainsOrAddMsg(&carriertwopcpb.PrepareMsg{})
+	if err := state.ContainsOrAddMsg(&carriertwopcpb.PrepareMsg{}); nil == err {
+		t.Fatalf("expect return err, but nil")
+	}
+	err := state.ContainsOrAddMsg(&carriertwopcpb.ConfirmMsg{})
+	assert.NilError(t, err, fmt.Sprintf("expect return nil, but err: %s", err))
 }

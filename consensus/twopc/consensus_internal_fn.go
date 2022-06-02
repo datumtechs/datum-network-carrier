@@ -270,10 +270,10 @@ func (t *Twopc) stopTaskConsensus(
 	if senderRole == commonconstantpb.TaskRole_TaskRole_Sender {
 		t.replyTaskConsensusResult(types.NewTaskConsResult(taskId, taskActionStatus, fmt.Errorf(reason)))
 		task, err := t.resourceMng.GetDB().QueryLocalTask(taskId)
-		if err!=nil{
-			t.identityBlackListCache.CheckConsensusResultOfNoVote(proposalId,task)
-		}else {
-			log.Warn("not found task ,task id is:",taskId)
+		if err != nil {
+			t.identityBlackListCache.CheckConsensusResultOfNoVote(proposalId, task)
+		} else {
+			log.Warn("not found task ,taskId is:", taskId)
 		}
 	} else {
 
@@ -296,7 +296,7 @@ func (t *Twopc) stopTaskConsensus(
 			receiver,
 			taskId,
 			taskActionStatus,
-			&types.PrepareVoteResource{},   // zero value
+			&types.PrepareVoteResource{},          // zero value
 			&carriertwopcpb.ConfirmTaskPeerInfo{}, // zero value
 			fmt.Errorf(reason),
 		))
@@ -407,7 +407,7 @@ func (t *Twopc) sendPrepareMsg(proposalId common.Hash, nonConsTask *types.NeedCo
 		TaskInfo:  task,
 		Evidence:  string(prepareMsg.GetEvidence()),
 		CreateAt:  prepareMsg.GetCreateAt(),
-		BlackOrg: string(prepareMsg.GetBlackOrg()),
+		BlackOrg:  string(prepareMsg.GetBlackOrg()),
 	}
 
 	// signature the msg and fill sign field of prepareMsg
@@ -439,7 +439,6 @@ func (t *Twopc) sendPrepareMsg(proposalId common.Hash, nonConsTask *types.NeedCo
 	}
 	return nil
 }
-
 
 func (t *Twopc) sendPrepareVote(pid peer.ID, sender, receiver *carriertypespb.TaskOrganization, req *carriertwopcpb.PrepareVote) error {
 
@@ -520,9 +519,8 @@ func (t *Twopc) sendConfirmMsg(proposalId common.Hash, task *types.Task, peers *
 		errs = append(errs, fmt.Sprintf("send confirmMsg to remote peer, %s", err))
 	}
 
-	log.WithField("traceId", traceutil.GenerateTraceID(confirmMsg)).Debugf("Succeed to call`sendConfirmMsg.%s` proposalId: %s, taskId: %s",
+	log.WithField("traceId", traceutil.GenerateTraceID(confirmMsg)).Debugf("Succeed to call`sendConfirmMsg` proposalId: %s, taskId: %s",
 		proposalId.String(), task.GetTaskId())
-
 
 	if len(errs) != 0 {
 		return fmt.Errorf(
@@ -560,7 +558,6 @@ func (t *Twopc) sendCommitMsg(proposalId common.Hash, task *types.Task, option t
 
 	sender := task.GetTaskSender()
 
-
 	needSendLocalMsgFn := func() bool {
 		for i := 0; i < len(task.GetTaskData().GetDataSuppliers()); i++ {
 			if sender.GetIdentityId() == task.GetTaskData().GetDataSuppliers()[i].GetIdentityId() {
@@ -586,9 +583,9 @@ func (t *Twopc) sendCommitMsg(proposalId common.Hash, task *types.Task, option t
 		sender.GetPartyId(), "", sender, option, startTime)
 
 	msg := &types.CommitMsg{
-		MsgOption:     types.FetchMsgOption(commitMsg.GetMsgOption()),
+		MsgOption:    types.FetchMsgOption(commitMsg.GetMsgOption()),
 		CommitOption: types.TwopcMsgOptionFromBytes(commitMsg.GetCommitOption()),
-		CreateAt:      commitMsg.GetCreateAt(),
+		CreateAt:     commitMsg.GetCreateAt(),
 	}
 
 	// signature the msg and fill sign field of commitMsg
@@ -598,7 +595,6 @@ func (t *Twopc) sendCommitMsg(proposalId common.Hash, task *types.Task, option t
 			msg.GetMsgOption().GetProposalId().String(), err)
 	}
 	commitMsg.Sign = sign
-
 
 	errs := make([]string, 0)
 	if needSendLocalMsgFn() {
@@ -611,9 +607,8 @@ func (t *Twopc) sendCommitMsg(proposalId common.Hash, task *types.Task, option t
 		errs = append(errs, fmt.Sprintf("send commitMsg to remote peer, %s", err))
 	}
 
-	log.WithField("traceId", traceutil.GenerateTraceID(commitMsg)).Debugf("Succeed to call`sendCommitMsg.%s` proposalId: %s, taskId: %s",
+	log.WithField("traceId", traceutil.GenerateTraceID(commitMsg)).Debugf("Succeed to call`sendCommitMsg` proposalId: %s, taskId: %s",
 		proposalId.String(), task.GetTaskId())
-
 
 	if len(errs) != 0 {
 		return fmt.Errorf(

@@ -2422,25 +2422,32 @@ func (m *Manager) needExecuteTaskMonitorTimer() *time.Timer {
 }
 
 func (m *Manager) AddMsg(msg interface{}) bool {
+
+	var key []byte
 	switch msg.(type) {
 	case *carriernetmsgtaskmngpb.TaskResourceUsageMsg:
 		pure := msg.(*carriernetmsgtaskmngpb.TaskResourceUsageMsg)
 		v := hashutil.Hash([]byte(pure.String()))
-		key := append(taskResourceUsageMsgCacheKeyPrefix, v[:]...)
-		return m.msgCache.Add(string(key), struct {}{})
+		key = append(taskResourceUsageMsgCacheKeyPrefix, v[:]...)
+
 	case *carriernetmsgtaskmngpb.TaskResultMsg:
 		pure := msg.(*carriernetmsgtaskmngpb.TaskResultMsg)
 		v := hashutil.Hash([]byte(pure.String()))
-		key := append(taskResultMsgCacheKeyPrefix, v[:]...)
-		return m.msgCache.Add(string(key), struct {}{})
+		key = append(taskResultMsgCacheKeyPrefix, v[:]...)
+
 	case *carriernetmsgtaskmngpb.TaskTerminateMsg:
 		pure := msg.(*carriernetmsgtaskmngpb.TaskTerminateMsg)
 		v := hashutil.Hash([]byte(pure.String()))
-		key := append(taskTerminateMsgCacheKeyPrefix, v[:]...)
-		return m.msgCache.Add(string(key), struct {}{})
-	default:
-		return false
+		key = append(taskTerminateMsgCacheKeyPrefix, v[:]...)
+
+	//default:
+	//	return false
 	}
+	if len(key) != 0 {
+		m.msgCache.Add(string(key), struct {}{})
+		return true
+	}
+	return false
 }
 
 func (m *Manager) ContainMsg(msg interface{}) bool {
@@ -2467,34 +2474,33 @@ func (m *Manager) ContainMsg(msg interface{}) bool {
 
 // return: ok, evict
 func (m *Manager) ContainsOrAddMsg(msg interface{}) error {
-	var (
-		has bool
-		evict bool
-	)
+
+	var key []byte
 	switch msg.(type) {
 	case *carriernetmsgtaskmngpb.TaskResourceUsageMsg:
 		pure := msg.(*carriernetmsgtaskmngpb.TaskResourceUsageMsg)
 		v := hashutil.Hash([]byte(pure.String()))
-		key := append(taskResourceUsageMsgCacheKeyPrefix, v[:]...)
-		has, evict = m.msgCache.ContainsOrAdd(string(key), struct {}{})
+		key = append(taskResourceUsageMsgCacheKeyPrefix, v[:]...)
+
 	case *carriernetmsgtaskmngpb.TaskResultMsg:
 		pure := msg.(*carriernetmsgtaskmngpb.TaskResultMsg)
 		v := hashutil.Hash([]byte(pure.String()))
-		key := append(taskResultMsgCacheKeyPrefix, v[:]...)
-		has, evict = m.msgCache.ContainsOrAdd(string(key), struct {}{})
+		key = append(taskResultMsgCacheKeyPrefix, v[:]...)
+
 	case *carriernetmsgtaskmngpb.TaskTerminateMsg:
 		pure := msg.(*carriernetmsgtaskmngpb.TaskTerminateMsg)
 		v := hashutil.Hash([]byte(pure.String()))
-		key := append(taskTerminateMsgCacheKeyPrefix, v[:]...)
-		has, evict = m.msgCache.ContainsOrAdd(string(key), struct {}{})
-	default:
-		has, evict = false, false
+		key = append(taskTerminateMsgCacheKeyPrefix, v[:]...)
+
+	//default:
+	//	has, evict = false, false
 	}
-	if has {
-		return fmt.Errorf("not found key value on lru cache")
+
+	if len(key) == 0 {
+		return fmt.Errorf("not match msg type")
 	}
-	if !evict {
-		return fmt.Errorf("add key value to lru cache failed")
+	if has, _ := m.msgCache.ContainsOrAdd(string(key), struct {}{}); has {
+		return fmt.Errorf("key value already exists in lru cache")
 	}
 	return nil
 }

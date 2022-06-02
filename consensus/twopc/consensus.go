@@ -13,12 +13,12 @@ import (
 	ctypes "github.com/datumtechs/datum-network-carrier/consensus/twopc/types"
 	ev "github.com/datumtechs/datum-network-carrier/core/evengine"
 	"github.com/datumtechs/datum-network-carrier/core/resource"
+	"github.com/datumtechs/datum-network-carrier/p2p"
 	carriernetmsgcommonpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/common"
 	carriertwopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
 	carrierrpcdebugpbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
-	"github.com/datumtechs/datum-network-carrier/p2p"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"strings"
@@ -51,8 +51,8 @@ type Twopc struct {
 	taskConsResultCh         chan *types.TaskConsResult
 	wal                      *walDB
 	Errs                     []error
-	orgBlacklistLock		 sync.RWMutex
-	orgBlacklistCache		 map[string][]*OrganizationTaskInfo
+	orgBlacklistLock         sync.RWMutex
+	orgBlacklistCache        map[string][]*OrganizationTaskInfo
 	identityBlackListCache   *blacklist.IdentityBackListCache
 }
 
@@ -82,9 +82,9 @@ func New(
 		taskConsResultCh:         taskConsResultCh,
 		wal:                      newWalDB,
 		Errs:                     make([]error, 0),
-		identityBlackListCache: identityBlackListCache,
+		identityBlackListCache:   identityBlackListCache,
 	}
-	identityBlackListCache.SetEngineAndWal(engine,newWalDB)
+	identityBlackListCache.SetEngineAndWal(engine, newWalDB)
 	return engine, nil
 }
 
@@ -229,7 +229,7 @@ func (t *Twopc) OnHandle(nonConsTask *types.NeedConsensusTask) error {
 // Handle the prepareMsg from the task pulisher peer (on Subscriber)
 func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls types.NetworkMsgLocationSymbol) error {
 
-	if err := t.state.ContainsOrAddMsg(prepareMsg); nil != err {
+	if err := t.state.ContainsOrAddMsg(prepareMsg.GetData()); nil != err {
 		return err
 	}
 
@@ -240,14 +240,14 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 
 	// the prepareMsg is future msg.
 	now := timeutils.UnixMsecUint64()
-	jitterValue:= uint64(100)
-	if now+jitterValue < msg.GetCreateAt() {  // maybe it be allowed to overflow 100ms for timewindows
+	jitterValue := uint64(100)
+	if now+jitterValue < msg.GetCreateAt() { // maybe it be allowed to overflow 100ms for timewindows
 		log.Errorf("received the prepareMsg is future msg when received prepareMsg, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, now: {%d}, msgCreateAt: {%d}",
 			msg.GetMsgOption().GetProposalId().String(), msg.GetTask().GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), now, msg.GetCreateAt())
 		return fmt.Errorf("%s when received prepareMsg", ctypes.ErrProposalIllegal)
 	}
 	// the prepareMsg is too late.
-	if (now+jitterValue - msg.GetCreateAt()) >= uint64(ctypes.PrepareMsgVotingDuration.Milliseconds()) {
+	if (now + jitterValue - msg.GetCreateAt()) >= uint64(ctypes.PrepareMsgVotingDuration.Milliseconds()) {
 		log.Errorf("received the prepareMsg is too late when received prepareMsg, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, now: {%d}, msgCreateAt: {%d}, duration: {%d}, valid duration: {%d}",
 			msg.GetMsgOption().GetProposalId().String(), msg.GetTask().GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(),
 			now, msg.GetCreateAt(), now-msg.GetCreateAt(), ctypes.PrepareMsgVotingDuration.Milliseconds())
@@ -303,7 +303,6 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 
 		log.WithField("traceId", traceutil.GenerateTraceID(prepareMsg.GetData())).Debugf("Received prepareMsg, consensusSymbol: {%s}, remote pid: {%s}, prepareMsg: %s", nmls.String(), pid, msg.String())
 
-
 		votingFn := func(party *carriertypespb.TaskOrganization, role commonconstantpb.TaskRole) error {
 
 			org := &carriertypespb.TaskOrganization{
@@ -328,7 +327,6 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 				return fmt.Errorf("store task execute status failed when received prepareMsg, %s", err)
 			}
 
-
 			log.Infof("Store proposal from task sender, proposalId: {%s}, taskId: {%s}, partyId: {%s}", msg.GetMsgOption().String(), msg.GetTask().GetTaskId(), party.GetPartyId())
 
 			// Store some local cache
@@ -344,7 +342,7 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 			t.wal.StoreProposalTask(msg.GetMsgOption().GetReceiverPartyId(), proposalTask)
 
 			// Send task to Scheduler to replay sched.
-			needReplayScheduleTask := types.NewNeedReplayScheduleTask(msg.GetMsgOption().GetReceiverRole(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetTask(), msg.GetEvidence(),msg.GetBlackOrg())
+			needReplayScheduleTask := types.NewNeedReplayScheduleTask(msg.GetMsgOption().GetReceiverRole(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetTask(), msg.GetEvidence(), msg.GetBlackOrg())
 			t.sendNeedReplayScheduleTask(needReplayScheduleTask)
 			replayTaskResult := needReplayScheduleTask.ReceiveResult()
 
@@ -432,7 +430,6 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 			return nil
 		}
 
-
 		failedPartyIds := make([]string, 0)
 
 		for _, data := range msg.GetTask().GetTaskData().GetDataSuppliers() {
@@ -463,13 +460,13 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 		}
 	}
 	close(errCh)
-	return <- errCh
+	return <-errCh
 }
 
 // (on Publisher)
 func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap, nmls types.NetworkMsgLocationSymbol) error {
 
-	if err := t.state.ContainsOrAddMsg(prepareVote); nil != err {
+	if err := t.state.ContainsOrAddMsg(prepareVote.GetData()); nil != err {
 		return err
 	}
 
@@ -660,13 +657,13 @@ func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap, n
 	}
 
 	close(errCh)
-	return <- errCh
+	return <-errCh
 }
 
 // (on Subscriber)
 func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, nmls types.NetworkMsgLocationSymbol) error {
 
-	if err := t.state.ContainsOrAddMsg(confirmMsg); nil != err {
+	if err := t.state.ContainsOrAddMsg(confirmMsg.GetData()); nil != err {
 		return err
 	}
 
@@ -754,7 +751,6 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, nmls
 					msg.GetMsgOption().GetProposalId().String(), task.GetTaskId(), party.GetPartyId(), sender.String(), task.GetTaskSender().String())
 				return fmt.Errorf("%s when received confirmMsg", ctypes.ErrConsensusMsgInvalid)
 			}
-
 
 			// verify the receiver is myself ?
 			if identity.GetIdentityId() != party.GetIdentityId() {
@@ -873,7 +869,6 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, nmls
 			return nil
 		}
 
-
 		failedPartyIds := make([]string, 0)
 
 		for _, data := range task.GetTaskData().GetDataSuppliers() {
@@ -905,13 +900,13 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, nmls
 	}
 
 	close(errCh)
-	return <- errCh
+	return <-errCh
 }
 
 // (on Publisher)
 func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, nmls types.NetworkMsgLocationSymbol) error {
 
-	if err := t.state.ContainsOrAddMsg(confirmVote); nil != err {
+	if err := t.state.ContainsOrAddMsg(confirmVote.GetData()); nil != err {
 		return err
 	}
 
@@ -926,7 +921,6 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, n
 	errCh := make(chan error, 0)
 
 	t.asyncCallCh <- func() {
-
 
 		if t.state.HasNotOrgProposalWithProposalId(vote.GetMsgOption().GetProposalId()) {
 			log.Errorf("Failed to check org proposalState whether have been exist when received confirmVote, but it's not exist, proposalId: {%s}",
@@ -945,7 +939,6 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, n
 		}
 
 		log.WithField("traceId", traceutil.GenerateTraceID(confirmVote.GetData())).Debugf("Received confirmVote, consensusSymbol: {%s}, remote pid: {%s}, confirmVote: %s", nmls.String(), pid, vote.String())
-
 
 		randomSt, ok := t.state.RandomOrgProposalStateWithProposalId(vote.GetMsgOption().GetProposalId())
 		if !ok {
@@ -987,7 +980,6 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, n
 			errCh <- fmt.Errorf("%s when received confirmVote", ctypes.ErrProposalNotFound)
 			return
 		}
-
 
 		// The vote in the consensus confirm epoch can be processed only if the current state is the confirm state
 		if orgProposalState.IsPreparePeriod() {
@@ -1064,11 +1056,11 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, n
 					} else {
 						// Send consensus result (on task sender)
 						t.replyTaskConsensusResult(types.NewTaskConsResult(orgProposalState.GetTaskId(), types.TaskConsensusFinished, nil))
-						task,err:=t.resourceMng.GetDB().QueryLocalTask(orgProposalState.GetTaskId())
-						if err!=nil{
-							t.identityBlackListCache.CheckConsensusResultOfNoVote(orgProposalState.GetProposalId(),task)
-						}else {
-							log.Warn("not found task ,task id is:",orgProposalState.GetTaskId())
+						task, err := t.resourceMng.GetDB().QueryLocalTask(orgProposalState.GetTaskId())
+						if err != nil {
+							t.identityBlackListCache.CheckConsensusResultOfNoVote(orgProposalState.GetProposalId(), task)
+						} else {
+							log.Warn("not found task ,taskId is:", orgProposalState.GetTaskId())
 						}
 					}
 					// Finally, whether the commitmsg is sent successfully or not, the local cache needs to be cleared
@@ -1100,13 +1092,13 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, n
 	}
 
 	close(errCh)
-	return <- errCh
+	return <-errCh
 }
 
 // (on Subscriber)
 func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap, nmls types.NetworkMsgLocationSymbol) error {
 
-	if err := t.state.ContainsOrAddMsg(cimmitMsg); nil != err {
+	if err := t.state.ContainsOrAddMsg(cimmitMsg.GetData()); nil != err {
 		return err
 	}
 
@@ -1156,7 +1148,6 @@ func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap, nmls ty
 			return
 		}
 
-
 		driveTaskFn := func(party *carriertypespb.TaskOrganization, role commonconstantpb.TaskRole) error {
 
 			orgProposalState, ok := t.state.QueryOrgProposalStateWithProposalIdAndPartyId(msg.GetMsgOption().GetProposalId(), party.GetPartyId())
@@ -1193,7 +1184,6 @@ func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap, nmls ty
 					msg.GetMsgOption().GetProposalId().String(), orgProposalState.GetTaskId(), party.GetPartyId())
 				return fmt.Errorf("%s when received commitMsg", ctypes.ErrConsensusMsgInvalid)
 			}
-
 
 			// Check whether the sender of the message is the same organization as the sender of the task.
 			// If not, this message is illegal.
@@ -1248,7 +1238,6 @@ func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap, nmls ty
 			return nil
 		}
 
-
 		failedPartyIds := make([]string, 0)
 
 		for _, data := range task.GetTaskData().GetDataSuppliers() {
@@ -1280,7 +1269,7 @@ func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap, nmls ty
 	}
 
 	close(errCh)
-	return <- errCh
+	return <-errCh
 }
 
 func (t *Twopc) onTerminateTaskConsensus(pid peer.ID, msg *types.TerminateConsensusMsgWrap) error {
@@ -1510,9 +1499,9 @@ func (t *Twopc) Get2PcProposalConfirm(proposalId string) (*carrierrpcdebugpbv1.G
 		VoteStatus: voteStatus,
 	}, nil
 }
-func (t *Twopc) HasPrepareVoting(proposalId common.Hash, org *carriertypespb.TaskOrganization) bool   {
-	return t.state.HasPrepareVoting(proposalId,org)
+func (t *Twopc) HasPrepareVoting(proposalId common.Hash, org *carriertypespb.TaskOrganization) bool {
+	return t.state.HasPrepareVoting(proposalId, org)
 }
-func (t *Twopc) HasConfirmVoting(proposalId common.Hash, org *carriertypespb.TaskOrganization) bool   {
-	return t.state.HasConfirmVoting(proposalId,org)
+func (t *Twopc) HasConfirmVoting(proposalId common.Hash, org *carriertypespb.TaskOrganization) bool {
+	return t.state.HasConfirmVoting(proposalId, org)
 }
