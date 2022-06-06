@@ -10,6 +10,7 @@ import (
 	"github.com/datumtechs/datum-network-carrier/common/signutil"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
 	"github.com/datumtechs/datum-network-carrier/common/traceutil"
+	ctypes "github.com/datumtechs/datum-network-carrier/consensus/twopc/types"
 	ev "github.com/datumtechs/datum-network-carrier/core/evengine"
 	"github.com/datumtechs/datum-network-carrier/core/rawdb"
 	"github.com/datumtechs/datum-network-carrier/core/resource"
@@ -1842,31 +1843,8 @@ func (m *Manager) executeTaskEvent(logkeyword string, symbol types.NetworkMsgLoc
 				logkeyword, event.GetTaskId())
 		}
 
-		// ## 1、 check wether task status is `terminate`
-		terminating, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusTerminateByPartyId(localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
-		if nil != err {
-			log.WithError(err).Errorf("Failed to query local task execute `termining` status with task sender %s, taskId: {%s}, partyId: {%s}",
-				logkeyword, localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
-			return err
-		}
-		if terminating {
-			log.Warnf("Warning query local task execute status has `termining` with task sender %s, taskId: {%s}, partyId: {%s}",
-				logkeyword, localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
-			return nil
-		}
-
-		// ## 2、 check wether task status is `running`
-		running, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusRunningByPartyId(localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
-		if nil != err {
-			log.WithError(err).Errorf("Failed to query local task execute status has `running` with task sender %s, taskId: {%s}, partyId: {%s}",
-				logkeyword, localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
-			return err
-		}
-		// (While task is consensus or running, can terminate.)
-		if running {
-			if err := m.onTerminateExecuteTask(event.GetTaskId(), event.GetPartyId(), localTask); nil != err {
-				log.Errorf("Failed to call `onTerminateExecuteTask()` %s, taskId: {%s}, err: \n%s", logkeyword, localTask.GetTaskId(), err)
-			}
+		if err := m.terminateExecuteTaskBySender(localTask); nil != err {
+			log.Errorf("Failed to call `terminateExecuteTaskBySender()` %s, taskId: {%s}, err: \n%s", logkeyword, localTask.GetTaskId(), err)
 		}
 	}
 	return nil
@@ -2266,114 +2244,151 @@ func (m *Manager) onTaskTerminateMsg(pid peer.ID, terminateMsg *carriernetmsgtas
 
 	msg := types.FetchTaskTerminateTaskMngMsg(terminateMsg)
 
-	// Verify the signature
-	_, err := signutil.VerifyMsgSign(msg.GetMsgOption().GetOwner().GetNodeId(), msg.Hash().Bytes(), msg.GetSign())
-	if err != nil {
-		return fmt.Errorf("verify terminateMsg sign %s", err)
+	// Verify the signature of remote msg
+	if nmls == types.RemoteNetworkMsg {
+		_, err := signutil.VerifyMsgSign(msg.GetMsgOption().GetOwner().GetNodeId(), msg.Hash().Bytes(), msg.GetSign())
+		if err != nil {
+			return fmt.Errorf("verify remote terminateMsg sign %s", err)
+		}
+	}
+
+	identity, err := m.resourceMng.GetDB().QueryIdentity()
+	if nil != err {
+		log.WithError(err).Errorf("Failed to call `QueryIdentity()` when received terminateMsg on `taskManager.OnTaskTerminateMsg()`, taskId: {%s}", msg.GetTaskId())
+		return fmt.Errorf("query local identity failed when received terminateMsg, %s", err)
 	}
 
 	task, err := m.resourceMng.GetDB().QueryLocalTask(msg.GetTaskId())
 	if nil != err {
-		log.WithError(err).Errorf("Failed to call `QueryLocalTask()` on `taskManager.OnTaskTerminateMsg()`, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
-			msg.GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetMsgOption().GetSenderRole().String(), msg.GetMsgOption().GetSenderPartyId())
+		log.WithError(err).Errorf("Failed to query local task when received terminateMsg on `taskManager.OnTaskTerminateMsg()`, taskId: {%s}, sender partyId: {%s}",
+			msg.GetTaskId(), msg.GetMsgOption().GetSenderPartyId())
 		return fmt.Errorf("query local task failed, %s", err)
 	}
 	if nil == task {
-		log.Errorf("Not found local task on `taskManager.OnTaskTerminateMsg()`, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
-			msg.GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetMsgOption().GetSenderRole().String(), msg.GetMsgOption().GetSenderPartyId())
+		log.Errorf("Not found local task when received terminateMsg on `taskManager.OnTaskTerminateMsg()`, taskId: {%s}, sender partyId: {%s}",
+			msg.GetTaskId(), msg.GetMsgOption().GetSenderPartyId())
 		return err
 	}
 
-	receiver := fetchOrgByPartyRole(msg.GetMsgOption().GetReceiverPartyId(), msg.GetMsgOption().GetReceiverRole(), task)
-	identity, err := m.resourceMng.GetDB().QueryIdentity()
-	if nil != err {
-		log.WithError(err).Errorf("Failed to call `QueryIdentity()` on `taskManager.OnTaskTerminateMsg()`, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
-			msg.GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetMsgOption().GetSenderRole().String(), msg.GetMsgOption().GetSenderPartyId())
-		return fmt.Errorf("query local identity failed, %s", err)
+	sender := fetchOrgByPartyRole(msg.GetMsgOption().GetSenderPartyId(), msg.GetMsgOption().GetSenderRole(), task)
+	if nil == sender {
+		log.Errorf("Failed to check sender of msg when received terminateMsg on `taskManager.OnTaskTerminateMsg()`, it is empty, taskId: {%s}, sender partyId: {%s}",
+			msg.GetTaskId(), msg.GetMsgOption().GetSenderPartyId())
+		return fmt.Errorf("%s when received terminateMsg", ctypes.ErrConsensusMsgInvalid)
 	}
-	// verify the receiver is myself ?
-	if identity.GetIdentityId() != receiver.GetIdentityId() {
-		log.Warnf("Warning verify receiver identityId of taskTerminateMsg, receiver is not me on `taskManager.OnTaskTerminateMsg()`, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
-			msg.GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetMsgOption().GetSenderRole().String(), msg.GetMsgOption().GetSenderPartyId())
-		return fmt.Errorf("receiver is not me of taskTerminateMsg")
+
+	// Check whether the sender of the message is the same organization as the sender of the task.
+	// If not, this message is illegal.
+	if task.GetTaskSender().GetIdentityId() != sender.GetIdentityId() ||
+		task.GetTaskSender().GetPartyId() != sender.GetPartyId() {
+		log.Warnf("Warning the sender of the msg is not the same organization as the sender of the task when received terminateMsg on `taskManager.OnTaskTerminateMsg()`, taskId: {%s}, msg sender: %s, task sender: %s",
+			task.GetTaskId(), sender.String(), task.GetTaskSender().String())
+		return fmt.Errorf("the sender of the msg and sender of local task is not same when received terminateMsg")
 	}
 
 	log.WithField("traceId", traceutil.GenerateTraceID(terminateMsg)).Debugf("Received taskTerminateMsg, consensusSymbol: {%s}, remote pid: {%s}, taskTerminateMsg: %s", nmls.String(), pid, msg.String())
 
-	// ## 1、 check whether the task has been terminated
 
-	terminating, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusTerminateByPartyId(task.GetTaskId(), msg.GetMsgOption().GetReceiverPartyId())
-	if nil != err {
-		log.WithError(err).Errorf("Failed to query local task execute `termining` status on `taskManager.OnTaskTerminateMsg()`, taskId: {%s}, partyId: {%s}",
-			task.GetTaskId(), task.GetTaskSender().GetPartyId())
-		return err
-	}
-	// If so, we will directly short circuit
-	if terminating {
-		log.Warnf("Warning query local task execute status has `termining` on `taskManager.OnTaskTerminateMsg()`, taskId: {%s}, partyId: {%s}",
-			task.GetTaskId(), task.GetTaskSender().GetPartyId())
-		return nil
+	terminateFn := func(party *carriertypespb.TaskOrganization, role commonconstantpb.TaskRole) (uint32, error) {
+		// ## 1、 check whether the task has been terminated
+
+		terminating, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusTerminateByPartyId(task.GetTaskId(), party.GetPartyId())
+		if nil != err {
+			log.WithError(err).Errorf("Failed to query local task execute `termining` status on `taskManager.OnTaskTerminateMsg()`, taskId: {%s}, partyId: {%s}",
+				task.GetTaskId(), party.GetPartyId())
+			return 0, err
+		}
+		// If so, we will directly short circuit
+		if terminating {
+			log.Warnf("Warning query local task execute status has `termining` on `taskManager.OnTaskTerminateMsg()`, taskId: {%s}, partyId: {%s}",
+				task.GetTaskId(), party.GetPartyId())
+			return 0, nil
+		}
+
+		// ## 2、 check whether the task is running.
+		running, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusRunningByPartyId(task.GetTaskId(), party.GetPartyId())
+		if nil != err {
+			log.WithError(err).Errorf("Failed to query local task execute `running` status on `taskManager.OnTaskTerminateMsg()`, taskId: {%s}, partyId: {%s}",
+				task.GetTaskId(), party.GetPartyId())
+			return 0, err
+		}
+		// If it is, we will terminate the task
+		if running {
+			// ## 2、 check whether the task is running.
+			if needExecuteTask, ok := m.queryNeedExecuteTaskCache(task.GetTaskId(), party.GetPartyId()); ok {
+				return 0, m.startTerminateWithNeedExecuteTask(needExecuteTask)
+			}
+		}
+
+		// ## 3、 check whether the task is in consensus
+
+		// While task is consensus or executing, can terminate.
+		consensusing, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusConsensusByPartyId(task.GetTaskId(), party.GetPartyId())
+		if nil != err {
+			log.WithError(err).Errorf("Failed to query local task execute `cons` status on `taskManager.OnTaskTerminateMsg()`, taskId: {%s}, partyId: {%s}",
+				task.GetTaskId(), party.GetPartyId())
+			return 0, err
+		}
+
+		if consensusing {
+			return 1, nil
+		}
+
+		return 0, nil
 	}
 
-	// ## 2、 check whether the task is running.
-	if needExecuteTask, ok := m.queryNeedExecuteTaskCache(task.GetTaskId(), msg.GetMsgOption().GetReceiverPartyId()); ok {
-		return m.startTerminateWithNeedExecuteTask(needExecuteTask)
+	failedPartyIds := make([]string, 0)
+	var consensusing uint32
+
+	for _, data := range task.GetTaskData().GetDataSuppliers() {
+		if identity.GetIdentityId() == data.GetIdentityId() {
+			flag, err := terminateFn(data, commonconstantpb.TaskRole_TaskRole_DataSupplier)
+			if nil != err {
+				failedPartyIds = append(failedPartyIds, data.GetPartyId())
+			}
+			consensusing |= flag
+		}
+	}
+	for _, data := range task.GetTaskData().GetPowerSuppliers() {
+		if identity.GetIdentityId() == data.GetIdentityId() {
+			flag, err := terminateFn(data, commonconstantpb.TaskRole_TaskRole_PowerSupplier);
+			if nil != err {
+				failedPartyIds = append(failedPartyIds, data.GetPartyId())
+			}
+			consensusing |= flag
+		}
 	}
 
-	// ## 3、 check whether the task is in consensus
-
-	// While task is consensus or executing, can terminate.
-	consensusing, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusConsensusByPartyId(task.GetTaskId(), msg.GetMsgOption().GetReceiverPartyId())
-	if nil != err {
-		log.WithError(err).Errorf("Failed to query local task execute `cons` status on `taskManager.OnTaskTerminateMsg()`, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
-			msg.GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetMsgOption().GetSenderRole().String(), msg.GetMsgOption().GetSenderPartyId())
-		return err
+	for _, data := range task.GetTaskData().GetReceivers() {
+		if identity.GetIdentityId() == data.GetIdentityId() {
+			flag, err := terminateFn(data, commonconstantpb.TaskRole_TaskRole_Receiver);
+			if nil != err {
+				failedPartyIds = append(failedPartyIds, data.GetPartyId())
+			}
+			consensusing |= flag
+		}
 	}
+	if len(failedPartyIds) != 0 {
+		return fmt.Errorf("terminate task failed by [%s], proposaId: {%s}, taskId: {%s}",
+			strings.Join(failedPartyIds, ","), msg.GetMsgOption().GetProposalId(), task.GetTaskId())
+	}
+
+	// ## 3、 maybe the task is in consensus
+
 	// interrupt consensus with sender AND send terminateMsg to remote partners
 	// OR terminate executing task AND send terminateMsg to remote partners
-	if consensusing {
-		if err = m.consensusEngine.OnConsensusMsg(pid, types.NewInterruptMsgWrap(task.GetTaskId(), terminateMsg.GetMsgOption())); nil != err {
-			log.WithError(err).Errorf("Failed to call `OnConsensusMsg()` on `taskManager.OnTaskTerminateMsg()`, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
-				msg.GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetMsgOption().GetSenderRole().String(), msg.GetMsgOption().GetSenderPartyId())
+	if consensusing == 1 {
+		if err = m.consensusEngine.OnConsensusMsg(pid, types.NewInterruptMsgWrap(task.GetTaskId(), terminateMsg.GetMsgOption(), terminateMsg.GetCreateAt(), terminateMsg.GetSign())); nil != err {
+			log.WithError(err).Errorf("Failed to call `OnConsensusMsg()` on `taskManager.OnTaskTerminateMsg()`, taskId: {%s}, sender partyId: {%s}",
+				task.GetTaskId(), task.GetTaskSender().GetPartyId())
 			return err
 		}
-		return nil
 	}
 
 	return nil
 }
 
 func (m *Manager) startTerminateWithNeedExecuteTask(needExecuteTask *types.NeedExecuteTask) error {
-
-	// ## 1、 check whether the task has been terminated
-
-	terminating, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusTerminateByPartyId(needExecuteTask.GetTaskId(), needExecuteTask.GetLocalTaskOrganization().GetPartyId())
-	if nil != err {
-		log.WithError(err).Errorf("Failed to query local task execute `termining` status on `taskManager.startTerminateWithNeedExecuteTask()`, taskId: {%s}, partyId: {%s}",
-			needExecuteTask.GetTaskId(), needExecuteTask.GetLocalTaskOrganization().GetPartyId())
-		return err
-	}
-	// If so, we will directly short circuit
-	if terminating {
-		log.Warnf("Warning query local task execute status has `termining` on `taskManager.startTerminateWithNeedExecuteTask()`, taskId: {%s}, partyId: {%s}",
-			needExecuteTask.GetTaskId(), needExecuteTask.GetLocalTaskOrganization().GetPartyId())
-		return nil
-	}
-
-	// ## 2、 check whether the task is running.
-	running, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusRunningByPartyId(needExecuteTask.GetTaskId(), needExecuteTask.GetLocalTaskOrganization().GetPartyId())
-	if rawdb.IsNoDBNotFoundErr(err) {
-		log.WithError(err).Errorf("Failed to query local task execute `exec` status on `taskManager.startTerminateWithNeedExecuteTask()`, taskId: {%s}, partyId: {%s}",
-			needExecuteTask.GetTaskId(), needExecuteTask.GetLocalTaskOrganization().GetPartyId())
-		return err
-	}
-	// If it is, we will terminate the task
-	if !running {
-		log.Warnf("the local task execute status is not `running` on `taskManager.startTerminateWithNeedExecuteTask()`, taskId: {%s}, partyId: {%s}",
-			needExecuteTask.GetTaskId(), needExecuteTask.GetLocalTaskOrganization().GetPartyId())
-		return fmt.Errorf("the task is not running")
-	}
-
 	// 1、terminate fighter processor for this task with current party
 	if err := m.driveTaskForTerminate(needExecuteTask); nil != err {
 		log.WithError(err).Errorf("Failed to call driveTaskForTerminate() on `taskManager.startTerminateWithNeedExecuteTask()`, taskId: {%s}, role: {%s}, partyId: {%s}",

@@ -13,6 +13,7 @@ import (
 	"gotest.tools/assert"
 	"math"
 	"strconv"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -217,46 +218,46 @@ func mockTestData(t *testing.T) *state {
 		msgCache:          cache,
 	}
 }
-func TestTwopc_Get2PcProposalStateByTaskId(t *testing.T) {
-	twoPc := &Twopc{
+func Testtwopc_Get2PcProposalStateByTaskId(t *testing.T) {
+	twopc := &Twopc{
 		state: mockTestData(t),
 	}
-	result1, _ := twoPc.Get2PcProposalStateByTaskId("task_00,0")
+	result1, _ := twopc.Get2PcProposalStateByTaskId("task_00,0")
 	assert.Equal(t, "0x35af63cf9e8f90dcc8a8e024dc78acbb268caa711a8a7339a9492f5ef2f8833e", result1.ProposalId)
-	result2, _ := twoPc.Get2PcProposalStateByTaskId("task_00,1")
+	result2, _ := twopc.Get2PcProposalStateByTaskId("task_00,1")
 	assert.Equal(t, "0x3ff6fea93531aa400789b3f8ea0d28409790499fb16391f0814e033eef1a2ccf", result2.ProposalId)
 }
-func TestTwopc_Get2PcProposalStateByProposalId(t *testing.T) {
-	twoPc := &Twopc{
+func Testtwopc_Get2PcProposalStateByProposalId(t *testing.T) {
+	twopc := &Twopc{
 		state: mockTestData(t),
 	}
-	result1, _ := twoPc.Get2PcProposalStateByProposalId("0x35af63cf9e8f90dcc8a8e024dc78acbb268caa711a8a7339a9492f5ef2f8833e")
+	result1, _ := twopc.Get2PcProposalStateByProposalId("0x35af63cf9e8f90dcc8a8e024dc78acbb268caa711a8a7339a9492f5ef2f8833e")
 	assert.Equal(t, "task_00,0", result1.State["p,0"].TaskId)
-	result2, _ := twoPc.Get2PcProposalStateByProposalId("0x3ff6fea93531aa400789b3f8ea0d28409790499fb16391f0814e033eef1a2ccf")
+	result2, _ := twopc.Get2PcProposalStateByProposalId("0x3ff6fea93531aa400789b3f8ea0d28409790499fb16391f0814e033eef1a2ccf")
 	assert.Equal(t, "task_00,0", result2.State["p,0"].TaskId)
 }
-func TestTwopc_Get2PcProposalPrepare(t *testing.T) {
-	twoPc := &Twopc{
+func Testtwopc_Get2PcProposalPrepare(t *testing.T) {
+	twopc := &Twopc{
 		state: mockTestData(t),
 	}
-	_, err := twoPc.Get2PcProposalPrepare("0x35af63cf9e8f90dcc8a8e024dc78acbb268caa711a8a7339a9492f5ef2f8833e")
+	_, err := twopc.Get2PcProposalPrepare("0x35af63cf9e8f90dcc8a8e024dc78acbb268caa711a8a7339a9492f5ef2f8833e")
 	assert.NilError(t, err)
 }
-func TestTwopc_Get2PcProposalConfirm(t *testing.T) {
-	twoPc := &Twopc{
+func Testtwopc_Get2PcProposalConfirm(t *testing.T) {
+	twopc := &Twopc{
 		state: mockTestData(t),
 	}
-	_, err := twoPc.Get2PcProposalConfirm("0x35af63cf9e8f90dcc8a8e024dc78acbb268caa711a8a7339a9492f5ef2f8833e")
+	_, err := twopc.Get2PcProposalConfirm("0x35af63cf9e8f90dcc8a8e024dc78acbb268caa711a8a7339a9492f5ef2f8833e")
 	assert.NilError(t, err)
 }
 
-func TestNewTwopcMsgCacheAddMsg(t *testing.T) {
+func TestNewtwopcMsgCacheAddMsg(t *testing.T) {
 	state := mockTestData(t)
 	assert.Equal(t, false, state.AddMsg(12), "expect return false, but true")
 	assert.Equal(t, true, state.AddMsg(&carriertwopcpb.PrepareMsg{}), "expect return true, but false")
 }
 
-func TestNewTwopcMsgCacheContainsOrAddMsg(t *testing.T) {
+func TestNewtwopcMsgCacheContainsOrAddMsg(t *testing.T) {
 	state := mockTestData(t)
 	state.ContainsOrAddMsg(&carriertwopcpb.PrepareMsg{})
 	if err := state.ContainsOrAddMsg(&carriertwopcpb.PrepareMsg{}); nil == err {
@@ -264,4 +265,117 @@ func TestNewTwopcMsgCacheContainsOrAddMsg(t *testing.T) {
 	}
 	err := state.ContainsOrAddMsg(&carriertwopcpb.ConfirmMsg{})
 	assert.NilError(t, err, fmt.Sprintf("expect return nil, but err: %s", err))
+}
+
+func TestConsensusasyncCallCh(t *testing.T) {
+
+	twopc := &Twopc{
+		asyncCallCh: make(chan func(), 1),
+	}
+
+	var (
+		errOne = fmt.Errorf("I am err one")
+		errTwo = fmt.Errorf("I am err two")
+		count = uint32(0)
+		wg sync.WaitGroup
+	)
+
+	wg.Add(3)
+
+	ctx, cancal := context.WithCancel(context.Background())
+
+	trigger := func(cancel context.CancelFunc, count *uint32) {
+		atomic.AddUint32(count, 1)
+		if c := atomic.LoadUint32(count); c >= 2 {
+			cancel()
+		}
+	}
+
+	go func(cancel context.CancelFunc, count *uint32) {
+
+		defer wg.Done()
+
+		f := func() error {
+
+			errCh := make(chan error, 1)
+
+			twopc.asyncCallCh <- func() {
+
+				defer close(errCh)
+
+				errCh <- errOne
+				trigger(cancal, count)
+				t.Log("finished func1")
+
+			}
+
+			return <-errCh
+		}
+
+		err := f()
+		assert.Equal(t, errOne, err, "expect: %s, but: %s", errOne, err)
+
+	}(cancal, &count)
+
+	go func(cancel context.CancelFunc, count *uint32) {
+
+		defer wg.Done()
+
+		f := func() error {
+
+			errCh := make(chan error, 1)
+
+			twopc.asyncCallCh <- func() {
+
+				defer close(errCh)
+
+				errCh <- errTwo
+				trigger(cancal, count)
+				t.Log("finished func2")
+
+			}
+
+			return <-errCh
+		}
+
+		err := f()
+		assert.Equal(t, errTwo, err, "expect: %s, but: %s", errTwo, err)
+
+	}(cancal, &count)
+
+
+	go func() {
+
+		defer wg.Done()
+
+		for {
+			select {
+			case fn := <- twopc.asyncCallCh:
+				fn()
+			case <-ctx.Done():
+				t.Log("count: ", count)
+				return
+			}
+		}
+
+	}()
+
+	wg.Wait()
+
+}
+
+func TestContex (t *testing.T)  {
+
+	childCtx := context.WithValue(context.Background(), "key1", "value1")
+
+	v := childCtx.Value("key1").(string)
+	fmt.Println("first fetch value:", v)
+
+	childCtx = context.WithValue(childCtx, "key1", "value2")
+	childCtx = context.WithValue(childCtx, "key1", "value3")
+	childCtx = context.WithValue(childCtx, "key1", "value4")
+
+	v = childCtx.Value("key1").(string)
+	fmt.Println("second fetch value:", v)
+
 }

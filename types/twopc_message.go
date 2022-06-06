@@ -54,6 +54,16 @@ func (msg *PrepareMsgWrap) SealHash() common.Hash {
 	return v
 }
 func (msg *PrepareMsgWrap) _sealHash() (hash common.Hash) {
+
+	/**
+	MsgOption            *common.MsgOption
+	TaskInfo             []byte
+	Evidence             []byte
+	CreateAt             uint64
+
+	todo BlackOrg             []byte
+	*/
+
 	hasher := sha3.NewKeccak256()
 	var buf bytes.Buffer
 	buf.Write(msg.GetMsgOption().GetProposalId())
@@ -68,6 +78,7 @@ func (msg *PrepareMsgWrap) _sealHash() (hash common.Hash) {
 	buf.Write(msg.GetTaskInfo())
 	buf.Write(msg.GetEvidence())
 	buf.Write(bytesutil.Uint64ToBytes(msg.GetCreateAt()))
+
 	rlp.Encode(hasher, buf.Bytes())
 	hasher.Sum(hash[:0])
 	return hash
@@ -90,7 +101,7 @@ type PrepareVoteWrap struct {
 	hash     atomic.Value `json:"-" rlp:"-"`
 }
 
-func (msg *PrepareVoteWrap) GetData () *carriertwopcpb.PrepareVote { return msg.PrepareVote }
+func (msg *PrepareVoteWrap) GetData() *carriertwopcpb.PrepareVote { return msg.PrepareVote }
 
 func (msg *PrepareVoteWrap) String() string {
 	result, err := json.Marshal(msg)
@@ -108,6 +119,14 @@ func (msg *PrepareVoteWrap) SealHash() common.Hash {
 	return v
 }
 func (msg *PrepareVoteWrap) _sealHash() (hash common.Hash) {
+
+	/**
+	MsgOption            *common.MsgOption
+	VoteOption           []byte
+	PeerInfo             *TaskPeerInfo
+	CreateAt             uint64
+	*/
+
 	hasher := sha3.NewKeccak256()
 	var buf bytes.Buffer
 	buf.Write(msg.GetMsgOption().GetProposalId())
@@ -124,6 +143,7 @@ func (msg *PrepareVoteWrap) _sealHash() (hash common.Hash) {
 	buf.Write(msg.GetPeerInfo().GetIp())
 	buf.Write(msg.GetPeerInfo().GetPort())
 	buf.Write(bytesutil.Uint64ToBytes(msg.GetCreateAt()))
+
 	rlp.Encode(hasher, buf.Bytes())
 	hasher.Sum(hash[:0])
 	return hash
@@ -146,7 +166,7 @@ type ConfirmMsgWrap struct {
 	hash     atomic.Value `json:"-" rlp:"-"`
 }
 
-func (msg *ConfirmMsgWrap) GetData () *carriertwopcpb.ConfirmMsg { return msg.ConfirmMsg }
+func (msg *ConfirmMsgWrap) GetData() *carriertwopcpb.ConfirmMsg { return msg.ConfirmMsg }
 
 func (msg *ConfirmMsgWrap) String() string {
 	result, err := json.Marshal(msg)
@@ -164,6 +184,14 @@ func (msg *ConfirmMsgWrap) SealHash() common.Hash {
 	return v
 }
 func (msg *ConfirmMsgWrap) _sealHash() (hash common.Hash) {
+
+	/**
+	MsgOption            *common.MsgOption
+	ConfirmOption        []byte
+	Peers                *ConfirmTaskPeerInfo
+	CreateAt             uint64
+	*/
+
 	hasher := sha3.NewKeccak256()
 	var buf bytes.Buffer
 	buf.Write(msg.GetMsgOption().GetProposalId())
@@ -176,6 +204,7 @@ func (msg *ConfirmMsgWrap) _sealHash() (hash common.Hash) {
 	buf.Write(msg.GetMsgOption().GetMsgOwner().GetNodeId())
 	buf.Write(msg.GetMsgOption().GetMsgOwner().GetIdentityId())
 	buf.Write(bytesutil.Uint64ToBytes(msg.GetCreateAt()))
+
 	rlp.Encode(hasher, buf.Bytes())
 	hasher.Sum(hash[:0])
 	return hash
@@ -198,7 +227,7 @@ type ConfirmVoteWrap struct {
 	hash     atomic.Value `json:"-" rlp:"-"`
 }
 
-func (msg *ConfirmVoteWrap) GetData () *carriertwopcpb.ConfirmVote { return msg.ConfirmVote }
+func (msg *ConfirmVoteWrap) GetData() *carriertwopcpb.ConfirmVote { return msg.ConfirmVote }
 
 func (msg *ConfirmVoteWrap) String() string {
 	result, err := json.Marshal(msg)
@@ -216,6 +245,13 @@ func (msg *ConfirmVoteWrap) SealHash() common.Hash {
 	return v
 }
 func (msg *ConfirmVoteWrap) _sealHash() (hash common.Hash) {
+
+	/**
+	MsgOption            *common.MsgOption
+	VoteOption           []byte
+	CreateAt             uint64
+	*/
+
 	hasher := sha3.NewKeccak256()
 	var buf bytes.Buffer
 	buf.Write(msg.GetMsgOption().GetProposalId())
@@ -229,6 +265,7 @@ func (msg *ConfirmVoteWrap) _sealHash() (hash common.Hash) {
 	buf.Write(msg.GetMsgOption().GetMsgOwner().GetIdentityId())
 	buf.Write(msg.GetVoteOption())
 	buf.Write(bytesutil.Uint64ToBytes(msg.GetCreateAt()))
+
 	rlp.Encode(hasher, buf.Bytes())
 	hasher.Sum(hash[:0])
 	return hash
@@ -269,6 +306,13 @@ func (msg *CommitMsgWrap) SealHash() common.Hash {
 	return v
 }
 func (msg *CommitMsgWrap) _sealHash() (hash common.Hash) {
+
+	/**
+	MsgOption            *common.MsgOption
+	CommitOption         []byte
+	CreateAt             uint64
+	*/
+
 	hasher := sha3.NewKeccak256()
 	var buf bytes.Buffer
 	buf.Write(msg.GetMsgOption().GetProposalId())
@@ -281,6 +325,7 @@ func (msg *CommitMsgWrap) _sealHash() (hash common.Hash) {
 	buf.Write(msg.GetMsgOption().GetMsgOwner().GetNodeId())
 	buf.Write(msg.GetMsgOption().GetMsgOwner().GetIdentityId())
 	buf.Write(bytesutil.Uint64ToBytes(msg.GetCreateAt()))
+
 	rlp.Encode(hasher, buf.Bytes())
 	hasher.Sum(hash[:0])
 	return hash
@@ -299,19 +344,25 @@ func (msg *CommitMsgWrap) Signature() []byte { return msg.Sign }
 type TerminateConsensusMsgWrap struct {
 	MsgOption *commonpb.MsgOption
 	TaskId    []byte
+	CreateAt  uint64
+	Sign      []byte
 	// caches
 	sealHash atomic.Value `json:"-" rlp:"-"`
 	hash     atomic.Value `json:"-" rlp:"-"`
 }
 
-func NewInterruptMsgWrap(taskId string, msgOption *commonpb.MsgOption) *TerminateConsensusMsgWrap {
+func NewInterruptMsgWrap(taskId string, msgOption *commonpb.MsgOption, createAt uint64, sign []byte) *TerminateConsensusMsgWrap {
 	return &TerminateConsensusMsgWrap{
-		TaskId: []byte(taskId),
+		TaskId:    []byte(taskId),
 		MsgOption: msgOption,
+		CreateAt: createAt,
+		Sign: sign,
 	}
 }
 func (msg *TerminateConsensusMsgWrap) GetTaskId() string                 { return string(msg.TaskId) }
 func (msg *TerminateConsensusMsgWrap) GetMsgOption() *commonpb.MsgOption { return msg.MsgOption }
+func (msg *TerminateConsensusMsgWrap) GetCreateAt() uint64               { return msg.CreateAt }
+
 func (msg *TerminateConsensusMsgWrap) String() string {
 	result, err := json.Marshal(msg)
 	if err != nil {
@@ -328,6 +379,13 @@ func (msg *TerminateConsensusMsgWrap) SealHash() common.Hash {
 	return v
 }
 func (msg *TerminateConsensusMsgWrap) _sealHash() (hash common.Hash) {
+
+	/**
+	MsgOption *commonpb.MsgOption
+	TaskId    []byte
+	CreateAt  uint64
+	 */
+
 	hasher := sha3.NewKeccak256()
 	var buf bytes.Buffer
 	buf.Write([]byte(msg.GetTaskId()))
@@ -337,6 +395,8 @@ func (msg *TerminateConsensusMsgWrap) _sealHash() (hash common.Hash) {
 	buf.Write(msg.GetMsgOption().GetMsgOwner().GetName())
 	buf.Write(msg.GetMsgOption().GetMsgOwner().GetNodeId())
 	buf.Write(msg.GetMsgOption().GetMsgOwner().GetIdentityId())
+	buf.Write(bytesutil.Uint64ToBytes(msg.GetCreateAt()))
+
 	rlp.Encode(hasher, buf.Bytes())
 	hasher.Sum(hash[:0])
 	return hash
@@ -349,4 +409,4 @@ func (msg *TerminateConsensusMsgWrap) Hash() common.Hash {
 	msg.hash.Store(v)
 	return v
 }
-func (msg *TerminateConsensusMsgWrap) Signature() []byte { return nil }
+func (msg *TerminateConsensusMsgWrap) Signature() []byte { return msg.Sign }

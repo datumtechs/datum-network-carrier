@@ -47,14 +47,14 @@ func NewPrepareVoteResource(id, ip, port, partyId string) *PrepareVoteResource {
 func (resource *PrepareVoteResource) String() string {
 	return fmt.Sprintf(`{"id": %s, "ip": %s, "port": %s, "partyId": %s}`, resource.GetId(), resource.GetIp(), resource.GetPort(), resource.GetPartyId())
 }
-func (resource *PrepareVoteResource) Hash () common.Hash {
+func (resource *PrepareVoteResource) Hash() common.Hash {
 
 	/**
 	Id      string
 	Ip      string
 	Port    string
 	PartyId string
-	 */
+	*/
 
 	var buf bytes.Buffer
 
@@ -66,7 +66,6 @@ func (resource *PrepareVoteResource) Hash () common.Hash {
 	v := rlputil.RlpHash(buf.Bytes())
 	return v
 }
-
 
 func (resource *PrepareVoteResource) GetId() string      { return resource.Id }
 func (resource *PrepareVoteResource) GetIp() string      { return resource.Ip }
@@ -166,7 +165,7 @@ func (option *MsgOption) String() string {
 	return fmt.Sprintf(`{"ProposalId": "%s", "senderRole": "%s", "senderPartyId": "%s", "receiverRole": "%s", "receiverPartyId": "%s", "owner": %s}`,
 		option.GetProposalId().String(), option.GetSenderRole().String(), option.GetSenderPartyId(), option.GetReceiverRole().String(), option.GetReceiverPartyId(), option.GetOwner().String())
 }
-func (option *MsgOption) Hash () common.Hash {
+func (option *MsgOption) Hash() common.Hash {
 
 	/**
 	ProposalId      common.Hash
@@ -195,11 +194,11 @@ func (option *MsgOption) Hash () common.Hash {
 	return v
 }
 
-func (option *MsgOption) GetProposalId() common.Hash              { return option.ProposalId }
-func (option *MsgOption) GetSenderRole() commonconstantpb.TaskRole     { return option.SenderRole }
-func (option *MsgOption) GetSenderPartyId() string                { return option.SenderPartyId }
-func (option *MsgOption) GetReceiverRole() commonconstantpb.TaskRole   { return option.ReceiverRole }
-func (option *MsgOption) GetReceiverPartyId() string              { return option.ReceiverPartyId }
+func (option *MsgOption) GetProposalId() common.Hash                 { return option.ProposalId }
+func (option *MsgOption) GetSenderRole() commonconstantpb.TaskRole   { return option.SenderRole }
+func (option *MsgOption) GetSenderPartyId() string                   { return option.SenderPartyId }
+func (option *MsgOption) GetReceiverRole() commonconstantpb.TaskRole { return option.ReceiverRole }
+func (option *MsgOption) GetReceiverPartyId() string                 { return option.ReceiverPartyId }
 func (option *MsgOption) GetOwner() *carriertypespb.TaskOrganization { return option.Owner }
 
 func ConvertMsgOption(option *MsgOption) *carriernetmsgcommonpb.MsgOption {
@@ -234,8 +233,6 @@ func FetchMsgOption(option *carriernetmsgcommonpb.MsgOption) *MsgOption {
 	}
 }
 
-
-
 type PrepareMsg struct {
 	MsgOption *MsgOption
 	TaskInfo  *Task
@@ -260,7 +257,7 @@ func (msg *PrepareMsg) Hash() common.Hash {
 	TaskInfo  *Task
 	Evidence  string
 	CreateAt  uint64
-	 */
+	*/
 
 	var buf bytes.Buffer
 
@@ -275,11 +272,10 @@ func (msg *PrepareMsg) Hash() common.Hash {
 
 func (msg *PrepareMsg) GetMsgOption() *MsgOption { return msg.MsgOption }
 func (msg *PrepareMsg) GetTask() *Task           { return msg.TaskInfo }
-func (msg *PrepareMsg) GetEvidence() string { return msg.Evidence }
-func (msg *PrepareMsg) GetBlackOrg() string { return msg.BlackOrg }
-func (msg *PrepareMsg) GetCreateAt() uint64 { return msg.CreateAt }
-func (msg *PrepareMsg) GetSign() []byte     { return msg.Sign }
-
+func (msg *PrepareMsg) GetEvidence() string      { return msg.Evidence }
+func (msg *PrepareMsg) GetBlackOrg() string      { return msg.BlackOrg }
+func (msg *PrepareMsg) GetCreateAt() uint64      { return msg.CreateAt }
+func (msg *PrepareMsg) GetSign() []byte          { return msg.Sign }
 
 type PrepareVote struct {
 	MsgOption  *MsgOption
@@ -407,12 +403,11 @@ func (msg *ConfirmMsg) Hash() common.Hash {
 	return v
 }
 
-
-func (msg *ConfirmMsg) GetMsgOption() *MsgOption               { return msg.MsgOption }
-func (msg *ConfirmMsg) GetConfirmOption() TwopcMsgOption       { return msg.ConfirmOption }
+func (msg *ConfirmMsg) GetMsgOption() *MsgOption                      { return msg.MsgOption }
+func (msg *ConfirmMsg) GetConfirmOption() TwopcMsgOption              { return msg.ConfirmOption }
 func (msg *ConfirmMsg) GetPeers() *carriertwopcpb.ConfirmTaskPeerInfo { return msg.Peers }
-func (msg *ConfirmMsg) GetCreateAt() uint64                    { return msg.CreateAt }
-func (msg *ConfirmMsg) GetSign() []byte                        { return msg.Sign }
+func (msg *ConfirmMsg) GetCreateAt() uint64                           { return msg.CreateAt }
+func (msg *ConfirmMsg) GetSign() []byte                               { return msg.Sign }
 
 func ConvertConfirmMsg(msg *ConfirmMsg) *carriertwopcpb.ConfirmMsg {
 	return &carriertwopcpb.ConfirmMsg{
@@ -461,7 +456,6 @@ func (vote *ConfirmVote) Hash() common.Hash {
 	v := rlputil.RlpHash(buf.Bytes())
 	return v
 }
-
 
 func (vote *ConfirmVote) GetMsgOption() *MsgOption  { return vote.MsgOption }
 func (vote *ConfirmVote) GetVoteOption() VoteOption { return vote.VoteOption }
@@ -535,3 +529,38 @@ func FetchCommitMsg(msg *carriertwopcpb.CommitMsg) *CommitMsg {
 		Sign:         msg.GetSign(),
 	}
 }
+
+type TerminateConsensusMsg struct {
+	MsgOption *MsgOption
+	TaskId    string
+	CreateAt  uint64
+	Sign      []byte
+}
+
+func (msg *TerminateConsensusMsg) String() string {
+	return fmt.Sprintf(`{"msgOption": %s, "taskId", "%s", "createAt": %d, "sign": %v}`,
+		msg.GetMsgOption().String(), msg.GetTaskId(), msg.GetCreateAt(), msg.GetSign())
+}
+func (msg *TerminateConsensusMsg) Hash() common.Hash {
+
+	/**
+	MsgOption    *MsgOption
+	TaskId 		 string
+	CreateAt     uint64
+	*/
+
+	var buf bytes.Buffer
+
+	buf.Write(msg.GetMsgOption().Hash().Bytes())
+	buf.Write([]byte(msg.GetTaskId()))
+	buf.Write(bytesutil.Uint64ToBytes(msg.GetCreateAt()))
+
+	v := rlputil.RlpHash(buf.Bytes())
+	return v
+}
+
+func (msg *TerminateConsensusMsg) GetMsgOption() *MsgOption { return msg.MsgOption }
+func (msg *TerminateConsensusMsg) GetTaskId() string        { return msg.TaskId }
+func (msg *TerminateConsensusMsg) GetCreateAt() uint64      { return msg.CreateAt }
+func (msg *TerminateConsensusMsg) GetSign() []byte          { return msg.Sign }
+

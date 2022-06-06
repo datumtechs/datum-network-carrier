@@ -254,10 +254,12 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 		return fmt.Errorf("%s when received prepareMsg", ctypes.ErrProposalIllegal)
 	}
 
-	// Verify the signature
-	_, err = signutil.VerifyMsgSign(msg.GetMsgOption().GetOwner().GetNodeId(), msg.Hash().Bytes(), msg.GetSign())
-	if err != nil {
-		return fmt.Errorf("verify prepareMsg sign %s", err)
+	// Verify the signature of remote msg
+	if nmls == types.RemoteNetworkMsg {
+		_, err = signutil.VerifyMsgSign(msg.GetMsgOption().GetOwner().GetNodeId(), msg.Hash().Bytes(), msg.GetSign())
+		if err != nil {
+			return fmt.Errorf("verify remote prepareMsg sign %s", err)
+		}
 	}
 
 	if err := t.validateTaskOfPrepareMsg(pid, msg); nil != err {
@@ -268,10 +270,12 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 
 	t.asyncCallCh <- func() {
 
-		if t.state.HasOrgProposalWithProposalId(msg.GetMsgOption().GetProposalId()) {
-			log.Errorf("Failed to check org proposalState whether have been not exist when received prepareMsg, but it's alreay exist, proposalId: {%s}, taskId: {%s}",
+		defer close(errCh)
+
+		if nmls == types.RemoteNetworkMsg && t.state.HasOrgProposalWithProposalId(msg.GetMsgOption().GetProposalId()) {
+			log.Errorf("Failed to check org proposalState when received prepareMsg, it's alreay exist, proposalId: {%s}, taskId: {%s}",
 				msg.GetMsgOption().GetProposalId().String(), msg.GetTask().GetTaskId())
-			errCh <- fmt.Errorf("%s when received prepareMsg", ctypes.ErrProposalAlreadyProcessed)
+			errCh <- fmt.Errorf("%s when received remote prepareMsg", ctypes.ErrProposalAlreadyProcessed)
 			return
 		}
 
@@ -285,7 +289,7 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 
 		sender := fetchOrgByPartyRole(msg.GetMsgOption().GetSenderPartyId(), msg.GetMsgOption().GetSenderRole(), msg.GetTask())
 		if nil == sender {
-			log.Errorf("Failed to check msg.MsgOption sender and receiver when received prepareMsg, some one is empty, proposalId: {%s}, taskId: {%s}",
+			log.Errorf("Failed to check sender of msg when received prepareMsg, it is empty, proposalId: {%s}, taskId: {%s}",
 				msg.GetMsgOption().GetProposalId().String(), msg.GetTask().GetTaskId())
 			errCh <- fmt.Errorf("%s when received prepareMsg", ctypes.ErrConsensusMsgInvalid)
 			return
@@ -295,7 +299,7 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 		// If not, this message is illegal.
 		if msg.GetTask().GetTaskSender().GetIdentityId() != sender.GetIdentityId() ||
 			msg.GetTask().GetTaskSender().GetPartyId() != sender.GetPartyId() {
-			log.Warnf("Warning the sender of the message is not the same organization as the sender of the task when received prepareMsg, proposalId: {%s}, taskId: {%s}, msg sender: %s, task sender: %s",
+			log.Warnf("Warning the sender of the msg is not the same organization as the sender of the task when received prepareMsg, proposalId: {%s}, taskId: {%s}, msg sender: %s, task sender: %s",
 				msg.GetMsgOption().GetProposalId().String(), msg.GetTask().GetTaskId(), sender.String(), msg.GetTask().GetTaskSender().String())
 			errCh <- fmt.Errorf("%s when received prepareMsg", ctypes.ErrConsensusMsgInvalid)
 			return
@@ -315,7 +319,7 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 			// If you have already voted, we will no longer vote.
 			// Need to receive a forwarded objection consensus message.
 			if t.state.HasPrepareVoting(msg.GetMsgOption().GetProposalId(), org) {
-				log.Errorf("Failed to check remote peer prepare vote wether exist when received prepareMsg, it's exist alreay, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
+				log.Errorf("Failed to check prepareVote when received prepareMsg, it was already voted, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
 					msg.GetMsgOption().GetProposalId().String(), msg.GetTask().GetTaskId(), party.GetPartyId())
 				return fmt.Errorf("%s when received prepareMsg", ctypes.ErrPrepareVotehadVoted)
 			}
@@ -327,8 +331,6 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 				return fmt.Errorf("store task execute status failed when received prepareMsg, %s", err)
 			}
 
-			log.Infof("Store proposal from task sender, proposalId: {%s}, taskId: {%s}, partyId: {%s}", msg.GetMsgOption().String(), msg.GetTask().GetTaskId(), party.GetPartyId())
-
 			// Store some local cache
 			t.storeOrgProposalState(
 				ctypes.NewOrgProposalState(msg.GetMsgOption().GetProposalId(),
@@ -336,6 +338,7 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 					msg.GetMsgOption().GetReceiverRole(), msg.GetTask().GetTaskSender(), party,
 					msg.GetCreateAt()),
 			)
+			log.Infof("Store proposal from task sender, proposalId: {%s}, taskId: {%s}, partyId: {%s}", msg.GetMsgOption().String(), msg.GetTask().GetTaskId(), party.GetPartyId())
 
 			proposalTask := ctypes.NewProposalTask(msg.GetMsgOption().GetProposalId(), msg.GetTask().GetTaskId(), msg.GetCreateAt())
 			t.state.StoreProposalTaskWithPartyId(msg.GetMsgOption().GetReceiverPartyId(), proposalTask)
@@ -459,7 +462,7 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 				strings.Join(failedPartyIds, ","), msg.GetMsgOption().GetProposalId(), msg.GetTask().GetTaskId())
 		}
 	}
-	close(errCh)
+
 	return <-errCh
 }
 
@@ -472,33 +475,28 @@ func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap, n
 
 	vote := fetchPrepareVote(prepareVote)
 
-	// Verify the signature
-	_, err := signutil.VerifyMsgSign(vote.GetMsgOption().GetOwner().GetNodeId(), vote.Hash().Bytes(), vote.GetSign())
-	if err != nil {
-		return fmt.Errorf("verify prepareVote sign %s", err)
+	// Verify the signature of remote msg
+	if nmls == types.RemoteNetworkMsg {
+		_, err := signutil.VerifyMsgSign(vote.GetMsgOption().GetOwner().GetNodeId(), vote.Hash().Bytes(), vote.GetSign())
+		if err != nil {
+			return fmt.Errorf("verify remote prepareVote sign %s", err)
+		}
 	}
 
 	errCh := make(chan error, 0)
 
 	t.asyncCallCh <- func() {
 
-		if t.state.HasNotOrgProposalWithProposalId(vote.GetMsgOption().GetProposalId()) {
-			log.Errorf("Failed to check org proposalState whether have been exist when received prepareVote, but it's not exist, proposalId: {%s}",
-				vote.GetMsgOption().GetProposalId().String())
-			errCh <- fmt.Errorf("%s when received prepareVote", ctypes.ErrProposalNotFound)
-			return
-		}
+		defer close(errCh)
 
 		identity, err := t.resourceMng.GetDB().QueryIdentity()
 		if nil != err {
-			log.WithError(err).Errorf("Failed to call `QueryIdentity()` when received prepareVote, some one is empty, proposalId: {%s}",
+			log.WithError(err).Errorf("Failed to call `QueryIdentity()` when received prepareVote, proposalId: {%s}",
 				vote.GetMsgOption().GetProposalId().String())
 
 			errCh <- fmt.Errorf("query local identity failed when received prepareVote, %s", err)
 			return
 		}
-
-		log.WithField("traceId", traceutil.GenerateTraceID(prepareVote.GetData())).Debugf("Received prepareVote, consensusSymbol: {%s}, remote pid: {%s}, prepareVote: %s", nmls.String(), pid, vote.String())
 
 		randomSt, ok := t.state.RandomOrgProposalStateWithProposalId(vote.GetMsgOption().GetProposalId())
 		if !ok {
@@ -511,15 +509,15 @@ func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap, n
 		task, err := t.resourceMng.GetDB().QueryLocalTask(randomSt.GetTaskId())
 		if nil != err {
 			log.WithError(err).Errorf("Failed to query local task when received prepareVote, proposalId: {%s}, taskId: {%s}",
-				vote.GetMsgOption().GetProposalId().String(), task.GetTaskId())
-			errCh <- fmt.Errorf("not found local task, on the prepareVote [proposalId: %s, taskId: %s]",
-				vote.GetMsgOption().GetProposalId().String(), task.GetTaskId())
+				vote.GetMsgOption().GetProposalId().String(), randomSt.GetTaskId())
+			errCh <- fmt.Errorf("not found local task when received prepareVote [proposalId: %s, taskId: %s]",
+				vote.GetMsgOption().GetProposalId().String(), randomSt.GetTaskId())
 			return
 		}
 		sender := fetchOrgByPartyRole(vote.GetMsgOption().GetSenderPartyId(), vote.GetMsgOption().GetSenderRole(), task)
 		receiver := fetchOrgByPartyRole(vote.GetMsgOption().GetReceiverPartyId(), vote.GetMsgOption().GetReceiverRole(), task)
 		if nil == sender || nil == receiver {
-			log.Errorf("Failed to check vote.MsgOption sender and receiver of prepareVote when received prepareVote, some one is empty, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
+			log.Errorf("Failed to check sender and receiver of prepareVote when received prepareVote, some one is empty, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
 				vote.GetMsgOption().GetProposalId().String(), task.GetTaskId(), vote.GetMsgOption().GetReceiverPartyId())
 			errCh <- fmt.Errorf("%s when received prepareVote", ctypes.ErrConsensusMsgInvalid)
 			return
@@ -532,12 +530,38 @@ func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap, n
 			return
 		}
 
+		senderValid, err := t.verifyPartyAndTaskPartner(vote.GetMsgOption().GetSenderRole(), sender, task)
+		if nil != err {
+			log.WithError(err).Errorf("Failed to call `verifyPrepareVoteRoleIsTaskPartner()` verify prepare vote role when received prepareVote, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
+				vote.GetMsgOption().GetProposalId().String(), task.GetTaskId(), vote.GetMsgOption().GetReceiverPartyId())
+			errCh <- fmt.Errorf("check task role of prepareVote failed when received prepareVote, %s", err)
+			return
+		}
+		if !senderValid {
+			log.Errorf("The prepare vote role is not include task partners when received prepareVote, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
+				vote.GetMsgOption().GetProposalId().String(), task.GetTaskId(), vote.GetMsgOption().GetReceiverPartyId())
+			errCh <- fmt.Errorf("%s when received prepareVote [proposalId: %s, taskId: %s, sender partyId: %s]",
+				ctypes.ErrProposalPrepareVoteOwnerInvalid, vote.GetMsgOption().GetProposalId().String(), task.GetTaskId(), sender.GetPartyId())
+			return
+		}
+
+		log.WithField("traceId", traceutil.GenerateTraceID(prepareVote.GetData())).Debugf("Received prepareVote, consensusSymbol: {%s}, remote pid: {%s}, prepareVote: %s", nmls.String(), pid, vote.String())
+
 		// find the task sender party proposal state
 		orgProposalState, ok := t.state.QueryOrgProposalStateWithProposalIdAndPartyId(vote.GetMsgOption().GetProposalId(), vote.GetMsgOption().GetReceiverPartyId())
 		if !ok {
 			log.Errorf("Failed to check org proposalState whether have been exist when received prepareVote, but it's not exist, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
 				vote.GetMsgOption().GetProposalId().String(), orgProposalState.GetTaskId(), vote.GetMsgOption().GetReceiverPartyId())
 			errCh <- fmt.Errorf("%s when received prepareVote", ctypes.ErrProposalNotFound)
+			return
+		}
+
+		// check the proposalTask of proposal exists
+		if t.state.HasNotProposalTaskWithTaskIdAndPartyId(orgProposalState.GetTaskId(), vote.GetMsgOption().GetReceiverPartyId()) {
+			log.Errorf("%s when received prepareVote, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
+				ctypes.ErrProposalTaskNotFound, vote.GetMsgOption().GetProposalId().String(), orgProposalState.GetTaskId(), vote.GetMsgOption().GetReceiverPartyId())
+			errCh <- fmt.Errorf("%s when received prepareVote [proposalId: %s, taskId: %s, partyId: %s]",
+				ctypes.ErrProposalTaskNotFound, vote.GetMsgOption().GetProposalId().String(), orgProposalState.GetTaskId(), vote.GetMsgOption().GetReceiverPartyId())
 			return
 		}
 
@@ -549,45 +573,22 @@ func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap, n
 			return
 		}
 
-		// check the proposalTask of proposal exists
-		if t.state.HasNotProposalTaskWithTaskIdAndPartyId(orgProposalState.GetTaskId(), vote.GetMsgOption().GetReceiverPartyId()) {
-			log.Errorf("%s when received confirmMsg, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
-				ctypes.ErrProposalTaskNotFound, vote.GetMsgOption().GetProposalId().String(), orgProposalState.GetTaskId(), vote.GetMsgOption().GetReceiverPartyId())
-			errCh <- fmt.Errorf("%s, on the confirm msg [proposalId: %s, taskId: %s, partyId: %s]",
-				ctypes.ErrProposalTaskNotFound, vote.GetMsgOption().GetProposalId().String(), orgProposalState.GetTaskId(), vote.GetMsgOption().GetReceiverPartyId())
-			return
-		}
 
 		// Voter <the vote sender> voted repeatedly
 		if t.state.HasPrepareVoting(vote.GetMsgOption().GetProposalId(), sender) {
-			log.Errorf("%s when received prepareVote, they are not same, proposalId: {%s}, taskId: {%s}, partyId: {%s}, vote sender partyId: {%s}",
+			log.Errorf("%s when received prepareVote, proposalId: {%s}, taskId: {%s}, partyId: {%s}, vote sender partyId: {%s}",
 				ctypes.ErrPrepareVoteRepeatedly, vote.GetMsgOption().GetProposalId().String(), orgProposalState.GetTaskId(), vote.GetMsgOption().GetReceiverPartyId(),
 				vote.GetMsgOption().GetSenderPartyId())
-			errCh <- fmt.Errorf("%s, on the prepare vote [proposalId: {%s}, taskId: %s, partyId: %s]",
+			errCh <- fmt.Errorf("%s when received prepareVote [proposalId: {%s}, taskId: %s, partyId: %s]",
 				ctypes.ErrPrepareVoteRepeatedly, vote.GetMsgOption().GetProposalId().String(), orgProposalState.GetTaskId(), vote.GetMsgOption().GetReceiverPartyId())
-			return
-		}
-
-		identityValid, err := t.verifyPartyAndTaskPartner(vote.GetMsgOption().GetSenderRole(), sender, task)
-		if nil != err {
-			log.WithError(err).Errorf("Failed to call `verifyPrepareVoteRoleIsTaskPartner()` verify prepare vote role when received prepareVote, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
-				vote.GetMsgOption().GetProposalId().String(), orgProposalState.GetTaskId(), vote.GetMsgOption().GetReceiverPartyId())
-			errCh <- fmt.Errorf("check task role of prepareVote failed when received prepareVote, %s", err)
-			return
-		}
-		if !identityValid {
-			log.Errorf("The prepare vote role is not include task partners when received prepareVote, they are not same, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
-				vote.GetMsgOption().GetProposalId().String(), orgProposalState.GetTaskId(), vote.GetMsgOption().GetReceiverPartyId())
-			errCh <- fmt.Errorf("%s, on the prepare vote [proposalId: %s, taskId: %s, sender partyId: %s]",
-				ctypes.ErrProposalPrepareVoteOwnerInvalid, vote.GetMsgOption().GetProposalId().String(), orgProposalState.GetTaskId(), sender.GetPartyId())
 			return
 		}
 
 		// verify resource of `YES` vote
 		if vote.GetVoteOption() == types.YES && vote.PeerInfoEmpty() {
-			log.Errorf("%s when received prepareVote, they are not same, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
+			log.Errorf("%s when received prepareVote, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
 				ctypes.ErrProposalPrepareVoteResourceInvalid, vote.GetMsgOption().GetProposalId().String(), orgProposalState.GetTaskId(), vote.GetMsgOption().GetReceiverPartyId())
-			errCh <- fmt.Errorf("%s, on the prepare vote [proposalId: %s, taskId: %s, sender partyId: %s]",
+			errCh <- fmt.Errorf("%s when received prepareVote [proposalId: %s, taskId: %s, sender partyId: %s]",
 				ctypes.ErrProposalPrepareVoteOwnerInvalid, vote.GetMsgOption().GetProposalId().String(), orgProposalState.GetTaskId(), sender.GetPartyId())
 			return
 		}
@@ -656,7 +657,7 @@ func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap, n
 		}
 	}
 
-	close(errCh)
+
 	return <-errCh
 }
 
@@ -669,21 +670,20 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, nmls
 
 	msg := fetchConfirmMsg(confirmMsg)
 
-	// Verify the signature
-	_, err := signutil.VerifyMsgSign(msg.GetMsgOption().GetOwner().GetNodeId(), msg.Hash().Bytes(), msg.GetSign())
-	if err != nil {
-		return fmt.Errorf("verify confirmMsg sign %s", err)
+	// Verify the signature of remote msg
+	if nmls == types.RemoteNetworkMsg {
+		_, err := signutil.VerifyMsgSign(msg.GetMsgOption().GetOwner().GetNodeId(), msg.Hash().Bytes(), msg.GetSign())
+		if err != nil {
+			return fmt.Errorf("verify remote confirmMsg sign %s", err)
+		}
 	}
+
 
 	errCh := make(chan error, 0)
 
 	t.asyncCallCh <- func() {
-		if t.state.HasNotOrgProposalWithProposalId(msg.GetMsgOption().GetProposalId()) {
-			log.Errorf("Failed to check org proposalState whether have been exist when received confirmMsg, but it's not exist, proposalId: {%s}",
-				msg.GetMsgOption().GetProposalId().String())
-			errCh <- fmt.Errorf("%s when received confirmMsg", ctypes.ErrProposalNotFound)
-			return
-		}
+
+		defer close(errCh)
 
 		identity, err := t.resourceMng.GetDB().QueryIdentity()
 		if nil != err {
@@ -693,11 +693,9 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, nmls
 			return
 		}
 
-		log.WithField("traceId", traceutil.GenerateTraceID(confirmMsg.GetData())).Debugf("Received remote confirmMsg, consensusSymbol: {%s}, remote pid: {%s}, confirmMsg: %s", nmls.String(), pid, msg.String())
-
 		randomSt, ok := t.state.RandomOrgProposalStateWithProposalId(msg.GetMsgOption().GetProposalId())
 		if !ok {
-			log.Errorf("Failed to check org proposalState whether have been exist when received confirmMsg, but it's not exist, proposalId: {%s}",
+			log.Errorf("Failed to check org proposalState when received confirmMsg, it's not exist, proposalId: {%s}",
 				msg.GetMsgOption().GetProposalId().String())
 			errCh <- fmt.Errorf("%s when received confirmMsg", ctypes.ErrProposalNotFound)
 			return
@@ -706,19 +704,48 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, nmls
 		task, err := t.resourceMng.GetDB().QueryLocalTask(randomSt.GetTaskId())
 		if nil != err {
 			log.WithError(err).Errorf("Failed to query local task when received confirmMsg, proposalId: {%s}, taskId: {%s}",
-				msg.GetMsgOption().GetProposalId().String(), task.GetTaskId())
-			errCh <- fmt.Errorf("not found local task, on the confirmMsg [proposalId: %s, taskId: %s]",
-				msg.GetMsgOption().GetProposalId().String(), task.GetTaskId())
+				msg.GetMsgOption().GetProposalId().String(), randomSt.GetTaskId())
+			errCh <- fmt.Errorf("not found local task when received confirmMsg [proposalId: %s, taskId: %s]",
+				msg.GetMsgOption().GetProposalId().String(), randomSt.GetTaskId())
 			return
 		}
+
+		sender := fetchOrgByPartyRole(msg.GetMsgOption().GetSenderPartyId(), msg.GetMsgOption().GetSenderRole(), task)
+		if nil == sender {
+			log.Errorf("Failed to check sender of msg when received confirmMsg, it is empty, proposalId: {%s}, taskId: {%s}",
+				msg.GetMsgOption().GetProposalId().String(), task.GetTaskId())
+			errCh <- fmt.Errorf("%s when received confirmMsg", ctypes.ErrConsensusMsgInvalid)
+			return
+		}
+
+		// Check whether the sender of the message is the same organization as the sender of the task.
+		// If not, this message is illegal.
+		if task.GetTaskSender().GetIdentityId() != sender.GetIdentityId() ||
+			task.GetTaskSender().GetPartyId() != sender.GetPartyId() {
+			log.Warnf("Warning the sender of the msg is not the same organization as the sender of the task when received confirmMsg, proposalId: {%s}, taskId: {%s}, msg sender: %s, task sender: %s",
+				msg.GetMsgOption().GetProposalId().String(), task.GetTaskId(), sender.String(), task.GetTaskSender().String())
+			errCh <- fmt.Errorf("%s when received confirmMsg", ctypes.ErrConsensusMsgInvalid)
+			return
+		}
+
+
+		log.WithField("traceId", traceutil.GenerateTraceID(confirmMsg.GetData())).Debugf("Received remote confirmMsg, consensusSymbol: {%s}, remote pid: {%s}, confirmMsg: %s", nmls.String(), pid, msg.String())
 
 		votingFn := func(party *carriertypespb.TaskOrganization, role commonconstantpb.TaskRole) error {
 
 			orgProposalState, ok := t.state.QueryOrgProposalStateWithProposalIdAndPartyId(msg.GetMsgOption().GetProposalId(), party.GetPartyId())
 			if !ok {
-				log.Errorf("Failed to check org proposalState whether have been exist when received confirmMsg, but it's not exist, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
+				log.Errorf("Failed to check org proposalState when received confirmMsg, it's not exist, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
 					msg.GetMsgOption().GetProposalId().String(), task.GetTaskId(), party.GetPartyId())
 				return fmt.Errorf("%s when received confirmMsg", ctypes.ErrProposalNotFound)
+			}
+
+			// check the proposalTask of proposal exists
+			if t.state.HasNotProposalTaskWithTaskIdAndPartyId(orgProposalState.GetTaskId(), party.GetPartyId()) {
+				log.Errorf("%s when received confirmMsg, proposalId: {%s}, taskId: {%s}, , partyId: {%s}",
+					ctypes.ErrProposalTaskNotFound, msg.GetMsgOption().GetProposalId().String(), orgProposalState.GetTaskId(), party.GetPartyId())
+				return fmt.Errorf("%s when received confirmMsg [proposalId: %s, taskId: %s, partyId: %s]",
+					ctypes.ErrProposalTaskNotFound, msg.GetMsgOption().GetProposalId().String(), orgProposalState.GetTaskId(), party.GetPartyId())
 			}
 
 			// The vote in the consensus prepare epoch or confirm epoch can be processed just if the current state is the prepare state or confirm state.
@@ -726,37 +753,6 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, nmls
 				log.Errorf("Failed to check org proposalState priod when received confirmMsg, it's commit epoch now, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
 					msg.GetMsgOption().GetProposalId().String(), orgProposalState.GetTaskId(), party.GetPartyId())
 				return fmt.Errorf("%s when received confirmMsg", ctypes.ErrProposalConfirmMsgTimeout)
-			}
-
-			// check the proposalTask of proposal exists
-			if t.state.HasNotProposalTaskWithTaskIdAndPartyId(orgProposalState.GetTaskId(), party.GetPartyId()) {
-				log.Errorf("%s when received confirmMsg, proposalId: {%s}, taskId: {%s}, , partyId: {%s}",
-					ctypes.ErrProposalTaskNotFound, msg.GetMsgOption().GetProposalId().String(), orgProposalState.GetTaskId(), party.GetPartyId())
-				return fmt.Errorf("%s, on the confirm msg [proposalId: %s, taskId: %s, partyId: %s]",
-					ctypes.ErrProposalTaskNotFound, msg.GetMsgOption().GetProposalId().String(), orgProposalState.GetTaskId(), party.GetPartyId())
-			}
-
-			sender := fetchOrgByPartyRole(msg.GetMsgOption().GetSenderPartyId(), msg.GetMsgOption().GetSenderRole(), task)
-			if nil == sender {
-				log.Errorf("Failed to check msg.MsgOption sender and receiver of confirmMsg when received confirmMsg, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
-					msg.GetMsgOption().GetProposalId().String(), orgProposalState.GetTaskId(), party.GetPartyId())
-				return fmt.Errorf("%s when received confirmMsg", ctypes.ErrConsensusMsgInvalid)
-			}
-
-			// Check whether the sender of the message is the same organization as the sender of the task.
-			// If not, this message is illegal.
-			if task.GetTaskSender().GetIdentityId() != sender.GetIdentityId() ||
-				task.GetTaskSender().GetPartyId() != sender.GetPartyId() {
-				log.Warnf("Warning the sender of the message is not the same organization as the sender of the task when received confirmMsg, proposalId: {%s}, taskId: {%s}, partyId: {%s}, msg sender: %s, task sender: %s",
-					msg.GetMsgOption().GetProposalId().String(), task.GetTaskId(), party.GetPartyId(), sender.String(), task.GetTaskSender().String())
-				return fmt.Errorf("%s when received confirmMsg", ctypes.ErrConsensusMsgInvalid)
-			}
-
-			// verify the receiver is myself ?
-			if identity.GetIdentityId() != party.GetIdentityId() {
-				log.Warnf("Warning verify receiver identityId of confirmMsg, receiver is not me, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
-					msg.GetMsgOption().GetProposalId().String(), orgProposalState.GetTaskId(), party.GetPartyId())
-				return fmt.Errorf("%s when received confirmMsg", ctypes.ErrConsensusMsgInvalid)
 			}
 
 			org := &carriertypespb.TaskOrganization{
@@ -899,7 +895,7 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, nmls
 		}
 	}
 
-	close(errCh)
+
 	return <-errCh
 }
 
@@ -912,22 +908,19 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, n
 
 	vote := fetchConfirmVote(confirmVote)
 
-	// Verify the signature
-	_, err := signutil.VerifyMsgSign(vote.GetMsgOption().GetOwner().GetNodeId(), vote.Hash().Bytes(), vote.GetSign())
-	if err != nil {
-		return fmt.Errorf("verify confirmVote sign %s", err)
+	// Verify the signature of remote msg
+	if nmls == types.RemoteNetworkMsg {
+		_, err := signutil.VerifyMsgSign(vote.GetMsgOption().GetOwner().GetNodeId(), vote.Hash().Bytes(), vote.GetSign())
+		if err != nil {
+			return fmt.Errorf("verify remote confirmVote sign %s", err)
+		}
 	}
 
 	errCh := make(chan error, 0)
 
 	t.asyncCallCh <- func() {
 
-		if t.state.HasNotOrgProposalWithProposalId(vote.GetMsgOption().GetProposalId()) {
-			log.Errorf("Failed to check org proposalState whether have been exist when received confirmVote, but it's not exist, proposalId: {%s}",
-				vote.GetMsgOption().GetProposalId().String())
-			errCh <- fmt.Errorf("%s when received confirmVote", ctypes.ErrProposalNotFound)
-			return
-		}
+		defer close(errCh)
 
 		identity, err := t.resourceMng.GetDB().QueryIdentity()
 		if nil != err {
@@ -937,8 +930,6 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, n
 			errCh <- fmt.Errorf("query local identity failed when received confirmVote, %s", err)
 			return
 		}
-
-		log.WithField("traceId", traceutil.GenerateTraceID(confirmVote.GetData())).Debugf("Received confirmVote, consensusSymbol: {%s}, remote pid: {%s}, confirmVote: %s", nmls.String(), pid, vote.String())
 
 		randomSt, ok := t.state.RandomOrgProposalStateWithProposalId(vote.GetMsgOption().GetProposalId())
 		if !ok {
@@ -952,14 +943,14 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, n
 		if nil != err {
 			log.WithError(err).Errorf("Failed to query local task when received confirmVote, proposalId: {%s}, taskId: {%s}",
 				vote.GetMsgOption().GetProposalId().String(), task.GetTaskId())
-			errCh <- fmt.Errorf("not found local task, on the confirmVote [proposalId: %s, taskId: %s]",
+			errCh <- fmt.Errorf("not found local task when received confirmVote [proposalId: %s, taskId: %s]",
 				vote.GetMsgOption().GetProposalId().String(), task.GetTaskId())
 			return
 		}
 		sender := fetchOrgByPartyRole(vote.GetMsgOption().GetSenderPartyId(), vote.GetMsgOption().GetSenderRole(), task)
 		receiver := fetchOrgByPartyRole(vote.GetMsgOption().GetReceiverPartyId(), vote.GetMsgOption().GetReceiverRole(), task)
 		if nil == sender || nil == receiver {
-			log.Errorf("Failed to check vote.MsgOption sender and receiver of confirmVote when received confirmVote, some one is empty, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
+			log.Errorf("Failed to check sender and receiver of confirmVote when received confirmVote, some one is empty, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
 				vote.GetMsgOption().GetProposalId().String(), task.GetTaskId(), vote.GetMsgOption().GetReceiverPartyId())
 			errCh <- fmt.Errorf("%s when received confirmVote", ctypes.ErrConsensusMsgInvalid)
 			return
@@ -972,12 +963,39 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, n
 			return
 		}
 
+		senderValid, err := t.verifyPartyAndTaskPartner(vote.GetMsgOption().GetSenderRole(), sender, task)
+		if nil != err {
+			log.WithError(err).Errorf("Failed to call `verifyPartyAndTaskPartner()` verify confirm vote role when received confirmVote, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
+				vote.GetMsgOption().GetProposalId().String(), task.GetTaskId(), vote.GetMsgOption().GetReceiverPartyId())
+			errCh <- fmt.Errorf("check task role of confirmVote failed when received confirmVote, %s", err)
+			return
+		}
+		if !senderValid {
+			log.Errorf("The confirm vote role is not include task partners when received confirmVote, they are not same, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
+				vote.GetMsgOption().GetProposalId().String(), task.GetTaskId(), vote.GetMsgOption().GetReceiverPartyId())
+			errCh <- fmt.Errorf("%s when received confirmVote [proposalId: %s, taskId: %s, sender partyId: %s]",
+				ctypes.ErrProposalConfirmVoteVoteOwnerInvalid, vote.GetMsgOption().GetProposalId().String(), task.GetTaskId(), sender.GetPartyId())
+			return
+		}
+
+		log.WithField("traceId", traceutil.GenerateTraceID(confirmVote.GetData())).Debugf("Received confirmVote, consensusSymbol: {%s}, remote pid: {%s}, confirmVote: %s", nmls.String(), pid, vote.String())
+
+
 		// find the task sender party proposal state
 		orgProposalState, ok := t.state.QueryOrgProposalStateWithProposalIdAndPartyId(vote.GetMsgOption().GetProposalId(), vote.GetMsgOption().GetReceiverPartyId())
 		if !ok {
 			log.Errorf("Failed to check org proposalState whether have been exist when received confirmVote, but it's not exist, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
 				vote.GetMsgOption().GetProposalId().String(), orgProposalState.GetTaskId(), vote.GetMsgOption().GetReceiverPartyId())
 			errCh <- fmt.Errorf("%s when received confirmVote", ctypes.ErrProposalNotFound)
+			return
+		}
+
+		// check the proposalTask of proposal exists
+		if t.state.HasNotProposalTaskWithTaskIdAndPartyId(orgProposalState.GetTaskId(), vote.GetMsgOption().GetReceiverPartyId()) {
+			log.Errorf("%s when received confirmVote, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
+				ctypes.ErrProposalTaskNotFound, vote.GetMsgOption().GetProposalId().String(), orgProposalState.GetTaskId(), vote.GetMsgOption().GetReceiverPartyId())
+			errCh <- fmt.Errorf("%s when received confirmVote [proposalId: %s, taskId: %s, partyId: %s]",
+				ctypes.ErrProposalTaskNotFound, vote.GetMsgOption().GetProposalId().String(), orgProposalState.GetTaskId(), vote.GetMsgOption().GetReceiverPartyId())
 			return
 		}
 
@@ -1001,21 +1019,6 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, n
 				ctypes.ErrConfirmVoteRepeatedly, vote.GetMsgOption().GetProposalId().String(), orgProposalState.GetTaskId(), vote.GetMsgOption().GetReceiverPartyId(),
 				vote.GetMsgOption().GetSenderPartyId())
 			errCh <- fmt.Errorf("%s when received confirmVote", ctypes.ErrConfirmVoteRepeatedly)
-			return
-		}
-
-		identityValid, err := t.verifyPartyAndTaskPartner(vote.GetMsgOption().GetSenderRole(), sender, task)
-		if nil != err {
-			log.WithError(err).Errorf("Failed to call `verifyPartyAndTaskPartner()` verify confirm vote role when received confirmVote, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
-				vote.GetMsgOption().GetProposalId().String(), orgProposalState.GetTaskId(), vote.GetMsgOption().GetReceiverPartyId())
-			errCh <- fmt.Errorf("check task role of confirmVote failed when received confirmVote, %s", err)
-			return
-		}
-		if !identityValid {
-			log.Errorf("The confirm vote role is not include task partners when received confirmVote, they are not same, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
-				vote.GetMsgOption().GetProposalId().String(), orgProposalState.GetTaskId(), vote.GetMsgOption().GetReceiverPartyId())
-			errCh <- fmt.Errorf("%s, on the confirm vote [proposalId: %s, taskId: %s, sender partyId: %s]",
-				ctypes.ErrProposalConfirmVoteVoteOwnerInvalid, orgProposalState.GetProposalId(), orgProposalState.GetTaskId(), sender.GetPartyId())
 			return
 		}
 
@@ -1091,7 +1094,7 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, n
 		}
 	}
 
-	close(errCh)
+
 	return <-errCh
 }
 
@@ -1104,22 +1107,19 @@ func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap, nmls ty
 
 	msg := fetchCommitMsg(cimmitMsg)
 
-	// Verify the signature
-	_, err := signutil.VerifyMsgSign(msg.GetMsgOption().GetOwner().GetNodeId(), msg.Hash().Bytes(), msg.GetSign())
-	if err != nil {
-		return fmt.Errorf("verify confirmVote sign %s", err)
+	// Verify the signature of remote msg
+	if nmls == types.RemoteNetworkMsg {
+		_, err := signutil.VerifyMsgSign(msg.GetMsgOption().GetOwner().GetNodeId(), msg.Hash().Bytes(), msg.GetSign())
+		if err != nil {
+			return fmt.Errorf("verify remote confirmVote sign %s", err)
+		}
 	}
 
 	errCh := make(chan error, 0)
 
 	t.asyncCallCh <- func() {
 
-		if t.state.HasNotOrgProposalWithProposalId(msg.GetMsgOption().GetProposalId()) {
-			log.Errorf("Failed to check org proposalState whether have been exist when received commitMsg, but it's not exist, proposalId: {%s}",
-				msg.GetMsgOption().GetProposalId().String())
-			errCh <- fmt.Errorf("%s when received commitMsg", ctypes.ErrProposalNotFound)
-			return
-		}
+		defer close(errCh)
 
 		identity, err := t.resourceMng.GetDB().QueryIdentity()
 		if nil != err {
@@ -1128,8 +1128,6 @@ func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap, nmls ty
 			errCh <- fmt.Errorf("query local identity failed when received confirmMsg, %s", err)
 			return
 		}
-
-		log.WithField("traceId", traceutil.GenerateTraceID(cimmitMsg.GetData())).Debugf("Received commitMsg, consensusSymbol: {%s}, remote pid: {%s}, commitMsg: %s", nmls.String(), pid, msg.String())
 
 		randomSt, ok := t.state.RandomOrgProposalStateWithProposalId(msg.GetMsgOption().GetProposalId())
 		if !ok {
@@ -1142,11 +1140,31 @@ func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap, nmls ty
 		task, err := t.resourceMng.GetDB().QueryLocalTask(randomSt.GetTaskId())
 		if nil != err {
 			log.WithError(err).Errorf("Failed to query local task when received commitMsg, proposalId: {%s}, taskId: {%s}",
-				msg.GetMsgOption().GetProposalId().String(), task.GetTaskId())
-			errCh <- fmt.Errorf("not found local task, on the commitMsg [proposalId: %s, taskId: %s]",
-				msg.GetMsgOption().GetProposalId().String(), task.GetTaskId())
+				msg.GetMsgOption().GetProposalId().String(), randomSt.GetTaskId())
+			errCh <- fmt.Errorf("not found local task when received commitMsg [proposalId: %s, taskId: %s]",
+				msg.GetMsgOption().GetProposalId().String(), randomSt.GetTaskId())
 			return
 		}
+
+		sender := fetchOrgByPartyRole(msg.GetMsgOption().GetSenderPartyId(), msg.GetMsgOption().GetSenderRole(), task)
+		if nil == sender {
+			log.Errorf("Failed to check sender of msg when received commitMsg, it is empty, proposalId: {%s}, taskId: {%s}",
+				msg.GetMsgOption().GetProposalId().String(), task.GetTaskId())
+			errCh <- fmt.Errorf("%s when received commitMsg", ctypes.ErrConsensusMsgInvalid)
+			return
+		}
+
+		// Check whether the sender of the message is the same organization as the sender of the task.
+		// If not, this message is illegal.
+		if task.GetTaskSender().GetIdentityId() != sender.GetIdentityId() ||
+			task.GetTaskSender().GetPartyId() != sender.GetPartyId() {
+			log.Warnf("Warning the sender of the msg is not the same organization as the sender of the task when received commitMsg, proposalId: {%s}, taskId: {%s}, msg sender: %s, task sender: %s",
+				msg.GetMsgOption().GetProposalId().String(), task.GetTaskId(), sender.String(), task.GetTaskSender().String())
+			errCh <- fmt.Errorf("%s when received commitMsg", ctypes.ErrConsensusMsgInvalid)
+			return
+		}
+
+		log.WithField("traceId", traceutil.GenerateTraceID(cimmitMsg.GetData())).Debugf("Received commitMsg, consensusSymbol: {%s}, remote pid: {%s}, commitMsg: %s", nmls.String(), pid, msg.String())
 
 		driveTaskFn := func(party *carriertypespb.TaskOrganization, role commonconstantpb.TaskRole) error {
 
@@ -1155,6 +1173,14 @@ func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap, nmls ty
 				log.Errorf("Failed to check org proposalState whether have been exist when received commitMsg, but it's not exist, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
 					msg.GetMsgOption().GetProposalId().String(), task.GetTaskId(), party.GetPartyId())
 				return fmt.Errorf("%s when received commitMsg", ctypes.ErrProposalNotFound)
+			}
+
+			// check the proposalTask of proposal exists
+			if t.state.HasNotProposalTaskWithTaskIdAndPartyId(orgProposalState.GetTaskId(), party.GetPartyId()) {
+				log.Errorf("%s when received commitMsg, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
+					ctypes.ErrProposalTaskNotFound, msg.GetMsgOption().GetProposalId().String(), orgProposalState.GetTaskId(), party.GetPartyId())
+				return fmt.Errorf("%s when received commitMsg [proposalId: %s, taskId: %s, partyId: %s]",
+					ctypes.ErrProposalTaskNotFound, msg.GetMsgOption().GetProposalId().String(), orgProposalState.GetTaskId(), party.GetPartyId())
 			}
 
 			// The vote in the consensus confirm epoch or commit epoch can be processed just if the current state is the confirm state or commit state
@@ -1167,38 +1193,6 @@ func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap, nmls ty
 				log.Errorf("Failed to check org proposalState priod when received commitMsg, it's not commit epoch and is finished epoch now, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
 					msg.GetMsgOption().GetProposalId().String(), task.GetTaskId(), party.GetPartyId())
 				return fmt.Errorf("%s when received commitMsg", ctypes.ErrProposalCommitMsgTimeout)
-			}
-
-			// check the proposalTask of proposal exists
-			if t.state.HasNotProposalTaskWithTaskIdAndPartyId(orgProposalState.GetTaskId(), party.GetPartyId()) {
-				log.Errorf("%s when received commitMsg, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
-					ctypes.ErrProposalTaskNotFound, msg.GetMsgOption().GetProposalId().String(), orgProposalState.GetTaskId(), party.GetPartyId())
-				return fmt.Errorf("%s, on the commit msg [proposalId: %s, taskId: %s, partyId: %s]",
-					ctypes.ErrProposalTaskNotFound, msg.GetMsgOption().GetProposalId().String(), orgProposalState.GetTaskId(), party.GetPartyId())
-			}
-
-			sender := fetchOrgByPartyRole(msg.GetMsgOption().GetSenderPartyId(), msg.GetMsgOption().GetSenderRole(), task)
-
-			if nil == sender {
-				log.Errorf("Failed to check msg.MsgOption sender and receiver of commitMsg when received commitMsg, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
-					msg.GetMsgOption().GetProposalId().String(), orgProposalState.GetTaskId(), party.GetPartyId())
-				return fmt.Errorf("%s when received commitMsg", ctypes.ErrConsensusMsgInvalid)
-			}
-
-			// Check whether the sender of the message is the same organization as the sender of the task.
-			// If not, this message is illegal.
-			if task.GetTaskSender().GetIdentityId() != sender.GetIdentityId() ||
-				task.GetTaskSender().GetPartyId() != sender.GetPartyId() {
-				log.Warnf("Warning the sender of the message is not the same organization as the sender of the task when received commitMsg, proposalId: {%s}, taskId: {%s}, partyId: {%s}, msg sender: %s, task sender: %s",
-					msg.GetMsgOption().GetProposalId().String(), task.GetTaskId(), party.GetPartyId(), sender.String(), task.GetTaskSender().String())
-				return fmt.Errorf("%s when received commitMsg", ctypes.ErrConsensusMsgInvalid)
-			}
-
-			// verify the receiver is myself ?
-			if identity.GetIdentityId() != party.GetIdentityId() {
-				log.Warnf("Warning verify receiver identityId of commitMsg, receiver is not me, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
-					msg.GetMsgOption().GetProposalId().String(), orgProposalState.GetTaskId(), party.GetPartyId())
-				return fmt.Errorf("%s when received commitMsg", ctypes.ErrConsensusMsgInvalid)
 			}
 
 			// check msg commit option value is `start` or `stop` ?
@@ -1268,94 +1262,132 @@ func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap, nmls ty
 		}
 	}
 
-	close(errCh)
 	return <-errCh
 }
 
-func (t *Twopc) onTerminateTaskConsensus(pid peer.ID, msg *types.TerminateConsensusMsgWrap) error {
+func (t *Twopc) onTerminateTaskConsensus(pid peer.ID, terminateConsensusMsg *types.TerminateConsensusMsgWrap) error {
 
-	msgOption := types.FetchMsgOption(msg.GetMsgOption())
-	log.Infof("Start terminate task consensus when received terminateConsensusMsg , taskId: {%s}, partyId: {%s}", msg.GetTaskId(), msgOption.GetReceiverPartyId())
+	msg := fetchTerminateConsensusMsg(terminateConsensusMsg)
 
-	// find the task of proposal on proposalTask
-	proposalTask, ok := t.state.QueryProposalTaskWithTaskIdAndPartyId(msg.GetTaskId(), msgOption.GetReceiverPartyId())
-	if !ok {
-		log.Errorf("%s when received terminateConsensusMsg, taskId: {%s}, partyId: {%s}", ctypes.ErrProposalTaskNotFound, msg.GetTaskId(), msgOption.GetReceiverPartyId())
-		return fmt.Errorf("%s, when received terminateConsensusMsg [taskId: %s, partyId: %s]",
-			ctypes.ErrProposalTaskNotFound, msg.GetTaskId(), msgOption.GetReceiverPartyId())
+
+	errCh := make(chan error, 0)
+
+	t.asyncCallCh <- func() {
+
+		defer close(errCh)
+
+		identity, err := t.resourceMng.GetDB().QueryIdentity()
+		if nil != err {
+			log.WithError(err).Errorf("Failed to call `QueryIdentity()` when received confirmMsg, proposalId: {%s}",
+				msg.GetMsgOption().GetProposalId().String())
+			errCh <- fmt.Errorf("query local identity failed when received confirmMsg, %s", err)
+			return
+		}
+
+		task, err := t.resourceMng.GetDB().QueryLocalTask(msg.GetTaskId())
+		if nil != err {
+			log.WithError(err).Errorf("Failed to query local task when received terminateConsensusMsg, taskId: {%s}", msg.GetTaskId())
+			errCh <- fmt.Errorf("not found local task when received terminateConsensusMsg [taskId: %s]", msg.GetTaskId())
+			return
+		}
+
+		sender := fetchOrgByPartyRole(msg.GetMsgOption().GetSenderPartyId(), msg.GetMsgOption().GetSenderRole(), task)
+		if nil == sender {
+			log.Errorf("Failed to check sender of msg when received terminateConsensusMsg, it is empty, taskId: {%s}", task.GetTaskId())
+			errCh <- fmt.Errorf("%s when received terminateConsensusMsg", ctypes.ErrConsensusMsgInvalid)
+			return
+		}
+
+		// Check whether the sender of the message is the same organization as the sender of the task.
+		// If not, this message is illegal.
+		if task.GetTaskSender().GetIdentityId() != sender.GetIdentityId() ||
+			task.GetTaskSender().GetPartyId() != sender.GetPartyId() {
+			log.Warnf("Warning the sender of the msg is not the same organization as the sender of the task when received terminateConsensusMsg, taskId: {%s}, msg sender: %s, task sender: %s",
+				task.GetTaskId(), sender.String(), task.GetTaskSender().String())
+			errCh <- fmt.Errorf("%s when received terminateConsensusMsg", ctypes.ErrConsensusMsgInvalid)
+			return
+		}
+
+
+		log.Infof("Start terminate task consensus when received terminateConsensusMsg , taskId: {%s}", msg.GetTaskId())
+
+		terminateFn := func(party *carriertypespb.TaskOrganization, role commonconstantpb.TaskRole) error {
+
+			orgProposalState, ok := t.state.QueryOrgProposalStateWithProposalIdAndPartyId(msg.GetMsgOption().GetProposalId(), party.GetPartyId())
+			if !ok {
+				log.Errorf("Failed to check org proposalState when received terminateConsensusMsg, it's not exist, taskId: {%s}, partyId: {%s}",
+					task.GetTaskId(), party.GetPartyId())
+				return fmt.Errorf("%s when received terminateConsensusMsg", ctypes.ErrProposalNotFound)
+			}
+
+			// check the proposalTask of proposal exists
+			if t.state.HasNotProposalTaskWithTaskIdAndPartyId(orgProposalState.GetTaskId(), party.GetPartyId()) {
+				log.Errorf("%s when received terminateConsensusMsg, proposalId: {%s}, taskId: {%s}, , partyId: {%s}",
+					ctypes.ErrProposalTaskNotFound, msg.GetMsgOption().GetProposalId().String(), orgProposalState.GetTaskId(), party.GetPartyId())
+				return fmt.Errorf("%s when received terminateConsensusMsg [proposalId: %s, taskId: %s, partyId: %s]",
+					ctypes.ErrProposalTaskNotFound, msg.GetMsgOption().GetProposalId().String(), orgProposalState.GetTaskId(), party.GetPartyId())
+			}
+
+			var reason string
+
+			switch orgProposalState.GetPeriodNum() {
+			case ctypes.PeriodPrepare:
+				reason = "interrupt consensus with terminate task while prepare epoch"
+			case ctypes.PeriodConfirm:
+				reason = "interrupt consensus with terminate task while confirm epoch"
+			case ctypes.PeriodCommit, ctypes.PeriodFinished:
+				// need send terminate msg with task manager
+				// so do nothing here
+			default:
+				log.Errorf("unknown org proposalState priod when received terminateConsensusMsg, proposalId: {%s}, taskId: {%s}, partyId: {%s}, peroid: {%s}",
+					orgProposalState.GetProposalId().String(), msg.GetTaskId(), party.GetPartyId(), orgProposalState.GetPeriodStr())
+				return fmt.Errorf("unknown org proposalState priod, on the interrupt consensus")
+			}
+
+			if "" != reason {
+				// remove `proposal state` and `task cache` AND inerrupt consensus with sender OR release local locked resource with partner
+				t.stopTaskConsensus(reason, orgProposalState.GetProposalId(), msg.GetTaskId(),
+					role, msg.GetMsgOption().GetSenderRole(), party, sender, types.TaskTerminate)
+				t.removeOrgProposalStateAndTask(orgProposalState.GetProposalId(),  party.GetPartyId())
+			}
+
+			return nil
+		}
+
+		failedPartyIds := make([]string, 0)
+
+		for _, data := range task.GetTaskData().GetDataSuppliers() {
+			if identity.GetIdentityId() == data.GetIdentityId() {
+				if err := terminateFn(data, commonconstantpb.TaskRole_TaskRole_DataSupplier); nil != err {
+					failedPartyIds = append(failedPartyIds, data.GetPartyId())
+				}
+			}
+		}
+		for _, data := range task.GetTaskData().GetPowerSuppliers() {
+			if identity.GetIdentityId() == data.GetIdentityId() {
+				if err := terminateFn(data, commonconstantpb.TaskRole_TaskRole_PowerSupplier); nil != err {
+					failedPartyIds = append(failedPartyIds, data.GetPartyId())
+				}
+			}
+		}
+
+		for _, data := range task.GetTaskData().GetReceivers() {
+			if identity.GetIdentityId() == data.GetIdentityId() {
+				if err := terminateFn(data, commonconstantpb.TaskRole_TaskRole_Receiver); nil != err {
+					failedPartyIds = append(failedPartyIds, data.GetPartyId())
+				}
+			}
+		}
+		if len(failedPartyIds) != 0 {
+			errCh <- fmt.Errorf("terminate consensus failed by [%s], taskId: {%s}",
+				strings.Join(failedPartyIds, ","), task.GetTaskId())
+		}
 	}
 
-	task, err := t.resourceMng.GetDB().QueryLocalTask(proposalTask.GetTaskId())
-	if nil != err {
-		log.WithError(err).Errorf("Failed to query local task when received terminateConsensusMsg, taskId: {%s}, partyId: {%s}", msg.GetTaskId(), msgOption.GetReceiverPartyId())
-		return fmt.Errorf("not found local task when received terminateConsensusMsg [proposalId: %s, taskId: %s, partyId: %s]",
-			proposalTask.GetProposalId().String(), msg.GetTaskId(), msgOption.GetReceiverPartyId())
-	}
-
-	if t.state.HasNotOrgProposalWithProposalIdAndPartyId(proposalTask.GetProposalId(), msgOption.GetReceiverPartyId()) {
-		log.Errorf("Failed to check org proposalState whether have been exist when received terminateConsensusMsg, but it's not exist, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
-			proposalTask.GetProposalId().String(), msg.GetTaskId(), msgOption.GetReceiverPartyId())
-		return fmt.Errorf("%s, when received terminateConsensusMsg", ctypes.ErrProposalNotFound)
-	}
-
-	sender := fetchOrgByPartyRole(msgOption.GetSenderPartyId(), msgOption.GetSenderRole(), task)
-	receiver := fetchOrgByPartyRole(msgOption.GetReceiverPartyId(), msgOption.GetReceiverRole(), task)
-	if nil == sender || nil == receiver {
-		log.Errorf("Failed to check msg.MsgOption sender and receiver of interruptMsg when received terminateConsensusMsg, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
-			proposalTask.GetProposalId().String(), msg.GetTaskId(), msgOption.GetReceiverPartyId())
-		return ctypes.ErrConsensusMsgInvalid
-	}
-
-	identity, err := t.resourceMng.GetDB().QueryIdentity()
-	if nil != err {
-		log.WithError(err).Errorf("Failed to call `QueryIdentity()` when received terminateConsensusMsg, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
-			msgOption.GetProposalId().String(), proposalTask.GetTaskId(), msgOption.GetReceiverPartyId())
-		// release local resource and clean some data  (on task partner)
-		t.stopTaskConsensus(fmt.Sprintf("query local identity failed %s, when received terminateConsensusMsg", err), msgOption.GetProposalId(), proposalTask.GetTaskId(),
-			msgOption.GetReceiverRole(), msgOption.GetSenderRole(), receiver, sender, types.TaskConsensusInterrupt)
-		t.removeOrgProposalStateAndTask(msgOption.GetProposalId(), msgOption.GetReceiverPartyId())
-		return fmt.Errorf("query local identity failed when received terminateConsensusMsg, %s", err)
-	}
-
-	// verify the receiver is myself ?
-	if identity.GetIdentityId() != receiver.GetIdentityId() {
-		log.Warnf("Warning verify receiver identityId of terminateConsensusMsg, receiver is not me, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
-			msgOption.GetProposalId().String(), proposalTask.GetTaskId(), msgOption.GetReceiverPartyId())
-		return fmt.Errorf("%s when received terminateConsensusMsg", ctypes.ErrConsensusMsgInvalid)
-	}
-
-	// Check whether the sender of the message is the same organization as the sender of the task.
-	// If not, this message is illegal.
-	if task.GetTaskSender().GetIdentityId() != sender.GetIdentityId() ||
-		task.GetTaskSender().GetPartyId() != sender.GetPartyId() {
-		log.Warnf("Warning the sender of the message is not the same organization as the sender of the task when received terminateConsensusMsg, proposalId: {%s}, taskId: {%s}, partyId: {%s}, msg sender: %s, task sender: %s",
-			msgOption.GetProposalId().String(), task.GetTaskId(), msgOption.GetReceiverPartyId(), sender.String(), task.GetTaskSender().String())
-		return fmt.Errorf("%s when received terminateConsensusMsg", ctypes.ErrConsensusMsgInvalid)
-	}
-
-	orgProposalState := t.state.MustQueryOrgProposalStateWithProposalIdAndPartyId(proposalTask.GetProposalId(), msgOption.GetReceiverPartyId())
-	switch orgProposalState.GetPeriodNum() {
-	case ctypes.PeriodPrepare:
-		// remove `proposal state` and `task cache` AND inerrupt consensus with sender OR release local locked resource with partner
-		t.stopTaskConsensus("interrupt consensus with terminate task while prepare epoch", proposalTask.GetProposalId(), msg.GetTaskId(),
-			msgOption.GetReceiverRole(), msgOption.GetSenderRole(), receiver, sender, types.TaskTerminate)
-		t.removeOrgProposalStateAndTask(proposalTask.GetProposalId(), proposalTask.GetTaskId())
-	case ctypes.PeriodConfirm:
-		// remove `proposal state` and `task cache` AND inerrupt consensus with sender OR release local locked resource with partner
-		t.stopTaskConsensus("interrupt consensus with terminate task while confirm epoch", proposalTask.GetProposalId(), msg.GetTaskId(),
-			msgOption.GetReceiverRole(), msgOption.GetSenderRole(), receiver, sender, types.TaskTerminate)
-		t.removeOrgProposalStateAndTask(proposalTask.GetProposalId(), proposalTask.GetTaskId())
-	case ctypes.PeriodCommit, ctypes.PeriodFinished:
-		// need send terminate msg with task manager
-		// so do nothing here
-	default:
-		log.Errorf("unknown org proposalState priod when received terminateConsensusMsg, proposalId: {%s}, taskId: {%s}, partyId: {%s}, peroid: {%s}",
-			proposalTask.GetProposalId().String(), msg.GetTaskId(), msgOption.GetReceiverPartyId(), orgProposalState.GetPeriodStr())
-		return fmt.Errorf("unknown org proposalState priod, on the interrupt consensus")
-	}
-	return nil
+	return <-errCh
 }
 
+// for debug methods ...
 func (t *Twopc) Get2PcProposalStateByTaskId(taskId string) (*carrierrpcdebugpbv1.Get2PcProposalStateResponse, error) {
 	t.state.proposalTaskLock.RLock()
 	defer t.state.proposalTaskLock.RUnlock()

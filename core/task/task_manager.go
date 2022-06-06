@@ -426,65 +426,12 @@ func (m *Manager) TerminateTask(terminate *types.TaskTerminateMsg) {
 		return
 	}
 
-	// ## 1、 check wether task status is `terminate`
-	terminating, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusTerminateByPartyId(task.GetTaskId(), task.GetTaskSender().GetPartyId())
-	if nil != err {
-		log.WithError(err).Errorf("Failed to query local task execute `termining` with task sender on `taskManager.TerminateTask()`, taskId: {%s}, partyId: {%s}",
-			task.GetTaskId(), task.GetTaskSender().GetPartyId())
-		return
-	}
-	if terminating {
-		log.Warnf("Warning query local task execute status has `termining` with task sender on `taskManager.TerminateTask()`, taskId: {%s}, partyId: {%s}",
-			task.GetTaskId(), task.GetTaskSender().GetPartyId())
-		return
-	}
-
-	// ## 2、 check wether task status is `running`
-	running, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusRunningByPartyId(task.GetTaskId(), task.GetTaskSender().GetPartyId())
-	if nil != err {
-		log.WithError(err).Errorf("Failed to query local task execute status has `running` with task sender on `taskManager.TerminateTask()`, taskId: {%s}, partyId: {%s}",
-			task.GetTaskId(), task.GetTaskSender().GetPartyId())
-		return
-	}
-	// (While task is consensus or running, can terminate.)
-	if running {
-		if err := m.onTerminateExecuteTask(task.GetTaskId(), task.GetTaskSender().GetPartyId(), task); nil != err {
-			log.Errorf("Failed to call `onTerminateExecuteTask()` on `taskManager.TerminateTask()`, taskId: {%s}, err: \n%s", task.GetTaskId(), err)
-		}
-		return
-	}
-
-	// ## 3、 check wether task status is `consensus`
-
-	// The task sender only makes consensus, so interrupt consensus while need terminate task with task sender
-	// (While task is consensus or executing, can terminate.)
-	consensusing, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusConsensusByPartyId(task.GetTaskId(), task.GetTaskSender().GetPartyId())
-	if nil != err {
-		log.WithError(err).Errorf("Failed to query local task execute status has `cons` with task sender on `taskManager.TerminateTask()`, taskId: {%s}, partyId: {%s}",
-			task.GetTaskId(), task.GetTaskSender().GetPartyId())
-		return
-	}
-	if consensusing {
-		if err = m.consensusEngine.OnConsensusMsg(
-			"", types.NewInterruptMsgWrap(task.GetTaskId(),
-				types.MakeMsgOption(common.Hash{},
-					commonconstantpb.TaskRole_TaskRole_Sender,
-					commonconstantpb.TaskRole_TaskRole_Sender,
-					task.GetTaskSender().GetPartyId(),
-					task.GetTaskSender().GetPartyId(),
-					task.GetTaskSender()))); nil != err {
-			log.WithError(err).Errorf("Failed to call `OnConsensusMsg()` on `taskManager.TerminateTask()`, taskId: {%s}, partyId: {%s}",
-				task.GetTaskId(), task.GetTaskSender().GetPartyId())
-		}
+	if err := m.terminateExecuteTaskBySender(task); nil != err {
+		log.Errorf("Failed to call `terminateExecuteTaskBySender()` on `taskManager.TerminateTask()`, taskId: {%s}, err: \n%s", task.GetTaskId(), err)
 	}
 }
 
-func (m *Manager) onTerminateExecuteTask(taskId, partyId string, task *types.Task) error {
-
-	if taskId != task.GetTaskId() {
-		log.Warnf("taskId has not match, %s and %s is not same one", taskId, task.GetTaskId())
-		return fmt.Errorf("taskId has not match, %s and %s is not same one", taskId, task.GetTaskId())
-	}
+func (m *Manager) terminateExecuteTaskBySender(task *types.Task) error {
 
 	// what if find the needExecuteTask(status: types.TaskConsensusFinished) with sender
 	if m.hasNeedExecuteTaskCache(task.GetTaskId(), task.GetTaskSender().GetPartyId()) {
@@ -523,13 +470,6 @@ func (m *Manager) onTerminateExecuteTask(taskId, partyId string, task *types.Tas
 		if err := m.sendTaskTerminateMsg(task); nil != err {
 			log.WithError(err).Errorf("Failed to store needExecute task status to `terminate` with task sender, taskId: {%s}, partyId: {%s}",
 				task.GetTaskId(), task.GetTaskSender().GetPartyId())
-		}
-	} else {
-
-		// When the partner and sender of the current task do not belong to the same organization,
-		// we terminate the task of our own party.
-		if needExecuteTask, has := m.queryNeedExecuteTaskCache(taskId, partyId); has {
-			return m.startTerminateWithNeedExecuteTask(needExecuteTask)
 		}
 	}
 

@@ -330,7 +330,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *carrierapipb.Pub
 
 func (svr *Server) TerminateTask(ctx context.Context, req *carrierapipb.TerminateTaskRequest) (*carriertypespb.SimpleResponse, error) {
 
-	_, err := svr.B.GetNodeIdentity()
+	identity, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:TerminateTask failed, query local identity failed")
 		return &carriertypespb.SimpleResponse{Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
@@ -366,6 +366,11 @@ func (svr *Server) TerminateTask(ctx context.Context, req *carrierapipb.Terminat
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:TerminateTask failed, query local task failed")
 		return &carriertypespb.SimpleResponse{Status: backend.ErrTerminateTaskMsg.ErrCode(), Msg: "query local task failed"}, nil
+	}
+
+	if task.GetInformation().GetSender().GetIdentityId() != identity.GetIdentityId() {
+		log.Errorf("RPC-API:TerminateTask failed, check taskSender failed, the taskSender is not current identity")
+		return &carriertypespb.SimpleResponse{Status: backend.ErrTerminateTaskMsg.ErrCode(), Msg: "invalid taskSender"}, nil
 	}
 
 	// check user

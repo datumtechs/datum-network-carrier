@@ -179,3 +179,14 @@ func fetchCommitMsg(msg *types.CommitMsgWrap) *types.CommitMsg {
 		Sign:         msg.GetSign(),
 	}
 }
+
+
+func fetchTerminateConsensusMsg(msg *types.TerminateConsensusMsgWrap) *types.TerminateConsensusMsg {
+	return &types.TerminateConsensusMsg{
+		MsgOption: types.FetchMsgOption(msg.GetMsgOption()),
+		TaskId: msg.GetTaskId(),
+		CreateAt: msg.GetCreateAt(),
+		Sign: msg.Signature(),
+	}
+}
+
