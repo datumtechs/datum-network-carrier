@@ -71,6 +71,9 @@ func (m *Task) SetPowerResources(arr []*carriertypespb.TaskPowerResourceOption) 
 func (m *Task) RemovePowerSuppliers() {
 	m.data.PowerSuppliers = make([]*carriertypespb.TaskOrganization, 0)
 }
+func (m *Task) RemovePowerResources() {
+	m.data.PowerResourceOptions = make([]*carriertypespb.TaskPowerResourceOption, 0)
+}
 func (m *Task) SetReceivers(arr []*carriertypespb.TaskOrganization) {
 	m.data.Receivers = arr
 }

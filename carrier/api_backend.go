@@ -1155,6 +1155,7 @@ next:
 		// (i.e. the status is still: pending), the 'powersuppliers' of the task should not be returned.
 		if identity.GetIdentityId() == task.GetTaskSender().GetIdentityId() && task.GetTaskData().GetState() == commonconstantpb.TaskState_TaskState_Pending {
 			task.RemovePowerSuppliers() // clean powerSupplier when before return.
+			task.RemovePowerResources()
 		}
 
 		if taskView := makeTaskViewFn(task); nil != taskView {
@@ -1261,6 +1262,7 @@ next:
 		// (i.e. the status is still: pending), the 'powersuppliers' of the task should not be returned.
 		if identity.GetIdentityId() == task.GetTaskSender().GetIdentityId() && task.GetTaskData().GetState() == commonconstantpb.TaskState_TaskState_Pending {
 			task.RemovePowerSuppliers() // clean powerSupplier when before return.
+			task.RemovePowerResources()
 		}
 
 		if taskView := makeTaskViewFn(task); nil != taskView {
