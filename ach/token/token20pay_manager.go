@@ -325,6 +325,7 @@ func (m *Token20PayManager) Prepay(taskID *big.Int, taskSponsorAccount common.Ad
 	}
 
 	//交易参数直接使用用户预付的总的gas，尽量放大，以防止交易执行gas不足
+	gasEstimated = uint64(float64(gasEstimated) * 1.30)
 	opts, err := m.buildTxOpts(gasEstimated)
 	if err != nil {
 		log.Errorf("failed to build transact options to call Token20Pay.Prepay(): %v", err)
@@ -334,8 +335,8 @@ func (m *Token20PayManager) Prepay(taskID *big.Int, taskSponsorAccount common.Ad
 	//gas fee, 支付助手合约，需要记录用户预付的手续费
 	feePrepaid := new(big.Int).Mul(new(big.Int).SetUint64(gasEstimated), opts.GasPrice)
 
-	log.Debugf("Start call contract prepay(), taskID: %s, gasEstimated: %d, gasLimit: %d, gasPrice: %d, feePrepaid: %d, taskSponsorAccount: %s, dataTokenAddressList: %s, dataTokenAmountList: %s",
-		taskIDHex, gasEstimated, opts.GasLimit, opts.GasPrice, feePrepaid, taskSponsorAccount.String(), "["+strings.Join(addrs, ",")+"]", "["+strings.Join(amounts, ",")+"]")
+	log.Debugf("Start call contract prepay(), taskID: %s, nonce: %d, gasEstimated: %d, gasLimit: %d, gasPrice: %d, feePrepaid: %d, taskSponsorAccount: %s, dataTokenAddressList: %s, dataTokenAmountList: %s",
+		taskIDHex, opts.Nonce, gasEstimated, opts.GasLimit, opts.GasPrice, feePrepaid, taskSponsorAccount.String(), "["+strings.Join(addrs, ",")+"]", "["+strings.Join(amounts, ",")+"]")
 
 	tx, err := m.contractToken20PayInstance.Prepay(opts, taskID, taskSponsorAccount, feePrepaid, dataTokenAddressList, dataTokenAmountList)
 	if err != nil {
@@ -373,6 +374,7 @@ func (m *Token20PayManager) Settle(taskID *big.Int, gasUsedPrepay uint64) (commo
 	}
 
 	//交易参数的gasLimit可以放大，以防止交易执行gas不足；实际并不会真的消耗这么多
+	gasEstimated = uint64(float64(gasEstimated) * 1.30)
 	opts, err := m.buildTxOpts(gasEstimated)
 	if err != nil {
 		log.Errorf("failed to build transact options: %v", err)
@@ -384,7 +386,7 @@ func (m *Token20PayManager) Settle(taskID *big.Int, gasUsedPrepay uint64) (commo
 	//gas fee
 	totalFeeUsed := new(big.Int).Mul(new(big.Int).SetUint64(totalGasUsed), opts.GasPrice)
 
-	log.Debugf("call contract settle(),  taskID: %s, gasUsedPrepay: %d, gasEstimated: %d, gasLimit: %d, gasPrice: %d, totalFeeUsed: %d", taskIDHex, gasUsedPrepay, gasEstimated, opts.GasLimit, opts.GasPrice, totalFeeUsed)
+	log.Debugf("call contract settle(),  taskID: %s, nonce: %d, gasUsedPrepay: %d, gasEstimated: %d, gasLimit: %d, gasPrice: %d, totalFeeUsed: %d", taskIDHex, opts.Nonce, gasUsedPrepay, gasEstimated, opts.GasLimit, opts.GasPrice, totalFeeUsed)
 
 	//合约
 	tx, err := m.contractToken20PayInstance.Settle(opts, taskID, totalFeeUsed)
