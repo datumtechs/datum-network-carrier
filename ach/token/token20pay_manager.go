@@ -5,7 +5,7 @@ import (
 	"crypto/ecdsa"
 	"encoding/hex"
 	"errors"
-	"sync/atomic"
+	"sync"
 	"time"
 
 	"github.com/datumtechs/datum-network-carrier/ach/token/contracts"
@@ -52,7 +52,7 @@ type Token20PayManager struct {
 	chainID                    *big.Int
 	abi                        abi.ABI
 	contractToken20PayInstance *contracts.Token20Pay
-	pendingNonce             uint64
+	txSyncLocker               sync.Mutex
 }
 
 func (m *Token20PayManager) loadPrivateKey() {
@@ -149,8 +149,6 @@ func NewToken20PayManager(db core.CarrierDB, config *Config, kmsConfig *kms.Conf
 			m.Kms = &kms.AliKms{Config: kmsConfig}
 		}
 		m.loadPrivateKey()
-
-		m.initNonce()
 	}
 
 	abiCode, err := abi.JSON(strings.NewReader(contracts.Token20PayABI))
@@ -161,17 +159,11 @@ func NewToken20PayManager(db core.CarrierDB, config *Config, kmsConfig *kms.Conf
 	return m
 }
 
-func (m *Token20PayManager) initNonce() {
-	if pendingNonce, err := m.client.PendingNonceAt(context.Background(), m.Config.walletAddress); err != nil {
-		log.Fatalf("cannot init pending nonce: %v", err)
-	} else {
-		m.pendingNonce = pendingNonce
-	}
-}
-
 func (m *Token20PayManager) buildTxOpts(gasLimit uint64) (*bind.TransactOpts, error) {
-	// variable "nonce" is necessary
-	nonce := atomic.AddUint64(&m.pendingNonce, 1)
+	nonce, err := m.client.PendingNonceAt(context.Background(), m.Config.walletAddress)
+	if err != nil {
+		return nil, err
+	}
 
 	gasPrice, err := m.client.SuggestGasPrice(context.Background())
 	if err != nil {
@@ -187,7 +179,7 @@ func (m *Token20PayManager) buildTxOpts(gasLimit uint64) (*bind.TransactOpts, er
 	txOpts.Nonce = new(big.Int).SetUint64(nonce)
 	txOpts.Value = big.NewInt(0) // in wei
 	txOpts.GasLimit = gasLimit   // in units
-	txOpts.GasPrice = gasPrice
+	txOpts.GasPrice = gasPrice.Mul(gasPrice, big.NewInt(2))
 	return txOpts, nil
 }
 
@@ -305,6 +297,9 @@ func (m *Token20PayManager) GenerateOrgWallet() (common.Address, error) {
 // Prepay returns hx.Hash, and error.
 // The complete procedure consists of two calls to Token20Pay, the first is Prepay, the second is Settle.
 func (m *Token20PayManager) Prepay(taskID *big.Int, taskSponsorAccount common.Address, dataTokenAddressList []common.Address) (common.Hash, error) {
+	m.txSyncLocker.Lock()
+	defer m.txSyncLocker.Unlock()
+
 	taskIDHex := hexutil.EncodeBig(taskID)
 	if m.getPrivateKey() == nil {
 		log.Errorf("cannot send Prepay transaction cause organization wallet missing")
@@ -330,7 +325,8 @@ func (m *Token20PayManager) Prepay(taskID *big.Int, taskSponsorAccount common.Ad
 	}
 
 	//交易参数直接使用用户预付的总的gas，尽量放大，以防止交易执行gas不足
-	opts, err := m.buildTxOpts(gasEstimated * 2)
+	gasEstimated = uint64(float64(gasEstimated) * 1.30)
+	opts, err := m.buildTxOpts(gasEstimated)
 	if err != nil {
 		log.Errorf("failed to build transact options to call Token20Pay.Prepay(): %v", err)
 		return common.Hash{}, errors.New("failed to build transact options to call Token20Pay.Prepay()")
@@ -339,8 +335,8 @@ func (m *Token20PayManager) Prepay(taskID *big.Int, taskSponsorAccount common.Ad
 	//gas fee, 支付助手合约，需要记录用户预付的手续费
 	feePrepaid := new(big.Int).Mul(new(big.Int).SetUint64(gasEstimated), opts.GasPrice)
 
-	log.Debugf("Start call contract prepay(), taskID: %s, gasEstimated: %d, gasLimit: %d, gasPrice: %d, feePrepaid: %d, taskSponsorAccount: %s, dataTokenAddressList: %s, dataTokenAmountList: %s",
-		taskIDHex, gasEstimated, opts.GasLimit, opts.GasPrice, feePrepaid, taskSponsorAccount.String(), "["+strings.Join(addrs, ",")+"]", "["+strings.Join(amounts, ",")+"]")
+	log.Debugf("Start call contract prepay(), taskID: %s, nonce: %d, gasEstimated: %d, gasLimit: %d, gasPrice: %d, feePrepaid: %d, taskSponsorAccount: %s, dataTokenAddressList: %s, dataTokenAmountList: %s",
+		taskIDHex, opts.Nonce, gasEstimated, opts.GasLimit, opts.GasPrice, feePrepaid, taskSponsorAccount.String(), "["+strings.Join(addrs, ",")+"]", "["+strings.Join(amounts, ",")+"]")
 
 	tx, err := m.contractToken20PayInstance.Prepay(opts, taskID, taskSponsorAccount, feePrepaid, dataTokenAddressList, dataTokenAmountList)
 	if err != nil {
@@ -360,6 +356,9 @@ func (m *Token20PayManager) Prepay(taskID *big.Int, taskSponsorAccount common.Ad
 // gasUsedPrepay - carrier used gas for Prepay()
 
 func (m *Token20PayManager) Settle(taskID *big.Int, gasUsedPrepay uint64) (common.Hash, error) {
+	m.txSyncLocker.Lock()
+	defer m.txSyncLocker.Unlock()
+
 	taskIDHex := hexutil.EncodeBig(taskID)
 
 	if m.getPrivateKey() == nil {
@@ -375,7 +374,8 @@ func (m *Token20PayManager) Settle(taskID *big.Int, gasUsedPrepay uint64) (commo
 	}
 
 	//交易参数的gasLimit可以放大，以防止交易执行gas不足；实际并不会真的消耗这么多
-	opts, err := m.buildTxOpts(gasEstimated * 2)
+	gasEstimated = uint64(float64(gasEstimated) * 1.30)
+	opts, err := m.buildTxOpts(gasEstimated)
 	if err != nil {
 		log.Errorf("failed to build transact options: %v", err)
 	}
@@ -386,7 +386,7 @@ func (m *Token20PayManager) Settle(taskID *big.Int, gasUsedPrepay uint64) (commo
 	//gas fee
 	totalFeeUsed := new(big.Int).Mul(new(big.Int).SetUint64(totalGasUsed), opts.GasPrice)
 
-	log.Debugf("call contract settle(),  taskID: %s, gasUsedPrepay: %d, gasEstimated: %d, gasLimit: %d, gasPrice: %d, totalFeeUsed: %d", taskIDHex, gasUsedPrepay, gasEstimated, opts.GasLimit, opts.GasPrice, totalFeeUsed)
+	log.Debugf("call contract settle(),  taskID: %s, nonce: %d, gasUsedPrepay: %d, gasEstimated: %d, gasLimit: %d, gasPrice: %d, totalFeeUsed: %d", taskIDHex, opts.Nonce, gasUsedPrepay, gasEstimated, opts.GasLimit, opts.GasPrice, totalFeeUsed)
 
 	//合约
 	tx, err := m.contractToken20PayInstance.Settle(opts, taskID, totalFeeUsed)
