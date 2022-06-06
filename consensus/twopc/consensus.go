@@ -334,7 +334,7 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 			t.storeOrgProposalState(
 				ctypes.NewOrgProposalState(msg.GetMsgOption().GetProposalId(),
 					msg.GetTask().GetTaskId(),
-					msg.GetMsgOption().GetReceiverRole(), msg.GetTask().GetTaskSender(), party,
+					role, msg.GetTask().GetTaskSender(), party,
 					msg.GetCreateAt()),
 			)
 			log.Infof("Store proposal from task sender, proposalId: {%s}, taskId: {%s}, partyId: {%s}", msg.GetMsgOption().String(), msg.GetTask().GetTaskId(), party.GetPartyId())
@@ -344,7 +344,7 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 			t.wal.StoreProposalTask(party.GetPartyId(), proposalTask)
 
 			// Send task to Scheduler to replay sched.
-			needReplayScheduleTask := types.NewNeedReplayScheduleTask(msg.GetMsgOption().GetReceiverRole(), party.GetPartyId(), msg.GetTask(), msg.GetEvidence(), msg.GetBlackOrg())
+			needReplayScheduleTask := types.NewNeedReplayScheduleTask(role, party.GetPartyId(), msg.GetTask(), msg.GetEvidence(), msg.GetBlackOrg())
 			t.sendNeedReplayScheduleTask(needReplayScheduleTask)
 			replayTaskResult := needReplayScheduleTask.ReceiveResult()
 
@@ -424,7 +424,7 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 				if "" != errStr {
 					// release local resource and clean some data  (on task partner)
 					t.stopTaskConsensus(errStr, msg.GetMsgOption().GetProposalId(), msg.GetTask().GetTaskId(),
-						msg.GetMsgOption().GetReceiverRole(), msg.GetMsgOption().GetSenderRole(), party, sender, types.TaskConsensusInterrupt)
+						role, msg.GetMsgOption().GetSenderRole(), party, sender, types.TaskConsensusInterrupt)
 					t.removeOrgProposalStateAndTask(msg.GetMsgOption().GetProposalId(), party.GetPartyId())
 				}
 			}()
