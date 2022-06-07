@@ -820,7 +820,7 @@ func (m *Manager) publishFinishedTaskToDataCenter(task *types.NeedExecuteTask, l
 			return
 		}
 
-		log.Debugf("Finished pulishFinishedTaskToDataCenter, taskId: {%s}, partyId: {%s}, taskState: {%s}",
+		log.Debugf("Finished publishFinishedTaskToDataCenter, taskId: {%s}, partyId: {%s}, taskState: {%s}",
 			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskState)
 	}
 
