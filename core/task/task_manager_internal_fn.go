@@ -1842,7 +1842,7 @@ func (m *Manager) executeTaskEvent(logkeyword string, symbol types.NetworkMsgLoc
 			log.WithError(err).Errorf("Failed to remove all partyId of local task's partner arr %s, taskId: {%s}",
 				logkeyword, event.GetTaskId())
 		}
-
+		// todo 这里除了需要判断当前 组织是发起方外 (还需要处理  partner 哦， 我干)
 		if err := m.terminateExecuteTaskBySender(localTask); nil != err {
 			log.Errorf("Failed to call `terminateExecuteTaskBySender()` %s, taskId: {%s}, err: \n%s", logkeyword, localTask.GetTaskId(), err)
 		}
