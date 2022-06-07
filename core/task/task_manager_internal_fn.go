@@ -2296,6 +2296,8 @@ func (m *Manager) onTaskTerminateMsg(pid peer.ID, terminateMsg *carriernetmsgtas
 	terminateFn := func(party *carriertypespb.TaskOrganization, role commonconstantpb.TaskRole) (uint32, error) {
 		// ## 1、 check whether the task has been terminated
 
+		log.Debugf("Prepare [treminate task] when received taskTerminateMsg, taskId: {%s}, partyId: {%s}, consensusSymbol: {%s}", task.GetTaskId(), party.GetPartyId(), nmls.String())
+
 		terminating, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusTerminateByPartyId(task.GetTaskId(), party.GetPartyId())
 		if nil != err {
 			log.WithError(err).Errorf("Failed to query local task execute `termining` status on `taskManager.OnTaskTerminateMsg()`, taskId: {%s}, partyId: {%s}",
@@ -2322,6 +2324,7 @@ func (m *Manager) onTaskTerminateMsg(pid peer.ID, terminateMsg *carriernetmsgtas
 			if needExecuteTask, ok := m.queryNeedExecuteTaskCache(task.GetTaskId(), party.GetPartyId()); ok {
 				return 0, m.startTerminateWithNeedExecuteTask(needExecuteTask)
 			}
+			log.Debugf("Finished [treminate task] that is `running` status when received taskTerminateMsg, taskId: {%s}, partyId: {%s}, consensusSymbol: {%s}", task.GetTaskId(), party.GetPartyId(), nmls.String())
 		}
 
 		// ## 3、 check whether the task is in consensus
@@ -2405,7 +2408,7 @@ func (m *Manager) startTerminateWithNeedExecuteTask(needExecuteTask *types.NeedE
 		TaskId:     needExecuteTask.GetTaskId(),
 		IdentityId: needExecuteTask.GetLocalTaskOrganization().GetIdentityId(),
 		PartyId:    needExecuteTask.GetLocalTaskOrganization().GetPartyId(),
-		Content:    "task was terminated.",
+		Content:    "task was terminated",
 		CreateAt:   timeutils.UnixMsecUint64(),
 	})
 

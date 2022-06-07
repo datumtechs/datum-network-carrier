@@ -1316,9 +1316,11 @@ func (t *Twopc) onTerminateTaskConsensus(pid peer.ID, terminateConsensusMsg *typ
 		}
 
 
-		log.Infof("Start terminate task consensus when received terminateConsensusMsg , taskId: {%s}", msg.GetTaskId())
+		log.Debugf("Start [treminate task] consensus when received terminateConsensusMsg , taskId: {%s}", msg.GetTaskId())
 
 		terminateFn := func(party *carriertypespb.TaskOrganization, role commonconstantpb.TaskRole) error {
+
+			log.Debugf("Prepare [treminate task] consensus when received terminateConsensusMsg, taskId: {%s}, partyId: {%s}", task.GetTaskId(), party.GetPartyId())
 
 			orgProposalState, ok := t.state.QueryOrgProposalStateWithProposalIdAndPartyId(msg.GetMsgOption().GetProposalId(), party.GetPartyId())
 			if !ok {
@@ -1358,7 +1360,7 @@ func (t *Twopc) onTerminateTaskConsensus(pid peer.ID, terminateConsensusMsg *typ
 					role, msg.GetMsgOption().GetSenderRole(), party, sender, types.TaskTerminate)
 				t.removeOrgProposalStateAndTask(orgProposalState.GetProposalId(),  party.GetPartyId())
 			}
-
+			log.Infof("Finished [treminate task] consensus when received terminateConsensusMsg , taskId: {%s}", msg.GetTaskId())
 			return nil
 		}
 
