@@ -637,7 +637,7 @@ func (m *Manager) driveTaskForTerminate(task *types.NeedExecuteTask) error {
 		return m.terminateTaskOnJobNode(task)
 	default:
 		log.Errorf("Faided to driveTaskForTerminate(), Unknown task role, taskId: {%s}, taskRole: {%s}", task.GetTaskId(), task.GetLocalTaskRole().String())
-		return fmt.Errorf("Unknown resource node type when ready to terminate task")
+		return fmt.Errorf("unknown resource node type when ready to terminate task")
 	}
 }
 func (m *Manager) terminateTaskOnDataNode(task *types.NeedExecuteTask) error {
@@ -958,7 +958,7 @@ func (m *Manager) sendTaskTerminateMsg(task *types.Task) error {
 		errs = append(errs, fmt.Sprintf("send taskTerminateMsg to remote peer, %s", err))
 	}
 
-	log.WithField("traceId", traceutil.GenerateTraceID(terminateMsg)).Debugf("Succeed to call`sendTaskTerminateMsg.%s` taskId: %s",
+	log.WithField("traceId", traceutil.GenerateTraceID(terminateMsg)).Debugf("Succeed to call`sendTaskTerminateMsg` taskId: %s",
 		task.GetTaskId())
 
 
@@ -2087,22 +2087,36 @@ func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *carriernetmsgtaskm
 	// While task is consensus or executing, handle task resultMsg.
 	has, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusByPartyId(taskId, msg.GetMsgOption().GetReceiverPartyId())
 	if nil != err {
-		log.WithError(err).Errorf("Failed to query local task executing status on `taskManager.OnTaskResultMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
+		log.WithError(err).Errorf("Failed to query local task executing status when received taskResultMsg, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
 			msg.GetMsgOption().GetProposalId().String(), taskId, msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetMsgOption().GetSenderRole().String(), msg.GetMsgOption().GetSenderPartyId())
 		return fmt.Errorf("query local task executing status failed")
 	}
 
 	if !has {
-		log.Warnf("Not found local task executing status on `taskManager.OnTaskResultMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
+		log.Warnf("Not found local task executing status when received taskResultMsg, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
 			msg.GetMsgOption().GetProposalId().String(), taskId, msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetMsgOption().GetSenderRole().String(), msg.GetMsgOption().GetSenderPartyId())
 		return nil
 	}
 
 	localTask, err := m.resourceMng.GetDB().QueryLocalTask(taskId)
 	if nil != err {
-		log.WithError(err).Errorf("Failed to call `QueryLocalTask()` on `taskManager.OnTaskResultMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
+		log.WithError(err).Errorf("Failed to call `QueryLocalTask()` when received taskResultMsg, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
 			msg.GetMsgOption().GetProposalId().String(), taskId, msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetMsgOption().GetSenderRole().String(), msg.GetMsgOption().GetSenderPartyId())
 		return fmt.Errorf("query local task failed, %s", err)
+	}
+
+	receiver := fetchOrgByPartyRole(msg.GetMsgOption().GetReceiverPartyId(), msg.GetMsgOption().GetReceiverRole(), localTask)
+	identity, err := m.resourceMng.GetDB().QueryIdentity()
+	if nil != err {
+		log.WithError(err).Errorf("Failed to call `QueryIdentity()` when received taskResultMsg, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
+			msg.GetMsgOption().GetProposalId().String(), taskId, msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetMsgOption().GetSenderRole().String(), msg.GetMsgOption().GetSenderPartyId())
+		return fmt.Errorf("query local identity failed, %s", err)
+	}
+	// verify the receiver is myself ?
+	if identity.GetIdentityId() != receiver.GetIdentityId() {
+		log.Warnf("Warning verify receiver identityId of taskResultMsg, receiver is not me when received taskResultMsg, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
+			msg.GetMsgOption().GetProposalId().String(), taskId, msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetMsgOption().GetSenderRole().String(), msg.GetMsgOption().GetSenderPartyId())
+		return fmt.Errorf("receiver is not me of taskResultMsg")
 	}
 
 	/**
@@ -2112,25 +2126,11 @@ func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *carriernetmsgtaskm
 	+++++++++++++++++++++++++++++++++++++++++++
 	+++++++++++++++++++++++++++++++++++++++++++
 	*/
-	if msg.GetMsgOption().GetReceiverPartyId() != localTask.GetTaskSender().GetPartyId() {
-		log.Errorf("Failed to check receiver partyId of msg must be task sender partyId, but it is not, on `taskManager.OnTaskResultMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}, taskSenderPartyId: {%s}",
-			msg.GetMsgOption().GetProposalId().String(), taskId, msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetMsgOption().GetSenderRole().String(), msg.GetMsgOption().GetSenderPartyId(),
-			localTask.GetTaskSender().GetPartyId())
-		return fmt.Errorf("invalid taskResultMsg")
-	}
-
-	receiver := fetchOrgByPartyRole(msg.GetMsgOption().GetReceiverPartyId(), msg.GetMsgOption().GetReceiverRole(), localTask)
-	identity, err := m.resourceMng.GetDB().QueryIdentity()
-	if nil != err {
-		log.WithError(err).Errorf("Failed to call `QueryIdentity()` on `taskManager.OnTaskResultMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
-			msg.GetMsgOption().GetProposalId().String(), taskId, msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetMsgOption().GetSenderRole().String(), msg.GetMsgOption().GetSenderPartyId())
-		return fmt.Errorf("query local identity failed, %s", err)
-	}
-	// verify the receiver is myself ?
-	if identity.GetIdentityId() != receiver.GetIdentityId() {
-		log.Warnf("Warning verify receiver identityId of taskResultMsg, receiver is not me on `taskManager.OnTaskResultMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
-			msg.GetMsgOption().GetProposalId().String(), taskId, msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetMsgOption().GetSenderRole().String(), msg.GetMsgOption().GetSenderPartyId())
-		return fmt.Errorf("receiver is not me of taskResultMsg")
+	if localTask.GetTaskSender().GetIdentityId() != receiver.GetIdentityId() ||
+		localTask.GetTaskSender().GetPartyId() != receiver.GetPartyId() {
+		log.Warnf("Warning the receiver of taskResultMsg and sender of task is not the same when received taskResultMsg, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, msg receiver: %s, task sender: %s",
+			msg.GetMsgOption().GetProposalId().String(), localTask.GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), receiver.String(), localTask.GetTaskSender().String())
+		return fmt.Errorf("receiver is not task sender of taskResultMsg")
 	}
 
 	log.WithField("traceId", traceutil.GenerateTraceID(taskResultMsg)).Debugf("Received remote taskResultMsg, remote pid: {%s}, taskId: {%s}, taskResultMsg: %s", pid, taskId, msg.String())
@@ -2153,10 +2153,10 @@ func (m *Manager) ValidateTaskResourceUsageMsg(pid peer.ID, taskResourceUsageMsg
 }
 
 func (m *Manager) OnTaskResourceUsageMsg(pid peer.ID, usageMsg *carriernetmsgtaskmngpb.TaskResourceUsageMsg) error {
-	return m.onTaskResourceUsageMsg(pid, usageMsg, types.RemoteNetworkMsg)
+	return m.onTaskResourceUsageMsg(pid, usageMsg)
 }
 
-func (m *Manager) onTaskResourceUsageMsg(pid peer.ID, usageMsg *carriernetmsgtaskmngpb.TaskResourceUsageMsg, nmls types.NetworkMsgLocationSymbol) error {
+func (m *Manager) onTaskResourceUsageMsg(pid peer.ID, usageMsg *carriernetmsgtaskmngpb.TaskResourceUsageMsg) error {
 
 	if err := m.ContainsOrAddMsg(usageMsg); nil != err {
 		return err
@@ -2164,16 +2164,16 @@ func (m *Manager) onTaskResourceUsageMsg(pid peer.ID, usageMsg *carriernetmsgtas
 
 	msg := types.FetchTaskResourceUsageMsg(usageMsg)
 
+	if msg.GetMsgOption().GetSenderPartyId() != msg.GetUsage().GetPartyId() {
+		log.Errorf("msg sender partyId AND usageMsg partyId is not same when received taskResourceUsageMsg, taskId: {%s}, sender partyId: {%s}, usagemsgPartyId: {%s}",
+			msg.GetUsage().GetTaskId(), msg.GetMsgOption().GetSenderPartyId(), msg.GetUsage().GetPartyId())
+		return fmt.Errorf("invalid partyId of usageMsg")
+	}
+
 	// Verify the signature
 	_, err := signutil.VerifyMsgSign(msg.GetMsgOption().GetOwner().GetNodeId(), msg.Hash().Bytes(), msg.GetSign())
 	if err != nil {
 		return fmt.Errorf("verify usageMsg sign %s", err)
-	}
-
-	if msg.GetMsgOption().GetSenderPartyId() != msg.GetUsage().GetPartyId() {
-		log.Errorf("sender partyId of usageMsg AND partyId of usageMsg is not same when received taskResourceUsageMsg, taskId: {%s}, sender partyId: {%s}, usagemsgPartyId: {%s}",
-			msg.GetUsage().GetTaskId(), msg.GetMsgOption().GetSenderPartyId(), msg.GetUsage().GetPartyId())
-		return fmt.Errorf("invalid partyId of usageMsg")
 	}
 
 	// Note: the needexecutetask obtained here is generally the needexecutetask of the task sender, so the remoteorganization is also the task sender.
@@ -2181,17 +2181,18 @@ func (m *Manager) onTaskResourceUsageMsg(pid peer.ID, usageMsg *carriernetmsgtas
 	if !ok {
 		log.Warnf("Not found needExecuteTask when received taskResourceUsageMsg, taskId: {%s}, partyId: {%s}",
 			msg.GetUsage().GetTaskId(), msg.GetUsage().GetPartyId())
-		return fmt.Errorf("Can not find `need execute task` cache")
+		return fmt.Errorf("can not find `need execute task` cache")
 	}
 
 	// Update task resourceUsed of powerSuppliers of local task
-	task, err := m.resourceMng.GetDB().QueryLocalTask(msg.GetUsage().GetTaskId())
+	localTask, err := m.resourceMng.GetDB().QueryLocalTask(msg.GetUsage().GetTaskId())
 	if nil != err {
 		log.WithError(err).Errorf("Failed to call `QueryLocalTask()` when received taskResourceUsageMsg, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
 			msg.GetMsgOption().GetProposalId().String(), msg.GetUsage().GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetMsgOption().GetSenderRole().String(), msg.GetMsgOption().GetSenderPartyId())
 		return fmt.Errorf("query local task failed, %s", err)
 	}
-	receiver := fetchOrgByPartyRole(msg.GetMsgOption().GetReceiverPartyId(), msg.GetMsgOption().GetReceiverRole(), task)
+
+	receiver := fetchOrgByPartyRole(msg.GetMsgOption().GetReceiverPartyId(), msg.GetMsgOption().GetReceiverRole(), localTask)
 	identity, err := m.resourceMng.GetDB().QueryIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("Failed to call `QueryIdentity()` when received taskResourceUsageMsg, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
@@ -2205,25 +2206,29 @@ func (m *Manager) onTaskResourceUsageMsg(pid peer.ID, usageMsg *carriernetmsgtas
 		return fmt.Errorf("receiver is not me of taskResourceUsageMsg")
 	}
 
-	// Check whether the receiver of the message is the same organization as the sender of the task.
-	// If not, this message is illegal.
-	if task.GetTaskSender().GetIdentityId() != receiver.GetIdentityId() ||
-		task.GetTaskSender().GetPartyId() != receiver.GetPartyId() {
-		log.Warnf("Warning the receiver of the message is not the same organization as the sender of the task when received taskResourceUsageMsg, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, msg receiver: %s, task sender: %s",
-			msg.GetMsgOption().GetProposalId().String(), task.GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), receiver.String(), task.GetTaskSender().String())
+	/**
+	+++++++++++++++++++++++++++++++++++++++++++
+	+++++++++++++++++++++++++++++++++++++++++++
+	NOTE: receiverPartyId must be task sender partyId.
+	+++++++++++++++++++++++++++++++++++++++++++
+	+++++++++++++++++++++++++++++++++++++++++++
+	*/
+	if localTask.GetTaskSender().GetIdentityId() != receiver.GetIdentityId() ||
+		localTask.GetTaskSender().GetPartyId() != receiver.GetPartyId() {
+		log.Warnf("Warning the receiver of the usageMsg and sender of task is not the same when received taskResourceUsageMsg, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, msg receiver: %s, task sender: %s",
+			msg.GetMsgOption().GetProposalId().String(), localTask.GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), receiver.String(), localTask.GetTaskSender().String())
 		return fmt.Errorf("receiver is not task sender of taskResourceUsageMsg")
 	}
 
-	log.WithField("traceId", traceutil.GenerateTraceID(usageMsg)).Debugf("Received taskResourceUsageMsg when received taskResourceUsageMsg, consensusSymbol: {%s}, remote pid: {%s}, taskResourceUsageMsg: %s",
-		nmls.String(), pid, msg.String())
+	log.WithField("traceId", traceutil.GenerateTraceID(usageMsg)).Debugf("Received remote taskResourceUsageMsg when received taskResourceUsageMsg, remote pid: {%s}, taskResourceUsageMsg: %s", pid, msg.String())
 
-	needUpdate, err := m.handleResourceUsage("when received remote resourceUsage", msg.GetMsgOption().GetOwner().GetIdentityId(), msg.GetUsage(), task, types.RemoteNetworkMsg)
+	needUpdate, err := m.handleResourceUsage("when received remote resourceUsage", msg.GetMsgOption().GetOwner().GetIdentityId(), msg.GetUsage(), localTask, types.RemoteNetworkMsg)
 	if nil != err {
 		return err
 	}
 
 	if needUpdate {
-		log.Debugf("Succeed handle remote resourceUsage when received taskResourceUsageMsg, consensusSymbol: {%s}, remote pid: {%s}, taskResourceUsageMsg: %s", nmls.String(), pid, msg.String())
+		log.Debugf("Succeed handle remote resourceUsage when received taskResourceUsageMsg, remote pid: {%s}, taskResourceUsageMsg: %s", pid, msg.String())
 	}
 	return nil
 }
@@ -2246,8 +2251,7 @@ func (m *Manager) onTaskTerminateMsg(pid peer.ID, terminateMsg *carriernetmsgtas
 
 	// Verify the signature of remote msg
 	if nmls == types.RemoteNetworkMsg {
-		_, err := signutil.VerifyMsgSign(msg.GetMsgOption().GetOwner().GetNodeId(), msg.Hash().Bytes(), msg.GetSign())
-		if err != nil {
+		if _, err := signutil.VerifyMsgSign(msg.GetMsgOption().GetOwner().GetNodeId(), msg.Hash().Bytes(), msg.GetSign()); err != nil {
 			return fmt.Errorf("verify remote terminateMsg sign %s", err)
 		}
 	}
@@ -2438,28 +2442,28 @@ func (m *Manager) needExecuteTaskMonitorTimer() *time.Timer {
 
 func (m *Manager) AddMsg(msg interface{}) bool {
 
-	var key []byte
+	var key string
 	switch msg.(type) {
 	case *carriernetmsgtaskmngpb.TaskResourceUsageMsg:
 		pure := msg.(*carriernetmsgtaskmngpb.TaskResourceUsageMsg)
-		v := hashutil.Hash([]byte(pure.String()))
-		key = append(taskResourceUsageMsgCacheKeyPrefix, v[:]...)
+		v := hashutil.Hash(append(taskResourceUsageMsgCacheKeyPrefix, []byte(pure.String())...))
+		key = carriercommon.Bytes2Hex(v[0:])
 
 	case *carriernetmsgtaskmngpb.TaskResultMsg:
 		pure := msg.(*carriernetmsgtaskmngpb.TaskResultMsg)
-		v := hashutil.Hash([]byte(pure.String()))
-		key = append(taskResultMsgCacheKeyPrefix, v[:]...)
+		v := hashutil.Hash(append(taskResultMsgCacheKeyPrefix, []byte(pure.String())...))
+		key = carriercommon.Bytes2Hex(v[0:])
 
 	case *carriernetmsgtaskmngpb.TaskTerminateMsg:
 		pure := msg.(*carriernetmsgtaskmngpb.TaskTerminateMsg)
-		v := hashutil.Hash([]byte(pure.String()))
-		key = append(taskTerminateMsgCacheKeyPrefix, v[:]...)
+		v := hashutil.Hash(append(taskTerminateMsgCacheKeyPrefix, []byte(pure.String())...))
+		key = carriercommon.Bytes2Hex(v[0:])
 
 	//default:
 	//	return false
 	}
-	if len(key) != 0 {
-		m.msgCache.Add(string(key), struct {}{})
+	if "" != key {
+		m.msgCache.Add(key, struct {}{})
 		return true
 	}
 	return false
@@ -2469,19 +2473,16 @@ func (m *Manager) ContainMsg(msg interface{}) bool {
 	switch msg.(type) {
 	case *carriernetmsgtaskmngpb.TaskResourceUsageMsg:
 		pure := msg.(*carriernetmsgtaskmngpb.TaskResourceUsageMsg)
-		v := hashutil.Hash([]byte(pure.String()))
-		key := append(taskResourceUsageMsgCacheKeyPrefix, v[:]...)
-		return m.msgCache.Contains(string(key))
+		v := hashutil.Hash(append(taskResourceUsageMsgCacheKeyPrefix, []byte(pure.String())...))
+		return m.msgCache.Contains(carriercommon.Bytes2Hex(v[0:]))
 	case *carriernetmsgtaskmngpb.TaskResultMsg:
 		pure := msg.(*carriernetmsgtaskmngpb.TaskResultMsg)
-		v := hashutil.Hash([]byte(pure.String()))
-		key := append(taskResultMsgCacheKeyPrefix, v[:]...)
-		return m.msgCache.Contains(string(key))
+		v := hashutil.Hash(append(taskResultMsgCacheKeyPrefix, []byte(pure.String())...))
+		return m.msgCache.Contains(carriercommon.Bytes2Hex(v[0:]))
 	case *carriernetmsgtaskmngpb.TaskTerminateMsg:
 		pure := msg.(*carriernetmsgtaskmngpb.TaskTerminateMsg)
-		v := hashutil.Hash([]byte(pure.String()))
-		key := append(taskTerminateMsgCacheKeyPrefix, v[:]...)
-		return m.msgCache.Contains(string(key))
+		v := hashutil.Hash(append(taskTerminateMsgCacheKeyPrefix, []byte(pure.String())...))
+		return m.msgCache.Contains(carriercommon.Bytes2Hex(v[0:]))
 	default:
 		return false
 	}
@@ -2490,31 +2491,32 @@ func (m *Manager) ContainMsg(msg interface{}) bool {
 // return: ok, evict
 func (m *Manager) ContainsOrAddMsg(msg interface{}) error {
 
-	var key []byte
+	var key string
 	switch msg.(type) {
 	case *carriernetmsgtaskmngpb.TaskResourceUsageMsg:
 		pure := msg.(*carriernetmsgtaskmngpb.TaskResourceUsageMsg)
-		v := hashutil.Hash([]byte(pure.String()))
-		key = append(taskResourceUsageMsgCacheKeyPrefix, v[:]...)
+		v := hashutil.Hash(append(taskResourceUsageMsgCacheKeyPrefix, []byte(pure.String())...))
+		key = carriercommon.Bytes2Hex(v[0:])
 
 	case *carriernetmsgtaskmngpb.TaskResultMsg:
 		pure := msg.(*carriernetmsgtaskmngpb.TaskResultMsg)
-		v := hashutil.Hash([]byte(pure.String()))
-		key = append(taskResultMsgCacheKeyPrefix, v[:]...)
+		v := hashutil.Hash(append(taskResultMsgCacheKeyPrefix, []byte(pure.String())...))
+		key = carriercommon.Bytes2Hex(v[0:])
 
 	case *carriernetmsgtaskmngpb.TaskTerminateMsg:
 		pure := msg.(*carriernetmsgtaskmngpb.TaskTerminateMsg)
-		v := hashutil.Hash([]byte(pure.String()))
-		key = append(taskTerminateMsgCacheKeyPrefix, v[:]...)
+		v := hashutil.Hash(append(taskTerminateMsgCacheKeyPrefix, []byte(pure.String())...))
+		key = carriercommon.Bytes2Hex(v[0:])
+
 
 	//default:
 	//	has, evict = false, false
 	}
 
-	if len(key) == 0 {
+	if "" == key {
 		return fmt.Errorf("not match msg type")
 	}
-	if has, _ := m.msgCache.ContainsOrAdd(string(key), struct {}{}); has {
+	if has, _ := m.msgCache.ContainsOrAdd(key, struct {}{}); has {
 		return fmt.Errorf("key value already exists in lru cache")
 	}
 	return nil

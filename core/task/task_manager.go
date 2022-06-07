@@ -577,7 +577,7 @@ func (m *Manager) HandleReportResourceUsage(usage *types.TaskResuorceUsage) erro
 	if !ok {
 		log.Warnf("Not found needExecuteTask on taskManager.HandleReportResourceUsage(), taskId: {%s}, partyId: {%s}",
 			usage.GetTaskId(), usage.GetPartyId())
-		return fmt.Errorf("Can not find `need execute task` cache")
+		return fmt.Errorf("can not find `need execute task` cache")
 	}
 
 	if identityId != needExecuteTask.GetLocalTaskOrganization().GetIdentityId() {
