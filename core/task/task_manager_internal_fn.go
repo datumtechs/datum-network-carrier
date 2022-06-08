@@ -2206,6 +2206,8 @@ func (m *Manager) onTaskResourceUsageMsg(pid peer.ID, usageMsg *carriernetmsgtas
 	// Verify the signature
 	_, err := signutil.VerifyMsgSign(msg.GetMsgOption().GetOwner().GetNodeId(), msg.Hash().Bytes(), msg.GetSign())
 	if err != nil {
+		log.WithError(err).Errorf("Failed to call `VerifyMsgSign()` when received taskResourceUsageMsg, taskId: {%s}, sender partyId: {%s}, usagemsgPartyId: {%s}",
+			msg.GetUsage().GetTaskId(), msg.GetMsgOption().GetSenderPartyId(), msg.GetUsage().GetPartyId())
 		return fmt.Errorf("verify usageMsg sign %s", err)
 	}
 
