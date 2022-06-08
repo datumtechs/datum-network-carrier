@@ -1981,26 +1981,26 @@ func (m *Manager) handleResourceUsage(keyword, usageIdentityId string, usage *ty
 	// ## 1、 check whether task status is terminate (with party self | with task sender) ?
 	terminating, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusTerminateByPartyId(usage.GetTaskId(), partyId)
 	if nil != err {
-		log.WithError(err).Errorf("Failed to call HasLocalTaskExecuteStatusTerminateByPartyId() on taskManager.handleResourceUsage() %s, taskId: {%s}, partyId: {%s}",
-			keyword, usage.GetTaskId(), partyId)
+		log.WithError(err).Errorf("Failed to call HasLocalTaskExecuteStatusTerminateByPartyId() on taskManager.handleResourceUsage() %s, taskId: {%s}, partyId: {%s}, remote partyId: {%s}",
+			keyword, usage.GetTaskId(), partyId, usage.GetPartyId())
 		return false, fmt.Errorf("check current party has `terminate` status needExecuteTask failed, %s", err)
 	}
 	if terminating {
-		log.Warnf("The localTask execute status has `terminate` on taskManager.handleResourceUsage() %s, taskId: {%s}, partyId: {%s}",
-			keyword, usage.GetTaskId(), partyId)
+		log.Warnf("The localTask execute status has `terminate` on taskManager.handleResourceUsage() %s, taskId: {%s}, partyId: {%s}, remote partyId: {%s}",
+			keyword, usage.GetTaskId(), partyId, usage.GetPartyId())
 		return false, fmt.Errorf("task was terminated")
 	}
 
 	// ## 2、 check whether task status is running (with party self | with task sender) ?
 	running, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusRunningByPartyId(usage.GetTaskId(), partyId)
 	if nil != err {
-		log.WithError(err).Errorf("Failed to call HasLocalTaskExecuteStatusRunningByPartyId() on taskManager.handleResourceUsage() %s, taskId: {%s}, partyId: {%s}",
-			keyword, usage.GetTaskId(), partyId)
+		log.WithError(err).Errorf("Failed to call HasLocalTaskExecuteStatusRunningByPartyId() on taskManager.handleResourceUsage() %s, taskId: {%s}, partyId: {%s}, remote partyId: {%s}",
+			keyword, usage.GetTaskId(), partyId, usage.GetPartyId())
 		return false, fmt.Errorf("check current party has `running` status needExecuteTask failed, %s", err)
 	}
 	if !running {
-		log.Warnf("Not found localTask execute status `running` on taskManager.handleResourceUsage() %s, taskId: {%s}, partyId: {%s}",
-			keyword, usage.GetTaskId(), partyId)
+		log.Warnf("Not found localTask execute status `running` on taskManager.handleResourceUsage() %s, taskId: {%s}, partyId: {%s}, remote partyId: {%s}",
+			keyword, usage.GetTaskId(), partyId, usage.GetPartyId())
 		return false, fmt.Errorf("task is not executed")
 	}
 
@@ -2064,8 +2064,8 @@ func (m *Manager) handleResourceUsage(keyword, usageIdentityId string, usage *ty
 
 		// Updata task when resourceUsed change.
 		if err := m.resourceMng.GetDB().StoreLocalTask(localTask); nil != err {
-			log.WithError(err).Errorf("Failed to call StoreLocalTask() on taskManager.handleResourceUsage() %s, taskId: {%s}, partyId: {%s}",
-				keyword, usage.GetTaskId(), usage.GetPartyId())
+			log.WithError(err).Errorf("Failed to call StoreLocalTask() on taskManager.handleResourceUsage() %s, taskId: {%s}, partyId: {%s}, remote partyId: {%s}",
+				keyword, usage.GetTaskId(), partyId, usage.GetPartyId())
 			return false, fmt.Errorf("update local task by usage change failed, %s", err)
 		}
 	}
