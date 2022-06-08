@@ -21,8 +21,14 @@ func SignMsg(hash []byte, privateKey *ecdsa.PrivateKey) ([]byte, error) {
 
 func VerifyMsgSign(nodeId string, m []byte, sig []byte) (bool, error) {
 	// Verify the signature
+	if len(sig) < 0 {
+		return false, ctypes.ErrMsgSignEmpty
+	}
 	if len(sig) < types.MsgSignLength {
-		return false, ctypes.ErrMsgSignInvalid
+		return false, ctypes.ErrMsgSignLenShort
+	}
+	if len(sig) > types.MsgSignLength {
+		return false, ctypes.ErrMsgSignLenLong
 	}
 
 	recPubKey, err := crypto.Ecrecover(m, sig)

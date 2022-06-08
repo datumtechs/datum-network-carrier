@@ -255,8 +255,9 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 
 	// Verify the signature of remote msg
 	if nmls == types.RemoteNetworkMsg {
-		_, err = signutil.VerifyMsgSign(msg.GetMsgOption().GetOwner().GetNodeId(), msg.Hash().Bytes(), msg.GetSign())
-		if err != nil {
+		if _, err = signutil.VerifyMsgSign(msg.GetMsgOption().GetOwner().GetNodeId(), msg.Hash().Bytes(), msg.GetSign()); err != nil {
+			log.WithError(err).Errorf("Failed to call `VerifyMsgSign()` when received prepareMsg, proposalId: {%s}, taskId: {%s}",
+				msg.GetMsgOption().GetProposalId().String(), msg.GetTask().GetTaskId())
 			return fmt.Errorf("verify remote prepareMsg sign %s", err)
 		}
 	}
@@ -477,8 +478,9 @@ func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap, n
 
 	// Verify the signature of remote msg
 	if nmls == types.RemoteNetworkMsg {
-		_, err := signutil.VerifyMsgSign(vote.GetMsgOption().GetOwner().GetNodeId(), vote.Hash().Bytes(), vote.GetSign())
-		if err != nil {
+		if _, err := signutil.VerifyMsgSign(vote.GetMsgOption().GetOwner().GetNodeId(), vote.Hash().Bytes(), vote.GetSign()); err != nil {
+			log.WithError(err).Errorf("Failed to call `VerifyMsgSign()` when received prepareVote, proposalId: {%s}",
+				vote.GetMsgOption().GetProposalId().String())
 			return fmt.Errorf("verify remote prepareVote sign %s", err)
 		}
 	}
@@ -493,7 +495,6 @@ func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap, n
 		if nil != err {
 			log.WithError(err).Errorf("Failed to call `QueryIdentity()` when received prepareVote, proposalId: {%s}",
 				vote.GetMsgOption().GetProposalId().String())
-
 			errCh <- fmt.Errorf("query local identity failed when received prepareVote, %s", err)
 			return
 		}
@@ -674,8 +675,9 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, nmls
 
 	// Verify the signature of remote msg
 	if nmls == types.RemoteNetworkMsg {
-		_, err := signutil.VerifyMsgSign(msg.GetMsgOption().GetOwner().GetNodeId(), msg.Hash().Bytes(), msg.GetSign())
-		if err != nil {
+		if _, err := signutil.VerifyMsgSign(msg.GetMsgOption().GetOwner().GetNodeId(), msg.Hash().Bytes(), msg.GetSign()); err != nil {
+			log.WithError(err).Errorf("Failed to call `VerifyMsgSign()` when received confirmMsg, proposalId: {%s}",
+				msg.GetMsgOption().GetProposalId().String())
 			return fmt.Errorf("verify remote confirmMsg sign %s", err)
 		}
 	}
@@ -914,8 +916,9 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, n
 
 	// Verify the signature of remote msg
 	if nmls == types.RemoteNetworkMsg {
-		_, err := signutil.VerifyMsgSign(vote.GetMsgOption().GetOwner().GetNodeId(), vote.Hash().Bytes(), vote.GetSign())
-		if err != nil {
+		if _, err := signutil.VerifyMsgSign(vote.GetMsgOption().GetOwner().GetNodeId(), vote.Hash().Bytes(), vote.GetSign()); err != nil {
+			log.WithError(err).Errorf("Failed to call `VerifyMsgSign()` when received confirmVote, proposalId: {%s}",
+				vote.GetMsgOption().GetProposalId().String())
 			return fmt.Errorf("verify remote confirmVote sign %s", err)
 		}
 	}
@@ -1115,9 +1118,10 @@ func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap, nmls ty
 
 	// Verify the signature of remote msg
 	if nmls == types.RemoteNetworkMsg {
-		_, err := signutil.VerifyMsgSign(msg.GetMsgOption().GetOwner().GetNodeId(), msg.Hash().Bytes(), msg.GetSign())
-		if err != nil {
-			return fmt.Errorf("verify remote confirmVote sign %s", err)
+		if _, err := signutil.VerifyMsgSign(msg.GetMsgOption().GetOwner().GetNodeId(), msg.Hash().Bytes(), msg.GetSign()); err != nil {
+			log.WithError(err).Errorf("Failed to call `VerifyMsgSign()` when received commitMsg, proposalId: {%s}",
+				msg.GetMsgOption().GetProposalId().String())
+			return fmt.Errorf("verify remote commitMsg sign %s", err)
 		}
 	}
 
@@ -1129,9 +1133,9 @@ func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap, nmls ty
 
 		identity, err := t.resourceMng.GetDB().QueryIdentity()
 		if nil != err {
-			log.WithError(err).Errorf("Failed to call `QueryIdentity()` when received confirmMsg, proposalId: {%s}",
+			log.WithError(err).Errorf("Failed to call `QueryIdentity()` when received commitMsg, proposalId: {%s}",
 				msg.GetMsgOption().GetProposalId().String())
-			errCh <- fmt.Errorf("query local identity failed when received confirmMsg, %s", err)
+			errCh <- fmt.Errorf("query local identity failed when received commitMsg, %s", err)
 			return
 		}
 

@@ -416,7 +416,7 @@ func (m *Manager) loop() {
 
 func (m *Manager) TerminateTask(terminate *types.TaskTerminateMsg) {
 
-	log.Infof("Start terminate task, userType: {%s}, user: {%s}, taskId: {%s}", terminate.GetUserType(), terminate.GetUser(), terminate.GetTaskId())
+	log.Infof("Start [terminate task], userType: {%s}, user: {%s}, taskId: {%s}", terminate.GetUserType(), terminate.GetUser(), terminate.GetTaskId())
 
 	// NOTE:
 	//
@@ -730,7 +730,7 @@ func (m *Manager) HandleReportResourceUsage(usage *types.TaskResuorceUsage) erro
 			log.WithError(err).Errorf("failed to call `SendTaskResourceUsageMsg` on taskManager.HandleReportResourceUsage(), taskId: {%s},  partyId: {%s}, remote pid: {%s}",
 				task.GetTaskId(), needExecuteTask.GetLocalTaskOrganization().GetPartyId(), needExecuteTask.GetRemotePID())
 		} else {
-			log.WithField("traceId", traceutil.GenerateTraceID(usageMsg)).Debugf("Succeed to call `SendTaskResourceUsageMsg` on taskManager.HandleReportResourceUsage(), taskId: {%s},  partyId: {%s}, remote pid: {%s}",
+			log.WithField("traceId", traceutil.GenerateTraceID(usageMsg)).Debugf("Succeed to call broadcast `ResourceUsageMsg` on taskManager.HandleReportResourceUsage(), taskId: {%s},  partyId: {%s}, remote pid: {%s}",
 				task.GetTaskId(), needExecuteTask.GetLocalTaskOrganization().GetPartyId(), needExecuteTask.GetRemotePID())
 		}
 	}

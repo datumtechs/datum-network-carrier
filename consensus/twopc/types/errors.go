@@ -48,6 +48,9 @@ var (
 	ErrProposalTaskAlgorithmEmpty       = errors.New("the proposal task Algorithm is empty")
 	ErrProposalParamsInvalid            = errors.New("the proposal params is invalid")
 
+	ErrMsgSignEmpty        = errors.New("the msg signature is empty")
+	ErrMsgSignLenShort        = errors.New("the msg signature is too short")
+	ErrMsgSignLenLong        = errors.New("the msg signature is too long")
 	ErrMsgSignInvalid        = errors.New("the msg signature is invalid")
 	ErrMsgOwnerNodeIdInvalid = errors.New("the msg's owner nodeId is invalid")
 
