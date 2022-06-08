@@ -446,13 +446,13 @@ func (dc *DataCenter) RemoveTaskPartnerPartyIds(taskId string) error {
 }
 
 // v 1.0 -> v 2.0 about task exec status (prefix + taskId + partyId -> "cons"|"exec")
-func (dc *DataCenter) StoreLocalTaskExecuteStatusValConsByPartyId(taskId, partyId string) error {
+func (dc *DataCenter) StoreLocalTaskExecuteStatusValConsensusByPartyId(taskId, partyId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.StoreLocalTaskExecuteStatusValConsByPartyId(dc.db, taskId, partyId)
 }
 
-func (dc *DataCenter) StoreLocalTaskExecuteStatusValExecByPartyId(taskId, partyId string) error {
+func (dc *DataCenter) StoreLocalTaskExecuteStatusValRunningByPartyId(taskId, partyId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	log.Debugf("Store task execute status, taskId: {%s}, partyId: {%s}", taskId, partyId)

@@ -178,7 +178,7 @@ func (t *Twopc) OnHandle(nonConsTask *types.NeedConsensusTask) error {
 	}
 
 	// Store task execute status `cons` before consensus when send task prepareMsg to remote peers
-	if err := t.resourceMng.GetDB().StoreLocalTaskExecuteStatusValConsByPartyId(task.GetTaskId(), task.GetTaskSender().GetPartyId()); nil != err {
+	if err := t.resourceMng.GetDB().StoreLocalTaskExecuteStatusValConsensusByPartyId(task.GetTaskId(), task.GetTaskSender().GetPartyId()); nil != err {
 		log.WithError(err).Errorf("Failed to store local task about `cons` status on OnHandle,  taskId: {%s}, partyId: {%s}",
 			task.GetTaskId(), task.GetTaskSender().GetPartyId())
 		t.stopTaskConsensus("store task executeStatus about `cons` failed", common.Hash{}, task.GetTaskId(),
@@ -324,7 +324,7 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 			}
 
 			// Store task execute status `cons` before consensus when received a remote task prepareMsg
-			if err := t.resourceMng.GetDB().StoreLocalTaskExecuteStatusValConsByPartyId(msg.GetTask().GetTaskId(), party.GetPartyId()); nil != err {
+			if err := t.resourceMng.GetDB().StoreLocalTaskExecuteStatusValConsensusByPartyId(msg.GetTask().GetTaskId(), party.GetPartyId()); nil != err {
 				log.WithError(err).Errorf("Failed to store local task about `cons` status when received prepareMsg, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
 					msg.GetMsgOption().GetProposalId().String(), msg.GetTask().GetTaskId(), party.GetPartyId())
 				return fmt.Errorf("store task execute status failed when received prepareMsg, %s", err)

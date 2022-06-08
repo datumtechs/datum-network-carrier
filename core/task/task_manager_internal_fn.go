@@ -984,7 +984,7 @@ func (m *Manager) sendNeedExecuteTaskByAction(task *types.NeedExecuteTask) {
 
 func (m *Manager) StoreExecuteTaskStateBeforeExecuteTask(logdesc, taskId, partyId string) error {
 	// Store task exec status
-	if err := m.resourceMng.GetDB().StoreLocalTaskExecuteStatusValExecByPartyId(taskId, partyId); nil != err {
+	if err := m.resourceMng.GetDB().StoreLocalTaskExecuteStatusValRunningByPartyId(taskId, partyId); nil != err {
 		log.WithError(err).Errorf("Failed to store local task about `running` status %s, taskId: {%s}, partyId: {%s}",
 			logdesc, taskId, partyId)
 		return err
@@ -1989,7 +1989,7 @@ func (m *Manager) handleResourceUsage(keyword, usageIdentityId string, usage *ty
 		return false, fmt.Errorf("task was terminated")
 	}
 
-	// ## 2、 check whether task status is running (with current party self)?
+	// ## 2、 check whether task status is running (with party self | with task sender) ?
 	running, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusRunningByPartyId(usage.GetTaskId(), usage.GetPartyId())
 	if nil != err {
 		log.WithError(err).Errorf("Failed to call HasLocalTaskExecuteStatusRunningByPartyId() on taskManager.handleResourceUsage() %s, taskId: {%s}, partyId: {%s}",
