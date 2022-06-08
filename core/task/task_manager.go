@@ -721,7 +721,7 @@ func (m *Manager) HandleReportResourceUsage(usage *types.TaskResuorceUsage) erro
 		if nil != err {
 			return fmt.Errorf("sign taskResourceUsageMsg, %s", err)
 		}
-		msg.Sign = sign
+		usageMsg.Sign = sign
 
 		// broadcast `task resource usage msg` to reply remote peer
 		// send resource usage quo to remote peer that it will update power supplier resource usage info of task.

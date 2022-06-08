@@ -846,7 +846,7 @@ func (m *Manager) sendTaskResultMsgToTaskSender(task *types.NeedExecuteTask, loc
 
 	var (
 		option resource.ReleaseResourceOption
-		msg *carriernetmsgtaskmngpb.TaskResultMsg
+		taskResultMsg *carriernetmsgtaskmngpb.TaskResultMsg
 	)
 
 	// when other task partner and task sender is same identity,
@@ -856,7 +856,7 @@ func (m *Manager) sendTaskResultMsgToTaskSender(task *types.NeedExecuteTask, loc
 	} else {
 		option = resource.SetAllReleaseResourceOption() // unlock local resource and remove local task and events
 		// broadcast `task result msg` to reply remote peer
-		msg = m.makeTaskResultMsgWithEventList(task)
+		taskResultMsg = m.makeTaskResultMsgWithEventList(task)
 	}
 
 	// 3、clear up all cache of task
@@ -867,23 +867,23 @@ func (m *Manager) sendTaskResultMsgToTaskSender(task *types.NeedExecuteTask, loc
 		return
 	}
 
-	if nil != msg {
+	if nil != taskResultMsg {
 
-		taskResultMsg := types.FetchTaskResultMsg(msg)
+		msg := types.FetchTaskResultMsg(taskResultMsg)
 		// signature the msg and fill sign field of taskResourceUsageMsg
-		sign, err := signutil.SignMsg(taskResultMsg.Hash().Bytes(), m.nodePriKey)
+		sign, err := signutil.SignMsg(msg.Hash().Bytes(), m.nodePriKey)
 		if nil != err {
 			log.WithError(err).Errorf("failed to sign taskResultMsg, taskId: {%s}, partyId: {%s}, remote pid: {%s}, err: %s",
 				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID(), err)
 			return
 		}
-		msg.Sign = sign
+		taskResultMsg.Sign = sign
 
-		if err := m.p2p.Broadcast(context.TODO(), msg); nil != err {
+		if err := m.p2p.Broadcast(context.TODO(), taskResultMsg); nil != err {
 			log.WithError(err).Errorf("failed to call `SendTaskResultMsg` on sendTaskResultMsgToTaskSender(), taskId: {%s}, partyId: {%s}, remote pid: {%s}",
 				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID())
 		} else {
-			log.WithField("traceId", traceutil.GenerateTraceID(msg)).Debugf("Succeed broadcast taskResultMsg to taskSender on sendTaskResultMsgToTaskSender(), taskId: {%s}, partyId: {%s}, remote pid: {%s}",
+			log.WithField("traceId", traceutil.GenerateTraceID(taskResultMsg)).Debugf("Succeed broadcast taskResultMsg to taskSender on sendTaskResultMsgToTaskSender(), taskId: {%s}, partyId: {%s}, remote pid: {%s}",
 				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID())
 		}
 	}
@@ -945,7 +945,7 @@ func (m *Manager) broadcastTaskTerminateMsg(task *types.Task) error {
 	if nil != err {
 		return fmt.Errorf("sign taskTerminateMsg, %s", err)
 	}
-	msg.Sign = sign
+	terminateMsg.Sign = sign
 
 	errs := make([]string, 0)
 	if needSendLocalMsgFn() {
