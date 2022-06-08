@@ -682,7 +682,6 @@ func (m *Manager) HandleReportResourceUsage(usage *types.TaskResuorceUsage) erro
 			log.WithField("traceId", traceutil.GenerateTraceID(usageMsg)).Debugf("Succeed to call `SendTaskResourceUsageMsg` on taskManager.HandleReportResourceUsage(), taskId: {%s},  partyId: {%s}, remote pid: {%s}",
 				task.GetTaskId(), needExecuteTask.GetLocalTaskOrganization().GetPartyId(), needExecuteTask.GetRemotePID())
 		}
-
 	}
 
 	// The local `resourceUasgeMsg` will not be handled,
