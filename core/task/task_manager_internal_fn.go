@@ -2332,17 +2332,19 @@ func (m *Manager) onTaskTerminateMsg(pid peer.ID, terminateMsg *carriernetmsgtas
 
 		log.Debugf("Prepare [treminate task] when received taskTerminateMsg, taskId: {%s}, partyId: {%s}, consensusSymbol: {%s}", task.GetTaskId(), party.GetPartyId(), nmls.String())
 
+		var consensusFlag uint32
+
 		terminating, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusTerminateByPartyId(task.GetTaskId(), party.GetPartyId())
 		if nil != err {
 			log.WithError(err).Errorf("Failed to query local task execute `termining` status on `taskManager.OnTaskTerminateMsg()`, taskId: {%s}, partyId: {%s}",
 				task.GetTaskId(), party.GetPartyId())
-			return 0, err
+			return consensusFlag, err
 		}
 		// If so, we will directly short circuit
 		if terminating {
 			log.Warnf("Warning query local task execute status has `termining` on `taskManager.OnTaskTerminateMsg()`, taskId: {%s}, partyId: {%s}",
 				task.GetTaskId(), party.GetPartyId())
-			return 0, nil
+			return consensusFlag, nil
 		}
 
 		// ## 2、 check whether the task is running.
@@ -2350,15 +2352,19 @@ func (m *Manager) onTaskTerminateMsg(pid peer.ID, terminateMsg *carriernetmsgtas
 		if nil != err {
 			log.WithError(err).Errorf("Failed to query local task execute `running` status on `taskManager.OnTaskTerminateMsg()`, taskId: {%s}, partyId: {%s}",
 				task.GetTaskId(), party.GetPartyId())
-			return 0, err
+			return consensusFlag, err
 		}
 		// If it is, we will terminate the task
 		if running {
 			// ## 2、 check whether the task is running.
 			if needExecuteTask, ok := m.queryNeedExecuteTaskCache(task.GetTaskId(), party.GetPartyId()); ok {
-				return 0, m.startTerminateWithNeedExecuteTask(needExecuteTask)
+				err = m.startTerminateWithNeedExecuteTask(needExecuteTask)
+				if nil == err {
+					log.Debugf("Finished [treminate task] that is `running` status when received taskTerminateMsg, taskId: {%s}, partyId: {%s}, consensusSymbol: {%s}",
+						task.GetTaskId(), party.GetPartyId(), nmls.String())
+				}
 			}
-			log.Debugf("Finished [treminate task] that is `running` status when received taskTerminateMsg, taskId: {%s}, partyId: {%s}, consensusSymbol: {%s}", task.GetTaskId(), party.GetPartyId(), nmls.String())
+			return consensusFlag, err
 		}
 
 		// ## 3、 check whether the task is in consensus
