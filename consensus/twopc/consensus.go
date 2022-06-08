@@ -1359,8 +1359,11 @@ func (t *Twopc) onTerminateTaskConsensus(pid peer.ID, terminateConsensusMsg *typ
 					orgProposalState.GetProposalId(), msg.GetTaskId(),
 					role, msg.GetMsgOption().GetSenderRole(), party, sender, types.TaskTerminate)
 				t.removeOrgProposalStateAndTask(orgProposalState.GetProposalId(),  party.GetPartyId())
+
+				log.Infof("Finished [treminate task] consensus when received terminateConsensusMsg,  proposalId: {%s}, taskId: {%s}, partyId: {%s},",
+					orgProposalState.GetProposalId().String(), msg.GetTaskId(), party.GetPartyId())
 			}
-			log.Infof("Finished [treminate task] consensus when received terminateConsensusMsg , taskId: {%s}", msg.GetTaskId())
+
 			return nil
 		}
 
