@@ -1982,25 +1982,25 @@ func (m *Manager) handleResourceUsage(keyword, usageIdentityId string, usage *ty
 	terminating, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusTerminateByPartyId(usage.GetTaskId(), partyId)
 	if nil != err {
 		log.WithError(err).Errorf("Failed to call HasLocalTaskExecuteStatusTerminateByPartyId() on taskManager.handleResourceUsage() %s, taskId: {%s}, partyId: {%s}",
-			keyword, usage.GetTaskId(), usage.GetPartyId())
+			keyword, usage.GetTaskId(), partyId)
 		return false, fmt.Errorf("check current party has `terminate` status needExecuteTask failed, %s", err)
 	}
 	if terminating {
 		log.Warnf("The localTask execute status has `terminate` on taskManager.handleResourceUsage() %s, taskId: {%s}, partyId: {%s}",
-			keyword, usage.GetTaskId(), usage.GetPartyId())
+			keyword, usage.GetTaskId(), partyId)
 		return false, fmt.Errorf("task was terminated")
 	}
 
 	// ## 2、 check whether task status is running (with party self | with task sender) ?
-	running, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusRunningByPartyId(usage.GetTaskId(), usage.GetPartyId())
+	running, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusRunningByPartyId(usage.GetTaskId(), partyId)
 	if nil != err {
 		log.WithError(err).Errorf("Failed to call HasLocalTaskExecuteStatusRunningByPartyId() on taskManager.handleResourceUsage() %s, taskId: {%s}, partyId: {%s}",
-			keyword, usage.GetTaskId(), usage.GetPartyId())
+			keyword, usage.GetTaskId(), partyId)
 		return false, fmt.Errorf("check current party has `running` status needExecuteTask failed, %s", err)
 	}
 	if !running {
 		log.Warnf("Not found localTask execute status `running` on taskManager.handleResourceUsage() %s, taskId: {%s}, partyId: {%s}",
-			keyword, usage.GetTaskId(), usage.GetPartyId())
+			keyword, usage.GetTaskId(), partyId)
 		return false, fmt.Errorf("task is not executed")
 	}
 
@@ -2450,8 +2450,8 @@ func (m *Manager) startTerminateWithNeedExecuteTask(needExecuteTask *types.NeedE
 			needExecuteTask.GetTaskId(), needExecuteTask.GetLocalTaskRole().String(), needExecuteTask.GetLocalTaskOrganization().GetPartyId())
 		return err
 	}
-	// 2、 remove needExecuteTask cache with current party
-	m.removeNeedExecuteTaskCache(needExecuteTask.GetTaskId(), needExecuteTask.GetLocalTaskOrganization().GetPartyId())
+	// 2、 remove needExecuteTask cache with current party  #### Need remove after call sendTaskResultMsgToTaskSender
+	//m.removeNeedExecuteTaskCache(needExecuteTask.GetTaskId(), needExecuteTask.GetLocalTaskOrganization().GetPartyId())
 	// 3、Set the execution status of the task to being terminated`
 	if err := m.resourceMng.GetDB().StoreLocalTaskExecuteStatusValTerminateByPartyId(needExecuteTask.GetTaskId(), needExecuteTask.GetLocalTaskOrganization().GetPartyId()); nil != err {
 		log.WithError(err).Errorf("Failed to store needExecute task status to `terminate` on `taskManager.startTerminateWithNeedExecuteTask()`, taskId: {%s}, partyId: {%s}",

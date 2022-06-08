@@ -390,6 +390,8 @@ func (m *Manager) loop() {
 					default:
 						m.sendTaskResultMsgToTaskSender(task, localTask)
 					}
+					// finally, remove needExecuteTask after call `publishFinishedTaskToDataCenter` or `sendTaskResultMsgToTaskSender`
+					m.removeNeedExecuteTaskCache(task.GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId())
 				}
 			}(task)
 
@@ -482,8 +484,8 @@ func (m *Manager) terminateExecuteTaskBySender(task *types.Task) error {
 	// what if find the needExecuteTask(status: types.TaskConsensusFinished) with sender
 	if m.hasNeedExecuteTaskCache(task.GetTaskId(), task.GetTaskSender().GetPartyId()) {
 
-		// 1、 remove needExecuteTask cache with sender
-		m.removeNeedExecuteTaskCache(task.GetTaskId(), task.GetTaskSender().GetPartyId())
+		// 1、 remove needExecuteTask cache with sender #### Need remove after call publishFinishedTaskToDataCenter
+		//m.removeNeedExecuteTaskCache(task.GetTaskId(), task.GetTaskSender().GetPartyId())
 		// 2、Set the execution status of the task to being terminated`
 		if err := m.resourceMng.GetDB().StoreLocalTaskExecuteStatusValTerminateByPartyId(task.GetTaskId(), task.GetTaskSender().GetPartyId()); nil != err {
 			log.WithError(err).Errorf("Failed to store needExecute task status to `terminate` with task sender, taskId: {%s}, partyId: {%s}",
