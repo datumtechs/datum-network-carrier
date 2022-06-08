@@ -958,7 +958,7 @@ func (m *Manager) broadcastTaskTerminateMsg(task *types.Task) error {
 		errs = append(errs, fmt.Sprintf("send taskTerminateMsg to remote peer, %s", err))
 	}
 
-	log.WithField("traceId", traceutil.GenerateTraceID(terminateMsg)).Debugf("Succeed to call`broadcastTaskTerminateMsg` taskId: %s",
+	log.WithField("traceId", traceutil.GenerateTraceID(terminateMsg)).Debugf("Succeed to call `broadcastTaskTerminateMsg` taskId: %s",
 		task.GetTaskId())
 
 
@@ -1890,7 +1890,7 @@ func (m *Manager) executeTaskEvent(logkeyword string, symbol types.NetworkMsgLoc
 					if err := m.terminateExecuteTaskByPartner(localTask, needExecuteTask); nil != err {
 						log.WithError(err).Errorf("Failed to call `terminateExecuteTaskByPartner()` %s, taskId: {%s}, partyId: {%s}", logkeyword, localTask.GetTaskId(), event.GetPartyId())
 					} else {
-						log.Debugf("Finished [treminate task] when received report local event, taskId: {%s}, partyId: {%s}", localTask.GetTaskId(), event.GetPartyId())
+						log.Debugf("Finished [terminate task] when received report local event, taskId: {%s}, partyId: {%s}", localTask.GetTaskId(), event.GetPartyId())
 					}
 				}
 			}
@@ -2286,13 +2286,16 @@ func (m *Manager) onTaskTerminateMsg(pid peer.ID, terminateMsg *carriernetmsgtas
 	// Verify the signature of remote msg
 	if nmls == types.RemoteNetworkMsg {
 		if _, err := signutil.VerifyMsgSign(msg.GetMsgOption().GetOwner().GetNodeId(), msg.Hash().Bytes(), msg.GetSign()); err != nil {
+			log.WithError(err).Errorf("Failed to call `VerifyMsgSign()` when received terminateMsg on `taskManager.OnTaskTerminateMsg()`, taskId: {%s}, sender partyId: {%s}",
+				msg.GetTaskId(), msg.GetMsgOption().GetSenderPartyId())
 			return fmt.Errorf("verify remote terminateMsg sign %s", err)
 		}
 	}
 
 	identity, err := m.resourceMng.GetDB().QueryIdentity()
 	if nil != err {
-		log.WithError(err).Errorf("Failed to call `QueryIdentity()` when received terminateMsg on `taskManager.OnTaskTerminateMsg()`, taskId: {%s}", msg.GetTaskId())
+		log.WithError(err).Errorf("Failed to call `QueryIdentity()` when received terminateMsg on `taskManager.OnTaskTerminateMsg()`, taskId: {%s}, sender partyId: {%s}",
+			msg.GetTaskId(), msg.GetMsgOption().GetSenderPartyId())
 		return fmt.Errorf("query local identity failed when received terminateMsg, %s", err)
 	}
 
@@ -2330,7 +2333,7 @@ func (m *Manager) onTaskTerminateMsg(pid peer.ID, terminateMsg *carriernetmsgtas
 	terminateFn := func(party *carriertypespb.TaskOrganization, role commonconstantpb.TaskRole) (uint32, error) {
 		// ## 1、 check whether the task has been terminated
 
-		log.Debugf("Prepare [treminate task] when received taskTerminateMsg, taskId: {%s}, partyId: {%s}, consensusSymbol: {%s}", task.GetTaskId(), party.GetPartyId(), nmls.String())
+		log.Debugf("Prepare [terminate task] when received taskTerminateMsg, taskId: {%s}, partyId: {%s}, consensusSymbol: {%s}", task.GetTaskId(), party.GetPartyId(), nmls.String())
 
 		var consensusFlag uint32
 
@@ -2360,7 +2363,7 @@ func (m *Manager) onTaskTerminateMsg(pid peer.ID, terminateMsg *carriernetmsgtas
 			if needExecuteTask, ok := m.queryNeedExecuteTaskCache(task.GetTaskId(), party.GetPartyId()); ok {
 				err = m.startTerminateWithNeedExecuteTask(needExecuteTask)
 				if nil == err {
-					log.Debugf("Finished [treminate task] that is `running` status when received taskTerminateMsg, taskId: {%s}, partyId: {%s}, consensusSymbol: {%s}",
+					log.Debugf("Finished [terminate task] that is `running` status when received taskTerminateMsg, taskId: {%s}, partyId: {%s}, consensusSymbol: {%s}",
 						task.GetTaskId(), party.GetPartyId(), nmls.String())
 				}
 			}
