@@ -360,12 +360,18 @@ func (m *Manager) loop() {
 					// to execute the task
 					m.handleNeedExecuteTask(task, localTask)
 
-				// sender and partner to clear local task things after received status: `scheduleFailed` and `interrupt` and `terminate`.
+				// sender and partner to clear local task things after received status:
+				// #### `scheduleFailed` ####
+				// #### `interrupt` ####
+				// #### `terminate` ####.
+				//
 				// sender need to publish local task and event to datacenter,
 				// partner need to send task's event to remote task's sender.
 				//
-				// NOTE:
-				//	sender never received status `interrupt`, and partners never received status `scheduleFailed`.
+				// #### NOTE: ####
+				//
+				//	sender never received status `interrupt`,
+				//	and partners never received status `scheduleFailed`.
 				default:
 
 					// store a bad event into local db before handle bad task.
@@ -412,6 +418,10 @@ func (m *Manager) TerminateTask(terminate *types.TaskTerminateMsg) {
 
 	log.Infof("Start terminate task, userType: {%s}, user: {%s}, taskId: {%s}", terminate.GetUserType(), terminate.GetUser(), terminate.GetTaskId())
 
+	// NOTE:
+	//
+	// The sender of the terminatemsg must be the sender of the task
+	//
 	// Why load 'local task' instead of 'needexecutetask'?
 	//
 	// Because the task may still be in the `consensus phase` rather than the `execution phase`,
@@ -421,9 +431,18 @@ func (m *Manager) TerminateTask(terminate *types.TaskTerminateMsg) {
 		log.WithError(err).Errorf("Failed to query local task on `taskManager.TerminateTask()`, taskId: {%s}", terminate.GetTaskId())
 		return
 	}
-
 	if nil == task {
 		log.Warnf("Not found local task on `taskManager.TerminateTask()`, taskId: {%s}", terminate.GetTaskId())
+		return
+	}
+	identity, err := m.resourceMng.GetDB().QueryIdentity()
+	if nil != err {
+		log.WithError(err).Errorf("Failed to query local task on `taskManager.TerminateTask()`, taskId: {%s}", terminate.GetTaskId())
+		return
+	}
+	if task.GetTaskSender().GetIdentityId() != identity.GetIdentityId() {
+		log.WithError(err).Errorf("The sender of the terminatemsg must be the sender of the task on `taskManager.TerminateTask()`, taskId: {%s}, taskSender: {%s}, localIdentity: {%s}",
+			terminate.GetTaskId(), task.GetTaskSender().GetIdentityId(), identity.GetIdentityId())
 		return
 	}
 
@@ -437,24 +456,14 @@ func (m *Manager) terminateExecuteTaskBySender(task *types.Task) error {
 	// what if find the needExecuteTask(status: types.TaskConsensusFinished) with sender
 	if m.hasNeedExecuteTaskCache(task.GetTaskId(), task.GetTaskSender().GetPartyId()) {
 
-		// 1、 store task terminate (failed or succeed) event with current party
-		m.resourceMng.GetDB().StoreTaskEvent(&carriertypespb.TaskEvent{
-			Type:       ev.TaskTerminated.Type,
-			TaskId:     task.GetTaskId(),
-			IdentityId: task.GetTaskSender().GetIdentityId(),
-			PartyId:    task.GetTaskSender().GetPartyId(),
-			Content:    "task was terminated.",
-			CreateAt:   timeutils.UnixMsecUint64(),
-		})
-
-		// 2、 remove needExecuteTask cache with sender
+		// 1、 remove needExecuteTask cache with sender
 		m.removeNeedExecuteTaskCache(task.GetTaskId(), task.GetTaskSender().GetPartyId())
-		// 3、Set the execution status of the task to being terminated`
+		// 2、Set the execution status of the task to being terminated`
 		if err := m.resourceMng.GetDB().StoreLocalTaskExecuteStatusValTerminateByPartyId(task.GetTaskId(), task.GetTaskSender().GetPartyId()); nil != err {
 			log.WithError(err).Errorf("Failed to store needExecute task status to `terminate` with task sender, taskId: {%s}, partyId: {%s}",
 				task.GetTaskId(), task.GetTaskSender().GetPartyId())
 		}
-		// 4、 send a new needExecuteTask(status: types.TaskTerminate) for terminate with sender
+		// 3、 send a new needExecuteTask(status: types.TaskTerminate) for terminate with sender
 		m.sendNeedExecuteTaskByAction(types.NewNeedExecuteTask(
 			"",
 			commonconstantpb.TaskRole_TaskRole_Sender,
@@ -467,14 +476,17 @@ func (m *Manager) terminateExecuteTaskBySender(task *types.Task) error {
 			&carriertwopcpb.ConfirmTaskPeerInfo{}, // zero value
 			fmt.Errorf("task was terminated"),
 		))
-
-		if err := m.sendTaskTerminateMsg(task); nil != err {
-			log.WithError(err).Errorf("Failed to store needExecute task status to `terminate` with task sender, taskId: {%s}, partyId: {%s}",
+		// 4、 broadcast terminateMsg to other party of task
+		if err := m.broadcastTaskTerminateMsg(task); nil != err {
+			log.WithError(err).Errorf("Failed to broadcast terminateMsg to other party of task with task sender, taskId: {%s}, partyId: {%s}",
 				task.GetTaskId(), task.GetTaskSender().GetPartyId())
 		}
 	}
 
 	return nil
+}
+func (m *Manager) terminateExecuteTaskByPartner(task *types.Task, needExecuteTask *types.NeedExecuteTask) error {
+	return m.startTerminateWithNeedExecuteTask(needExecuteTask)
 }
 
 func (m *Manager) HandleTaskMsgs(msgArr types.TaskMsgArr) error {

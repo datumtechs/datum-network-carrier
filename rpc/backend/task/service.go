@@ -368,6 +368,7 @@ func (svr *Server) TerminateTask(ctx context.Context, req *carrierapipb.Terminat
 		return &carriertypespb.SimpleResponse{Status: backend.ErrTerminateTaskMsg.ErrCode(), Msg: "query local task failed"}, nil
 	}
 
+	// The sender of the terminatemsg must be the sender of the task
 	if task.GetInformation().GetSender().GetIdentityId() != identity.GetIdentityId() {
 		log.Errorf("RPC-API:TerminateTask failed, check taskSender failed, the taskSender is not current identity")
 		return &carriertypespb.SimpleResponse{Status: backend.ErrTerminateTaskMsg.ErrCode(), Msg: "invalid taskSender"}, nil
