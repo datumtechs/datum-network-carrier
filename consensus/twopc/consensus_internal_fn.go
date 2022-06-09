@@ -82,6 +82,25 @@ func (t *Twopc) addmonitor(orgState *ctypes.OrgProposalState) {
 
 	monitor.SetCallBackFn(func(orgState *ctypes.OrgProposalState) {
 
+		// #### NOTE ####
+		//
+		// Never using that:
+		//
+		// ```
+		//   t.asyncCallCh <- func () {
+		//  		monitor callback fn()
+		// 	 }
+		// ```
+		//
+		// in monitor callback function.
+		//
+		// Monitor is the last guarantee means to ensure the processing of proposal related information.
+		// If the calling function of monitor is also added to the buffered 'asynccallch' channel,
+		// it will cause that when the carrier process crashes,
+		// if there is a value in the 'asynccallch' (that is, fn(), which is about to be called),
+		// this part of fn() will be lost forever,
+		// so that some of the proposal information will never be processed.
+
 		t.state.proposalsLock.Lock()
 		defer t.state.proposalsLock.Unlock()
 
