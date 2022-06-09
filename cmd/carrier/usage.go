@@ -145,7 +145,7 @@ var appHelpFlagGroups = []flagGroup{
 		Flags: []cli.Flag{
 			flags.TaskReplayScheduleChanSize,
 			flags.TaskNeedExecuteChanSize,
-			flags.TaskConsResultChanSize,
+			//flags.TaskConsResultChanSize,
 			flags.TaskMetadataConsumeOption,
 		},
 	},

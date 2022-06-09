@@ -24,3 +24,4 @@ deb
 p2p/metaData
 p2p/network-keys
 github.com/
+blacklist/tests/

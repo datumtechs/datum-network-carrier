@@ -370,11 +370,11 @@ var (
 		Value: 600,
 	}
 
-	TaskConsResultChanSize = &cli.IntFlag{
-		Name:  "task.consensus-result-chan-size",
-		Usage: "The buffer size for task sender will handling has finished one epoch consensus [failed or successful] (default 600)",
-		Value: 600,
-	}
+	//TaskConsResultChanSize = &cli.IntFlag{
+	//	Name:  "task.consensus-result-chan-size",
+	//	Usage: "The buffer size for task sender will handling has finished one epoch consensus [failed or successful] (default 600)",
+	//	Value: 600,
+	//}
 
 	TaskMetadataConsumeOption = &cli.IntFlag{
 		Name:  "task.metadata-consume-option",

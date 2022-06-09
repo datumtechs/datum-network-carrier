@@ -22,7 +22,7 @@ var DefaultConfig = Config{
 		MetadataConsumeOption:          0,
 		NeedReplayScheduleTaskChanSize: 600,
 		NeedExecuteTaskChanSize:        600,
-		TaskConsResultChanSize:         600,
+		//TaskConsResultChanSize:         600,
 	},
 }
 

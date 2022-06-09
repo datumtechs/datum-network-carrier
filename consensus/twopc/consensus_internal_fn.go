@@ -189,7 +189,7 @@ func (t *Twopc) addmonitor(orgState *ctypes.OrgProposalState) {
 						CreateAt:   timeutils.UnixMsecUint64(),
 					})
 
-					t.stopTaskConsensus("the proposalState had been deadline",
+					t.finishTaskConsensus("the proposalState had been deadline",
 						orgState.GetProposalId(),
 						orgState.GetTaskId(),
 						orgState.GetTaskRole(),
@@ -274,7 +274,7 @@ func (t *Twopc) proposalStateMonitorsLen() int {
 	return t.state.MonitorsLen()
 }
 
-func (t *Twopc) stopTaskConsensus(
+func (t *Twopc) finishTaskConsensus(
 	reason string,
 	proposalId common.Hash,
 	taskId string,
@@ -283,44 +283,33 @@ func (t *Twopc) stopTaskConsensus(
 	taskActionStatus types.TaskActionStatus,
 ) {
 
-	log.Debugf("Call stopTaskConsensus() to interrupt consensus msg %s with role is %s, proposalId: {%s}, taskId: {%s}, partyId: {%s}, remote partyId: {%s}, taskActionStatus: {%s}",
+	log.Debugf("Call finishTaskConsensus() to finish consensus msg %s with role is %s, proposalId: {%s}, taskId: {%s}, partyId: {%s}, remote partyId: {%s}, taskActionStatus: {%s}",
 		reason, senderRole, proposalId.String(), taskId, sender.GetPartyId(), receiver.GetPartyId(), taskActionStatus.String())
-	// Send consensus result to interrupt consensus epoch and clean some data (on task sender)
-	if senderRole == commonconstantpb.TaskRole_TaskRole_Sender {
-		t.replyTaskConsensusResult(types.NewTaskConsResult(taskId, taskActionStatus, fmt.Errorf(reason)))
-		task, err := t.resourceMng.GetDB().QueryLocalTask(taskId)
-		if err != nil {
-			t.identityBlackListCache.CheckConsensusResultOfNoVote(proposalId, task)
-		} else {
-			log.Warn("not found task ,taskId is:", taskId)
-		}
-	} else {
 
-		var remotePID peer.ID
-		// remote task, so need convert remote pid by nodeId of task sender identity
-		if receiver.GetIdentityId() != sender.GetIdentityId() {
-			receiverPID, err := p2p.HexPeerID(receiver.GetNodeId())
-			if nil != err {
-				log.WithError(err).Errorf("Failed to convert nodeId to remote pid receiver identity when call stopTaskConsensus() to interrupt consensus msg %s with role is %s, proposalId: {%s}, taskId: {%s}, partyId: {%s}, remote partyId: {%s}",
-					reason, senderRole, proposalId.String(), taskId, sender.GetPartyId(), receiver.GetPartyId())
-			}
-			remotePID = receiverPID
+	var remotePID peer.ID
+	// remote task, so need convert remote pid by nodeId of task sender identity
+	if receiver.GetIdentityId() != sender.GetIdentityId() {
+		receiverPID, err := p2p.HexPeerID(receiver.GetNodeId())
+		if nil != err {
+			log.WithError(err).Errorf("Failed to convert nodeId to remote pid receiver identity when call finishTaskConsensus() to finish consensus msg %s with role is %s, proposalId: {%s}, taskId: {%s}, partyId: {%s}, remote partyId: {%s}",
+				reason, senderRole, proposalId.String(), taskId, sender.GetPartyId(), receiver.GetPartyId())
 		}
-
-		t.sendNeedExecuteTask(types.NewNeedExecuteTask(
-			remotePID,
-			senderRole,
-			receiverRole,
-			sender,
-			receiver,
-			taskId,
-			taskActionStatus,
-			&types.PrepareVoteResource{},          // zero value
-			&carriertwopcpb.ConfirmTaskPeerInfo{}, // zero value
-			fmt.Errorf(reason),
-		))
-		// Finally, release local task cache that task manager will do it. (to call `resourceMng.ReleaseLocalResourceWithTask()` by taskManager)
+		remotePID = receiverPID
 	}
+
+	t.sendNeedExecuteTask(types.NewNeedExecuteTask(
+		remotePID,
+		senderRole,
+		receiverRole,
+		sender,
+		receiver,
+		taskId,
+		taskActionStatus,
+		&types.PrepareVoteResource{},          // zero value
+		&carriertwopcpb.ConfirmTaskPeerInfo{}, // zero value
+		fmt.Errorf(reason),
+	))
+	// Finally, release local task cache that task manager will do it. (to call `resourceMng.ReleaseLocalResourceWithTask()` by taskManager)
 }
 
 func (t *Twopc) driveTask(
@@ -363,17 +352,11 @@ func (t *Twopc) driveTask(
 		localTaskOrganization,
 		remoteTaskOrganization,
 		taskId,
-		types.TaskNeedExecute,
+		types.TaskConsensusFinished,
 		selfvote.GetPeerInfo(),
 		peers,
-		nil,
-	))
-}
-
-func (t *Twopc) replyTaskConsensusResult(result *types.TaskConsResult) {
-	go func(result *types.TaskConsResult) { // asynchronous transmission to reduce Chan blocking
-		t.taskConsResultCh <- result
-	}(result)
+		fmt.Errorf("succeed consensus for proposal '%s'", proposalId.TerminalString())),
+	)
 }
 
 func (t *Twopc) sendNeedReplayScheduleTask(task *types.NeedReplayScheduleTask) {

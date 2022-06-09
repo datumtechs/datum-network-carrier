@@ -20,8 +20,8 @@ import (
 	"github.com/datumtechs/datum-network-carrier/db"
 	"github.com/datumtechs/datum-network-carrier/grpclient"
 	"github.com/datumtechs/datum-network-carrier/handler"
-	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	"github.com/datumtechs/datum-network-carrier/p2p"
+	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	"github.com/datumtechs/datum-network-carrier/service/discovery"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/urfave/cli/v2"
@@ -68,13 +68,12 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 	pool := message.NewMempool(&message.MempoolConfig{NodeId: nodeIdStr})
 	eventEngine := evengine.NewEventEngine(config.CarrierDB)
 
-	needReplayScheduleTaskCh, needExecuteTaskCh, taskConsResultCh :=
+	needReplayScheduleTaskCh, needExecuteTaskCh :=
 		make(chan *types.NeedReplayScheduleTask, config.TaskManagerConfig.NeedReplayScheduleTaskChanSize),
-		make(chan *types.NeedExecuteTask, config.TaskManagerConfig.NeedExecuteTaskChanSize),
-		make(chan *types.TaskConsResult, config.TaskManagerConfig.TaskConsResultChanSize)
+		make(chan *types.NeedExecuteTask, config.TaskManagerConfig.NeedExecuteTaskChanSize)
 
-	log.Debugf("Get some chan size value from config when carrier NewService, NeedReplayScheduleTaskChanSize: %d, NeedExecuteTaskChanSize: %d, TaskConsResultChanSize: %d",
-		config.TaskManagerConfig.NeedReplayScheduleTaskChanSize, config.TaskManagerConfig.NeedExecuteTaskChanSize, config.TaskManagerConfig.TaskConsResultChanSize)
+	log.Debugf("Get some chan size value from config when carrier NewService, NeedReplayScheduleTaskChanSize: %d, NeedExecuteTaskChanSize: %d",
+		config.TaskManagerConfig.NeedReplayScheduleTaskChanSize, config.TaskManagerConfig.NeedExecuteTaskChanSize)
 
 	identityBlackListCache := blacklist.NewIdentityBackListCache()
 	resourceClientSet := grpclient.NewInternalResourceNodeSet()
@@ -98,7 +97,6 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 		config.P2P,
 		needReplayScheduleTaskCh,
 		needExecuteTaskCh,
-		taskConsResultCh,
 		identityBlackListCache,
 	)
 
@@ -134,7 +132,6 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 		token20PayManager,
 		needReplayScheduleTaskCh,
 		needExecuteTaskCh,
-		taskConsResultCh,
 		config.TaskManagerConfig,
 	)
 	if nil != err {

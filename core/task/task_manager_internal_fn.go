@@ -53,7 +53,7 @@ func (m *Manager) tryScheduleTask() error {
 			nonConsTask.GetTask().GetTaskSender(),
 			nonConsTask.GetTask().GetTaskId(),
 			types.TaskScheduleFailed,
-			&types.PrepareVoteResource{},   // zero value
+			&types.PrepareVoteResource{},          // zero value
 			&carriertwopcpb.ConfirmTaskPeerInfo{}, // zero value
 			fmt.Errorf("schedule failed: "+schedule.ErrAbandonTaskWithNotFoundPowerPartyIds.Error()),
 		))
@@ -78,7 +78,7 @@ func (m *Manager) tryScheduleTask() error {
 					nonConsTask.GetTask().GetTaskSender(),
 					nonConsTask.GetTask().GetTaskId(),
 					types.TaskScheduleFailed,
-					&types.PrepareVoteResource{},   // zero value
+					&types.PrepareVoteResource{},          // zero value
 					&carriertwopcpb.ConfirmTaskPeerInfo{}, // zero value
 					fmt.Errorf("schedule failed: "+err.Error()+" and "+schedule.ErrRescheduleLargeThreshold.Error()),
 				))
@@ -89,13 +89,13 @@ func (m *Manager) tryScheduleTask() error {
 
 	go func(nonConsTask *types.NeedConsensusTask) {
 
-		log.Debugf("Start `NEED-CONSENSUS` task to 2pc consensus engine on `taskManager.tryScheduleTask()`, taskId: {%s}", nonConsTask.GetTask().GetTaskId())
+		log.Debugf("Start send `NEED-CONSENSUS` task to [consensus engine] on `taskManager.tryScheduleTask()`, taskId: {%s}", nonConsTask.GetTask().GetTaskId())
 
 		if err := m.consensusEngine.OnPrepare(nonConsTask); nil != err {
-			log.WithError(err).Errorf("Failed to call `OnPrepare()` of 2pc consensus engine on `taskManager.tryScheduleTask()`, taskId: {%s}", nonConsTask.GetTask().GetTaskId())
+			log.WithError(err).Errorf("Failed to call `OnPrepare()` of [consensus engine] on `taskManager.tryScheduleTask()`, taskId: {%s}", nonConsTask.GetTask().GetTaskId())
 			// re push task into queue ,if anything else
 			if err := m.scheduler.RepushTask(nonConsTask.GetTask()); err == schedule.ErrRescheduleLargeThreshold {
-				log.WithError(err).Errorf("Failed to repush local task into queue/starve queue after call `consensus.onPrepare()` on `taskManager.tryScheduleTask()`, taskId: {%s}",
+				log.WithError(err).Errorf("Failed to repush local task into queue/starve queue after call `OnPrepare()` of [consensus engine] on `taskManager.tryScheduleTask()`, taskId: {%s}",
 					nonConsTask.GetTask().GetTaskId())
 
 				m.scheduler.RemoveTask(nonConsTask.GetTask().GetTaskId())
@@ -107,18 +107,18 @@ func (m *Manager) tryScheduleTask() error {
 					nonConsTask.GetTask().GetTaskSender(),
 					nonConsTask.GetTask().GetTaskId(),
 					types.TaskScheduleFailed,
-					&types.PrepareVoteResource{},   // zero value
+					&types.PrepareVoteResource{},          // zero value
 					&carriertwopcpb.ConfirmTaskPeerInfo{}, // zero value
 					fmt.Errorf("consensus onPrepare failed: "+err.Error()+" and "+schedule.ErrRescheduleLargeThreshold.Error()),
 				))
 			} else {
-				log.Debugf("Succeed to repush local task into queue/starve queue after call `consensus.onPrepare()` on `taskManager.tryScheduleTask()`, taskId: {%s}",
+				log.Debugf("Succeed to repush local task into queue/starve queue after call `OnPrepare()` of [consensus engine] on `taskManager.tryScheduleTask()`, taskId: {%s}",
 					nonConsTask.GetTask().GetTaskId())
 			}
 			return
 		}
 		if err := m.consensusEngine.OnHandle(nonConsTask); nil != err {
-			log.WithError(err).Errorf("Failed to call `OnHandle()` of 2pc consensus engine on `taskManager.tryScheduleTask()`, taskId: {%s}", nonConsTask.GetTask().GetTaskId())
+			log.WithError(err).Errorf("Failed to call `OnHandle()` of [consensus engine] on `taskManager.tryScheduleTask()`, taskId: {%s}", nonConsTask.GetTask().GetTaskId())
 		}
 	}(nonConsTask)
 	return nil
@@ -845,7 +845,7 @@ func (m *Manager) sendTaskResultMsgToTaskSender(task *types.NeedExecuteTask, loc
 		task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID())
 
 	var (
-		option resource.ReleaseResourceOption
+		option        resource.ReleaseResourceOption
 		taskResultMsg *carriernetmsgtaskmngpb.TaskResultMsg
 	)
 
@@ -996,7 +996,6 @@ func (m *Manager) StoreExecuteTaskStateBeforeExecuteTask(logdesc, taskId, partyI
 	// do anythings else?
 	return nil
 }
-
 func (m *Manager) RemoveExecuteTaskStateAfterExecuteTask(logdesc, taskId, partyId string, option resource.ReleaseResourceOption, isSender bool) error {
 	if err := m.resourceMng.GetDB().RemoveLocalTaskExecuteStatusByPartyId(taskId, partyId); nil != err {
 		log.WithError(err).Errorf("Failed to remove task executing status %s, taskId: {%s} partyId: {%s}, isSender: {%v}",
@@ -1011,8 +1010,6 @@ func (m *Manager) RemoveExecuteTaskStateAfterExecuteTask(logdesc, taskId, partyI
 	m.resourceMng.ReleaseLocalResourceWithTask(logdesc, taskId, partyId, option, isSender)
 	return nil
 }
-
-
 
 func (m *Manager) publishBadTaskToDataCenter(task *types.Task, events []*carriertypespb.TaskEvent, reason string) error {
 	task.GetTaskData().TaskEvents = events
@@ -1315,7 +1312,6 @@ func (m *Manager) metadataInputCSV(task *types.NeedExecuteTask, localTask *types
 		SelectedColumns: selectedColumns,
 	}, nil
 }
-
 func (m *Manager) metadataInputDIR(task *types.NeedExecuteTask, localTask *types.Task, dataPolicy *types.TaskMetadataPolicyDIR) (*types.InputDataDIR, error) {
 
 	metadataId := dataPolicy.GetMetadataId()
@@ -1362,7 +1358,6 @@ func (m *Manager) metadataInputDIR(task *types.NeedExecuteTask, localTask *types
 		DataPath:   dirPath,
 	}, nil
 }
-
 func (m *Manager) metadataInputBINARY(task *types.NeedExecuteTask, localTask *types.Task, dataPolicy *types.TaskMetadataPolicyBINARY) (*types.InputDataBINARY, error) {
 
 	metadataId := dataPolicy.GetMetadataId()
@@ -1477,8 +1472,8 @@ func (m *Manager) initConsumeSpecByConsumeOption(task *types.NeedExecuteTask) {
 		task.SetConsumeQueryId(taskIdBigInt.String())
 		task.SetConsumeSpec(string(b))
 
-	//default: // use nothing
-	//	// pass
+		//default: // use nothing
+		//	// pass
 	}
 }
 
@@ -1753,14 +1748,67 @@ func (m *Manager) handleTaskEventWithCurrentOranization(event *carriertypespb.Ta
 	return nil // ignore event while task is not exist.
 }
 
-func (m *Manager) handleNeedExecuteTask(task *types.NeedExecuteTask, localTask *types.Task) {
+func (m *Manager) handleNeedReplayScheduleTask(task *types.NeedReplayScheduleTask) {
 
-	log.Debugf("Start handle needExecuteTask on handleNeedExecuteTask(), taskId: {%s}, role: {%s}, partyId: {%s}",
+	// Do duplication check ...
+	has, err := m.resourceMng.GetDB().HasLocalTask(task.GetTask().GetTaskId())
+	if nil != err {
+		log.WithError(err).Errorf("Failed to query local task when received remote task, taskId: {%s}", task.GetTask().GetTaskId())
+		return
+	}
+
+	// There is no need to store local tasks repeatedly
+	if !has {
+
+		log.Infof("Start to store local task on taskManager.loop() when received needReplayScheduleTask, taskId: {%s}", task.GetTask().GetTaskId())
+
+		// store metadata used taskId
+		if err := m.storeMetadataUsedTaskId(task.GetTask()); nil != err {
+			log.WithError(err).Errorf("Failed to store metadata used taskId when received remote task, taskId: {%s}", task.GetTask().GetTaskId())
+		}
+		if err := m.resourceMng.GetDB().StoreLocalTask(task.GetTask()); nil != err {
+			log.WithError(err).Errorf("Failed to call StoreLocalTask when replay schedule remote task, taskId: {%s}", task.GetTask().GetTaskId())
+			task.SendFailedResult(task.GetTask().GetTaskId(), err)
+			return
+		}
+		log.Infof("Finished to store local task on taskManager.loop() when received needReplayScheduleTask, taskId: {%s}", task.GetTask().GetTaskId())
+
+	}
+
+	// Start replay schedule remote task ...
+	result := m.scheduler.ReplaySchedule(task.GetLocalPartyId(), task.GetLocalTaskRole(), task)
+	task.SendResult(result)
+}
+func (m *Manager) handleNormalNeedExecuteTask(task *types.NeedExecuteTask, localTask *types.Task) {
+
+	log.Debugf("Start handle needExecuteTask on handleNormalNeedExecuteTask(), taskId: {%s}, role: {%s}, partyId: {%s}",
 		task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
 
+	switch task.GetConsStatus() {
+	case types.TaskConsensusFinished:
+		// store task consensus result (failed or succeed) event with sender party
+		m.resourceMng.GetDB().StoreTaskEvent(&carriertypespb.TaskEvent{
+			Type:       ev.TaskSucceedConsensus.GetType(),
+			TaskId:     task.GetTaskId(),
+			IdentityId: task.GetLocalTaskOrganization().GetIdentityId(),
+			PartyId:    task.GetLocalTaskOrganization().GetPartyId(),
+			Content:    "succeed consensus",
+			CreateAt:   timeutils.UnixMsecUint64(),
+		})
+
+		// the task that are 'consensusFinished' status should be removed from the queue/starvequeue as task sender.
+		if task.GetLocalTaskRole() == commonconstantpb.TaskRole_TaskRole_Sender {
+
+			if err := m.scheduler.RemoveTask(task.GetTaskId()); nil != err {
+				log.WithError(err).Errorf("Failed to remove local task from queue/starve queue when received `consensusFinished` needExecuteTask of `NEED-CONSENSUS` task consensus result from [consensus engine], taskId: {%s}, role: {%s}, partyId: {%s}",
+					task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
+			}
+		}
+	}
+
 	// Store task exec status
-	if err := m.StoreExecuteTaskStateBeforeExecuteTask("on handleNeedExecuteTask()", task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId()); nil != err {
-		log.WithError(err).Errorf("Failed to call StoreExecuteTaskStateBeforeExecuteTask() on handleNeedExecuteTask(), taskId: {%s}, role: {%s}, partyId: {%s}",
+	if err := m.StoreExecuteTaskStateBeforeExecuteTask("on handleNormalNeedExecuteTask()", task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId()); nil != err {
+		log.WithError(err).Errorf("Failed to call StoreExecuteTaskStateBeforeExecuteTask() on handleNormalNeedExecuteTask(), taskId: {%s}, role: {%s}, partyId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
 		return
 	}
@@ -1771,7 +1819,7 @@ func (m *Manager) handleNeedExecuteTask(task *types.NeedExecuteTask, localTask *
 		localTask.GetTaskData().State = commonconstantpb.TaskState_TaskState_Running
 		localTask.GetTaskData().StartAt = timeutils.UnixMsecUint64()
 		if err := m.resourceMng.GetDB().StoreLocalTask(localTask); nil != err {
-			log.WithError(err).Errorf("Failed to update local task state before executing task on handleNeedExecuteTask(), taskId: {%s}, need update state: {%s}",
+			log.WithError(err).Errorf("Failed to update local task state before executing task on handleNormalNeedExecuteTask(), taskId: {%s}, need update state: {%s}",
 				task.GetTaskId(), commonconstantpb.TaskState_TaskState_Running.String())
 		}
 	}
@@ -1782,12 +1830,153 @@ func (m *Manager) handleNeedExecuteTask(task *types.NeedExecuteTask, localTask *
 	// The task sender will not execute the task
 	// driving task to executing
 	if err := m.driveTaskForExecute(task, localTask); nil != err {
-		log.WithError(err).Errorf("Failed to execute task on internal node on handleNeedExecuteTask(), taskId: {%s}, role: {%s}, partyId: {%s}",
+		log.WithError(err).Errorf("Failed to execute task on internal node on handleNormalNeedExecuteTask(), taskId: {%s}, role: {%s}, partyId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
 
 		m.SendTaskEvent(m.eventEngine.GenerateEvent(ev.TaskExecuteFailedEOF.GetType(), task.GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(),
 			task.GetLocalTaskOrganization().GetPartyId(), fmt.Sprintf("%s, %s with %s", ev.TaskExecuteFailedEOF.GetMsg(), err,
 				task.GetLocalTaskOrganization().GetPartyId())))
+	}
+}
+func (m *Manager) handleAbnormalNeedExecuteTask(task *types.NeedExecuteTask, localTask *types.Task) {
+	// store a bad event into local db before handle bad task.
+	var (
+		eventTyp string
+		reason   string
+		done bool
+	)
+
+	switch task.GetConsStatus() {
+
+	// The consensus cycle is interrupted in the process of consensus.
+	case types.TaskConsensusInterrupt:
+
+		// check if repush task into queue/starvequeue by task sender.
+		if task.GetLocalTaskRole() == commonconstantpb.TaskRole_TaskRole_Sender {
+
+			log.Debugf("Received `consensusInterrupt` needExecuteTask of `NEED-CONSENSUS` task consensus result from [consensus engine], taskId: {%s}, needExecuteTask: {%s}", task.GetTaskId(), task.String())
+
+			// clean old powerSuppliers and update local task
+			localTask.RemovePowerSuppliers()
+			localTask.RemovePowerResources()
+			// restore task by power
+			if err := m.resourceMng.GetDB().StoreLocalTask(localTask); nil != err {
+				log.WithError(err).Errorf("Failed to update local task whit clean powers after consensus interrupted when received needExecuteTask of `NEED-CONSENSUS` task consensus result from [consensus engine], taskId: {%s}", task.GetTaskId())
+			}
+
+			// repush task into queue, if anything else
+			if err := m.scheduler.RepushTask(localTask); err == schedule.ErrRescheduleLargeThreshold {
+				log.WithError(err).Errorf("Failed to repush local task into queue/starve queue when received needExecuteTask of `NEED-CONSENSUS` task consensus result from [consensus engine], taskId: {%s}, consensus status: {%s}",
+					task.GetTaskId(), task.GetConsStatus().String())
+
+				m.scheduler.RemoveTask(task.GetTaskId())
+
+				eventTyp = ev.TaskFailed.GetType()
+				reason = fmt.Sprintf("consensus interrupted: "+task.GetErr().Error()+" and "+schedule.ErrRescheduleLargeThreshold.Error())
+				done = true
+
+			} else {
+				log.Debugf("Succeed to repush local task into queue/starve queue when received needExecuteTask of `NEED-CONSENSUS` task consensus result from [consensus engine], taskId: {%s}, consensus status: {%s}",
+					task.GetTaskId(), task.GetConsStatus().String())
+
+				// When the repush task is successfully sent to the queue,
+				// we need to clear the task sender's neexexecutetask
+				// so that the task sender can schedule the task later.
+				m.removeNeedExecuteTaskCache(task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
+
+				eventTyp = ev.TaskFailedConsensus.GetType()
+				reason = task.GetErr().Error()
+			}
+		} else {
+			eventTyp = ev.TaskFailedConsensus.GetType()
+			reason = task.GetErr().Error()
+			done = true
+		}
+
+	// May have failed before the consensus started
+	case types.TaskScheduleFailed:
+
+		if task.GetLocalTaskRole() == commonconstantpb.TaskRole_TaskRole_Sender {
+			log.Debugf("Received `taskScheduleFailed` needExecuteTask of `NEED-CONSENSUS` task consensus result from [consensus engine], taskId: {%s}, needExecuteTask: {%s}",
+				task.GetTaskId(), task.String())
+		}
+
+		eventTyp = ev.TaskFailed.GetType()
+		reason = task.GetErr().Error()
+		done = true
+
+	case types.TaskTerminate:
+
+		// the task that are 'terminated' status should be removed from the queue/starvequeue as task sender.
+		if task.GetLocalTaskRole() == commonconstantpb.TaskRole_TaskRole_Sender {
+
+			log.Debugf("Received `taskTerminate` needExecuteTask of `NEED-CONSENSUS` task consensus result from [consensus engine], taskId: {%s}, needExecuteTask: {%s}",
+				task.GetTaskId(), task.String())
+
+			if err := m.scheduler.RemoveTask(task.GetTaskId()); nil != err {
+				log.WithError(err).Errorf("Failed to remove local task from queue/starve queue when received needExecuteTask of `NEED-CONSENSUS` task consensus result from [consensus engine],taskId: {%s}, partyId: {%s}, status: {%s}",
+					task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), task.GetConsStatus().String())
+			}
+		}
+
+		// Both task sender and task partners will end tasks in 'terminate' status.
+		eventTyp = ev.TaskFailed.GetType()
+		reason = task.GetErr().Error()
+		done = true
+
+	}
+
+	// store event.
+	m.resourceMng.GetDB().StoreTaskEvent(m.eventEngine.GenerateEvent(eventTyp, task.GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(),
+		task.GetLocalTaskOrganization().GetPartyId(), reason))
+
+	// Finally handle the fate of needexecutetask
+	if done {
+		switch task.GetLocalTaskRole() {
+		case commonconstantpb.TaskRole_TaskRole_Sender:
+			m.publishFinishedTaskToDataCenter(task, localTask, true)
+		default:
+			m.sendTaskResultMsgToTaskSender(task, localTask)
+		}
+		// finally, remove needExecuteTask after call `publishFinishedTaskToDataCenter` or `sendTaskResultMsgToTaskSender`
+		m.removeNeedExecuteTaskCache(task.GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId())
+	}
+}
+func (m *Manager) handleNeedExecuteTask(task *types.NeedExecuteTask) {
+
+	localTask, err := m.resourceMng.GetDB().QueryLocalTask(task.GetTaskId())
+	if nil != err {
+		log.WithError(err).Errorf("Failed to query local task info on taskManager.loop() when received needExecuteTask, taskId: {%s}, partyId: {%s}, status: {%s}",
+			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), task.GetConsStatus().String())
+		//continue
+		return
+	}
+
+	// init consumeSpec of NeedExecuteTask first (by v0.4.0)
+	m.initConsumeSpecByConsumeOption(task)
+
+	switch task.GetConsStatus() {
+	// sender and partner to handle needExecuteTask when consensus succeed.
+	// sender need to store some cache, partner need to execute task.
+	case types.TaskConsensusFinished:
+
+		// to execute the task
+		m.handleNormalNeedExecuteTask(task, localTask)
+
+	// sender and partner to clear local task things after received status:
+	// #### `scheduleFailed` ####
+	// #### `interrupt` ####
+	// #### `terminate` ####.
+	//
+	// sender need to publish local task and event to datacenter,
+	// partner need to send task's event to remote task's sender.
+	//
+	// #### NOTE: ####
+	//
+	//	sender never received status `interrupt`,
+	//	and partners never received status `scheduleFailed`.
+	default:
+		m.handleAbnormalNeedExecuteTask(task, localTask)
 	}
 }
 
@@ -2333,7 +2522,6 @@ func (m *Manager) onTaskTerminateMsg(pid peer.ID, terminateMsg *carriernetmsgtas
 
 	log.WithField("traceId", traceutil.GenerateTraceID(terminateMsg)).Debugf("Received taskTerminateMsg, consensusSymbol: {%s}, remote pid: {%s}, taskTerminateMsg: %s", nmls.String(), pid, msg.String())
 
-
 	terminateFn := func(party *carriertypespb.TaskOrganization, role commonconstantpb.TaskRole) (uint32, error) {
 		// ## 1、 check whether the task has been terminated
 
@@ -2405,7 +2593,7 @@ func (m *Manager) onTaskTerminateMsg(pid peer.ID, terminateMsg *carriernetmsgtas
 	}
 	for _, data := range task.GetTaskData().GetPowerSuppliers() {
 		if identity.GetIdentityId() == data.GetIdentityId() {
-			flag, err := terminateFn(data, commonconstantpb.TaskRole_TaskRole_PowerSupplier);
+			flag, err := terminateFn(data, commonconstantpb.TaskRole_TaskRole_PowerSupplier)
 			if nil != err {
 				failedPartyIds = append(failedPartyIds, data.GetPartyId())
 			}
@@ -2415,7 +2603,7 @@ func (m *Manager) onTaskTerminateMsg(pid peer.ID, terminateMsg *carriernetmsgtas
 
 	for _, data := range task.GetTaskData().GetReceivers() {
 		if identity.GetIdentityId() == data.GetIdentityId() {
-			flag, err := terminateFn(data, commonconstantpb.TaskRole_TaskRole_Receiver);
+			flag, err := terminateFn(data, commonconstantpb.TaskRole_TaskRole_Receiver)
 			if nil != err {
 				failedPartyIds = append(failedPartyIds, data.GetPartyId())
 			}
@@ -2466,7 +2654,7 @@ func (m *Manager) startTerminateWithNeedExecuteTask(needExecuteTask *types.NeedE
 		needExecuteTask.GetRemoteTaskOrganization(),
 		needExecuteTask.GetTaskId(),
 		types.TaskTerminate,
-		&types.PrepareVoteResource{},   // zero value
+		&types.PrepareVoteResource{},          // zero value
 		&carriertwopcpb.ConfirmTaskPeerInfo{}, // zero value
 		fmt.Errorf("task was terminated"),
 	))
@@ -2500,11 +2688,11 @@ func (m *Manager) AddMsg(msg interface{}) bool {
 		v := hashutil.Hash(append(taskTerminateMsgCacheKeyPrefix, []byte(pure.String())...))
 		key = carriercommon.Bytes2Hex(v[0:])
 
-	//default:
-	//	return false
+		//default:
+		//	return false
 	}
 	if "" != key {
-		m.msgCache.Add(key, struct {}{})
+		m.msgCache.Add(key, struct{}{})
 		return true
 	}
 	return false
@@ -2549,15 +2737,14 @@ func (m *Manager) ContainsOrAddMsg(msg interface{}) error {
 		v := hashutil.Hash(append(taskTerminateMsgCacheKeyPrefix, []byte(pure.String())...))
 		key = carriercommon.Bytes2Hex(v[0:])
 
-
-	//default:
-	//	has, evict = false, false
+		//default:
+		//	has, evict = false, false
 	}
 
 	if "" == key {
 		return fmt.Errorf("not match msg type")
 	}
-	if has, _ := m.msgCache.ContainsOrAdd(key, struct {}{}); has {
+	if has, _ := m.msgCache.ContainsOrAdd(key, struct{}{}); has {
 		return fmt.Errorf("key value already exists in lru cache")
 	}
 	return nil

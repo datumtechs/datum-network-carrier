@@ -42,7 +42,7 @@ func SetCarrierConfig(ctx *cli.Context, cfg *carrier.Config) {
 		MetadataConsumeOption:          ctx.Int(flags.TaskMetadataConsumeOption.Name),
 		NeedReplayScheduleTaskChanSize: ctx.Int(flags.TaskReplayScheduleChanSize.Name),
 		NeedExecuteTaskChanSize:        ctx.Int(flags.TaskNeedExecuteChanSize.Name),
-		TaskConsResultChanSize:         ctx.Int(flags.TaskConsResultChanSize.Name),
+		//TaskConsResultChanSize:         ctx.Int(flags.TaskConsResultChanSize.Name),
 	}
 
 	// override any default configs.

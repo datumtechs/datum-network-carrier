@@ -51,7 +51,6 @@ func GenerateObg() *blacklist.IdentityBackListCache {
 		nil,
 		nil,
 		nil,
-		nil,
 		identityBlackListCache,
 	)
 	return identityBlackListCache
