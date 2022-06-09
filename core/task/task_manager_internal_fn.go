@@ -1781,8 +1781,6 @@ func (m *Manager) handleNeedReplayScheduleTask(task *types.NeedReplayScheduleTas
 }
 func (m *Manager) handleNormalNeedExecuteTask(task *types.NeedExecuteTask, localTask *types.Task) {
 
-	log.Debugf("Start handle needExecuteTask on handleNormalNeedExecuteTask(), taskId: {%s}, role: {%s}, partyId: {%s}",
-		task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
 
 	switch task.GetConsStatus() {
 	case types.TaskConsensusFinished:
@@ -1799,12 +1797,18 @@ func (m *Manager) handleNormalNeedExecuteTask(task *types.NeedExecuteTask, local
 		// the task that are 'consensusFinished' status should be removed from the queue/starvequeue as task sender.
 		if task.GetLocalTaskRole() == commonconstantpb.TaskRole_TaskRole_Sender {
 
+			log.Debugf("Received `consensusFinished` needExecuteTask of `NEED-CONSENSUS` task consensus result from [consensus engine] on handleNormalNeedExecuteTask(), taskId: {%s}, partyId: {%s}",
+				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
+
 			if err := m.scheduler.RemoveTask(task.GetTaskId()); nil != err {
-				log.WithError(err).Errorf("Failed to remove local task from queue/starve queue when received `consensusFinished` needExecuteTask of `NEED-CONSENSUS` task consensus result from [consensus engine], taskId: {%s}, role: {%s}, partyId: {%s}",
+				log.WithError(err).Errorf("Failed to remove local task from queue/starve queue when received `consensusFinished` needExecuteTask of `NEED-CONSENSUS` task consensus result from [consensus engine] on handleNormalNeedExecuteTask(), taskId: {%s}, role: {%s}, partyId: {%s}",
 					task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
 			}
 		}
 	}
+
+	log.Debugf("Start handle needExecuteTask on handleNormalNeedExecuteTask(), taskId: {%s}, role: {%s}, partyId: {%s}",
+		task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
 
 	// Store task exec status
 	if err := m.StoreExecuteTaskStateBeforeExecuteTask("on handleNormalNeedExecuteTask()", task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId()); nil != err {
@@ -1854,19 +1858,20 @@ func (m *Manager) handleAbnormalNeedExecuteTask(task *types.NeedExecuteTask, loc
 		// check if repush task into queue/starvequeue by task sender.
 		if task.GetLocalTaskRole() == commonconstantpb.TaskRole_TaskRole_Sender {
 
-			log.Debugf("Received `consensusInterrupt` needExecuteTask of `NEED-CONSENSUS` task consensus result from [consensus engine], taskId: {%s}, needExecuteTask: {%s}", task.GetTaskId(), task.String())
+			log.Debugf("Received `consensusInterrupt` needExecuteTask of `NEED-CONSENSUS` task consensus result from [consensus engine] on handleAbnormalNeedExecuteTask(), taskId: {%s}, partyId: {%s}, needExecuteTask: {%s}",
+				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), task.String())
 
 			// clean old powerSuppliers and update local task
 			localTask.RemovePowerSuppliers()
 			localTask.RemovePowerResources()
 			// restore task by power
 			if err := m.resourceMng.GetDB().StoreLocalTask(localTask); nil != err {
-				log.WithError(err).Errorf("Failed to update local task whit clean powers after consensus interrupted when received needExecuteTask of `NEED-CONSENSUS` task consensus result from [consensus engine], taskId: {%s}", task.GetTaskId())
+				log.WithError(err).Errorf("Failed to update local task whit clean powers after consensus interrupted when received needExecuteTask of `NEED-CONSENSUS` task consensus result from [consensus engine] on handleAbnormalNeedExecuteTask(), taskId: {%s}", task.GetTaskId())
 			}
 
 			// repush task into queue, if anything else
 			if err := m.scheduler.RepushTask(localTask); err == schedule.ErrRescheduleLargeThreshold {
-				log.WithError(err).Errorf("Failed to repush local task into queue/starve queue when received needExecuteTask of `NEED-CONSENSUS` task consensus result from [consensus engine], taskId: {%s}, consensus status: {%s}",
+				log.WithError(err).Errorf("Failed to repush local task into queue/starve queue when received needExecuteTask of `NEED-CONSENSUS` task consensus result from [consensus engine] on handleAbnormalNeedExecuteTask(), taskId: {%s}, consensus status: {%s}",
 					task.GetTaskId(), task.GetConsStatus().String())
 
 				m.scheduler.RemoveTask(task.GetTaskId())
@@ -1876,13 +1881,8 @@ func (m *Manager) handleAbnormalNeedExecuteTask(task *types.NeedExecuteTask, loc
 				done = true
 
 			} else {
-				log.Debugf("Succeed to repush local task into queue/starve queue when received needExecuteTask of `NEED-CONSENSUS` task consensus result from [consensus engine], taskId: {%s}, consensus status: {%s}",
+				log.Debugf("Succeed to repush local task into queue/starve queue when received needExecuteTask of `NEED-CONSENSUS` task consensus result from [consensus engine] on handleAbnormalNeedExecuteTask(), taskId: {%s}, consensus status: {%s}",
 					task.GetTaskId(), task.GetConsStatus().String())
-
-				// When the repush task is successfully sent to the queue,
-				// we need to clear the task sender's neexexecutetask
-				// so that the task sender can schedule the task later.
-				m.removeNeedExecuteTaskCache(task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
 
 				eventTyp = ev.TaskFailedConsensus.GetType()
 				reason = task.GetErr().Error()
@@ -1897,8 +1897,8 @@ func (m *Manager) handleAbnormalNeedExecuteTask(task *types.NeedExecuteTask, loc
 	case types.TaskScheduleFailed:
 
 		if task.GetLocalTaskRole() == commonconstantpb.TaskRole_TaskRole_Sender {
-			log.Debugf("Received `taskScheduleFailed` needExecuteTask of `NEED-CONSENSUS` task consensus result from [consensus engine], taskId: {%s}, needExecuteTask: {%s}",
-				task.GetTaskId(), task.String())
+			log.Debugf("Received `taskScheduleFailed` needExecuteTask of `NEED-CONSENSUS` task consensus result from [consensus engine] on handleAbnormalNeedExecuteTask(), taskId: {%s}, partyId: {%s}, needExecuteTask: {%s}",
+				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), task.String())
 		}
 
 		eventTyp = ev.TaskFailed.GetType()
@@ -1910,11 +1910,11 @@ func (m *Manager) handleAbnormalNeedExecuteTask(task *types.NeedExecuteTask, loc
 		// the task that are 'terminated' status should be removed from the queue/starvequeue as task sender.
 		if task.GetLocalTaskRole() == commonconstantpb.TaskRole_TaskRole_Sender {
 
-			log.Debugf("Received `taskTerminate` needExecuteTask of `NEED-CONSENSUS` task consensus result from [consensus engine], taskId: {%s}, needExecuteTask: {%s}",
-				task.GetTaskId(), task.String())
+			log.Debugf("Received `taskTerminate` needExecuteTask of `NEED-CONSENSUS` task consensus result from [consensus engine] on handleAbnormalNeedExecuteTask(), taskId: {%s}, partyId: {%s}, needExecuteTask: {%s}",
+				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), task.String())
 
 			if err := m.scheduler.RemoveTask(task.GetTaskId()); nil != err {
-				log.WithError(err).Errorf("Failed to remove local task from queue/starve queue when received needExecuteTask of `NEED-CONSENSUS` task consensus result from [consensus engine],taskId: {%s}, partyId: {%s}, status: {%s}",
+				log.WithError(err).Errorf("Failed to remove local task from queue/starve queue when received needExecuteTask of `NEED-CONSENSUS` task consensus result from [consensus engine] on handleAbnormalNeedExecuteTask(),taskId: {%s}, partyId: {%s}, status: {%s}",
 					task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), task.GetConsStatus().String())
 			}
 		}
@@ -1946,7 +1946,7 @@ func (m *Manager) handleNeedExecuteTask(task *types.NeedExecuteTask) {
 
 	localTask, err := m.resourceMng.GetDB().QueryLocalTask(task.GetTaskId())
 	if nil != err {
-		log.WithError(err).Errorf("Failed to query local task info on taskManager.loop() when received needExecuteTask, taskId: {%s}, partyId: {%s}, status: {%s}",
+		log.WithError(err).Errorf("Failed to query local task info on taskManager.loop() when received needExecuteTask on handleNeedExecuteTask(), taskId: {%s}, partyId: {%s}, status: {%s}",
 			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), task.GetConsStatus().String())
 		//continue
 		return

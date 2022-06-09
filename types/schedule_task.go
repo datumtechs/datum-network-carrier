@@ -37,29 +37,9 @@ const (
 	TaskConsensusFinished  TaskActionStatus = 0x0000
 	TaskConsensusInterrupt TaskActionStatus = 0x0001
 	TaskTerminate          TaskActionStatus = 0x0010 // terminate task while consensus or executing
-	TaskNeedExecute        TaskActionStatus = 0x0100
+	TaskNeedExecute        TaskActionStatus = 0x0100 // temporarily unavailable
 	TaskScheduleFailed     TaskActionStatus = 0x1000 // schedule failed final
 )
-
-type TaskConsResult struct {
-	TaskId string
-	Status TaskActionStatus
-	Err    error
-}
-
-func NewTaskConsResult(taskId string, status TaskActionStatus, err error) *TaskConsResult {
-	return &TaskConsResult{
-		TaskId: taskId,
-		Status: status,
-		Err:    err,
-	}
-}
-func (res *TaskConsResult) GetTaskId() string           { return res.TaskId }
-func (res *TaskConsResult) GetStatus() TaskActionStatus { return res.Status }
-func (res *TaskConsResult) GetErr() error               { return res.Err }
-func (res *TaskConsResult) String() string {
-	return fmt.Sprintf(`{"taskId": %s, "status": %s, "err": %v}`, res.TaskId, res.Status.String(), res.Err)
-}
 
 // ================================================= V2.0 =================================================
 
