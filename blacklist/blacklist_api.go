@@ -54,6 +54,7 @@ func (iBlc *IdentityBackListCache) CheckConsensusResultOfNoVote(proposalId commo
 	iBlc.orgBlacklistLock.RLock()
 	defer iBlc.orgBlacklistLock.RUnlock()
 
+	// identityId -> [TaskOrganization1, TaskOrganization2, ..., TaskOrganizationN]
 	mergeTaskOrgByIdentityId := make(map[string][]*carriertypespb.TaskOrganization, 0)
 	mergeTaskByOrg := func(org *carriertypespb.TaskOrganization) {
 		taskOrgInfo, ok := mergeTaskOrgByIdentityId[org.GetIdentityId()]
