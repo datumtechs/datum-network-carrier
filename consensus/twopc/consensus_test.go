@@ -270,7 +270,7 @@ func TestNewtwopcMsgCacheContainsOrAddMsg(t *testing.T) {
 func TestConsensusasyncCallCh(t *testing.T) {
 
 	twopc := &Twopc{
-		asyncCallCh: make(chan func(), 1),
+		asyncCallCh: make(chan func(), 10),
 	}
 
 	var (

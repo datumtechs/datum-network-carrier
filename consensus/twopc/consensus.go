@@ -252,7 +252,7 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 		return err
 	}
 
-	errCh := make(chan error, 0)
+	errCh := make(chan error, 1)
 
 	t.asyncCallCh <- func() {
 
@@ -471,7 +471,7 @@ func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap, n
 		}
 	}
 
-	errCh := make(chan error, 0)
+	errCh := make(chan error, 1)
 
 	t.asyncCallCh <- func() {
 
@@ -666,7 +666,7 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, nmls
 		}
 	}
 
-	errCh := make(chan error, 0)
+	errCh := make(chan error, 1)
 
 	t.asyncCallCh <- func() {
 
@@ -904,7 +904,7 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, n
 		}
 	}
 
-	errCh := make(chan error, 0)
+	errCh := make(chan error, 1)
 
 	t.asyncCallCh <- func() {
 
@@ -1116,7 +1116,7 @@ func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap, nmls ty
 		}
 	}
 
-	errCh := make(chan error, 0)
+	errCh := make(chan error, 1)
 
 	t.asyncCallCh <- func() {
 
@@ -1262,7 +1262,7 @@ func (t *Twopc) onTerminateTaskConsensus(pid peer.ID, terminateConsensusMsg *typ
 
 	msg := fetchTerminateConsensusMsg(terminateConsensusMsg)
 
-	errCh := make(chan error, 0)
+	errCh := make(chan error, 1)
 
 	t.asyncCallCh <- func() {
 
