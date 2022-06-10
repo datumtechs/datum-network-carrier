@@ -2,8 +2,8 @@ package core
 
 import (
 	"context"
+	rawdb "github.com/datumtechs/datum-network-carrier/carrierdb/rawdb"
 	"github.com/datumtechs/datum-network-carrier/common"
-	"github.com/datumtechs/datum-network-carrier/core/rawdb"
 	"github.com/datumtechs/datum-network-carrier/db"
 	"github.com/datumtechs/datum-network-carrier/event"
 	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
@@ -177,7 +177,7 @@ func (dc *DataChain) StoreTaskEvent(event *carriertypespb.TaskEvent) error {
 
 // TODO 本地存储当前调度服务自身的  identity
 func (dc *DataChain) StoreIdentity(identity *carriertypespb.Organization) error {return nil}
-func (dc *DataChain) DelIdentity() error                                     {return nil}
+func (dc *DataChain) DelIdentity() error                                        {return nil}
 
 func (dc *DataChain) GetYarnName() (string, error) {
 	// todo: implements by datacenter

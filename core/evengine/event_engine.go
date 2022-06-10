@@ -1,8 +1,8 @@
 package evengine
 
 import (
+	"github.com/datumtechs/datum-network-carrier/carrierdb/iface"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
-	"github.com/datumtechs/datum-network-carrier/core/iface"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 )
 

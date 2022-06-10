@@ -1,7 +1,7 @@
-package core
+package carrierdb
 
 import (
-	"github.com/datumtechs/datum-network-carrier/core/iface"
+	"github.com/datumtechs/datum-network-carrier/carrierdb/iface"
 	"github.com/datumtechs/datum-network-carrier/types"
 )
 

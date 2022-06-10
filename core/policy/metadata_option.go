@@ -7,7 +7,7 @@ import (
 	"github.com/datumtechs/datum-network-carrier/types"
 )
 
-func FetchOriginId (dataType commonconstantpb.OrigindataType, metadataOption string) (string, error) {
+func (pe *PolicyEngine) FetchOriginId (dataType commonconstantpb.OrigindataType, metadataOption string) (string, error) {
 
 	switch dataType {
 	case commonconstantpb.OrigindataType_OrigindataType_CSV:
@@ -33,7 +33,7 @@ func FetchOriginId (dataType commonconstantpb.OrigindataType, metadataOption str
 	}
 }
 
-func FetchDataPath (dataType commonconstantpb.OrigindataType, metadataOption string) (string, error) {
+func (pe *PolicyEngine) FetchDataPath (dataType commonconstantpb.OrigindataType, metadataOption string) (string, error) {
 
 	switch dataType {
 	case commonconstantpb.OrigindataType_OrigindataType_CSV:

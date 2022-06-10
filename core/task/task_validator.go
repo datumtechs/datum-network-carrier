@@ -2,17 +2,17 @@ package task
 
 import (
 	"fmt"
-	auth2 "github.com/datumtechs/datum-network-carrier/ach/auth"
+	"github.com/datumtechs/datum-network-carrier/ach/auth"
 	"github.com/datumtechs/datum-network-carrier/core/resource"
 	"github.com/datumtechs/datum-network-carrier/types"
 )
 
 type  TaskValidator struct {
 	resourceMng     *resource.Manager
-	authMng         *auth2.AuthorityManager
+	authMng         *auth.AuthorityManager
 }
 
-func newTaskValidator (resourceMng *resource.Manager, authMng *auth2.AuthorityManager) *TaskValidator {
+func newTaskValidator (resourceMng *resource.Manager, authMng *auth.AuthorityManager) *TaskValidator {
 	return &TaskValidator{
 		resourceMng: resourceMng,
 		authMng: authMng,

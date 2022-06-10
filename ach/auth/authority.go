@@ -3,8 +3,8 @@ package auth
 import (
 	"fmt"
 	metadata2 "github.com/datumtechs/datum-network-carrier/ach/auth/metadata"
+	"github.com/datumtechs/datum-network-carrier/carrierdb"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
-	"github.com/datumtechs/datum-network-carrier/core"
 	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"github.com/datumtechs/datum-network-carrier/rpc/backend"
 	"github.com/datumtechs/datum-network-carrier/types"
@@ -16,7 +16,7 @@ type AuthorityManager struct {
 	quit  chan struct{}
 }
 
-func NewAuthorityManager(dataCenter  core.CarrierDB) *AuthorityManager {
+func NewAuthorityManager(dataCenter carrierdb.CarrierDB) *AuthorityManager {
 	return &AuthorityManager{
 		metadataAuth: metadata2.NewMetadataAuthority(dataCenter),
 		quit:         make(chan struct{}),

@@ -2,10 +2,10 @@ package message
 
 import (
 	"encoding/json"
-	auth2 "github.com/datumtechs/datum-network-carrier/ach/auth"
+	"github.com/datumtechs/datum-network-carrier/ach/auth"
+	"github.com/datumtechs/datum-network-carrier/carrierdb/rawdb"
 	"github.com/datumtechs/datum-network-carrier/common/feed"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
-	"github.com/datumtechs/datum-network-carrier/core/rawdb"
 	"github.com/datumtechs/datum-network-carrier/core/resource"
 	"github.com/datumtechs/datum-network-carrier/core/task"
 	"github.com/datumtechs/datum-network-carrier/event"
@@ -35,7 +35,7 @@ type MessageHandler struct {
 	resourceMng *resource.Manager
 	// Send taskMsg to taskManager
 	taskManager *task.Manager
-	authManager *auth2.AuthorityManager
+	authManager *auth.AuthorityManager
 	// internal resource node set (Fighter node grpc client set)
 	msgChannel chan *feed.Event
 	quit       chan struct{}
@@ -53,7 +53,7 @@ type MessageHandler struct {
 	lockTask         sync.Mutex
 }
 
-func NewHandler(pool *Mempool, resourceMng *resource.Manager, taskManager *task.Manager, authManager *auth2.AuthorityManager) *MessageHandler {
+func NewHandler(pool *Mempool, resourceMng *resource.Manager, taskManager *task.Manager, authManager *auth.AuthorityManager) *MessageHandler {
 	m := &MessageHandler{
 		pool:        pool,
 		resourceMng: resourceMng,

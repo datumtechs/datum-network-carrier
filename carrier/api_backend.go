@@ -5,17 +5,17 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	rawdb "github.com/datumtechs/datum-network-carrier/carrierdb/rawdb"
 	"github.com/datumtechs/datum-network-carrier/common/bytesutil"
 	"github.com/datumtechs/datum-network-carrier/common/rlputil"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
-	"github.com/datumtechs/datum-network-carrier/core/rawdb"
+	"github.com/datumtechs/datum-network-carrier/core/policy"
 	"github.com/datumtechs/datum-network-carrier/grpclient"
 	"github.com/datumtechs/datum-network-carrier/params"
 	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	fighterapicomputepb "github.com/datumtechs/datum-network-carrier/pb/fighter/api/compute"
-	"github.com/datumtechs/datum-network-carrier/policy"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -31,10 +31,15 @@ type CarrierAPIBackend struct {
 func NewCarrierAPIBackend(carrier *Service) *CarrierAPIBackend {
 	return &CarrierAPIBackend{carrier: carrier}
 }
-
+// add by v0.4.0
 func (s *CarrierAPIBackend) GetCarrierChainConfig() *types.CarrierChainConfig {
 	return params.CarrierConfig()
 }
+// add by v0.4.0
+func (s *CarrierAPIBackend) GetPolicyEngine() *policy.PolicyEngine {
+	return s.carrier.policyEngine
+}
+
 
 func (s *CarrierAPIBackend) SendMsg(msg types.Msg) error {
 	return s.carrier.mempool.Add(msg)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/carrier"
+	"github.com/datumtechs/datum-network-carrier/carrierdb"
 	"github.com/datumtechs/datum-network-carrier/common"
 	commondebug "github.com/datumtechs/datum-network-carrier/common/debug"
 	"github.com/datumtechs/datum-network-carrier/common/feed"
@@ -41,7 +42,7 @@ type CarrierNode struct {
 	config    *Config
 	services  *common.ServiceRegistry
 
-	db        core.CarrierDB
+	db        carrierdb.CarrierDB
 	stateFeed *event.Feed
 	lock      sync.RWMutex
 	stop      chan struct{} // Channel to wait for termination notifications.

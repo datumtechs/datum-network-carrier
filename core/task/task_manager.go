@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/ach/auth"
 	"github.com/datumtechs/datum-network-carrier/ach/token"
+	rawdb "github.com/datumtechs/datum-network-carrier/carrierdb/rawdb"
 	"github.com/datumtechs/datum-network-carrier/common"
 	"github.com/datumtechs/datum-network-carrier/common/bytesutil"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
 	"github.com/datumtechs/datum-network-carrier/common/traceutil"
 	"github.com/datumtechs/datum-network-carrier/consensus"
 	ev "github.com/datumtechs/datum-network-carrier/core/evengine"
-	"github.com/datumtechs/datum-network-carrier/core/rawdb"
+	"github.com/datumtechs/datum-network-carrier/core/policy"
 	"github.com/datumtechs/datum-network-carrier/core/resource"
 	"github.com/datumtechs/datum-network-carrier/core/schedule"
 	"github.com/datumtechs/datum-network-carrier/p2p"
@@ -21,7 +22,6 @@ import (
 	carriernetmsgtaskmngpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/taskmng"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
-	"github.com/datumtechs/datum-network-carrier/policy"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -56,7 +56,8 @@ type Manager struct {
 	syncExecuteTaskMonitors  *types.SyncExecuteTaskMonitorQueue
 	runningTaskCacheLock     sync.RWMutex
 	// add by v 0.4.0
-	config *params.TaskManagerConfig
+	config       *params.TaskManagerConfig
+	policyEngine *policy.PolicyEngine
 }
 
 func NewTaskManager(
@@ -71,6 +72,7 @@ func NewTaskManager(
 	needExecuteTaskCh chan *types.NeedExecuteTask,
 	taskConsResultCh chan *types.TaskConsResult,
 	config *params.TaskManagerConfig,
+	policyEngine *policy.PolicyEngine,
 ) *Manager {
 
 	m := &Manager{
@@ -88,6 +90,7 @@ func NewTaskManager(
 		needExecuteTaskCh:        needExecuteTaskCh,
 		taskConsResultCh:         taskConsResultCh,
 		config:                   config,
+		policyEngine:             policyEngine,
 		runningTaskCache:         make(map[string]map[string]*types.NeedExecuteTask, 0), // taskId -> partyId -> needExecuteTask
 		syncExecuteTaskMonitors:  types.NewSyncExecuteTaskMonitorQueue(0),
 		quit:                     make(chan struct{}),
@@ -242,7 +245,7 @@ func (m *Manager) loop() {
 						task.GetTaskSender(),
 						task.GetTaskId(),
 						result.GetStatus(),
-						&types.PrepareVoteResource{},   // zero value
+						&types.PrepareVoteResource{},          // zero value
 						&carriertwopcpb.ConfirmTaskPeerInfo{}, // zero value
 						result.GetErr(),
 					))
@@ -269,7 +272,7 @@ func (m *Manager) loop() {
 							task.GetTaskSender(),
 							task.GetTaskId(),
 							types.TaskScheduleFailed,
-							&types.PrepareVoteResource{},   // zero value
+							&types.PrepareVoteResource{},          // zero value
 							&carriertwopcpb.ConfirmTaskPeerInfo{}, // zero value
 							fmt.Errorf("consensus interrupted: "+result.GetErr().Error()+" and "+schedule.ErrRescheduleLargeThreshold.Error()),
 						))
@@ -502,7 +505,7 @@ func (m *Manager) onTerminateExecuteTask(taskId, partyId string, task *types.Tas
 			task.GetTaskSender(),
 			task.GetTaskId(),
 			types.TaskTerminate,
-			&types.PrepareVoteResource{},   // zero value
+			&types.PrepareVoteResource{},          // zero value
 			&carriertwopcpb.ConfirmTaskPeerInfo{}, // zero value
 			fmt.Errorf("task was terminated"),
 		))
@@ -706,7 +709,7 @@ func (m *Manager) HandleReportResourceUsage(usage *types.TaskResuorceUsage) erro
 func (m *Manager) storeTaskAllPartnerPartyIds(task *types.Task) error {
 
 	// partyId of powerSuppliers
-	partyIds, err := policy.FetchPowerPartyIdsFromPowerPolicy(task.GetTaskData().GetPowerPolicyTypes(), task.GetTaskData().GetPowerPolicyOptions())
+	partyIds, err := m.policyEngine.FetchPowerPartyIdsFromPowerPolicy(task.GetTaskData().GetPowerPolicyTypes(), task.GetTaskData().GetPowerPolicyOptions())
 	if nil != err {
 		log.WithError(err).Errorf("not fetch partyIds from task powerPolicy, taskId: {%s}", task.GetTaskId())
 		return err

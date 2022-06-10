@@ -1,7 +1,7 @@
 package core
 
 import (
-	"github.com/datumtechs/datum-network-carrier/core/rawdb"
+	rawdb "github.com/datumtechs/datum-network-carrier/carrierdb/rawdb"
 	"github.com/datumtechs/datum-network-carrier/types"
 )
 

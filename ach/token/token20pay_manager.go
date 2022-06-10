@@ -5,13 +5,13 @@ import (
 	"crypto/ecdsa"
 	"encoding/hex"
 	"errors"
+	"github.com/datumtechs/datum-network-carrier/carrierdb"
 	"sync"
 	"time"
 
 	"github.com/datumtechs/datum-network-carrier/ach/token/contracts"
 	"github.com/datumtechs/datum-network-carrier/ach/token/kms"
 	"github.com/datumtechs/datum-network-carrier/common/hexutil"
-	"github.com/datumtechs/datum-network-carrier/core"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -45,7 +45,7 @@ type Config struct {
 }
 
 type Token20PayManager struct {
-	dataCenter                 core.CarrierDB
+	dataCenter                 carrierdb.CarrierDB
 	Config                     *Config
 	Kms                        kms.KmsService
 	client                     *ethclient.Client
@@ -119,7 +119,7 @@ func (m *Token20PayManager) loadKeystore() {
 	m.Config.walletAddress = key.Address
 }
 
-func NewToken20PayManager(db core.CarrierDB, config *Config, kmsConfig *kms.Config) *Token20PayManager {
+func NewToken20PayManager(db carrierdb.CarrierDB, config *Config, kmsConfig *kms.Config) *Token20PayManager {
 	log.Info("Init Token20Pay manager ...")
 	m := new(Token20PayManager)
 	m.dataCenter = db

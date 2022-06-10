@@ -7,14 +7,15 @@ import (
 	"github.com/datumtechs/datum-network-carrier/types"
 )
 
-func FetchMetedataIdByPartyIdFromDataPolicy(partyId string, policyTypes []uint32, policyOptions []string) (string, error) {
+
+func (pe *PolicyEngine) FetchMetedataIdByPartyIdFromDataPolicy(partyId string, policyTypes []uint32, policyOptions []string) (string, error) {
 
 	if len(policyTypes) != len(policyOptions) {
 		return "", fmt.Errorf("type and option count is not same, types %d: policys: %d", len(policyTypes), len(policyOptions))
 	}
 
 	for i, policy := range policyOptions {
-		metadataId, err := FetchMetedataIdByPartyIdAndOptionFromDataPolicy(partyId, policyTypes[i], policy)
+		metadataId, err := pe.FetchMetedataIdByPartyIdAndOptionFromDataPolicy(partyId, policyTypes[i], policy)
 		if nil != err && err == types.NotFoundMetadataPolicy {
 			continue
 		}
@@ -27,7 +28,7 @@ func FetchMetedataIdByPartyIdFromDataPolicy(partyId string, policyTypes []uint32
 	return "", types.NotFoundMetadataPolicy
 }
 
-func FetchMetedataIdByPartyIdAndOptionFromDataPolicy(partyId string, policyType uint32, policyOption string) (string, error) {
+func (pe *PolicyEngine) FetchMetedataIdByPartyIdAndOptionFromDataPolicy(partyId string, policyType uint32, policyOption string) (string, error) {
 	switch commonconstantpb.OrigindataType(policyType) {
 	case types.TASK_DATA_POLICY_CSV:
 		var policy *types.TaskMetadataPolicyCSV
@@ -54,12 +55,22 @@ func FetchMetedataIdByPartyIdAndOptionFromDataPolicy(partyId string, policyType 
 			return policy.GetMetadataId(), nil
 		}
 	case types.TASK_DATA_POLICY_CSV_WITH_TASKRESULTDATA:
-		return "", nil
+		var policy *types.TaskMetadataPolicyCSVWithTaskResultData
+		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
+			return "", err
+		}
+		if policy.GetPartyId() == partyId {
+			resultData, err := pe.db.QueryTaskUpResulData(policy.GetTaskId())
+			if nil != err {
+				return "", err
+			}
+			return resultData.GetMetadataId(), nil
+		}
 	}
 	return "", types.NotFoundMetadataPolicy
 }
 
-func FetchAllMetedataIdsFromDataPolicy(policyTypes []uint32, policyOptions []string) ([]string, error) {
+func (pe *PolicyEngine) FetchAllMetedataIdsFromDataPolicy(policyTypes []uint32, policyOptions []string) ([]string, error) {
 
 	if len(policyTypes) != len(policyOptions) {
 		return nil, fmt.Errorf("type and option count is not same, types %d: policys: %d", len(policyTypes), len(policyOptions))
@@ -69,7 +80,7 @@ func FetchAllMetedataIdsFromDataPolicy(policyTypes []uint32, policyOptions []str
 
 	for i, policyOption := range policyOptions {
 
-		metadataId, err := FetchAllMetedataIdByOptionFromDataPolicy(policyTypes[i], policyOption)
+		metadataId, err := pe.FetchAllMetedataIdByOptionFromDataPolicy(policyTypes[i], policyOption)
 		if nil != err {
 			return nil, err
 		}
@@ -79,7 +90,7 @@ func FetchAllMetedataIdsFromDataPolicy(policyTypes []uint32, policyOptions []str
 	return metadataIds, nil
 }
 
-func FetchAllMetedataIdByOptionFromDataPolicy(policyType uint32, policyOption string) (string, error) {
+func (pe *PolicyEngine) FetchAllMetedataIdByOptionFromDataPolicy(policyType uint32, policyOption string) (string, error) {
 	switch commonconstantpb.OrigindataType(policyType) {
 	case types.TASK_DATA_POLICY_CSV:
 		var policy *types.TaskMetadataPolicyCSV
@@ -104,19 +115,27 @@ func FetchAllMetedataIdByOptionFromDataPolicy(policyType uint32, policyOption st
 		return policy.GetMetadataId(), nil
 
 	case types.TASK_DATA_POLICY_CSV_WITH_TASKRESULTDATA:
-		return "", nil
+		var policy *types.TaskMetadataPolicyCSVWithTaskResultData
+		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
+			return "", err
+		}
+		resultData, err := pe.db.QueryTaskUpResulData(policy.GetTaskId())
+		if nil != err {
+			return "", err
+		}
+		return resultData.GetMetadataId(), nil
 	}
 	return "", types.NotFoundMetadataPolicy
 }
 
-func FetchMetedataNameByPartyIdFromDataPolicy(partyId string, policyTypes []uint32, policyOptions []string) (string, error) {
+func (pe *PolicyEngine) FetchMetedataNameByPartyIdFromDataPolicy(partyId string, policyTypes []uint32, policyOptions []string) (string, error) {
 
 	if len(policyTypes) != len(policyOptions) {
 		return "", fmt.Errorf("type and option count is not same, types %d: policys: %d", len(policyTypes), len(policyOptions))
 	}
 
 	for i, policy := range policyOptions {
-		metadataName, err := FetchMetedataNameByPartyIdAndOptionFromDataPolicy(partyId, policyTypes[i], policy)
+		metadataName, err := pe.FetchMetedataNameByPartyIdAndOptionFromDataPolicy(partyId, policyTypes[i], policy)
 		if nil != err && err == types.NotFoundMetadataPolicy {
 			continue
 		}
@@ -129,7 +148,7 @@ func FetchMetedataNameByPartyIdFromDataPolicy(partyId string, policyTypes []uint
 	return "", types.NotFoundMetadataPolicy
 }
 
-func FetchMetedataNameByPartyIdAndOptionFromDataPolicy(partyId string, policyType uint32, policyOption string) (string, error) {
+func (pe *PolicyEngine) FetchMetedataNameByPartyIdAndOptionFromDataPolicy(partyId string, policyType uint32, policyOption string) (string, error) {
 	switch commonconstantpb.OrigindataType(policyType) {
 	case types.TASK_DATA_POLICY_CSV:
 		var policy *types.TaskMetadataPolicyCSV
@@ -156,7 +175,21 @@ func FetchMetedataNameByPartyIdAndOptionFromDataPolicy(partyId string, policyTyp
 			return policy.GetMetadataName(), nil
 		}
 	case types.TASK_DATA_POLICY_CSV_WITH_TASKRESULTDATA:
-		return "", nil
+		var policy *types.TaskMetadataPolicyCSVWithTaskResultData
+		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
+			return "", err
+		}
+		if policy.GetPartyId() == partyId {
+			resultData, err := pe.db.QueryTaskUpResulData(policy.GetTaskId())
+			if nil != err {
+				return "", err
+			}
+			metadata, err := pe.db.QueryInternalMetadataById(resultData.GetMetadataId())
+			if nil != err {
+				return "", err
+			}
+			return metadata.GetData().GetMetadataName(), nil
+		}
 	}
 	return "", types.NotFoundMetadataPolicy
 }
@@ -164,7 +197,7 @@ func FetchMetedataNameByPartyIdAndOptionFromDataPolicy(partyId string, policyTyp
 
 // ==============================================================  power policy ==============================================================
 
-func FetchPowerPartyIdsFromPowerPolicy(policyTypes []uint32, policyOptions []string) ([]string, error) {
+func (pe *PolicyEngine) FetchPowerPartyIdsFromPowerPolicy(policyTypes []uint32, policyOptions []string) ([]string, error) {
 
 	if len(policyTypes) != len(policyOptions) {
 		return nil, fmt.Errorf("type and option count is not same, types %d: policys: %d", len(policyTypes), len(policyOptions))
@@ -174,7 +207,7 @@ func FetchPowerPartyIdsFromPowerPolicy(policyTypes []uint32, policyOptions []str
 
 	for i, policyOption := range policyOptions {
 
-		partyId, err := FetchPowerPartyIdByOptionFromPowerPolicy(policyTypes[i], policyOption)
+		partyId, err := pe.FetchPowerPartyIdByOptionFromPowerPolicy(policyTypes[i], policyOption)
 		if nil != err {
 			return nil, err
 		}
@@ -184,7 +217,7 @@ func FetchPowerPartyIdsFromPowerPolicy(policyTypes []uint32, policyOptions []str
 	return partyIds, nil
 }
 
-func FetchPowerPartyIdByOptionFromPowerPolicy(policyType uint32, policyOption string) (string, error) {
+func (pe *PolicyEngine) FetchPowerPartyIdByOptionFromPowerPolicy(policyType uint32, policyOption string) (string, error) {
 	switch policyType {
 	case types.TASK_POWER_POLICY_ASSIGNMENT_SYMBOL_RANDOM_ELECTION:
 		return policyOption, nil
@@ -201,7 +234,7 @@ func FetchPowerPartyIdByOptionFromPowerPolicy(policyType uint32, policyOption st
 
 
 // ==============================================================  receiver policy ==============================================================
-func FetchReceiverPartyIdsFromReceiverPolicy(policyTypes []uint32, policyOptions []string) ([]string, error) {
+func (pe *PolicyEngine) FetchReceiverPartyIdsFromReceiverPolicy(policyTypes []uint32, policyOptions []string) ([]string, error) {
 
 	if len(policyTypes) != len(policyOptions) {
 		return nil, fmt.Errorf("type and option count is not same, types %d: policys: %d", len(policyTypes), len(policyOptions))
@@ -211,7 +244,7 @@ func FetchReceiverPartyIdsFromReceiverPolicy(policyTypes []uint32, policyOptions
 
 	for i, policyOption := range policyOptions {
 
-		partyId, err := FetchReceiverPartyIdByOptionFromReceiverPolicy(policyTypes[i], policyOption)
+		partyId, err := pe.FetchReceiverPartyIdByOptionFromReceiverPolicy(policyTypes[i], policyOption)
 		if nil != err {
 			return nil, err
 		}
@@ -221,7 +254,7 @@ func FetchReceiverPartyIdsFromReceiverPolicy(policyTypes []uint32, policyOptions
 	return partyIds, nil
 }
 
-func FetchReceiverPartyIdByOptionFromReceiverPolicy(policyType uint32, policyOption string) (string, error) {
+func (pe *PolicyEngine) FetchReceiverPartyIdByOptionFromReceiverPolicy(policyType uint32, policyOption string) (string, error) {
 	switch policyType {
 	case types.TASK_RECEIVER_POLICY_RANDOM_ELECTION:
 		return policyOption, nil

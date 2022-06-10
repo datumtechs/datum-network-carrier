@@ -3,7 +3,7 @@ package core
 import (
 	"context"
 	"fmt"
-	"github.com/datumtechs/datum-network-carrier/core/rawdb"
+	rawdb "github.com/datumtechs/datum-network-carrier/carrierdb/rawdb"
 	"github.com/datumtechs/datum-network-carrier/db"
 	"github.com/datumtechs/datum-network-carrier/grpclient"
 	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
@@ -31,7 +31,7 @@ type DataCenter struct {
 }
 
 // NewDataCenter returns a fully initialised data center using information available in the database.
-func NewDataCenter(ctx context.Context, db db.Database) *DataCenter{
+func NewDataCenter(ctx context.Context, db db.Database) *DataCenter {
 	return &DataCenter{
 		ctx:    ctx,
 		db:     db,

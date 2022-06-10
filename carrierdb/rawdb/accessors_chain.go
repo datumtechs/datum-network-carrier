@@ -5,9 +5,9 @@ package rawdb
 import (
 	"encoding/binary"
 	"github.com/datumtechs/datum-network-carrier/common"
-	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/datumtechs/datum-network-carrier/db"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	"github.com/datumtechs/datum-network-carrier/types"
 )
 
 // ReadDataHash retrieves the hash assigned to a canonical block number

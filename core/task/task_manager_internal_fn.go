@@ -4,13 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	rawdb "github.com/datumtechs/datum-network-carrier/carrierdb/rawdb"
 	carriercommon "github.com/datumtechs/datum-network-carrier/common"
 	"github.com/datumtechs/datum-network-carrier/common/hexutil"
 	"github.com/datumtechs/datum-network-carrier/common/runutil"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
 	"github.com/datumtechs/datum-network-carrier/common/traceutil"
 	ev "github.com/datumtechs/datum-network-carrier/core/evengine"
-	"github.com/datumtechs/datum-network-carrier/core/rawdb"
 	"github.com/datumtechs/datum-network-carrier/core/resource"
 	"github.com/datumtechs/datum-network-carrier/core/schedule"
 	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
@@ -24,7 +24,6 @@ import (
 	carriernetmsgtaskmngpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/taskmng"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	fighterpbtypes "github.com/datumtechs/datum-network-carrier/pb/fighter/types"
-	"github.com/datumtechs/datum-network-carrier/policy"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"strconv"
@@ -154,7 +153,7 @@ func (m *Manager) beginConsumeByMetadataAuth(task *types.NeedExecuteTask, localT
 				userType := localTask.GetTaskData().GetUserType()
 				user := localTask.GetTaskData().GetUser()
 
-				metadataId, err := policy.FetchMetedataIdByPartyIdFromDataPolicy(partyId, localTask.GetTaskData().GetDataPolicyTypes(), localTask.GetTaskData().GetDataPolicyOptions())
+				metadataId, err := m.policyEngine.FetchMetedataIdByPartyIdFromDataPolicy(partyId, localTask.GetTaskData().GetDataPolicyTypes(), localTask.GetTaskData().GetDataPolicyOptions())
 				if nil != err {
 					return fmt.Errorf("not fetch metadataId from task dataPolicy when call beginConsumeByMetadataAuth(), %s, taskId: {%s}, partyId: {%s}",
 						err, localTask.GetTaskId(), partyId)
@@ -222,7 +221,7 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		*/
 
 		// fetch all datatoken contract adresses of metadata of task
-		metadataIds, err := policy.FetchAllMetedataIdsFromDataPolicy(localTask.GetTaskData().GetDataPolicyTypes(), localTask.GetTaskData().GetDataPolicyOptions())
+		metadataIds, err := m.policyEngine.FetchAllMetedataIdsFromDataPolicy(localTask.GetTaskData().GetDataPolicyTypes(), localTask.GetTaskData().GetDataPolicyOptions())
 		if nil != err {
 			return fmt.Errorf("cannot fetch all metadataIds of dataPolicyOption on beginConsumeByDataToken(), %s", err)
 		}
@@ -1953,7 +1952,7 @@ func (m *Manager) storeMetadataUsedTaskId(task *types.Task) error {
 	for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
 		if dataSupplier.GetIdentityId() == identityId {
 
-			metadataId, err := policy.FetchMetedataIdByPartyIdFromDataPolicy(dataSupplier.GetPartyId(), task.GetTaskData().GetDataPolicyTypes(), task.GetTaskData().GetDataPolicyOptions())
+			metadataId, err := m.policyEngine.FetchMetedataIdByPartyIdFromDataPolicy(dataSupplier.GetPartyId(), task.GetTaskData().GetDataPolicyTypes(), task.GetTaskData().GetDataPolicyOptions())
 			if nil != err {
 				return fmt.Errorf("not fetch metadataId from task dataPolicy, %s, partyId: {%s}", err, dataSupplier.GetPartyId())
 			}

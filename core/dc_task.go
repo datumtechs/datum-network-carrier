@@ -3,7 +3,7 @@ package core
 import (
 	"errors"
 	"fmt"
-	"github.com/datumtechs/datum-network-carrier/core/rawdb"
+	rawdb "github.com/datumtechs/datum-network-carrier/carrierdb/rawdb"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	datacenterapipb "github.com/datumtechs/datum-network-carrier/pb/datacenter/api"
 	"github.com/datumtechs/datum-network-carrier/types"

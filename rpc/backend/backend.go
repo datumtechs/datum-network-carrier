@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"github.com/datumtechs/datum-network-carrier/core/policy"
 	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
@@ -11,7 +12,7 @@ import (
 type Backend interface {
 	// add by v 0.4.0
 	GetCarrierChainConfig() *types.CarrierChainConfig
-
+	GetPolicyEngine() *policy.PolicyEngine
 	SendMsg(msg types.Msg) error
 
 	// system (the yarn node self info)
