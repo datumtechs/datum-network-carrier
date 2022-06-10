@@ -337,13 +337,13 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 					task.GetTaskId(), taskRole.String(), partyId, task.GetTaskData().GetUserType(), task.GetTaskData().GetUser(), internalMetadata.GetData().GetMetadataId())
 				return nil, fmt.Errorf("%s when fetch metadataId from task dataPolicy", err)
 			}
-			dataResourceFileUpload, err := sche.resourceMng.GetDB().QueryDataResourceFileUpload(dataOriginId)
+			dataResourceDataUpload, err := sche.resourceMng.GetDB().QueryDataResourceDataUpload(dataOriginId)
 			if nil != err {
-				log.WithError(err).Errorf("Failed query dataResourceFileUpload on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, metadataId: {%s}",
+				log.WithError(err).Errorf("Failed query dataResourceDataUpload on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, metadataId: {%s}",
 					task.GetTaskId(), taskRole.String(), partyId, metadataId)
 				return nil, fmt.Errorf("query dataFileUpload by originId failed, %s", err)
 			}
-			dataNodeId = dataResourceFileUpload.GetNodeId()
+			dataNodeId = dataResourceDataUpload.GetNodeId()
 		} else {
 
 			dataResourceDiskUsed, err := sche.resourceMng.GetDB().QueryDataResourceDiskUsed(metadataId)

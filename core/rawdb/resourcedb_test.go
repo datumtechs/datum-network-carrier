@@ -25,7 +25,7 @@ import (
 
 func TestResourceDataUsed(t *testing.T) {
 	//database := db.NewMemoryDatabase()
-	//dataUsed := types.NewDataResourceFileUpload("node_id", "origin_id_01", "metadata_id", "/a/b/c/d")
+	//dataUsed := types.NewDataResourceDataUpload("node_id", "origin_id_01", "metadata_id", "/a/b/c/d")
 
 	// save
 	//err := StoreDataResourceDataUsed(database, dataUsed)

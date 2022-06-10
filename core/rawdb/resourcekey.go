@@ -24,8 +24,8 @@ var (
 	// prefix + dataNodeId -> DataResourceTable{dataNodeId, totalDisk, usedDisk}
 	dataResourceTableKeyPrefix = []byte("dataResourceTableKeyPrefix:")
 
-	// prefix + originId -> DataResourceFileUpload{originId, dataNodeId, metaDataId, filePath}
-	dataResourceFileUploadKeyPrefix = []byte("dataResourceDataUsedKeyPrefix:")
+	// prefix + originId -> DataResourceDataUpload{originId, dataNodeId, metaDataId, filePath}
+	dataResourceDataUploadKeyPrefix = []byte("dataResourceDataUsedKeyPrefix:")
 
 	// prefix + powerId -> jobNodeId
 	powerIdJobNodeIdMapingKeyPrefix = []byte("powerIdJobNodeIdMapingKeyPrefix:")
@@ -42,8 +42,8 @@ var (
 	// prefix + metadataId + taskId -> index
 	metadataHistoryTaskKeyPrefix = []byte("metadataHistoryTaskKeyPrefix:")
 
-	// prefix + taskId -> resultfile summary (auto build metadataId)
-	taskResultFileMetadataIdKeyPrefix = []byte("taskResultFileMetadataIdKeyPrefix:")
+	// prefix + taskId -> resultData summary (auto build metadataId)
+	taskResultDataMetadataIdKeyPrefix = []byte("taskResultDataMetadataIdKeyPrefix:")
 	// prefix + taskId -> [partyId, ..., partyId]  for task sender
 	taskPartnerPartyIdsKeyPrefix = []byte("taskPartnerPartyIdsKeyPrefix:")
 
@@ -136,14 +136,14 @@ func GetDataResourceTableKey(dataNodeId string) []byte {
 	return append(dataResourceTableKeyPrefix, []byte(dataNodeId)...)
 }
 
-// prefix + originId -> DataResourceFileUpload{originId, dataNodeId, metaDataId, filePath}
-func GetDataResourceFileUploadKeyPrefix() []byte {
-	return dataResourceFileUploadKeyPrefix
+// prefix + originId -> DataResourceDataUpload{originId, dataNodeId, metaDataId, filePath}
+func GetDataResourceDataUploadKeyPrefix() []byte {
+	return dataResourceDataUploadKeyPrefix
 }
 
-// prefix + originId -> DataResourceFileUpload{originId, dataNodeId, metaDataId, filePath}
-func GetDataResourceFileUploadKey(originId string) []byte {
-	return append(dataResourceFileUploadKeyPrefix, []byte(originId)...)
+// prefix + originId -> DataResourceDataUpload{originId, dataNodeId, metaDataId, filePath}
+func GetDataResourceDataUploadKey(originId string) []byte {
+	return append(dataResourceDataUploadKeyPrefix, []byte(originId)...)
 }
 
 // prefix + powerId -> jobNodeId
@@ -198,12 +198,12 @@ func GetMetadataHistoryTaskKey(metadataId, taskId string) []byte {
 	return append(append(metadataHistoryTaskKeyPrefix, []byte(metadataId)...), []byte(taskId)...)
 }
 
-func GetTaskResultFileMetadataIdKey(taskId string) []byte {
-	return append(taskResultFileMetadataIdKeyPrefix, []byte(taskId)...)
+func GetTaskResultDataMetadataIdKey(taskId string) []byte {
+	return append(taskResultDataMetadataIdKeyPrefix, []byte(taskId)...)
 }
 
-func GetTaskResultFileMetadataIdKeyPrefix() []byte {
-	return taskResultFileMetadataIdKeyPrefix
+func GetTaskResultDataMetadataIdKeyPrefix() []byte {
+	return taskResultDataMetadataIdKeyPrefix
 }
 
 func GetTaskPartnerPartyIdsKey(taskId string) []byte {

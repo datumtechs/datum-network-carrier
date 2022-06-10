@@ -675,20 +675,20 @@ func QueryDataResourceTables(db KeyValueStore) ([]*types.DataResourceTable, erro
 }
 
 // The dataNode service information where the operation original file ID is located (originid - > {nodeid / metadataid / filepath})
-func StoreDataResourceFileUpload(db KeyValueStore, dataResourceFileUpload *types.DataResourceFileUpload) error {
+func StoreDataResourceDataUpload(db KeyValueStore, dataResourceDataUpload *types.DataResourceDataUpload) error {
 
-	key := GetDataResourceFileUploadKey(dataResourceFileUpload.GetOriginId())
-	val, err := rlp.EncodeToBytes(dataResourceFileUpload)
+	key := GetDataResourceDataUploadKey(dataResourceDataUpload.GetOriginId())
+	val, err := rlp.EncodeToBytes(dataResourceDataUpload)
 	if nil != err {
 		return err
 	}
 	return db.Put(key, val)
 }
 
-func StoreDataResourceFileUploads(db KeyValueStore, dataResourceDataUseds []*types.DataResourceFileUpload) error {
+func StoreDataResourceDataUploads(db KeyValueStore, dataResourceDataUseds []*types.DataResourceDataUpload) error {
 
 	for _, dataResourceDataUsed := range dataResourceDataUseds {
-		key := GetDataResourceFileUploadKey(dataResourceDataUsed.GetOriginId())
+		key := GetDataResourceDataUploadKey(dataResourceDataUsed.GetOriginId())
 		val, err := rlp.EncodeToBytes(dataResourceDataUsed)
 		if nil != err {
 			return err
@@ -701,9 +701,9 @@ func StoreDataResourceFileUploads(db KeyValueStore, dataResourceDataUseds []*typ
 	return nil
 }
 
-func RemoveDataResourceFileUpload(db KeyValueStore, originId string) error {
+func RemoveDataResourceDataUpload(db KeyValueStore, originId string) error {
 
-	key := GetDataResourceFileUploadKey(originId)
+	key := GetDataResourceDataUploadKey(originId)
 	has, err := db.Has(key)
 	switch {
 	case IsNoDBNotFoundErr(err):
@@ -714,14 +714,14 @@ func RemoveDataResourceFileUpload(db KeyValueStore, originId string) error {
 	return db.Delete(key)
 }
 
-func QueryDataResourceFileUpload(db DatabaseReader, originId string) (*types.DataResourceFileUpload, error) {
-	key := GetDataResourceFileUploadKey(originId)
+func QueryDataResourceDataUpload(db DatabaseReader, originId string) (*types.DataResourceDataUpload, error) {
+	key := GetDataResourceDataUploadKey(originId)
 	vb, err := db.Get(key)
 	if nil != err {
 		return nil, err
 	}
 
-	var dataResourceDataUsed types.DataResourceFileUpload
+	var dataResourceDataUsed types.DataResourceDataUpload
 
 	if err := rlp.DecodeBytes(vb, &dataResourceDataUsed); nil != err {
 		return nil, err
@@ -729,17 +729,17 @@ func QueryDataResourceFileUpload(db DatabaseReader, originId string) (*types.Dat
 	return &dataResourceDataUsed, nil
 }
 
-func QueryDataResourceFileUploads(db KeyValueStore) ([]*types.DataResourceFileUpload, error) {
+func QueryDataResourceDataUploads(db KeyValueStore) ([]*types.DataResourceDataUpload, error) {
 
-	prefix := GetDataResourceFileUploadKeyPrefix()
+	prefix := GetDataResourceDataUploadKeyPrefix()
 	it := db.NewIteratorWithPrefixAndStart(prefix, nil)
 	defer it.Release()
 
-	arr := make([]*types.DataResourceFileUpload, 0)
+	arr := make([]*types.DataResourceDataUpload, 0)
 	for it.Next() {
 		if len(it.Key()) != 0 && len(it.Value()) != 0 {
-			// prefix + originId -> DataResourceFileUpload{originId, dataNodeId, metaDataId, filePath}
-			var dataResourceDataUsed types.DataResourceFileUpload
+			// prefix + originId -> DataResourceDataUpload{originId, dataNodeId, metaDataId, filePath}
+			var dataResourceDataUsed types.DataResourceDataUpload
 			if err := rlp.DecodeBytes(it.Value(), &dataResourceDataUsed); nil != err {
 				return nil, err
 			}
@@ -1144,8 +1144,8 @@ func QueryMetadataHistoryTaskIds(db KeyValueStore, metadataId string) ([]string,
 	return arr, nil
 }
 
-func StoreTaskUpResultFile(db DatabaseWriter, turf *types.TaskUpResultFile) error {
-	key := GetTaskResultFileMetadataIdKey(turf.GetTaskId())
+func StoreTaskUpResultData(db DatabaseWriter, turf *types.TaskUpResultData) error {
+	key := GetTaskResultDataMetadataIdKey(turf.GetTaskId())
 	val, err := rlp.EncodeToBytes(turf)
 	if nil != err {
 		return err
@@ -1153,33 +1153,33 @@ func StoreTaskUpResultFile(db DatabaseWriter, turf *types.TaskUpResultFile) erro
 	return db.Put(key, val)
 }
 
-func QueryTaskUpResultFile(db DatabaseReader, taskId string) (*types.TaskUpResultFile, error) {
-	key := GetTaskResultFileMetadataIdKey(taskId)
+func QueryTaskUpResultData(db DatabaseReader, taskId string) (*types.TaskUpResultData, error) {
+	key := GetTaskResultDataMetadataIdKey(taskId)
 	vb, err := db.Get(key)
 	if nil != err {
 		return nil, err
 	}
-	var taskUpResultFile types.TaskUpResultFile
-	if err = rlp.DecodeBytes(vb, &taskUpResultFile); nil != err {
+	var taskUpResultData types.TaskUpResultData
+	if err = rlp.DecodeBytes(vb, &taskUpResultData); nil != err {
 		return nil, err
 	}
-	return &taskUpResultFile, nil
+	return &taskUpResultData, nil
 }
 
-func QueryTaskUpResultFileList(db DatabaseIteratee) ([]*types.TaskUpResultFile, error) {
+func QueryTaskUpResultDataList(db DatabaseIteratee) ([]*types.TaskUpResultData, error) {
 
-	it := db.NewIteratorWithPrefixAndStart(GetTaskResultFileMetadataIdKeyPrefix(), nil)
+	it := db.NewIteratorWithPrefixAndStart(GetTaskResultDataMetadataIdKeyPrefix(), nil)
 	defer it.Release()
 
-	arr := make([]*types.TaskUpResultFile, 0)
+	arr := make([]*types.TaskUpResultData, 0)
 	for it.Next() {
 		if value := it.Value(); len(value) != 0 {
-			var taskUpResultFile types.TaskUpResultFile
-			if err := rlp.DecodeBytes(value, &taskUpResultFile); nil != err {
-				log.WithError(err).Errorf("Failed to call QueryAllTaskUpResultFile, decode db val failed")
+			var taskUpResultData types.TaskUpResultData
+			if err := rlp.DecodeBytes(value, &taskUpResultData); nil != err {
+				log.WithError(err).Errorf("Failed to call QueryAllTaskUpResultData, decode db val failed")
 				continue
 			}
-			arr = append(arr, &taskUpResultFile)
+			arr = append(arr, &taskUpResultData)
 		}
 	}
 
@@ -1190,8 +1190,8 @@ func QueryTaskUpResultFileList(db DatabaseIteratee) ([]*types.TaskUpResultFile, 
 	return arr, nil
 }
 
-func RemoveTaskUpResultFile(db KeyValueStore, taskId string) error {
-	key := GetTaskResultFileMetadataIdKey(taskId)
+func RemoveTaskUpResultData(db KeyValueStore, taskId string) error {
+	key := GetTaskResultDataMetadataIdKey(taskId)
 	has, err := db.Has(key)
 	switch {
 	case IsNoDBNotFoundErr(err):

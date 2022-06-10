@@ -1174,7 +1174,7 @@ func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types
 		for i, policyType := range localTask.GetTaskData().GetDataPolicyTypes() {
 
 			switch policyType {
-			case uint32(commonconstantpb.OrigindataType_OrigindataType_CSV):
+			case types.TASK_DATA_POLICY_CSV:
 
 				var dataPolicy *types.TaskMetadataPolicyCSV
 				if err := json.Unmarshal([]byte(localTask.GetTaskData().GetDataPolicyOptions()[i]), &dataPolicy); nil != err {
@@ -1189,7 +1189,7 @@ func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types
 					}
 					inputDataArr = append(inputDataArr, inputData)
 				}
-			case uint32(commonconstantpb.OrigindataType_OrigindataType_DIR):
+			case types.TASK_DATA_POLICY_DIR:
 				var dataPolicy *types.TaskMetadataPolicyDIR
 				if err := json.Unmarshal([]byte(localTask.GetTaskData().GetDataPolicyOptions()[i]), &dataPolicy); nil != err {
 					return "", fmt.Errorf("can not unmarshal dataPolicyOption, %s, taskId: {%s}, partyId: {%s}", err, localTask.GetTaskId(), partyId)
@@ -1204,7 +1204,7 @@ func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types
 					inputDataArr = append(inputDataArr, inputData)
 				}
 
-			case uint32(commonconstantpb.OrigindataType_OrigindataType_BINARY):
+			case types.TASK_DATA_POLICY_BINARY:
 				var dataPolicy *types.TaskMetadataPolicyBINARY
 				if err := json.Unmarshal([]byte(localTask.GetTaskData().GetDataPolicyOptions()[i]), &dataPolicy); nil != err {
 					return "", fmt.Errorf("can not unmarshal dataPolicyOption, %s, taskId: {%s}, partyId: {%s}", err, localTask.GetTaskId(), partyId)
@@ -1215,6 +1215,21 @@ func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types
 					if nil != err {
 						return "", fmt.Errorf("can not unmarshal metadataInputBINARY, %s, taskId: {%s}, partyId: {%s}, metadataId: {%s}, metadataName: {%s}",
 							err, localTask.GetTaskId(), partyId, dataPolicy.GetMetadataId(), dataPolicy.GetMetadataName())
+					}
+					inputDataArr = append(inputDataArr, inputData)
+				}
+
+			case types.TASK_DATA_POLICY_CSV_WITH_TASKRESULTDATA:
+				var dataPolicy *types.TaskMetadataPolicyCSVWithTaskResultData
+				if err := json.Unmarshal([]byte(localTask.GetTaskData().GetDataPolicyOptions()[i]), &dataPolicy); nil != err {
+					return "", fmt.Errorf("can not unmarshal dataPolicyOption, %s, taskId: {%s}, partyId: {%s}", err, localTask.GetTaskId(), partyId)
+				}
+
+				if dataPolicy.GetPartyId() == partyId {
+					inputData, err := m.metadataInputCSVWithTaskResultData(task, localTask, dataPolicy)
+					if nil != err {
+						return "", fmt.Errorf("can not unmarshal metadataInputCSVWithTaskResultData, %s, taskId: {%s}, partyId: {%s}, taskId of taskResultData: {%s}",
+							err, localTask.GetTaskId(), partyId, dataPolicy.GetTaskId())
 					}
 					inputDataArr = append(inputDataArr, inputData)
 				}
@@ -1408,6 +1423,62 @@ func (m *Manager) metadataInputBINARY(task *types.NeedExecuteTask, localTask *ty
 		DataPath:   dataPath,
 	}, nil
 }
+func (m *Manager) metadataInputCSVWithTaskResultData(task *types.NeedExecuteTask, localTask *types.Task, dataPolicy *types.TaskMetadataPolicyCSVWithTaskResultData) (*types.InputDataCSV, error) {
+
+
+
+	summarry, err := m.resourceMng.GetDB().QueryTaskUpResulData(dataPolicy.GetTaskId())
+	if nil != err {
+		return nil, fmt.Errorf("cannot query taskUpResultData, %s", err)
+	}
+
+	metadata, err := m.resourceMng.GetDB().QueryInternalMetadataById(summarry.GetMetadataId())
+	if nil != err {
+		return nil, fmt.Errorf("cannot query internalMetadata, %s", err)
+	}
+
+	if types.IsNotCSVdata(metadata.GetData().GetDataType()) {
+		return nil, fmt.Errorf("dataType of metadata is not `CSV`, dataType: %s", metadata.GetData().GetDataType().String())
+	}
+
+	var metadataOption *types.MetadataOptionCSV
+	if err := json.Unmarshal([]byte(metadata.GetData().GetMetadataOption()), &metadataOption); nil != err {
+		return nil, fmt.Errorf("can not unmarshal `CSV` metadataOption, %s", err)
+	}
+
+	// collection all the column name cache
+	columnNameCache := make(map[string]struct{}, 0)
+	for _, mdop := range metadataOption.GetMetadataColumns() {
+		columnNameCache[mdop.GetName()] = struct{}{}
+	}
+	// find key column name
+	if _, ok := columnNameCache[dataPolicy.QueryKeyColumnName()]; !ok {
+		return nil, fmt.Errorf("not found the keyColumn of task dataPolicy on `CSV` metadataOption, columnName: {%s}", dataPolicy.QueryKeyColumnName())
+	}
+
+	// find all select column names
+	for _, selectedColumnName := range dataPolicy.QuerySelectedColumnNames() {
+
+		if _, ok := columnNameCache[selectedColumnName]; !ok {
+			return nil, fmt.Errorf("not found the selectColumn of task dataPolicy on `CSV` metadataOption, columnName: {%s}", selectedColumnName)
+		}
+	}
+
+	dataPath := metadataOption.GetDataPath()
+	if strings.Trim(dataPath, "") == "" {
+		return nil, fmt.Errorf("dataPath is empty")
+	}
+
+	return &types.InputDataCSV{
+		InputType:       dataPolicy.QueryInputType(),
+		AccessType:      uint32(metadata.GetData().GetLocationType()),
+		DataType:        uint32(metadata.GetData().GetDataType()),
+		DataPath:        dataPath,
+		KeyColumn:       dataPolicy.QueryKeyColumnName(),
+		SelectedColumns: dataPolicy.QuerySelectedColumnNames(),
+	}, nil
+}
+
 
 func (m *Manager) makeConnectPolicy(task *types.NeedExecuteTask, localTask *types.Task) (commonconstantpb.ConnectPolicyFormat, string, error) {
 

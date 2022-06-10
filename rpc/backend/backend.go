@@ -82,17 +82,17 @@ type Backend interface {
 	QueryDataResourceTable(nodeId string) (*types.DataResourceTable, error)
 	QueryDataResourceTables() ([]*types.DataResourceTable, error)
 
-	// about DataResourceFileUpload
-	StoreDataResourceFileUpload(dataResourceDataUsed *types.DataResourceFileUpload) error
-	StoreDataResourceFileUploads(dataResourceDataUseds []*types.DataResourceFileUpload) error
-	RemoveDataResourceFileUpload(originId string) error
-	QueryDataResourceFileUpload(originId string) (*types.DataResourceFileUpload, error)
-	QueryDataResourceFileUploads() ([]*types.DataResourceFileUpload, error)
+	// about DataResourceDataUpload
+	StoreDataResourceDataUpload(dataResourceDataUsed *types.DataResourceDataUpload) error
+	StoreDataResourceDataUploads(dataResourceDataUseds []*types.DataResourceDataUpload) error
+	RemoveDataResourceDataUpload(originId string) error
+	QueryDataResourceDataUpload(originId string) (*types.DataResourceDataUpload, error)
+	QueryDataResourceDataUploads() ([]*types.DataResourceDataUpload, error)
 
-	// about task result file
-	StoreTaskResultFileSummary(taskId, originId, dataHash, metadataOption, dataNodeId, extra string, dataType commonconstantpb.OrigindataType) error
-	QueryTaskResultFileSummary(taskId string) (*types.TaskResultFileSummary, error)
-	QueryTaskResultFileSummaryList() (types.TaskResultFileSummaryArr, error)
+	// about task result data
+	StoreTaskResultDataSummary(taskId, originId, dataHash, metadataOption, dataNodeId, extra string, dataType commonconstantpb.OrigindataType) error
+	QueryTaskResultDataSummary(taskId string) (*types.TaskResultDataSummary, error)
+	QueryTaskResultDataSummaryList() (types.TaskResultDataSummaryArr, error)
 
 	// v 0.4.0
 	EstimateTaskGas(taskSponsorAddress string, dataTokenTransferList []string) (gasLimit uint64, gasPrice *big.Int, err error)

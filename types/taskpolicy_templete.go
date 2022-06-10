@@ -13,8 +13,56 @@ var (
 
 const (
 	// ==================================================================== metadata policy option ====================================================================\
+	TASK_DATA_POLICY_UNKNOWN = 0
+
+	TASK_DATA_POLICY_CSV = 1 // csv
+	/**
+	"{
+		"partyId": "p0",
+		"metadataId": "metadata:0xf7396b9a6be9c20...c54880c2d",
+		"metadataName": "aaa",
+		"inputType": 1, // 输入数据的类型，0:unknown, 1:origin_data, 2:psi_output, 3:model
+		"keyColumn": 1,
+		"selectedColumns": [1, 2, 3]
+	}"
+	*/
+	TASK_DATA_POLICY_DIR = 2 // dir
+	/**
+	"{
+		"partyId": "p0",
+		"metadataId": "metadata:0xf7396b9a6be9c20...c54880c2d",
+		"metadataName": "aaa",
+		"inputType": 3 // 输入数据的类型，0:unknown, 1:origin_data, 2:psi_output, 3:model
+	}"
+	*/
+	TASK_DATA_POLICY_BINARY = 3 // binary
+	/**
+	"{
+		"partyId": "p0",
+		"metadataId": "metadata:0xf7396b9a6be9c20...c54880c2d",
+		"metadataName": "aaa",
+		"inputType": 1 // 输入数据的类型，0:unknown, 1:origin_data, 2:psi_output, 3:model
+	}"
+	*/
+	TASK_DATA_POLICY_XLS  = 4 // xls
+	TASK_DATA_POLICY_XLSX = 5 // xlsx
+	TASK_DATA_POLICY_TXT  = 6 // txt
+	TASK_DATA_POLICY_JSON = 7 // json
+
+	TASK_DATA_POLICY_CSV_WITH_TASKRESULTDATA = 30001 // csv for task result data
+	/**
+	"{
+		"partyId": "p0",
+		"taskId": "task:0x43b3d8c65b877adfd05a77dc6b3bb1ad27e4727edbccb3cc76ffd51f78794479",
+		"inputType": 1, // 输入数据的类型，0:unknown, 1:origin_data, 2:psi_output, 3:model
+		"keyColumnName": "id",
+		"selectedColumnNames": ["name", "age", "point"]
+	}"
+	*/
 
 	// ==================================================================== power policy option ====================================================================
+
+	TASK_POWER_POLICY_UNKNOWN = 0
 
 	TASK_POWER_POLICY_ASSIGNMENT_SYMBOL_RANDOM_ELECTION = 1
 	/**
@@ -30,10 +78,12 @@ const (
 	*/
 
 	// ==================================================================== receiver policy option ====================================================================
+	TASK_RECEIVER_POLICY_RANDOM_UNKNOWN = 0
+
 	TASK_RECEIVER_POLICY_RANDOM_ELECTION = 1
 	/**
 	"q0"
-	 */
+	*/
 
 	TASK_RECEIVER_POLICY_DATANODE_PROVIDE = 2
 	/**
@@ -44,10 +94,12 @@ const (
 	*/
 
 	// ==================================================================== dataFlow policy option ====================================================================
+	TASK_DATAFLOW_POLICY_GENERAL_FULL_UNKNOWN = 0
+
 	TASK_DATAFLOW_POLICY_GENERAL_FULL_CONNECT = 1
 	/**
 	{}
-	 */
+	*/
 
 	TASK_DATAFLOW_POLICY_GENERAL_DIRECTIONAL_CONNECT = 2
 	/**
@@ -57,13 +109,13 @@ const (
 		"y0": ["q0", "q1"],
 		"y1": ["q0", "q1"]
 	}"
-	 */
+	*/
 )
 
 // ==================================================================== metadata policy option ====================================================================
 
 /**
-OrigindataType_Unknown
+TASK_DATA_POLICY_UNKNOWN
 value: 0
 example:
 
@@ -97,7 +149,7 @@ func (p *TaskMetadataPolicyUnknown) QueryInputType() uint32 {
 }
 
 /**
-OrigindataType_CSV
+TASK_DATA_POLICY_CSV
 value: 1
 example:
 
@@ -141,7 +193,7 @@ func (p *TaskMetadataPolicyCSV) QuerySelectedColumns() []uint32 {
 }
 
 /**
-OrigindataType_DIR
+TASK_DATA_POLICY_DIR
 value: 2
 example:
 
@@ -175,7 +227,7 @@ func (p *TaskMetadataPolicyDIR) QueryInputType() uint32 {
 }
 
 /**
-OrigindataType_BINARY
+TASK_DATA_POLICY_BINARY
 value: 3
 example:
 
@@ -208,6 +260,45 @@ func (p *TaskMetadataPolicyBINARY) QueryInputType() uint32 {
 	return p.InputType
 }
 
+/**
+TASK_DATA_POLICY_CSV_WITH_TASKRESULTDATA
+value: 1
+example:
+
+			{
+				"partyId": "p0",
+				"taskId": "task:0x43b3d8c65b877adfd05a77dc6b3bb1ad27e4727edbccb3cc76ffd51f78794479",
+				"inputType": 1, // 输入数据的类型，0:unknown, 1:origin_data, 2:psi_output, 3:model
+				"keyColumnName": "id",
+				"selectedColumnNames": ["name", "age", "point"]
+			}
+
+
+*/
+type TaskMetadataPolicyCSVWithTaskResultData struct {
+	PartyId             string   `json:"partyId"`
+	TaskId              string   `json:"taskId"`
+	InputType           uint32   `json:"inputType"`
+	KeyColumnName       string   `json:"keyColumnName"`
+	SelectedColumnNames []string `json:"selectedColumnNames"`
+}
+
+func (p *TaskMetadataPolicyCSVWithTaskResultData) GetPartyId() string {
+	return p.PartyId
+}
+func (p *TaskMetadataPolicyCSVWithTaskResultData) GetTaskId() string {
+	return p.TaskId
+}
+func (p *TaskMetadataPolicyCSVWithTaskResultData) QueryInputType() uint32 {
+	return p.InputType
+}
+func (p *TaskMetadataPolicyCSVWithTaskResultData) QueryKeyColumnName() string {
+	return p.KeyColumnName
+}
+func (p *TaskMetadataPolicyCSVWithTaskResultData) QuerySelectedColumnNames() []string {
+	return p.SelectedColumnNames
+}
+
 // ==================================================================== power policy option ====================================================================
 
 /**
@@ -222,7 +313,7 @@ type TaskPowerPolicyDataNodeProvide struct {
 }
 
 func (p *TaskPowerPolicyDataNodeProvide) GetProviderPartyId() string { return p.ProviderPartyId }
-func (p *TaskPowerPolicyDataNodeProvide) GetPowerPartyId() string { return p.PowerPartyId }
+func (p *TaskPowerPolicyDataNodeProvide) GetPowerPartyId() string    { return p.PowerPartyId }
 
 // ==================================================================== receiver policy option ====================================================================
 

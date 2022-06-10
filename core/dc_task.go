@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/core/rawdb"
-	datacenterapipb "github.com/datumtechs/datum-network-carrier/pb/datacenter/api"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	datacenterapipb "github.com/datumtechs/datum-network-carrier/pb/datacenter/api"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"strings"
 )
@@ -389,29 +389,29 @@ func (dc *DataCenter) QueryJobNodeHistoryTaskCount(jobNodeId string) (uint32, er
 	return rawdb.QueryJobNodeHistoryTaskCount(dc.db, jobNodeId)
 }
 
-// about TaskResultFileMetadataId
-func (dc *DataCenter) StoreTaskUpResultFile(turf *types.TaskUpResultFile) error {
+// about TaskResultDataMetadataId
+func (dc *DataCenter) StoreTaskUpResultData(turf *types.TaskUpResultData) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	return rawdb.StoreTaskUpResultFile(dc.db, turf)
+	return rawdb.StoreTaskUpResultData(dc.db, turf)
 }
 
-func (dc *DataCenter) QueryTaskUpResultFile(taskId string) (*types.TaskUpResultFile, error) {
+func (dc *DataCenter) QueryTaskUpResulData(taskId string) (*types.TaskUpResultData, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.QueryTaskUpResultFile(dc.db, taskId)
+	return rawdb.QueryTaskUpResultData(dc.db, taskId)
 }
 
-func (dc *DataCenter) QueryTaskUpResultFileList() ([]*types.TaskUpResultFile, error) {
+func (dc *DataCenter) QueryTaskUpResultDataList() ([]*types.TaskUpResultData, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.QueryTaskUpResultFileList(dc.db)
+	return rawdb.QueryTaskUpResultDataList(dc.db)
 }
 
-func (dc *DataCenter) RemoveTaskUpResultFile(taskId string) error {
+func (dc *DataCenter) RemoveTaskUpResultData(taskId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	return rawdb.RemoveTaskUpResultFile(dc.db, taskId)
+	return rawdb.RemoveTaskUpResultData(dc.db, taskId)
 }
 
 func (dc *DataCenter) StoreTaskPartnerPartyIds(taskId string, partyIds []string) error {

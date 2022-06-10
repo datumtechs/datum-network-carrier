@@ -35,12 +35,12 @@ type LocalStoreCarrierDB interface {
 	RemoveDataResourceTable(nodeId string) error
 	QueryDataResourceTable(nodeId string) (*types.DataResourceTable, error)
 	QueryDataResourceTables() ([]*types.DataResourceTable, error)
-	// about DataResourceFileUpload (originId -> {originId, dataNodeId, metaDataId, filePath})
-	StoreDataResourceFileUpload(dataResourceFileUpload *types.DataResourceFileUpload) error
-	StoreDataResourceFileUploads(dataResourceFileUploads []*types.DataResourceFileUpload) error
-	RemoveDataResourceFileUpload(originId string) error
-	QueryDataResourceFileUpload(originId string) (*types.DataResourceFileUpload, error)
-	QueryDataResourceFileUploads() ([]*types.DataResourceFileUpload, error)
+	// about DataResourceDataUpload (originId -> {originId, dataNodeId, metaDataId, filePath})
+	StoreDataResourceDataUpload(dataResourceDataUpload *types.DataResourceDataUpload) error
+	StoreDataResourceDataUploads(dataResourceDataUploads []*types.DataResourceDataUpload) error
+	RemoveDataResourceDataUpload(originId string) error
+	QueryDataResourceDataUpload(originId string) (*types.DataResourceDataUpload, error)
+	QueryDataResourceDataUploads() ([]*types.DataResourceDataUpload, error)
 	// about DataResourceDiskUsed (metaDataId -> {metaDataId, dataNodeId, diskUsed})
 	StoreDataResourceDiskUsed(dataResourceDiskUsed *types.DataResourceDiskUsed) error
 	RemoveDataResourceDiskUsed(metaDataId string) error
@@ -177,11 +177,11 @@ type TaskCarrierDB interface {
 	StoreJobNodeHistoryTaskId(jobNodeId, taskId string) error
 	HasJobNodeHistoryTaskId(jobNodeId, taskId string) (bool, error)
 	QueryJobNodeHistoryTaskCount(jobNodeId string) (uint32, error)
-	// v 2.0  about TaskResultFileMetadataId  (taskId -> {taskId, originId, metadataId})
-	StoreTaskUpResultFile(turf *types.TaskUpResultFile) error
-	QueryTaskUpResultFile(taskId string) (*types.TaskUpResultFile, error)
-	QueryTaskUpResultFileList() ([]*types.TaskUpResultFile, error)
-	RemoveTaskUpResultFile(taskId string) error
+	// v 2.0  about TaskResultData  (taskId -> {taskId, originId, metadataId})
+	StoreTaskUpResultData(turf *types.TaskUpResultData) error
+	QueryTaskUpResulData(taskId string) (*types.TaskUpResultData, error)
+	QueryTaskUpResultDataList() ([]*types.TaskUpResultData, error)
+	RemoveTaskUpResultData(taskId string) error
 	// v 2.0 about task partyIds of all partners (prefix + taskId -> [partyId, ..., partyId]  for task sender)
 	StoreTaskPartnerPartyIds(taskId string, partyIds []string) error
 	HasTaskPartnerPartyIds(taskId string) (bool, error)

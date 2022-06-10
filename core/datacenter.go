@@ -195,35 +195,35 @@ func (dc *DataCenter) QueryDataResourceTables() ([]*types.DataResourceTable, err
 	return rawdb.QueryDataResourceTables(dc.db)
 }
 
-// about DataResourceFileUpload
-func (dc *DataCenter) StoreDataResourceFileUpload(dataResourceDataUsed *types.DataResourceFileUpload) error {
+// about DataResourceDataUpload
+func (dc *DataCenter) StoreDataResourceDataUpload(dataResourceDataUsed *types.DataResourceDataUpload) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	return rawdb.StoreDataResourceFileUpload(dc.db, dataResourceDataUsed)
+	return rawdb.StoreDataResourceDataUpload(dc.db, dataResourceDataUsed)
 }
 
-func (dc *DataCenter) StoreDataResourceFileUploads(dataResourceDataUseds []*types.DataResourceFileUpload) error {
+func (dc *DataCenter) StoreDataResourceDataUploads(dataResourceDataUseds []*types.DataResourceDataUpload) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	return rawdb.StoreDataResourceFileUploads(dc.db, dataResourceDataUseds)
+	return rawdb.StoreDataResourceDataUploads(dc.db, dataResourceDataUseds)
 }
 
-func (dc *DataCenter) RemoveDataResourceFileUpload(originId string) error {
+func (dc *DataCenter) RemoveDataResourceDataUpload(originId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	return rawdb.RemoveDataResourceFileUpload(dc.db, originId)
+	return rawdb.RemoveDataResourceDataUpload(dc.db, originId)
 }
 
-func (dc *DataCenter) QueryDataResourceFileUpload(originId string) (*types.DataResourceFileUpload, error) {
+func (dc *DataCenter) QueryDataResourceDataUpload(originId string) (*types.DataResourceDataUpload, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.QueryDataResourceFileUpload(dc.db, originId)
+	return rawdb.QueryDataResourceDataUpload(dc.db, originId)
 }
 
-func (dc *DataCenter) QueryDataResourceFileUploads() ([]*types.DataResourceFileUpload, error) {
+func (dc *DataCenter) QueryDataResourceDataUploads() ([]*types.DataResourceDataUpload, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.QueryDataResourceFileUploads(dc.db)
+	return rawdb.QueryDataResourceDataUploads(dc.db)
 }
 
 // about DataResourceDiskUsed

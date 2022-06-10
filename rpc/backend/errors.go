@@ -75,13 +75,13 @@ var (
 	ErrDeleteJobNode                  = &RpcBizErr{Code: 14022, Msg: "Delete job node failed"}
 	ErrQueryJobNodeList               = &RpcBizErr{Code: 14023, Msg: "Query job nodes failed"}
 	ErrReportTaskEvent                = &RpcBizErr{Code: 14031, Msg: "Report taskEvent failed"}
-	ErrReportUpFileSummary            = &RpcBizErr{Code: 14032, Msg: "Report upFileSummary failed"}
-	ErrQueryTaskResultFileSummary     = &RpcBizErr{Code: 14033, Msg: "Query taskResultFileSummary failed"}
+	ErrReportUpDataSummary            = &RpcBizErr{Code: 14032, Msg: "Report upDataSummary failed"}
+	ErrQueryTaskResultDataSummary     = &RpcBizErr{Code: 14033, Msg: "Query taskResultDataSummary failed"}
 	ErrQueryNodeInfo                  = &RpcBizErr{Code: 14034, Msg: "Query yarn node information failed"}
-	ErrReportTaskResultFileSummary    = &RpcBizErr{Code: 14035, Msg: "Report task result file summary failed"}
+	ErrReportTaskResultDataSummary    = &RpcBizErr{Code: 14035, Msg: "Report taskResultDataSummary failed"}
 	ErrQueryAvailableDataNode         = &RpcBizErr{Code: 14036, Msg: "Query availableDataNode failed"}
 	ErrQueryFilePosition              = &RpcBizErr{Code: 14037, Msg: "Query filePosition failed"}
-	ErrQueryTaskResultFileSummaryList = &RpcBizErr{Code: 14038, Msg: "Query taskResultFileSummary list failed"}
+	ErrQueryTaskResultDataSummaryList = &RpcBizErr{Code: 14038, Msg: "Query taskResultDataSummary list failed"}
 	ErrReportTaskResourceExpense      = &RpcBizErr{Code: 14039, Msg: "Report taskResourceExpense failed"}
 	ErrGenerateObserverProxyWallet    = &RpcBizErr{Code: 14040, Msg: "Generate observer proxy wallet failed"}
 )

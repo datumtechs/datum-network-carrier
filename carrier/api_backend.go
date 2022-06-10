@@ -1361,28 +1361,28 @@ func (s *CarrierAPIBackend) QueryDataResourceTables() ([]*types.DataResourceTabl
 	return s.carrier.carrierDB.QueryDataResourceTables()
 }
 
-// about DataResourceFileUpload
-func (s *CarrierAPIBackend) StoreDataResourceFileUpload(dataResourceDataUsed *types.DataResourceFileUpload) error {
-	return s.carrier.carrierDB.StoreDataResourceFileUpload(dataResourceDataUsed)
+// about DataResourceDataUpload
+func (s *CarrierAPIBackend) StoreDataResourceDataUpload(dataResourceDataUsed *types.DataResourceDataUpload) error {
+	return s.carrier.carrierDB.StoreDataResourceDataUpload(dataResourceDataUsed)
 }
 
-func (s *CarrierAPIBackend) StoreDataResourceFileUploads(dataResourceDataUseds []*types.DataResourceFileUpload) error {
-	return s.carrier.carrierDB.StoreDataResourceFileUploads(dataResourceDataUseds)
+func (s *CarrierAPIBackend) StoreDataResourceDataUploads(dataResourceDataUseds []*types.DataResourceDataUpload) error {
+	return s.carrier.carrierDB.StoreDataResourceDataUploads(dataResourceDataUseds)
 }
 
-func (s *CarrierAPIBackend) RemoveDataResourceFileUpload(originId string) error {
-	return s.carrier.carrierDB.RemoveDataResourceFileUpload(originId)
+func (s *CarrierAPIBackend) RemoveDataResourceDataUpload(originId string) error {
+	return s.carrier.carrierDB.RemoveDataResourceDataUpload(originId)
 }
 
-func (s *CarrierAPIBackend) QueryDataResourceFileUpload(originId string) (*types.DataResourceFileUpload, error) {
-	return s.carrier.carrierDB.QueryDataResourceFileUpload(originId)
+func (s *CarrierAPIBackend) QueryDataResourceDataUpload(originId string) (*types.DataResourceDataUpload, error) {
+	return s.carrier.carrierDB.QueryDataResourceDataUpload(originId)
 }
 
-func (s *CarrierAPIBackend) QueryDataResourceFileUploads() ([]*types.DataResourceFileUpload, error) {
-	return s.carrier.carrierDB.QueryDataResourceFileUploads()
+func (s *CarrierAPIBackend) QueryDataResourceDataUploads() ([]*types.DataResourceDataUpload, error) {
+	return s.carrier.carrierDB.QueryDataResourceDataUploads()
 }
 
-func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, dataHash, metadataOption, dataNodeId, extra string, dataType commonconstantpb.OrigindataType) error {
+func (s *CarrierAPIBackend) StoreTaskResultDataSummary(taskId, originId, dataHash, metadataOption, dataNodeId, extra string, dataType commonconstantpb.OrigindataType) error {
 	// generate metadataId
 	var buf bytes.Buffer
 	buf.Write([]byte(originId))
@@ -1393,7 +1393,7 @@ func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, dataHas
 
 	identity, err := s.carrier.carrierDB.QueryIdentity()
 	if nil != err {
-		log.WithError(err).Errorf("Failed query local identity on CarrierAPIBackend.StoreTaskResultFileSummary(), taskId: {%s}, dataNodeId: {%s}, originId: {%s}, metadataId: {%s}, dataType: {%s}, metadataOption: %s",
+		log.WithError(err).Errorf("Failed query local identity on CarrierAPIBackend.StoreTaskResultDataSummary(), taskId: {%s}, dataNodeId: {%s}, originId: {%s}, metadataId: {%s}, dataType: {%s}, metadataOption: %s",
 			taskId, dataNodeId, originId, metadataId, dataType.String(), metadataOption)
 		return err
 	}
@@ -1443,94 +1443,94 @@ func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, dataHas
 
 	// todo whether need to store a dataResourceDiskUsed (metadataId. dataNodeId, diskUsed) ??? 后面需要上传 磁盘使用空间在弄吧
 
-	// store dataResourceFileUpload (about task result file)
-	err = s.carrier.carrierDB.StoreDataResourceFileUpload(types.NewDataResourceFileUpload(uint32(metadata.GetData().GetDataType()), dataNodeId, originId, metadataId, metadataOption, dataHash))
+	// store dataResourceDataUpload (about task result file)
+	err = s.carrier.carrierDB.StoreDataResourceDataUpload(types.NewDataResourceDataUpload(uint32(metadata.GetData().GetDataType()), dataNodeId, originId, metadataId, metadataOption, dataHash))
 	if nil != err {
-		log.WithError(err).Errorf("Failed store dataResourceFileUpload about task result file on CarrierAPIBackend.StoreTaskResultFileSummary(), taskId: {%s}, dataNodeId: {%s}, originId: {%s}, metadataId: {%s}, dataType: {%s}, metadataOption: %s",
+		log.WithError(err).Errorf("Failed store dataResourceDataUpload about task result file on CarrierAPIBackend.StoreTaskResultDataSummary(), taskId: {%s}, dataNodeId: {%s}, originId: {%s}, metadataId: {%s}, dataType: {%s}, metadataOption: %s",
 			taskId, dataNodeId, originId, metadataId, metadata.GetData().GetDataType(), metadataOption)
 		return err
 	}
 	// 记录原始数据占用资源大小   StoreDataResourceTable  todo 后续考虑是否加上, 目前不加 因为对于系统生成的元数据暂时不需要记录 disk 使用实况 ??
 	// 单独记录 metaData 的 GetSize 和所在 dataNodeId   StoreDataResourceDiskUsed  todo 后续考虑是否加上, 目前不加 因为对于系统生成的元数据暂时不需要记录 disk 使用实况 ??
 
-	// store taskId -> TaskUpResultFile (about task result file)
-	err = s.carrier.carrierDB.StoreTaskUpResultFile(types.NewTaskUpResultFile(taskId, originId, metadataId, extra))
+	// store taskId -> TaskUpResultData (about task result file)
+	err = s.carrier.carrierDB.StoreTaskUpResultData(types.NewTaskUpResultData(taskId, originId, metadataId, extra))
 	if nil != err {
-		log.WithError(err).Errorf("Failed store taskUpResultFile on CarrierAPIBackend.StoreTaskResultFileSummary(), taskId: {%s}, dataNodeId: {%s}, originId: {%s}, metadataId: {%s}, dataType: {%s}, metadataOption: %s",
+		log.WithError(err).Errorf("Failed store taskUpResultData on CarrierAPIBackend.StoreTaskResultDataSummary(), taskId: {%s}, dataNodeId: {%s}, originId: {%s}, metadataId: {%s}, dataType: {%s}, metadataOption: %s",
 			taskId, dataNodeId, originId, metadataId, metadata.GetData().GetDataType(), metadataOption)
 		return err
 	}
 	return nil
 }
 
-func (s *CarrierAPIBackend) QueryTaskResultFileSummary(taskId string) (*types.TaskResultFileSummary, error) {
-	summarry, err := s.carrier.carrierDB.QueryTaskUpResultFile(taskId)
+func (s *CarrierAPIBackend) QueryTaskResultDataSummary(taskId string) (*types.TaskResultDataSummary, error) {
+	summarry, err := s.carrier.carrierDB.QueryTaskUpResulData(taskId)
 	if nil != err {
-		log.WithError(err).Errorf("Failed query taskUpResultFile on CarrierAPIBackend.QueryTaskResultFileSummary(), taskId: {%s}", taskId)
+		log.WithError(err).Errorf("Failed query taskUpResultData on CarrierAPIBackend.QueryTaskResultDataSummary(), taskId: {%s}", taskId)
 		return nil, err
 	}
-	dataResourceFileUpload, err := s.carrier.carrierDB.QueryDataResourceFileUpload(summarry.GetOriginId())
+	dataResourceDataUpload, err := s.carrier.carrierDB.QueryDataResourceDataUpload(summarry.GetOriginId())
 	if nil != err {
-		log.WithError(err).Errorf("Failed query dataResourceFileUpload on CarrierAPIBackend.QueryTaskResultFileSummary(), taskId: {%s}, originId: {%s}",
+		log.WithError(err).Errorf("Failed query dataResourceDataUpload on CarrierAPIBackend.QueryTaskResultDataSummary(), taskId: {%s}, originId: {%s}",
 			taskId, summarry.GetOriginId())
 		return nil, err
 	}
 
 	localMetadata, err := s.carrier.carrierDB.QueryInternalMetadataById(summarry.GetMetadataId())
 	if nil != err {
-		log.WithError(err).Errorf("Failed query local metadata on CarrierAPIBackend.QueryTaskResultFileSummary(), taskId: {%s}, originId: {%s}, metadataId: {%s}",
-			taskId, summarry.GetOriginId(), dataResourceFileUpload.GetMetadataId())
+		log.WithError(err).Errorf("Failed query local metadata on CarrierAPIBackend.QueryTaskResultDataSummary(), taskId: {%s}, originId: {%s}, metadataId: {%s}",
+			taskId, summarry.GetOriginId(), dataResourceDataUpload.GetMetadataId())
 		return nil, err
 	}
 
 	// taskId, metadataId, originId, metadataName, dataHash, metadataOption, nodeId, extra string, dataType uint32
-	return types.NewTaskResultFileSummary(
+	return types.NewTaskResultDataSummary(
 		summarry.GetTaskId(),
-		dataResourceFileUpload.GetMetadataId(),
-		dataResourceFileUpload.GetOriginId(),
+		dataResourceDataUpload.GetMetadataId(),
+		dataResourceDataUpload.GetOriginId(),
 		localMetadata.GetData().GetMetadataName(),
-		dataResourceFileUpload.GetDataHash(),
-		dataResourceFileUpload.GetMetadataOption(),
-		dataResourceFileUpload.GetNodeId(),
+		dataResourceDataUpload.GetDataHash(),
+		dataResourceDataUpload.GetMetadataOption(),
+		dataResourceDataUpload.GetNodeId(),
 		summarry.GetExtra(),
-		dataResourceFileUpload.GetDataType(),
+		dataResourceDataUpload.GetDataType(),
 	), nil
 
 }
 
-func (s *CarrierAPIBackend) QueryTaskResultFileSummaryList() (types.TaskResultFileSummaryArr, error) {
-	taskResultFileSummaryArr, err := s.carrier.carrierDB.QueryTaskUpResultFileList()
+func (s *CarrierAPIBackend) QueryTaskResultDataSummaryList() (types.TaskResultDataSummaryArr, error) {
+	taskResultDataSummaryArr, err := s.carrier.carrierDB.QueryTaskUpResultDataList()
 	if rawdb.IsNoDBNotFoundErr(err) {
-		log.WithError(err).Errorf("Failed query all taskUpResultFile on CarrierAPIBackend.QueryTaskResultFileSummaryList()")
+		log.WithError(err).Errorf("Failed query all taskUpResultData on CarrierAPIBackend.QueryTaskResultDataSummaryList()")
 		return nil, err
 	}
 
-	arr := make(types.TaskResultFileSummaryArr, 0)
-	for _, summarry := range taskResultFileSummaryArr {
-		dataResourceFileUpload, err := s.carrier.carrierDB.QueryDataResourceFileUpload(summarry.GetOriginId())
+	arr := make(types.TaskResultDataSummaryArr, 0)
+	for _, summarry := range taskResultDataSummaryArr {
+		dataResourceDataUpload, err := s.carrier.carrierDB.QueryDataResourceDataUpload(summarry.GetOriginId())
 		if nil != err {
-			log.WithError(err).Errorf("Failed query dataResourceFileUpload on CarrierAPIBackend.QueryTaskResultFileSummaryList(), taskId: {%s}, originId: {%s}",
+			log.WithError(err).Errorf("Failed query dataResourceDataUpload on CarrierAPIBackend.QueryTaskResultDataSummaryList(), taskId: {%s}, originId: {%s}",
 				summarry.GetTaskId(), summarry.GetOriginId())
 			continue
 		}
 
-		localMetadata, err := s.carrier.carrierDB.QueryInternalMetadataById(dataResourceFileUpload.GetMetadataId())
+		localMetadata, err := s.carrier.carrierDB.QueryInternalMetadataById(dataResourceDataUpload.GetMetadataId())
 		if nil != err {
-			log.WithError(err).Errorf("Failed query local metadata on CarrierAPIBackend.QueryTaskResultFileSummaryList(), taskId: {%s}, originId: {%s}, metadataId: {%s}",
-				summarry.GetTaskId(), summarry.GetOriginId(), dataResourceFileUpload.GetMetadataId())
+			log.WithError(err).Errorf("Failed query local metadata on CarrierAPIBackend.QueryTaskResultDataSummaryList(), taskId: {%s}, originId: {%s}, metadataId: {%s}",
+				summarry.GetTaskId(), summarry.GetOriginId(), dataResourceDataUpload.GetMetadataId())
 			continue
 		}
 		// taskId, metadataId, originId, metadataName, dataHash, metadataOption, nodeId, extra string, dataType uint32
-		arr = append(arr, types.NewTaskResultFileSummary(
+		arr = append(arr, types.NewTaskResultDataSummary(
 			summarry.GetTaskId(),
-			dataResourceFileUpload.GetMetadataId(),
-			dataResourceFileUpload.GetOriginId(),
+			dataResourceDataUpload.GetMetadataId(),
+			dataResourceDataUpload.GetOriginId(),
 			localMetadata.GetData().GetMetadataName(),
-			dataResourceFileUpload.GetDataHash(),
-			dataResourceFileUpload.GetMetadataOption(),
-			dataResourceFileUpload.GetNodeId(),
+			dataResourceDataUpload.GetDataHash(),
+			dataResourceDataUpload.GetMetadataOption(),
+			dataResourceDataUpload.GetNodeId(),
 			summarry.GetExtra(),
-			dataResourceFileUpload.GetDataType(),
+			dataResourceDataUpload.GetDataType(),
 		))
 	}
 
