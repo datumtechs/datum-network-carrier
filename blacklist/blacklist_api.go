@@ -36,6 +36,8 @@ type OrganizationTaskInfo struct {
 type IdentityBackListCache struct {
 	engine            BackListEngineAPI
 	db                WalDB
+	// identityId -> [{taskId1, proposalId1}, {taskId2, proposalId2}, ..., {taskIdN, proposalIdN}]
+	// OR identityId -> [{taskId1, proposalId1}, {taskId1, proposalId2}, ..., {taskIdN, proposalIdN}]
 	orgBlacklistCache map[string][]*OrganizationTaskInfo
 	orgBlacklistLock  sync.RWMutex
 }
