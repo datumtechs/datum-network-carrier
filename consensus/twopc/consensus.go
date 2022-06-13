@@ -206,6 +206,7 @@ func (t *Twopc) OnHandle(nonConsTask *types.NeedConsensusTask) error {
 			t.finishTaskConsensus(fmt.Sprintf("send prepareMsg failed for proposal '%s'", proposalId.TerminalString()), proposalId, task.GetTaskId(),
 				commonconstantpb.TaskRole_TaskRole_Sender, commonconstantpb.TaskRole_TaskRole_Sender, task.GetTaskSender(), task.GetTaskSender(), types.TaskConsensusInterrupt)
 			// clean some invalid data
+			t.identityBlackListCache.CheckConsensusResultOfNotExistVote(proposalId, task)
 			t.removeOrgProposalStateAndTask(proposalId, task.GetTaskSender().GetPartyId())
 		}
 	}()
@@ -413,6 +414,7 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 					t.finishTaskConsensus(fmt.Sprintf("%s for proposal '%s'", errStr, msg.GetMsgOption().GetProposalId().TerminalString()),
 						msg.GetMsgOption().GetProposalId(), msg.GetTask().GetTaskId(),
 						role, msg.GetMsgOption().GetSenderRole(), party, sender, types.TaskConsensusInterrupt)
+					t.identityBlackListCache.CheckConsensusResultOfNotExistVote(msg.GetMsgOption().GetProposalId(), msg.GetTask())
 					t.removeOrgProposalStateAndTask(msg.GetMsgOption().GetProposalId(), party.GetPartyId())
 				}
 			}()
@@ -617,6 +619,7 @@ func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap, n
 						t.finishTaskConsensus(fmt.Sprintf("send confirmMsg failed for '%s'", vote.GetMsgOption().GetProposalId().TerminalString()),
 							vote.GetMsgOption().GetProposalId(), orgProposalState.GetTaskId(),
 							commonconstantpb.TaskRole_TaskRole_Sender, commonconstantpb.TaskRole_TaskRole_Sender, receiver, receiver, types.TaskConsensusInterrupt)
+						t.identityBlackListCache.CheckConsensusResultOfNotExistVote(vote.GetMsgOption().GetProposalId(), task)
 						t.removeOrgProposalStateAndTask(vote.GetMsgOption().GetProposalId(), vote.GetMsgOption().GetReceiverPartyId())
 					}
 				}()
@@ -639,6 +642,7 @@ func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap, n
 					t.finishTaskConsensus(fmt.Sprintf("the prepareMsg voting result was not passed for proposal '%s'", vote.GetMsgOption().GetProposalId().TerminalString()),
 						vote.GetMsgOption().GetProposalId(), orgProposalState.GetTaskId(),
 						commonconstantpb.TaskRole_TaskRole_Sender, commonconstantpb.TaskRole_TaskRole_Sender, receiver, receiver, types.TaskConsensusInterrupt)
+					t.identityBlackListCache.CheckConsensusResultOfNotExistVote(vote.GetMsgOption().GetProposalId(), task)
 					t.removeOrgProposalStateAndTask(vote.GetMsgOption().GetProposalId(), vote.GetMsgOption().GetReceiverPartyId())
 				}()
 			}
@@ -766,6 +770,7 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, nmls
 					msg.GetConfirmOption().String(), msg.GetMsgOption().GetProposalId().TerminalString()),
 					msg.GetMsgOption().GetProposalId(), orgProposalState.GetTaskId(),
 					role, msg.GetMsgOption().GetSenderRole(), party, sender, types.TaskConsensusInterrupt)
+				t.identityBlackListCache.CheckConsensusResultOfNotExistVote(msg.GetMsgOption().GetProposalId(), task)
 				t.removeOrgProposalStateAndTask(msg.GetMsgOption().GetProposalId(), party.GetPartyId())
 				return fmt.Errorf("%s when received confirmMsg", ctypes.ErrConsensusMsgInvalid)
 			}
@@ -846,6 +851,7 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, nmls
 					t.finishTaskConsensus(fmt.Sprintf("%s for proposal '%s'", errStr, msg.GetMsgOption().GetProposalId().TerminalString()),
 						msg.GetMsgOption().GetProposalId(), orgProposalState.GetTaskId(),
 						role, msg.GetMsgOption().GetSenderRole(), party, sender, types.TaskConsensusInterrupt)
+					t.identityBlackListCache.CheckConsensusResultOfNotExistVote(msg.GetMsgOption().GetProposalId(), task)
 					t.removeOrgProposalStateAndTask(msg.GetMsgOption().GetProposalId(), party.GetPartyId())
 				}
 			}()
@@ -1053,19 +1059,13 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, n
 
 						reason = fmt.Sprintf("succeed consensus for proposal '%s'", vote.GetMsgOption().GetProposalId().TerminalString())
 						taskActionStatus = types.TaskConsensusFinished
-
-						task, err := t.resourceMng.GetDB().QueryLocalTask(orgProposalState.GetTaskId())
-						if err != nil {
-							t.identityBlackListCache.CheckConsensusResultOfNoVote(orgProposalState.GetProposalId(), task)
-						} else {
-							log.Warn("not found task ,taskId is:", orgProposalState.GetTaskId())
-						}
 					}
-
+					t.identityBlackListCache.CheckConsensusResultOfNotExistVote(orgProposalState.GetProposalId(), task)
 					// Send consensus result (on task sender)
 					t.finishTaskConsensus(reason, vote.GetMsgOption().GetProposalId(), orgProposalState.GetTaskId(),
 						commonconstantpb.TaskRole_TaskRole_Sender, commonconstantpb.TaskRole_TaskRole_Sender, receiver, receiver, taskActionStatus)
 
+					t.identityBlackListCache.CheckConsensusResultOfNotExistVote(vote.GetMsgOption().GetProposalId(), task)
 					// Finally, whether the commitmsg is sent successfully or not, the local cache needs to be cleared
 					t.removeOrgProposalStateAndTask(vote.GetMsgOption().GetProposalId(), vote.GetMsgOption().GetReceiverPartyId())
 
@@ -1089,6 +1089,7 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, n
 					t.finishTaskConsensus(fmt.Sprintf("the cofirmMsg voting result was not passed for proposal '%s'", vote.GetMsgOption().GetProposalId().TerminalString()),
 						vote.GetMsgOption().GetProposalId(), orgProposalState.GetTaskId(),
 						commonconstantpb.TaskRole_TaskRole_Sender, commonconstantpb.TaskRole_TaskRole_Sender, receiver, receiver, types.TaskConsensusInterrupt)
+					t.identityBlackListCache.CheckConsensusResultOfNotExistVote(vote.GetMsgOption().GetProposalId(), task)
 					t.removeOrgProposalStateAndTask(vote.GetMsgOption().GetProposalId(), vote.GetMsgOption().GetReceiverPartyId())
 				}()
 			}
@@ -1204,6 +1205,7 @@ func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap, nmls ty
 				t.finishTaskConsensus(fmt.Sprintf("check commit option is %s when received commitMsg for proposal '%s'", msg.GetCommitOption().String(),
 					msg.GetMsgOption().GetProposalId().TerminalString()), msg.GetMsgOption().GetProposalId(), orgProposalState.GetTaskId(),
 					role, msg.GetMsgOption().GetSenderRole(), party, sender, types.TaskConsensusInterrupt)
+				t.identityBlackListCache.CheckConsensusResultOfNotExistVote(orgProposalState.GetProposalId(), task)
 				t.removeOrgProposalStateAndTask(msg.GetMsgOption().GetProposalId(), party.GetPartyId())
 				return fmt.Errorf("%s when received commitMsg", ctypes.ErrConsensusMsgInvalid)
 			}
@@ -1217,6 +1219,7 @@ func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap, nmls ty
 				// If receiving `CommitMsg` is successful,
 				// we will forward `schedTask` to `taskManager` to send it to `Fighter` to execute the task.
 				t.driveTask(pid, msg.GetMsgOption().GetProposalId(), role, party, msg.GetMsgOption().GetSenderRole(), sender, orgProposalState.GetTaskId())
+				t.identityBlackListCache.CheckConsensusResultOfNotExistVote(msg.GetMsgOption().GetProposalId(), task)
 				t.removeOrgProposalStateAndTask(msg.GetMsgOption().GetProposalId(), party.GetPartyId())
 			}()
 
@@ -1342,6 +1345,7 @@ func (t *Twopc) onTerminateTaskConsensus(pid peer.ID, terminateConsensusMsg *typ
 				t.finishTaskConsensus(fmt.Sprintf("%s for proposal '%s'", reason, orgProposalState.GetProposalId().TerminalString()),
 					orgProposalState.GetProposalId(), msg.GetTaskId(),
 					role, msg.GetMsgOption().GetSenderRole(), party, sender, types.TaskTerminate)
+				t.identityBlackListCache.CheckConsensusResultOfNotExistVote(orgProposalState.GetProposalId(), task)
 				t.removeOrgProposalStateAndTask(orgProposalState.GetProposalId(), party.GetPartyId())
 
 				log.Infof("Finished [terminate task] consensus when received terminateConsensusMsg,  proposalId: {%s}, taskId: {%s}, partyId: {%s},",

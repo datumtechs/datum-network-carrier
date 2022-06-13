@@ -200,6 +200,14 @@ func (w *walDB) StoreConfirmTaskPeerInfo(proposalId common.Hash, peerDesc *carri
 }
 
 func (w *walDB) DeleteState(key []byte) error {
+	return w.DeleteByKey(key)
+}
+
+func (w *walDB) DeleteBlackOrg(key []byte) error{
+	return w.DeleteByKey(key)
+}
+
+func (w *walDB) DeleteByKey(key []byte) error {
 	has, err := w.db.Has(key)
 	switch {
 	case rawdb.IsNoDBNotFoundErr(err):

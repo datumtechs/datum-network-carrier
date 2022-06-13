@@ -177,8 +177,8 @@ func (t *Twopc) addmonitor(orgState *ctypes.OrgProposalState) {
 					return
 				}
 
-				_, err = t.resourceMng.GetDB().QueryLocalTask(orgState.GetTaskId())
-				if nil == err {
+				task, err1 := t.resourceMng.GetDB().QueryLocalTask(orgState.GetTaskId())
+				if nil == err1 {
 					// release local resource and clean some data  (on task partenr)
 					t.resourceMng.GetDB().StoreTaskEvent(&carriertypespb.TaskEvent{
 						Type:       evengine.TaskProposalStateDeadline.GetType(),
@@ -201,6 +201,7 @@ func (t *Twopc) addmonitor(orgState *ctypes.OrgProposalState) {
 							IdentityId: identity.GetIdentityId(),
 						},
 						orgState.GetTaskSender(), types.TaskConsensusInterrupt)
+					t.identityBlackListCache.CheckConsensusResultOfNotExistVote(orgState.GetProposalId(),task)
 				}
 			} else {
 				// OR epoch is commit but time just is commit time out

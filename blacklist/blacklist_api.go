@@ -6,6 +6,7 @@ import (
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/sirupsen/logrus"
+	"sort"
 	"sync"
 )
 
@@ -23,7 +24,7 @@ type WalDB interface {
 	ForEachKVWithPrefix(prefix []byte, f func(key, value []byte) error) error
 	GetOrgBlacklistCacheKey(identityId string) []byte
 	StoreBlackTaskOrg(identityId string, info []*OrganizationTaskInfo)
-	DeleteState(key []byte) error
+	DeleteBlackOrg(key []byte) error
 	GetOrgBlacklistCachePrefix() []byte
 }
 
@@ -34,8 +35,8 @@ type OrganizationTaskInfo struct {
 }
 
 type IdentityBackListCache struct {
-	engine            BackListEngineAPI
-	db                WalDB
+	engine BackListEngineAPI
+	db     WalDB
 	// identityId -> [{taskId1, proposalId1}, {taskId2, proposalId2}, ..., {taskIdN, proposalIdN}]
 	// OR identityId -> [{taskId1, proposalId1}, {taskId1, proposalId2}, ..., {taskIdN, proposalIdN}]
 	orgBlacklistCache map[string][]*OrganizationTaskInfo
@@ -49,77 +50,76 @@ func NewIdentityBackListCache() *IdentityBackListCache {
 func (iBlc *IdentityBackListCache) SetEngineAndWal(engine BackListEngineAPI, db WalDB) {
 	iBlc.engine = engine
 	iBlc.db = db
-	iBlc.orgBlacklistCache = iBlc.FindBlackOrgByWalPrefix()
+	iBlc.FindBlackOrgByWalPrefix()
 }
 
-func (iBlc *IdentityBackListCache) CheckConsensusResultOfNoVote(proposalId common.Hash, task *types.Task) {
+func (iBlc *IdentityBackListCache) CheckConsensusResultOfNotExistVote(proposalId common.Hash, task *types.Task) {
 	iBlc.orgBlacklistLock.RLock()
 	defer iBlc.orgBlacklistLock.RUnlock()
-
-	// identityId -> [TaskOrganization1, TaskOrganization2, ..., TaskOrganizationN]
-	mergeTaskOrgByIdentityId := make(map[string][]*carriertypespb.TaskOrganization, 0)
-	mergeTaskByOrg := func(org *carriertypespb.TaskOrganization) {
-		taskOrgInfo, ok := mergeTaskOrgByIdentityId[org.GetIdentityId()]
-		if !ok {
-			taskOrgInfo = make([]*carriertypespb.TaskOrganization, 0)
-		}
-		taskOrgInfo = append(taskOrgInfo, org)
-		mergeTaskOrgByIdentityId[org.GetIdentityId()] = taskOrgInfo
-	}
-	for _, org := range task.GetTaskData().GetDataSuppliers() {
-		mergeTaskByOrg(org)
-	}
-	for _, org := range task.GetTaskData().GetPowerSuppliers() {
-		mergeTaskByOrg(org)
-	}
-	for _, org := range task.GetTaskData().GetReceivers() {
-		mergeTaskByOrg(org)
-	}
-
+	// [TaskOrganization1, TaskOrganization2, ..., TaskOrganizationN]
+	mergeTaskOrg := append(append(task.GetTaskData().GetDataSuppliers(), task.GetTaskData().GetPowerSuppliers()...), task.GetTaskData().GetReceivers()...)
+	// Sort by the identityId field of taskOrg
+	sort.Slice(mergeTaskOrg, func(i, j int) bool {
+		return mergeTaskOrg[i].IdentityId == mergeTaskOrg[j].IdentityId
+	})
+	// Check and judge each taskOrg, and add the eligible taskOrg to blackList or remove it from blackList
+	var (
+		identityId string
+		// tempCount is used to mark whether all taskOrg in the same organization do not have votes
+		tempCount int
+		// How many taskOrg are used by sameIdentityIdTaskOrgCount to mark the same identityId
+		sameIdentityIdTaskOrgCount int
+	)
+	jump := true
 	taskId := task.GetTaskId()
-	for identityId, taskOrgArr := range mergeTaskOrgByIdentityId {
-		tempCount := 0
-		for _, taskOrg := range taskOrgArr {
-			orgBlacklistCache, ok := iBlc.orgBlacklistCache[identityId]
-			if !ok {
-				orgBlacklistCache = make([]*OrganizationTaskInfo, 0)
+	n := len(mergeTaskOrg)
+	// TaskOrg with the same identityId in mergeTaskOrg are adjacent
+	for index, org := range mergeTaskOrg {
+		if identityId != org.IdentityId {
+			identityId = org.IdentityId
+			jump = false
+			tempCount, sameIdentityIdTaskOrgCount = 0, 0
+		}
+		sameIdentityIdTaskOrgCount += 1
+		if jump {
+			continue
+		}
+		orgBlacklistCache, ok := iBlc.orgBlacklistCache[identityId]
+		orgBlacklistCacheCount := len(orgBlacklistCache)
+		if !ok {
+			orgBlacklistCache = make([]*OrganizationTaskInfo, 0)
+		}
+		if !iBlc.HasVoting(proposalId, org) {
+			tempCount += 1
+		} else {
+			jump = true
+			if orgBlacklistCacheCount < thresholdCount && orgBlacklistCacheCount > 0 {
+				delete(iBlc.orgBlacklistCache, identityId)
+				iBlc.RemoveBlackOrgByIdentity(identityId)
 			}
-
-			if !(iBlc.engine.HasPrepareVoting(proposalId, taskOrg) && iBlc.engine.HasConfirmVoting(proposalId, taskOrg)) {
-				tempCount += 1
-			} else {
-				if len(orgBlacklistCache) < thresholdCount && len(orgBlacklistCache) > 0 {
-					delete(iBlc.orgBlacklistCache, identityId)
-				}
-			}
-			if len(taskOrgArr) == tempCount && tempCount != 0 {
-				if len(orgBlacklistCache) < thresholdCount {
-					orgBlacklistCache = append(orgBlacklistCache, &OrganizationTaskInfo{
-						TaskId:     taskId,
-						NodeId:     taskOrg.GetNodeId(),
-						ProposalId: proposalId.String(),
-					})
-					iBlc.orgBlacklistCache[identityId] = orgBlacklistCache
-					iBlc.db.StoreBlackTaskOrg(identityId, orgBlacklistCache)
-				}
+		}
+		if (index+1 < n && mergeTaskOrg[index+1].IdentityId != identityId) || (index+1 == n) {
+			if tempCount == sameIdentityIdTaskOrgCount && orgBlacklistCacheCount < thresholdCount {
+				orgBlacklistCache = append(orgBlacklistCache, &OrganizationTaskInfo{
+					TaskId:     taskId,
+					NodeId:     org.GetNodeId(),
+					ProposalId: proposalId.String(),
+				})
+				iBlc.orgBlacklistCache[identityId] = orgBlacklistCache
+				iBlc.db.StoreBlackTaskOrg(identityId, orgBlacklistCache)
 			}
 		}
 	}
-}
-
-func (iBlc *IdentityBackListCache) QueryBlackListByIdentity(identityId string) int {
-	result, ok := iBlc.orgBlacklistCache[identityId]
-	if !ok {
-		return 0
-	}
-	return len(result)
 }
 
 func (iBlc *IdentityBackListCache) RemoveBlackOrgByIdentity(identityId string) {
 	iBlc.orgBlacklistLock.RLock()
 	defer iBlc.orgBlacklistLock.RUnlock()
 	delete(iBlc.orgBlacklistCache, identityId)
-	iBlc.db.DeleteState(iBlc.db.GetOrgBlacklistCacheKey(identityId))
+	err := iBlc.db.DeleteBlackOrg(iBlc.db.GetOrgBlacklistCacheKey(identityId))
+	if err != nil {
+		log.WithError(err).Errorf("RemoveBlackOrgByIdentity fail,identityId is %s", identityId)
+	}
 }
 
 func (iBlc *IdentityBackListCache) FilterEqualThresholdCountOrg() map[string]struct{} {
@@ -132,7 +132,7 @@ func (iBlc *IdentityBackListCache) FilterEqualThresholdCountOrg() map[string]str
 	return blackOrg
 }
 
-func (iBlc *IdentityBackListCache) FindBlackOrgByWalPrefix() map[string][]*OrganizationTaskInfo {
+func (iBlc *IdentityBackListCache) FindBlackOrgByWalPrefix() {
 	prefix := iBlc.db.GetOrgBlacklistCachePrefix()
 	prefixLength := len(prefix)
 
@@ -146,7 +146,20 @@ func (iBlc *IdentityBackListCache) FindBlackOrgByWalPrefix() map[string][]*Organ
 	}); err != nil {
 		log.WithError(err).Errorf("FindBlackOrgByWalPrefix ->ForEachKVWithPrefix fail")
 	}
-	return orgBlacklistCache
+	iBlc.orgBlacklistCache = orgBlacklistCache
+}
+
+func (iBlc *IdentityBackListCache) GetAllBlackListInfo() map[string][]*OrganizationTaskInfo {
+	return iBlc.orgBlacklistCache
+}
+
+// QueryBlackListCountByIdentity is reservation method,not called yet
+func (iBlc *IdentityBackListCache) QueryBlackListCountByIdentity(identityId string) int {
+	result, ok := iBlc.orgBlacklistCache[identityId]
+	if !ok {
+		return 0
+	}
+	return len(result)
 }
 
 func (iBlc *IdentityBackListCache) HasVoting(proposalId common.Hash, taskOrg *carriertypespb.TaskOrganization) bool {
