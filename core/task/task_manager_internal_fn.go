@@ -11,6 +11,7 @@ import (
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
 	"github.com/datumtechs/datum-network-carrier/common/traceutil"
 	ev "github.com/datumtechs/datum-network-carrier/core/evengine"
+	"github.com/datumtechs/datum-network-carrier/core/policy"
 	"github.com/datumtechs/datum-network-carrier/core/resource"
 	"github.com/datumtechs/datum-network-carrier/core/schedule"
 	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
@@ -225,6 +226,19 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		if nil != err {
 			return fmt.Errorf("cannot fetch all metadataIds of dataPolicyOption on beginConsumeByDataToken(), %s", err)
 		}
+		// filter ignoreMetadataId from metadataIds
+		filterMetadataIds := make([]string, 0)
+		for _, metadataId := range metadataIds {
+			if metadataId != policy.IgnoreMetadataId {
+				filterMetadataIds = append(filterMetadataIds, metadataId)
+			}
+		}
+		if len(filterMetadataIds) == 0 {
+			log.Warnf("Has not found anyone non-ignoreMetadataId then we do not need to consume tk of metadata on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}",
+				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
+			return nil
+		}
+
 		metadataList, err := m.resourceMng.GetDB().QueryMetadataByIds(metadataIds)
 		if nil != err {
 			return fmt.Errorf("call QueryMetadataByIds() failed on beginConsumeByDataToken(), %s", err)
@@ -235,6 +249,9 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 
 		dataTokenAaddresses := make([]ethereumcommon.Address, len(metadataList))
 		for i, metadata := range metadataList {
+			if "" == metadata.GetData().GetTokenAddress() {
+				return fmt.Errorf("metadata has not tkAddress metadataId: {%s}", metadata.GetData().GetMetadataId())
+			}
 			addr := ethereumcommon.HexToAddress(metadata.GetData().GetTokenAddress())
 			dataTokenAaddresses[i] = addr
 			addrs[i] = addr.String()
@@ -317,6 +334,26 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 
 		return nil
 	case commonconstantpb.TaskRole_TaskRole_DataSupplier, commonconstantpb.TaskRole_TaskRole_PowerSupplier, commonconstantpb.TaskRole_TaskRole_Receiver:
+
+		// check metadataId of myself (only by dataSupplier)
+		if task.GetLocalTaskRole() == commonconstantpb.TaskRole_TaskRole_DataSupplier {
+			metadataId, err := m.policyEngine.FetchMetedataIdByPartyIdFromDataPolicy(task.GetLocalTaskOrganization().GetPartyId(),
+				localTask.GetTaskData().GetDataPolicyTypes(), localTask.GetTaskData().GetDataPolicyOptions())
+			if nil != err {
+				return fmt.Errorf("can not fetch metadataId from dataPolicy of task on on beginConsumeByDataToken(), %s", err)
+			}
+
+			is, err := m.resourceMng.GetDB().IsInternalMetadataById(metadataId)
+			if nil != err {
+				return fmt.Errorf("can not verify metadata is internalmetadata whether or not, %s", err)
+			}
+			if is {
+				log.Warnf("the metadata is internalmetadata direct short circuit on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, metadataId: {%s}",
+					task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), metadataId)
+				return nil
+			}
+		}
+
 
 		taskIdBigInt, err := hexutil.DecodeBig("0x" + strings.TrimLeft(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID+"0x"), "\x00"))
 		if nil != err {
@@ -408,6 +445,24 @@ func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *
 
 	switch task.GetLocalTaskRole() {
 	case commonconstantpb.TaskRole_TaskRole_Sender:
+
+		// fetch all datatoken contract adresses of metadata of task
+		metadataIds, err := m.policyEngine.FetchAllMetedataIdsFromDataPolicy(localTask.GetTaskData().GetDataPolicyTypes(), localTask.GetTaskData().GetDataPolicyOptions())
+		if nil != err {
+			return fmt.Errorf("cannot fetch all metadataIds of dataPolicyOption on endConsumeByDataToken(), %s", err)
+		}
+		// filter ignoreMetadataId from metadataIds
+		filterMetadataIds := make([]string, 0)
+		for _, metadataId := range metadataIds {
+			if metadataId != policy.IgnoreMetadataId {
+				filterMetadataIds = append(filterMetadataIds, metadataId)
+			}
+		}
+		if len(filterMetadataIds) == 0 {
+			log.Warnf("Has not found anyone non-ignoreMetadataId then we do not need to consume tk of metadata on endConsumeByDataToken(), taskId: {%s}, partyId: {%s}",
+				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
+			return nil
+		}
 
 		// query consumeSpec of task
 		var consumeSpec *types.DatatokenPaySpec

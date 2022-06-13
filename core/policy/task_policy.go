@@ -3,6 +3,7 @@ package policy
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/datumtechs/datum-network-carrier/carrierdb/rawdb"
 	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"github.com/datumtechs/datum-network-carrier/types"
 )
@@ -61,8 +62,11 @@ func (pe *PolicyEngine) FetchMetedataIdByPartyIdAndOptionFromDataPolicy(partyId 
 		}
 		if policy.GetPartyId() == partyId {
 			resultData, err := pe.db.QueryTaskUpResulData(policy.GetTaskId())
-			if nil != err {
+			if rawdb.IsNoDBNotFoundErr(err) {
 				return "", err
+			}
+			if rawdb.IsDBNotFoundErr(err) {
+				return IgnoreMetadataId, nil
 			}
 			return resultData.GetMetadataId(), nil
 		}
@@ -120,8 +124,11 @@ func (pe *PolicyEngine) FetchAllMetedataIdByOptionFromDataPolicy(policyType uint
 			return "", err
 		}
 		resultData, err := pe.db.QueryTaskUpResulData(policy.GetTaskId())
-		if nil != err {
+		if rawdb.IsNoDBNotFoundErr(err) {
 			return "", err
+		}
+		if rawdb.IsDBNotFoundErr(err) {
+			return IgnoreMetadataId, nil
 		}
 		return resultData.GetMetadataId(), nil
 	}
@@ -181,12 +188,18 @@ func (pe *PolicyEngine) FetchMetedataNameByPartyIdAndOptionFromDataPolicy(partyI
 		}
 		if policy.GetPartyId() == partyId {
 			resultData, err := pe.db.QueryTaskUpResulData(policy.GetTaskId())
-			if nil != err {
+			if rawdb.IsNoDBNotFoundErr(err) {
 				return "", err
 			}
+			if rawdb.IsDBNotFoundErr(err) {
+				return IgnoreMetadataId, nil
+			}
 			metadata, err := pe.db.QueryInternalMetadataById(resultData.GetMetadataId())
-			if nil != err {
+			if rawdb.IsNoDBNotFoundErr(err) {
 				return "", err
+			}
+			if rawdb.IsDBNotFoundErr(err) {
+				return IgnoreMetadataName, nil
 			}
 			return metadata.GetData().GetMetadataName(), nil
 		}

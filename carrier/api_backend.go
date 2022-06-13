@@ -310,7 +310,7 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ carrierapipb.RegisteredNodeTy
 				node.Id, resourceTable.GetNodeId(), resourceTable.GetPowerId())
 		}
 
-		// First check whether there is a task being executed on jobNode
+		// First check whether there is a task being executed on jobNode or not.
 		runningTaskCount, err := s.carrier.carrierDB.QueryJobNodeRunningTaskCount(node.GetId())
 		if rawdb.IsNoDBNotFoundErr(err) {
 			return carrierapipb.ConnState_ConnState_UnConnected, fmt.Errorf("query local running taskCount on old jobNode failed, %s", err)
