@@ -2,6 +2,7 @@ package twopc
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/common"
 	"github.com/datumtechs/datum-network-carrier/common/bytesutil"
@@ -14,6 +15,7 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"gotest.tools/assert"
 	"math/rand"
+	"os"
 	"strings"
 	"sync"
 	"testing"
@@ -40,11 +42,38 @@ func generateProposalId() common.Hash {
 	proposalId := rlputil.RlpHash(buf.Bytes())
 	return proposalId
 }
+type Test struct {
+	SavePath string
+	Cache    int
+	Handles  int
+}
+func generateJsonFile() {
+	ConsensusStateFile := &Test{
+		SavePath: "./tests",
+		Cache:    32,
+		Handles:  32,
+	}
+	filePtr, err := os.Create("test.json")
+	if err != nil {
+		fmt.Println("Create file failed", err.Error())
+		return
+	}
+	defer filePtr.Close()
+	encoder := json.NewEncoder(filePtr)
+
+	err = encoder.Encode(ConsensusStateFile)
+	if err != nil {
+		fmt.Println("Encoder failed", err.Error())
+
+	} else {
+		fmt.Println("Encoder success")
+	}
+}
 
 func generateWalDB() *walDB {
 	config := &Config{
 		PeerMsgQueueSize:   12,
-		ConsensusStateFile: "D:\\project\\src\\github.com\\RosettaFlow\\test.json",
+		ConsensusStateFile: "test.json",
 	}
 	return newWal(config)
 }

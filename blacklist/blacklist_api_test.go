@@ -233,7 +233,7 @@ func TestFindBlackOrgByWalPrefix(t *testing.T) {
 	obj := GenerateObg()
 	for _, taskOrg := range taskOrgDatas {
 		for _, proposalId := range proposalIds {
-			obj.CheckConsensusResultOfNoVote(common.HexToHash(proposalId), taskOrg)
+			obj.CheckConsensusResultOfNotExistVote(common.HexToHash(proposalId), taskOrg)
 		}
 	}
 

@@ -84,7 +84,7 @@ func (s *Service) listenForNewNodes() {
 				return
 			}
 			go func() {
-				for identityId,v:=range s.blackList.FindBlackOrgByWalPrefix(){
+				for identityId,v:=range s.blackList.GetAllBlackListInfo(){
 					pid, _ := HexPeerID((*v[0]).NodeId)
 					if pid==info.ID {
 						s.blackList.RemoveBlackOrgByIdentity(identityId)
