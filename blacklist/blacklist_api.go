@@ -98,7 +98,7 @@ func (iBlc *IdentityBackListCache) CheckConsensusResultOfNotExistVote(proposalId
 				iBlc.RemoveBlackOrgByIdentity(identityId)
 			}
 		}
-		if (index+1 < n && mergeTaskOrg[index+1].IdentityId != identityId) || (index+1 == n) {
+		if (index+1 == n) || (mergeTaskOrg[index+1].IdentityId != identityId) {
 			if tempCount == sameIdentityIdTaskOrgCount && orgBlacklistCacheCount < thresholdCount {
 				orgBlacklistCache = append(orgBlacklistCache, &OrganizationTaskInfo{
 					TaskId:     taskId,

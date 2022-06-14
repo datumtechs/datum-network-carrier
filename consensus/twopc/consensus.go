@@ -1060,7 +1060,6 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, n
 						reason = fmt.Sprintf("succeed consensus for proposal '%s'", vote.GetMsgOption().GetProposalId().TerminalString())
 						taskActionStatus = types.TaskConsensusFinished
 					}
-					t.identityBlackListCache.CheckConsensusResultOfNotExistVote(orgProposalState.GetProposalId(), task)
 					// Send consensus result (on task sender)
 					t.finishTaskConsensus(reason, vote.GetMsgOption().GetProposalId(), orgProposalState.GetTaskId(),
 						commonconstantpb.TaskRole_TaskRole_Sender, commonconstantpb.TaskRole_TaskRole_Sender, receiver, receiver, taskActionStatus)
