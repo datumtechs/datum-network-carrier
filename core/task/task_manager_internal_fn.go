@@ -239,7 +239,7 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 			return nil
 		}
 
-		metadataList, err := m.resourceMng.GetDB().QueryMetadataByIds(metadataIds)
+		metadataList, err := m.resourceMng.GetDB().QueryMetadataByIds(filterMetadataIds)
 		if nil != err {
 			return fmt.Errorf("call QueryMetadataByIds() failed on beginConsumeByDataToken(), %s", err)
 		}
