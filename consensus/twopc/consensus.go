@@ -1218,7 +1218,6 @@ func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap, nmls ty
 				// If receiving `CommitMsg` is successful,
 				// we will forward `schedTask` to `taskManager` to send it to `Fighter` to execute the task.
 				t.driveTask(pid, msg.GetMsgOption().GetProposalId(), role, party, msg.GetMsgOption().GetSenderRole(), sender, orgProposalState.GetTaskId())
-				t.identityBlackListCache.CheckConsensusResultOfNotExistVote(msg.GetMsgOption().GetProposalId(), task)
 				t.removeOrgProposalStateAndTask(msg.GetMsgOption().GetProposalId(), party.GetPartyId())
 			}()
 
