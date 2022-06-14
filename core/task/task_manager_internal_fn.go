@@ -354,6 +354,28 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 			}
 		}
 
+		// check metadataId of dataSupplier (just by powerSupplier OR receiver)
+		if task.GetLocalTaskRole() == commonconstantpb.TaskRole_TaskRole_PowerSupplier ||
+			task.GetLocalTaskRole() == commonconstantpb.TaskRole_TaskRole_Receiver {
+			// fetch all datatoken contract adresses of metadata of task
+			metadataIds, err := m.policyEngine.FetchAllMetedataIdsFromDataPolicy(localTask.GetTaskData().GetDataPolicyTypes(), localTask.GetTaskData().GetDataPolicyOptions())
+			if nil != err {
+				return fmt.Errorf("cannot fetch all metadataIds of dataPolicyOption on beginConsumeByDataToken(), %s", err)
+			}
+			// filter ignoreMetadataId from metadataIds
+			filterMetadataIds := make([]string, 0)
+			for _, metadataId := range metadataIds {
+				if metadataId != policy.IgnoreMetadataId {
+					filterMetadataIds = append(filterMetadataIds, metadataId)
+				}
+			}
+			if len(filterMetadataIds) == 0 {
+				log.Warnf("Has not found anyone non-ignoreMetadataId then we do not need to consume tk of metadata on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}",
+					task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
+				return nil
+			}
+		}
+
 
 		taskIdBigInt, err := hexutil.DecodeBig("0x" + strings.TrimLeft(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID+"0x"), "\x00"))
 		if nil != err {
