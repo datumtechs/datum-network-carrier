@@ -266,6 +266,8 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		if nil != err {
 			return err
 		}
+		log.Warnf("call checkMetadataIdsFn() on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, done: {%v}, metadataIds: %s",
+			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), done, "[" + strings.Join(filterMetadataIds, ",") + "]")
 		if done {
 			return nil
 		}
@@ -389,10 +391,12 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		if task.GetLocalTaskRole() == commonconstantpb.TaskRole_TaskRole_PowerSupplier ||
 			task.GetLocalTaskRole() == commonconstantpb.TaskRole_TaskRole_Receiver {
 			// check metadataIds of dataPolicy of local task
-			done, _, err := checkMetadataIdsFn()
+			done, filterMetadataIds, err := checkMetadataIdsFn()
 			if nil != err {
 				return err
 			}
+			log.Warnf("call checkMetadataIdsFn() on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, done: {%v}, metadataIds: %s",
+				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), done, "[" + strings.Join(filterMetadataIds, ",") + "]")
 			if done {
 				return nil
 			}
