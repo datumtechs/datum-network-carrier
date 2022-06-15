@@ -202,6 +202,46 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 
 	partyId := task.GetLocalTaskOrganization().GetPartyId()
 
+	checkMetadataIdsFn := func() (bool, []string, error){
+		// fetch all datatoken contract adresses of metadata of task
+		metadataIds, err := m.policyEngine.FetchAllMetedataIdsFromDataPolicy(localTask.GetTaskData().GetDataPolicyTypes(), localTask.GetTaskData().GetDataPolicyOptions())
+		if nil != err {
+			return false, nil, fmt.Errorf("cannot fetch all metadataIds of dataPolicyOption on beginConsumeByDataToken(), %s", err)
+		}
+		// filter ignoreMetadataId (internalMetadata of other organizations) AND internalMetadata of current organization from metadataIds
+		//
+		// #### NOTE ####
+		// If the `powerSupplier` or the `receiver` and the `dataSupplier` belong to the same organization,
+		// the `internal metadataId` can be obtained, so we must ignore it.
+		//
+		// `Internal metadata` will not be consumed datatoken.
+		//
+		filterMetadataIds := make([]string, 0)
+		for _, metadataId := range metadataIds {
+			// If it is not the `internal metadata` of other organizations,
+			// and it is not the `internal metadata` of the current organization.
+			if metadataId == policy.IgnoreMetadataId {
+				continue
+			}
+			is, err := m.resourceMng.GetDB().IsInternalMetadataById(metadataId)
+			if nil != err {
+				return false, nil, fmt.Errorf("can not verify metadata is `internal metadata` whether or not on beginConsumeByDataToken(), %s", err)
+			}
+			if is {
+				continue
+			}
+
+			// collect `non-internal metadataId`.
+			filterMetadataIds = append(filterMetadataIds, metadataId)
+		}
+		if len(filterMetadataIds) == 0 {
+			log.Warnf("Has not found anyone non-ignoreMetadataId then we do not need to consume tk of metadata on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}",
+				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
+			return true, nil, nil
+		}
+		return false, filterMetadataIds, nil
+	}
+
 	switch task.GetLocalTaskRole() {
 	case commonconstantpb.TaskRole_TaskRole_Sender:
 
@@ -221,21 +261,12 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		  User_3 = 3;    // Ethereum
 		*/
 
-		// fetch all datatoken contract adresses of metadata of task
-		metadataIds, err := m.policyEngine.FetchAllMetedataIdsFromDataPolicy(localTask.GetTaskData().GetDataPolicyTypes(), localTask.GetTaskData().GetDataPolicyOptions())
+		// check metadataIds of dataPolicy of local task
+		done, filterMetadataIds, err := checkMetadataIdsFn()
 		if nil != err {
-			return fmt.Errorf("cannot fetch all metadataIds of dataPolicyOption on beginConsumeByDataToken(), %s", err)
+			return err
 		}
-		// filter ignoreMetadataId from metadataIds
-		filterMetadataIds := make([]string, 0)
-		for _, metadataId := range metadataIds {
-			if metadataId != policy.IgnoreMetadataId {
-				filterMetadataIds = append(filterMetadataIds, metadataId)
-			}
-		}
-		if len(filterMetadataIds) == 0 {
-			log.Warnf("Has not found anyone non-ignoreMetadataId then we do not need to consume tk of metadata on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}",
-				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
+		if done {
 			return nil
 		}
 
@@ -250,7 +281,7 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		dataTokenAaddresses := make([]ethereumcommon.Address, len(metadataList))
 		for i, metadata := range metadataList {
 			if "" == metadata.GetData().GetTokenAddress() {
-				return fmt.Errorf("metadata has not tkAddress metadataId: {%s}", metadata.GetData().GetMetadataId())
+				return fmt.Errorf("metadata has not tkAddress on beginConsumeByDataToken(), metadataId: {%s}", metadata.GetData().GetMetadataId())
 			}
 			addr := ethereumcommon.HexToAddress(metadata.GetData().GetTokenAddress())
 			dataTokenAaddresses[i] = addr
@@ -259,7 +290,7 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 
 		user := ethereumcommon.HexToAddress(localTask.GetTaskData().GetUser())
 
-		log.Debugf("Start call token20PayManager.prepay(), taskId: {%s}, partyId: {%s}, call params{taskIdBigInt: %d, taskSponsorAccount: %s, dataTokenAaddresses: %s}",
+		log.Debugf("Start call token20PayManager.prepay() on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, call params{taskIdBigInt: %d, taskSponsorAccount: %s, dataTokenAaddresses: %s}",
 			task.GetTaskId(), partyId, taskIdBigInt, user.String(), "["+strings.Join(addrs, ",")+"]")
 
 		// start prepay dataToken
@@ -345,10 +376,10 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 
 			is, err := m.resourceMng.GetDB().IsInternalMetadataById(metadataId)
 			if nil != err {
-				return fmt.Errorf("can not verify metadata is internalmetadata whether or not, %s", err)
+				return fmt.Errorf("can not verify metadata is `internal metadata` whether or not on beginConsumeByDataToken(), %s", err)
 			}
 			if is {
-				log.Warnf("the metadata is internalmetadata direct short circuit on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, metadataId: {%s}",
+				log.Warnf("the metadata is `internal metadata` direct short circuit on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, metadataId: {%s}",
 					task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), metadataId)
 				return nil
 			}
@@ -357,21 +388,12 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		// check metadataId of dataSupplier (just by powerSupplier OR receiver)
 		if task.GetLocalTaskRole() == commonconstantpb.TaskRole_TaskRole_PowerSupplier ||
 			task.GetLocalTaskRole() == commonconstantpb.TaskRole_TaskRole_Receiver {
-			// fetch all datatoken contract adresses of metadata of task
-			metadataIds, err := m.policyEngine.FetchAllMetedataIdsFromDataPolicy(localTask.GetTaskData().GetDataPolicyTypes(), localTask.GetTaskData().GetDataPolicyOptions())
+			// check metadataIds of dataPolicy of local task
+			done, _, err := checkMetadataIdsFn()
 			if nil != err {
-				return fmt.Errorf("cannot fetch all metadataIds of dataPolicyOption on beginConsumeByDataToken(), %s", err)
+				return err
 			}
-			// filter ignoreMetadataId from metadataIds
-			filterMetadataIds := make([]string, 0)
-			for _, metadataId := range metadataIds {
-				if metadataId != policy.IgnoreMetadataId {
-					filterMetadataIds = append(filterMetadataIds, metadataId)
-				}
-			}
-			if len(filterMetadataIds) == 0 {
-				log.Warnf("Has not found anyone non-ignoreMetadataId then we do not need to consume tk of metadata on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}",
-					task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
+			if done {
 				return nil
 			}
 		}
@@ -403,7 +425,7 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 					log.Warnf("Warning query task state of token20Pay time out on blockchain on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}, startTime: {%d <==> %s}, endTime: {%d <==> %s}, duration: %d ms",
 						task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt, start, time.Unix(start/1000, 0).Format("2006-01-02 15:04:05"), end, time.Unix(end/1000, 0).Format("2006-01-02 15:04:05"), end-start)
 
-					return 0, fmt.Errorf("query task state of token20Pay time out")
+					return 0, fmt.Errorf("query task state of token20Pay time out on beginConsumeByDataToken()")
 				case <-ticker.C:
 					state, err := m.token20PayMng.GetTaskState(taskIdBigInt)
 					if nil != err {
@@ -463,26 +485,56 @@ func (m *Manager) endConsumeByMetadataAuth(task *types.NeedExecuteTask, localTas
 }
 func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *types.Task) error {
 
-	partyId := task.GetLocalTaskOrganization().GetPartyId()
 
-	switch task.GetLocalTaskRole() {
-	case commonconstantpb.TaskRole_TaskRole_Sender:
-
+	checkMetadataIdsFn := func() (bool, []string, error){
 		// fetch all datatoken contract adresses of metadata of task
 		metadataIds, err := m.policyEngine.FetchAllMetedataIdsFromDataPolicy(localTask.GetTaskData().GetDataPolicyTypes(), localTask.GetTaskData().GetDataPolicyOptions())
 		if nil != err {
-			return fmt.Errorf("cannot fetch all metadataIds of dataPolicyOption on endConsumeByDataToken(), %s", err)
+			return false, nil, fmt.Errorf("cannot fetch all metadataIds of dataPolicyOption on endConsumeByDataToken(), %s", err)
 		}
-		// filter ignoreMetadataId from metadataIds
+		// filter ignoreMetadataId (internalMetadata of other organizations) AND internalMetadata of current organization from metadataIds
+		//
+		// #### NOTE ####
+		// If the `powerSupplier` or the `receiver` and the `dataSupplier` belong to the same organization,
+		// the `internal metadataId` can be obtained, so we must ignore it.
+		//
+		// `Internal metadata` will not be consumed datatoken.
+		//
 		filterMetadataIds := make([]string, 0)
 		for _, metadataId := range metadataIds {
-			if metadataId != policy.IgnoreMetadataId {
-				filterMetadataIds = append(filterMetadataIds, metadataId)
+			// If it is not the `internal metadata` of other organizations,
+			// and it is not the `internal metadata` of the current organization.
+			if metadataId == policy.IgnoreMetadataId {
+				continue
 			}
+			is, err := m.resourceMng.GetDB().IsInternalMetadataById(metadataId)
+			if nil != err {
+				return false, nil, fmt.Errorf("can not verify metadata is `internal metadata` whether or not on endConsumeByDataToken(), %s", err)
+			}
+			if is {
+				continue
+			}
+
+			// collect `non-internal metadataId`.
+			filterMetadataIds = append(filterMetadataIds, metadataId)
 		}
 		if len(filterMetadataIds) == 0 {
 			log.Warnf("Has not found anyone non-ignoreMetadataId then we do not need to consume tk of metadata on endConsumeByDataToken(), taskId: {%s}, partyId: {%s}",
 				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
+			return true, nil, nil
+		}
+		return false, filterMetadataIds, nil
+	}
+
+	switch task.GetLocalTaskRole() {
+	case commonconstantpb.TaskRole_TaskRole_Sender:
+
+		// check metadataIds of dataPolicy of local task
+		done, _, err := checkMetadataIdsFn()
+		if nil != err {
+			return err
+		}
+		if done {
 			return nil
 		}
 
@@ -497,9 +549,9 @@ func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *
 			return fmt.Errorf("cannot json unmarshal consumeSpec on endConsumeByDataToken(), consumeSpec: %s, %s", task.GetConsumeSpec(), err)
 		}
 
-		if partyId != localTask.GetTaskSender().GetPartyId() {
+		if task.GetLocalTaskOrganization().GetPartyId() != localTask.GetTaskSender().GetPartyId() {
 			return fmt.Errorf("this partyId is not task sender on endConsumeByDataToken(), partyId: %s, sender partyId: %s",
-				partyId, localTask.GetTaskSender().GetPartyId())
+				task.GetLocalTaskOrganization().GetPartyId(), localTask.GetTaskSender().GetPartyId())
 		}
 
 		// check task state in contract
@@ -507,7 +559,7 @@ func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *
 		// If the state of the contract is not "prepay",
 		// the settlement action will not be performed
 		if consumeSpec.GetConsumed() != 1 {
-			log.Warnf("Warning the task state value of contract is not `prepay`, the settlement action will not be performed, taskId: {%s}, partyId: {%s}, state: {%d}",
+			log.Warnf("Warning the task state value of contract is not `prepay`, the settlement action will not be performed on endConsumeByDataToken(), taskId: {%s}, partyId: {%s}, state: {%d}",
 				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), consumeSpec.GetConsumed())
 			return nil
 		}
@@ -517,8 +569,8 @@ func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *
 			return fmt.Errorf("cannot decode taskId to big.Int on endConsumeByDataToken(), %s", err)
 		}
 
-		log.Debugf("Start call token20Pay.settle(), taskId: {%s}, partyId: {%s}, call params{taskIdBigInt: %d, gasUsedPrepay: %d}",
-			task.GetTaskId(), partyId, taskIdBigInt, consumeSpec.GetGasUsed())
+		log.Debugf("Start call token20Pay.settle() on endConsumeByDataToken(), taskId: {%s}, partyId: {%s}, call params{taskIdBigInt: %d, gasUsedPrepay: %d}",
+			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt, consumeSpec.GetGasUsed())
 
 		// start prepay dataToken
 		txHash, err := m.token20PayMng.Settle(taskIdBigInt, consumeSpec.GetGasUsed())
