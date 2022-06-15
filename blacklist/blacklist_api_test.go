@@ -238,13 +238,13 @@ func TestFindBlackOrgByWalPrefix(t *testing.T) {
 	}
 
 	temp := 0
-	for _, _ = range obj.FindBlackOrgByWalPrefix() {
+	for _, _ = range obj.GetAllBlackListInfo() {
 		temp += 1
 	}
 	assert.Equal(t, temp, 6)
 	obj.RemoveBlackOrgByIdentity("identity:4d7b5f1f114b43b682d9c73d6d2bc18e")
 	temp = 0
-	for _, _ = range obj.FindBlackOrgByWalPrefix() {
+	for _, _ = range obj.GetAllBlackListInfo() {
 		temp += 1
 	}
 	assert.Equal(t, temp, 5)

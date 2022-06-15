@@ -1060,7 +1060,6 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, n
 						reason = fmt.Sprintf("succeed consensus for proposal '%s'", vote.GetMsgOption().GetProposalId().TerminalString())
 						taskActionStatus = types.TaskConsensusFinished
 					}
-					t.identityBlackListCache.CheckConsensusResultOfNotExistVote(orgProposalState.GetProposalId(), task)
 					// Send consensus result (on task sender)
 					t.finishTaskConsensus(reason, vote.GetMsgOption().GetProposalId(), orgProposalState.GetTaskId(),
 						commonconstantpb.TaskRole_TaskRole_Sender, commonconstantpb.TaskRole_TaskRole_Sender, receiver, receiver, taskActionStatus)
@@ -1219,7 +1218,6 @@ func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap, nmls ty
 				// If receiving `CommitMsg` is successful,
 				// we will forward `schedTask` to `taskManager` to send it to `Fighter` to execute the task.
 				t.driveTask(pid, msg.GetMsgOption().GetProposalId(), role, party, msg.GetMsgOption().GetSenderRole(), sender, orgProposalState.GetTaskId())
-				t.identityBlackListCache.CheckConsensusResultOfNotExistVote(msg.GetMsgOption().GetProposalId(), task)
 				t.removeOrgProposalStateAndTask(msg.GetMsgOption().GetProposalId(), party.GetPartyId())
 			}()
 
