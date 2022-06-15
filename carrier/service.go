@@ -7,13 +7,14 @@ import (
 	"github.com/datumtechs/datum-network-carrier/ach/token"
 	"github.com/datumtechs/datum-network-carrier/ach/token/kms"
 	"github.com/datumtechs/datum-network-carrier/blacklist"
+	"github.com/datumtechs/datum-network-carrier/carrierdb"
 	"github.com/datumtechs/datum-network-carrier/common/flags"
 	"github.com/datumtechs/datum-network-carrier/consensus/chaincons"
 	"github.com/datumtechs/datum-network-carrier/consensus/twopc"
-	"github.com/datumtechs/datum-network-carrier/core"
 	"github.com/datumtechs/datum-network-carrier/core/election"
 	"github.com/datumtechs/datum-network-carrier/core/evengine"
 	"github.com/datumtechs/datum-network-carrier/core/message"
+	"github.com/datumtechs/datum-network-carrier/core/policy"
 	"github.com/datumtechs/datum-network-carrier/core/resource"
 	"github.com/datumtechs/datum-network-carrier/core/schedule"
 	"github.com/datumtechs/datum-network-carrier/core/task"
@@ -33,25 +34,27 @@ type Service struct {
 	isRunning      bool
 	processingLock sync.RWMutex
 	config         *Config
-	carrierDB      core.CarrierDB
+	carrierDB      carrierdb.CarrierDB
 	ctx            context.Context
 	cancel         context.CancelFunc
 	mempool        *message.Mempool
 	Engines        map[types.ConsensusEngineType]handler.Engine
 
 	// DB interfaces
-	dataDb     db.Database
-	APIBackend *CarrierAPIBackend
+	dataDb          db.Database
+	APIBackend      *CarrierAPIBackend
 	DebugAPIBackend *CarrierDebugAPIBackend
 	BlackListAPI    *blacklist.IdentityBackListCache
-	resourceManager   *resource.Manager
-	messageManager    *message.MessageHandler
-	TaskManager       handler.TaskManager
-	authManager       *auth.AuthorityManager
-	scheduler         schedule.Scheduler
-	consulManager     *discovery.ConnectConsul
-	runError          error
+	resourceManager *resource.Manager
+	messageManager  *message.MessageHandler
+	TaskManager     handler.TaskManager
+	authManager     *auth.AuthorityManager
+	scheduler       schedule.Scheduler
+	consulManager   *discovery.ConnectConsul
+	runError        error
+	// add by v0.4.0
 	token20PayManager *token.Token20PayManager
+	policyEngine      *policy.PolicyEngine
 	quit              chan struct{}
 }
 
@@ -76,10 +79,12 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 		config.TaskManagerConfig.NeedReplayScheduleTaskChanSize, config.TaskManagerConfig.NeedExecuteTaskChanSize)
 
 	identityBlackListCache := blacklist.NewIdentityBackListCache()
+	policyEngine := policy.NewPolicyEngine(config.CarrierDB)
 	resourceClientSet := grpclient.NewInternalResourceNodeSet()
 	resourceMng := resource.NewResourceManager(config.CarrierDB, resourceClientSet, mockIdentityIdsFile)
 	authManager := auth.NewAuthorityManager(config.CarrierDB)
-	scheduler := schedule.NewSchedulerStarveFIFO(election.NewVrfElector(config.P2P.PirKey(), resourceMng), eventEngine, resourceMng, authManager,identityBlackListCache)
+	scheduler := schedule.NewSchedulerStarveFIFO(election.NewVrfElector(config.P2P.PirKey(), resourceMng),
+		eventEngine, resourceMng, authManager, policyEngine, identityBlackListCache)
 
 	twopcEngine, err := twopc.New(
 		&twopc.Config{
@@ -133,6 +138,7 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 		needReplayScheduleTaskCh,
 		needExecuteTaskCh,
 		config.TaskManagerConfig,
+		policyEngine,
 	)
 	if nil != err {
 		return nil, err
@@ -149,6 +155,7 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 		TaskManager:       taskManager,
 		authManager:       authManager,
 		token20PayManager: token20PayManager,
+		policyEngine:      policyEngine,
 		scheduler:         scheduler,
 		consulManager: discovery.NewConsulClient(&discovery.ConsulService{
 			ServiceIP:   p2p.IpAddr().String(),

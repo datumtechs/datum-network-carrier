@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/ach/auth"
 	"github.com/datumtechs/datum-network-carrier/ach/token"
+	"github.com/datumtechs/datum-network-carrier/carrierdb/rawdb"
 	"github.com/datumtechs/datum-network-carrier/common"
 	"github.com/datumtechs/datum-network-carrier/common/bytesutil"
 	"github.com/datumtechs/datum-network-carrier/common/signutil"
@@ -13,7 +14,7 @@ import (
 	"github.com/datumtechs/datum-network-carrier/common/traceutil"
 	"github.com/datumtechs/datum-network-carrier/consensus"
 	ev "github.com/datumtechs/datum-network-carrier/core/evengine"
-	"github.com/datumtechs/datum-network-carrier/core/rawdb"
+	"github.com/datumtechs/datum-network-carrier/core/policy"
 	"github.com/datumtechs/datum-network-carrier/core/resource"
 	"github.com/datumtechs/datum-network-carrier/core/schedule"
 	"github.com/datumtechs/datum-network-carrier/p2p"
@@ -23,7 +24,6 @@ import (
 	carriernetmsgtaskmngpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/taskmng"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
-	"github.com/datumtechs/datum-network-carrier/policy"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -61,6 +61,7 @@ type Manager struct {
 	// add by v 0.4.0
 	config   *params.TaskManagerConfig
 	msgCache *TaskmngMsgCache
+	policyEngine *policy.PolicyEngine
 }
 
 func NewTaskManager(
@@ -75,6 +76,7 @@ func NewTaskManager(
 	needReplayScheduleTaskCh chan *types.NeedReplayScheduleTask,
 	needExecuteTaskCh chan *types.NeedExecuteTask,
 	config *params.TaskManagerConfig,
+	policyEngine *policy.PolicyEngine,
 ) (*Manager, error) {
 
 	cache, err := NewTaskmngMsgCache(defaultTaskmngMsgCacheSize)
@@ -97,6 +99,7 @@ func NewTaskManager(
 		needReplayScheduleTaskCh: needReplayScheduleTaskCh,
 		needExecuteTaskCh:        needExecuteTaskCh,
 		config:                   config,
+		policyEngine:             policyEngine,
 		runningTaskCache:         make(map[string]map[string]*types.NeedExecuteTask, 0), // taskId -> partyId -> needExecuteTask
 		syncExecuteTaskMonitors:  types.NewSyncExecuteTaskMonitorQueue(0),
 		quit:                     make(chan struct{}),
@@ -572,7 +575,7 @@ func (m *Manager) HandleReportResourceUsage(usage *types.TaskResuorceUsage) erro
 func (m *Manager) storeTaskAllPartnerPartyIds(task *types.Task) error {
 
 	// partyId of powerSuppliers
-	partyIds, err := policy.FetchPowerPartyIdsFromPowerPolicy(task.GetTaskData().GetPowerPolicyTypes(), task.GetTaskData().GetPowerPolicyOptions())
+	partyIds, err := m.policyEngine.FetchPowerPartyIdsFromPowerPolicy(task.GetTaskData().GetPowerPolicyTypes(), task.GetTaskData().GetPowerPolicyOptions())
 	if nil != err {
 		log.WithError(err).Errorf("not fetch partyIds from task powerPolicy, taskId: {%s}", task.GetTaskId())
 		return err

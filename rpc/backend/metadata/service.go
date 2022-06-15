@@ -342,15 +342,15 @@ func (svr *Server) PublishMetadataByTaskResultFile(ctx context.Context, req *car
 	}
 	// AllowExpose
 	// TokenAddress
-	taskResultFileSummary, err := svr.B.QueryTaskResultFileSummary(req.GetTaskId())
+	taskResultDataSummary, err := svr.B.QueryTaskResultDataSummary(req.GetTaskId())
 	if nil != err {
-		log.WithError(err).Errorf("RPC-API:PublishMetadataByTaskResultFile-QueryTaskResultFileSummary failed, taskId: {%s}", req.GetTaskId())
+		log.WithError(err).Errorf("RPC-API:PublishMetadataByTaskResultFile-QueryTaskResultDataSummary failed, taskId: {%s}", req.GetTaskId())
 
-		errMsg := fmt.Sprintf("%s, call QueryTaskResultFileSummary() failed, %s", backend.ErrPublishMetadataMsg.Error(), req.GetTaskId())
+		errMsg := fmt.Sprintf("%s, call QueryTaskResultDataSummary() failed, %s", backend.ErrPublishMetadataMsg.Error(), req.GetTaskId())
 		return &carrierapipb.PublishMetadataResponse{Status: backend.ErrPublishMetadataMsg.ErrCode(), Msg: errMsg}, nil
 	}
 
-	metadataId := taskResultFileSummary.GetMetadataId()
+	metadataId := taskResultDataSummary.GetMetadataId()
 
 	metadata, err := svr.B.GetInternalMetadataDetail(metadataId)
 	if nil != err {

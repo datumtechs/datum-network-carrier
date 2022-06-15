@@ -1,7 +1,7 @@
 package carrier
 
 import (
-	"github.com/datumtechs/datum-network-carrier/core"
+	"github.com/datumtechs/datum-network-carrier/carrierdb"
 	"github.com/datumtechs/datum-network-carrier/p2p"
 	"github.com/datumtechs/datum-network-carrier/params"
 )
@@ -29,7 +29,7 @@ var DefaultConfig = Config{
 //go:generate gencodec -type Config -formats toml -out gen_config.go
 
 type Config struct {
-	CarrierDB core.CarrierDB
+	CarrierDB carrierdb.CarrierDB
 	P2P       p2p.P2P
 	// Database options
 	DatabaseHandles       int

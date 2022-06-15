@@ -2,19 +2,19 @@ package metadata
 
 import (
 	"fmt"
+	"github.com/datumtechs/datum-network-carrier/carrierdb"
+	"github.com/datumtechs/datum-network-carrier/carrierdb/rawdb"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
-	"github.com/datumtechs/datum-network-carrier/core"
-	"github.com/datumtechs/datum-network-carrier/core/rawdb"
 	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"github.com/datumtechs/datum-network-carrier/rpc/backend"
 	"github.com/datumtechs/datum-network-carrier/types"
 )
 
 type MetadataAuthority struct {
-	dataCenter core.CarrierDB
+	dataCenter carrierdb.CarrierDB
 }
 
-func NewMetadataAuthority(dataCenter core.CarrierDB) *MetadataAuthority {
+func NewMetadataAuthority(dataCenter carrierdb.CarrierDB) *MetadataAuthority {
 	return &MetadataAuthority{
 		dataCenter: dataCenter,
 	}

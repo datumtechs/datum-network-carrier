@@ -3,9 +3,9 @@ package resource
 import (
 	"context"
 	"fmt"
+	"github.com/datumtechs/datum-network-carrier/carrierdb"
+	"github.com/datumtechs/datum-network-carrier/carrierdb/rawdb"
 	"github.com/datumtechs/datum-network-carrier/common/fileutil"
-	"github.com/datumtechs/datum-network-carrier/core"
-	"github.com/datumtechs/datum-network-carrier/core/rawdb"
 	"github.com/datumtechs/datum-network-carrier/grpclient"
 	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
@@ -19,7 +19,7 @@ import (
 )
 
 type Manager struct {
-	dataCenter           core.CarrierDB // Low level persistent database to store final content.
+	dataCenter           carrierdb.CarrierDB // Low level persistent database to store final content.
 	mockIdentityIdsFile  string
 	mockIdentityIdsCache map[string]struct{}
 	resourceClientSet    *grpclient.InternalResourceClientSet // internal resource node set (Fighter node grpc client set)
@@ -27,7 +27,7 @@ type Manager struct {
 	workflowLock  sync.Mutex
 }
 
-func NewResourceManager(dataCenter core.CarrierDB, resourceClientSet *grpclient.InternalResourceClientSet, mockIdentityIdsFile string) *Manager {
+func NewResourceManager(dataCenter carrierdb.CarrierDB, resourceClientSet *grpclient.InternalResourceClientSet, mockIdentityIdsFile string) *Manager {
 	m := &Manager{
 		dataCenter:           dataCenter,
 		resourceClientSet:    resourceClientSet,
@@ -594,7 +594,7 @@ func (m *Manager) IsMockIdentityId(identityId string) bool {
 }
 
 /// ======================  v 0.2.0
-func (m *Manager) GetDB() core.CarrierDB { return m.dataCenter }
+func (m *Manager) GetDB() carrierdb.CarrierDB { return m.dataCenter }
 
 /// ======================  v 0.3.0
 func (m *Manager) HasNotInternalJobNodeClientSet() bool { return !m.HasInternalJobNodeClientSet() }

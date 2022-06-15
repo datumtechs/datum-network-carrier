@@ -3,10 +3,10 @@ package twopc
 import (
 	"encoding/json"
 	"github.com/datumtechs/datum-network-carrier/blacklist"
+	"github.com/datumtechs/datum-network-carrier/carrierdb/rawdb"
 	"github.com/datumtechs/datum-network-carrier/common"
 	"github.com/datumtechs/datum-network-carrier/common/fileutil"
 	ctypes "github.com/datumtechs/datum-network-carrier/consensus/twopc/types"
-	"github.com/datumtechs/datum-network-carrier/core/rawdb"
 	"github.com/datumtechs/datum-network-carrier/db"
 	carriertwopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"

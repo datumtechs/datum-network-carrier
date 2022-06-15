@@ -2,10 +2,10 @@ package message
 
 import (
 	"encoding/json"
-	auth2 "github.com/datumtechs/datum-network-carrier/ach/auth"
+	"github.com/datumtechs/datum-network-carrier/ach/auth"
+	"github.com/datumtechs/datum-network-carrier/carrierdb/rawdb"
 	"github.com/datumtechs/datum-network-carrier/common/feed"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
-	"github.com/datumtechs/datum-network-carrier/core/rawdb"
 	"github.com/datumtechs/datum-network-carrier/core/resource"
 	"github.com/datumtechs/datum-network-carrier/core/task"
 	"github.com/datumtechs/datum-network-carrier/event"
@@ -35,7 +35,7 @@ type MessageHandler struct {
 	resourceMng *resource.Manager
 	// Send taskMsg to taskManager
 	taskManager *task.Manager
-	authManager *auth2.AuthorityManager
+	authManager *auth.AuthorityManager
 	// internal resource node set (Fighter node grpc client set)
 	msgChannel chan *feed.Event
 	quit       chan struct{}
@@ -53,7 +53,7 @@ type MessageHandler struct {
 	lockTask         sync.Mutex
 }
 
-func NewHandler(pool *Mempool, resourceMng *resource.Manager, taskManager *task.Manager, authManager *auth2.AuthorityManager) *MessageHandler {
+func NewHandler(pool *Mempool, resourceMng *resource.Manager, taskManager *task.Manager, authManager *auth.AuthorityManager) *MessageHandler {
 	m := &MessageHandler{
 		pool:        pool,
 		resourceMng: resourceMng,
@@ -586,41 +586,41 @@ func (m *MessageHandler) BroadcastMetadataMsgArr(metadataMsgArr types.MetadataMs
 			}
 
 			// maintain the orginId and metadataId relationship of the local data service
-			dataResourceFileUpload, err := m.resourceMng.GetDB().QueryDataResourceFileUpload(option.GetOriginId())
+			dataResourceDataUpload, err := m.resourceMng.GetDB().QueryDataResourceDataUpload(option.GetOriginId())
 			if nil != err {
-				log.WithError(err).Errorf("Failed to QueryDataResourceFileUpload on MessageHandler with broadcast msg, originId: {%s}, metadataId: {%s}",
+				log.WithError(err).Errorf("Failed to QueryDataResourceDataUpload on MessageHandler with broadcast msg, originId: {%s}, metadataId: {%s}",
 					option.GetOriginId(), msg.GetMetadataId())
 				continue
 			}
 
 			// Update metadataId in fileupload information
-			dataResourceFileUpload.SetMetadataId(msg.GetMetadataId())
-			if err := m.resourceMng.GetDB().StoreDataResourceFileUpload(dataResourceFileUpload); nil != err {
-				log.WithError(err).Errorf("Failed to StoreDataResourceFileUpload on MessageHandler with broadcast msg, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}",
-					option.GetOriginId(), msg.GetMetadataId(), dataResourceFileUpload.GetNodeId())
+			dataResourceDataUpload.SetMetadataId(msg.GetMetadataId())
+			if err := m.resourceMng.GetDB().StoreDataResourceDataUpload(dataResourceDataUpload); nil != err {
+				log.WithError(err).Errorf("Failed to StoreDataResourceDataUpload on MessageHandler with broadcast msg, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}",
+					option.GetOriginId(), msg.GetMetadataId(), dataResourceDataUpload.GetNodeId())
 				continue
 			}
 
 			// Record the size of the resources occupied by the original data
-			dataResourceTable, err := m.resourceMng.GetDB().QueryDataResourceTable(dataResourceFileUpload.GetNodeId())
+			dataResourceTable, err := m.resourceMng.GetDB().QueryDataResourceTable(dataResourceDataUpload.GetNodeId())
 			if nil != err {
 				log.WithError(err).Errorf("Failed to QueryDataResourceTable on MessageHandler with broadcast msg, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}",
-					option.GetOriginId(), msg.GetMetadataId(), dataResourceFileUpload.GetNodeId())
+					option.GetOriginId(), msg.GetMetadataId(), dataResourceDataUpload.GetNodeId())
 				continue
 			}
 			// update disk used of data resource table
 			dataResourceTable.UseDisk(option.GetSize())
 			if err := m.resourceMng.GetDB().StoreDataResourceTable(dataResourceTable); nil != err {
 				log.WithError(err).Errorf("Failed to StoreDataResourceTable on MessageHandler with broadcast msg, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}",
-					option.GetOriginId(), msg.GetMetadataId(), dataResourceFileUpload.GetNodeId())
+					option.GetOriginId(), msg.GetMetadataId(), dataResourceDataUpload.GetNodeId())
 				continue
 			}
 
 			// Separately record the GetSize of the metaData and the dataNodeId where it is located
 			if err := m.resourceMng.GetDB().StoreDataResourceDiskUsed(types.NewDataResourceDiskUsed(
-				msg.GetMetadataId(), dataResourceFileUpload.GetNodeId(), option.GetSize())); nil != err {
+				msg.GetMetadataId(), dataResourceDataUpload.GetNodeId(), option.GetSize())); nil != err {
 				log.WithError(err).Errorf("Failed to StoreDataResourceDiskUsed on MessageHandler with broadcast msg, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}",
-					option.GetOriginId(), msg.GetMetadataId(), dataResourceFileUpload.GetNodeId())
+					option.GetOriginId(), msg.GetMetadataId(), dataResourceDataUpload.GetNodeId())
 				continue
 			}
 		}

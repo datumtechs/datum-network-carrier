@@ -6,7 +6,6 @@ import (
 	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
-	"github.com/datumtechs/datum-network-carrier/policy"
 	"github.com/datumtechs/datum-network-carrier/rpc/backend"
 	"github.com/datumtechs/datum-network-carrier/signsuite"
 	"github.com/datumtechs/datum-network-carrier/types"
@@ -267,7 +266,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *carrierapipb.Pub
 	}
 
 	// check partyId of powerSuppliers
-	powerPartyIds, err := policy.FetchPowerPartyIdsFromPowerPolicy(req.GetPowerPolicyTypes(), req.GetPowerPolicyOptions())
+	powerPartyIds, err := svr.B.GetPolicyEngine().FetchPowerPartyIdsFromPowerPolicy(req.GetPowerPolicyTypes(), req.GetPowerPolicyOptions())
 	if nil != err {
 		log.WithError(err).Errorf("not fetch partyIds from task powerPolicy")
 		return &carrierapipb.PublishTaskDeclareResponse{Status: backend.ErrPublishTaskMsg.ErrCode(), Msg: "not fetch partyIds from task powerPolicy"}, nil
@@ -284,7 +283,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *carrierapipb.Pub
 	// check partyId of receivers
 	for i, v := range req.GetReceivers() {
 
-		partyId, err := policy.FetchReceiverPartyIdByOptionFromReceiverPolicy(req.GetReceiverPolicyTypes()[i], req.GetReceiverPolicyOptions()[i])
+		partyId, err := svr.B.GetPolicyEngine().FetchReceiverPartyIdByOptionFromReceiverPolicy(req.GetReceiverPolicyTypes()[i], req.GetReceiverPolicyOptions()[i])
 		if nil != err {
 			log.WithError(err).Errorf("RPC-API:PublishTaskDeclare failed, fetch partyId of receiverPolicy failed, index: {%d}, partyId of receiverPolicy: {%s}",
 				i, partyId)

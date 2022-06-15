@@ -4,19 +4,21 @@ import (
 	"container/heap"
 	"encoding/json"
 	"fmt"
-	auth2 "github.com/datumtechs/datum-network-carrier/ach/auth"
 	"github.com/datumtechs/datum-network-carrier/blacklist"
+	"github.com/datumtechs/datum-network-carrier/ach/auth"
+	"github.com/datumtechs/datum-network-carrier/carrierdb/rawdb"
 	"github.com/datumtechs/datum-network-carrier/common/bytesutil"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
 	ctypes "github.com/datumtechs/datum-network-carrier/consensus/twopc/types"
 	"github.com/datumtechs/datum-network-carrier/core/election"
 	"github.com/datumtechs/datum-network-carrier/core/evengine"
-	"github.com/datumtechs/datum-network-carrier/core/rawdb"
+	"github.com/datumtechs/datum-network-carrier/core/policy"
+
+	//sche.policyEngine "github.com/datumtechs/datum-network-carrier/core/policy"
 	"github.com/datumtechs/datum-network-carrier/core/resource"
 	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
-	"github.com/datumtechs/datum-network-carrier/policy"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/ethereum/go-ethereum/rlp"
 	log "github.com/sirupsen/logrus"
@@ -38,7 +40,7 @@ var (
 type SchedulerStarveFIFO struct {
 	elector     *election.VrfElector
 	resourceMng *resource.Manager
-	authMng     *auth2.AuthorityManager
+	authMng     *auth.AuthorityManager
 	// the local task into this queue, first
 	queue *types.TaskBullets
 	// the very very starve local task by priority
@@ -49,7 +51,8 @@ type SchedulerStarveFIFO struct {
 
 	//quit            chan struct{}
 	eventEngine *evengine.EventEngine
-	//dataCenter      iface.ForResourceDB
+	//add by v0.4.0
+	policyEngine *policy.PolicyEngine
 	err error
 	// black org
 	identityBlackListCache   *blacklist.IdentityBackListCache
@@ -59,7 +62,8 @@ func NewSchedulerStarveFIFO(
 	elector *election.VrfElector,
 	eventEngine *evengine.EventEngine,
 	resourceMng *resource.Manager,
-	authMng *auth2.AuthorityManager,
+	authMng *auth.AuthorityManager,
+	policyEngine *policy.PolicyEngine,
 	identityBlackListCache   *blacklist.IdentityBackListCache,
 ) *SchedulerStarveFIFO {
 
@@ -71,6 +75,7 @@ func NewSchedulerStarveFIFO(
 		starveQueue: new(types.TaskBullets),
 		schedulings: make(map[string]*types.TaskBullet),
 		eventEngine: eventEngine,
+		policyEngine: policyEngine,
 		//quit:                 make(chan struct{}),
 		identityBlackListCache: identityBlackListCache,
 	}
@@ -337,19 +342,19 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 				return nil, fmt.Errorf("query internal metadata by metadataId failed, %s", err)
 			}
 
-			dataOriginId, err := policy.FetchOriginId(internalMetadata.GetData().GetDataType(), internalMetadata.GetData().GetMetadataOption())
+			dataOriginId, err := sche.policyEngine.FetchOriginId(internalMetadata.GetData().GetDataType(), internalMetadata.GetData().GetMetadataOption())
 			if nil != err {
 				log.WithError(err).Errorf("not fetch internalMetadata originId from task metadataOption on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, userType: {%s}, user: {%s}, metadataId: {%s}",
 					task.GetTaskId(), taskRole.String(), partyId, task.GetTaskData().GetUserType(), task.GetTaskData().GetUser(), internalMetadata.GetData().GetMetadataId())
 				return nil, fmt.Errorf("%s when fetch metadataId from task dataPolicy", err)
 			}
-			dataResourceFileUpload, err := sche.resourceMng.GetDB().QueryDataResourceFileUpload(dataOriginId)
+			dataResourceDataUpload, err := sche.resourceMng.GetDB().QueryDataResourceDataUpload(dataOriginId)
 			if nil != err {
-				log.WithError(err).Errorf("Failed query dataResourceFileUpload on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, metadataId: {%s}",
+				log.WithError(err).Errorf("Failed query dataResourceDataUpload on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, metadataId: {%s}",
 					task.GetTaskId(), taskRole.String(), partyId, metadataId)
 				return nil, fmt.Errorf("query dataFileUpload by originId failed, %s", err)
 			}
-			dataNodeId = dataResourceFileUpload.GetNodeId()
+			dataNodeId = dataResourceDataUpload.GetNodeId()
 		} else {
 
 			dataResourceDiskUsed, err := sche.resourceMng.GetDB().QueryDataResourceDiskUsed(metadataId)
@@ -468,7 +473,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 		var metadataId string
 		for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
 			if identityId == dataSupplier.GetIdentityId() && partyId == dataSupplier.GetPartyId() {
-				mId, err := policy.FetchMetedataIdByPartyIdFromDataPolicy(partyId, task.GetTaskData().GetDataPolicyTypes(), task.GetTaskData().GetDataPolicyOptions())
+				mId, err := sche.policyEngine.FetchMetedataIdByPartyIdFromDataPolicy(partyId, task.GetTaskData().GetDataPolicyTypes(), task.GetTaskData().GetDataPolicyOptions())
 				if nil != err {
 					log.WithError(err).Errorf("not fetch metadataId from task dataPolicy on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, userType: {%s}, user: {%s}",
 						task.GetTaskId(), taskRole.String(), partyId, task.GetTaskData().GetUserType(), task.GetTaskData().GetUser())
@@ -561,7 +566,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 						//		that can the datasupplier's datanode be specified as the receiver's datanode
 						if powerPolicy.GetProviderPartyId() == dataSupplier.GetPartyId() && identityId == dataSupplier.GetIdentityId() {
 
-							metadataId, err := policy.FetchMetedataIdByPartyIdFromDataPolicy(dataSupplier.GetPartyId(), task.GetTaskData().GetDataPolicyTypes(), task.GetTaskData().GetDataPolicyOptions())
+							metadataId, err := sche.policyEngine.FetchMetedataIdByPartyIdFromDataPolicy(dataSupplier.GetPartyId(), task.GetTaskData().GetDataPolicyTypes(), task.GetTaskData().GetDataPolicyOptions())
 							if nil != err {
 								log.WithError(err).Errorf("not fetch metadataId from task dataPolicy when dataNode provider election jobNode on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, powerSupplier partyId: {%s}, power provider dataSupplier partyId: {%s}, userType: {%s}, user: {%s}",
 									task.GetTaskId(), taskRole.String(), partyId, dataSupplier.GetPartyId(), task.GetTaskData().GetUserType(), task.GetTaskData().GetUser())
@@ -652,7 +657,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 						//		that can the datasupplier's datanode be specified as the receiver's datanode
 						if receiverPolicy.GetProviderPartyId() == dataSupplier.GetPartyId() && identityId == dataSupplier.GetIdentityId() {
 
-							metadataId, err := policy.FetchMetedataIdByPartyIdFromDataPolicy(dataSupplier.GetPartyId(), task.GetTaskData().GetDataPolicyTypes(), task.GetTaskData().GetDataPolicyOptions())
+							metadataId, err := sche.policyEngine.FetchMetedataIdByPartyIdFromDataPolicy(dataSupplier.GetPartyId(), task.GetTaskData().GetDataPolicyTypes(), task.GetTaskData().GetDataPolicyOptions())
 							if nil != err {
 								log.WithError(err).Errorf("not fetch metadataId from task dataPolicy when dataNode provider receiver on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, receiver partyId: {%s}, receiver provider dataSupplier partyId: {%s}, userType: {%s}, user: {%s}",
 									task.GetTaskId(), taskRole.String(), partyId, dataSupplier.GetPartyId(), task.GetTaskData().GetUserType(), task.GetTaskData().GetUser())

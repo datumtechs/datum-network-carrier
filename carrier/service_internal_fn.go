@@ -2,7 +2,7 @@ package carrier
 
 import (
 	"fmt"
-	"github.com/datumtechs/datum-network-carrier/core/rawdb"
+	rawdb "github.com/datumtechs/datum-network-carrier/carrierdb/rawdb"
 	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	"github.com/datumtechs/datum-network-carrier/service/discovery"
 	"github.com/datumtechs/datum-network-carrier/types"

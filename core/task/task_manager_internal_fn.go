@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	rawdb "github.com/datumtechs/datum-network-carrier/carrierdb/rawdb"
 	carriercommon "github.com/datumtechs/datum-network-carrier/common"
 	"github.com/datumtechs/datum-network-carrier/common/hexutil"
 	"github.com/datumtechs/datum-network-carrier/common/runutil"
@@ -12,7 +13,7 @@ import (
 	"github.com/datumtechs/datum-network-carrier/common/traceutil"
 	ctypes "github.com/datumtechs/datum-network-carrier/consensus/twopc/types"
 	ev "github.com/datumtechs/datum-network-carrier/core/evengine"
-	"github.com/datumtechs/datum-network-carrier/core/rawdb"
+	"github.com/datumtechs/datum-network-carrier/core/policy"
 	"github.com/datumtechs/datum-network-carrier/core/resource"
 	"github.com/datumtechs/datum-network-carrier/core/schedule"
 	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
@@ -26,7 +27,6 @@ import (
 	carriernetmsgtaskmngpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/taskmng"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	fighterpbtypes "github.com/datumtechs/datum-network-carrier/pb/fighter/types"
-	"github.com/datumtechs/datum-network-carrier/policy"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"strconv"
@@ -149,7 +149,7 @@ func (m *Manager) beginConsumeByMetadataAuth(task *types.NeedExecuteTask, localT
 				userType := localTask.GetTaskData().GetUserType()
 				user := localTask.GetTaskData().GetUser()
 
-				metadataId, err := policy.FetchMetedataIdByPartyIdFromDataPolicy(partyId, localTask.GetTaskData().GetDataPolicyTypes(), localTask.GetTaskData().GetDataPolicyOptions())
+				metadataId, err := m.policyEngine.FetchMetedataIdByPartyIdFromDataPolicy(partyId, localTask.GetTaskData().GetDataPolicyTypes(), localTask.GetTaskData().GetDataPolicyOptions())
 				if nil != err {
 					return fmt.Errorf("not fetch metadataId from task dataPolicy when call beginConsumeByMetadataAuth(), %s, taskId: {%s}, partyId: {%s}",
 						err, localTask.GetTaskId(), partyId)
@@ -197,6 +197,46 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 
 	partyId := task.GetLocalTaskOrganization().GetPartyId()
 
+	checkMetadataIdsFn := func() (bool, []string, error){
+		// fetch all datatoken contract adresses of metadata of task
+		metadataIds, err := m.policyEngine.FetchAllMetedataIdsFromDataPolicy(localTask.GetTaskData().GetDataPolicyTypes(), localTask.GetTaskData().GetDataPolicyOptions())
+		if nil != err {
+			return false, nil, fmt.Errorf("cannot fetch all metadataIds of dataPolicyOption on beginConsumeByDataToken(), %s", err)
+		}
+		// filter ignoreMetadataId (internalMetadata of other organizations) AND internalMetadata of current organization from metadataIds
+		//
+		// #### NOTE ####
+		// If the `powerSupplier` or the `receiver` and the `dataSupplier` belong to the same organization,
+		// the `internal metadataId` can be obtained, so we must ignore it.
+		//
+		// `Internal metadata` will not be consumed datatoken.
+		//
+		filterMetadataIds := make([]string, 0)
+		for _, metadataId := range metadataIds {
+			// If it is not the `internal metadata` of other organizations,
+			// and it is not the `internal metadata` of the current organization.
+			if metadataId == policy.IgnoreMetadataId {
+				continue
+			}
+			is, err := m.resourceMng.GetDB().IsInternalMetadataById(metadataId)
+			if nil != err {
+				return false, nil, fmt.Errorf("can not verify metadata is `internal metadata` whether or not on beginConsumeByDataToken(), %s", err)
+			}
+			if is {
+				continue
+			}
+
+			// collect `non-internal metadataId`.
+			filterMetadataIds = append(filterMetadataIds, metadataId)
+		}
+		if len(filterMetadataIds) == 0 {
+			log.Warnf("Has not found anyone non-ignoreMetadataId then we do not need to consume tk of metadata on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}",
+				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
+			return true, nil, nil
+		}
+		return false, filterMetadataIds, nil
+	}
+
 	switch task.GetLocalTaskRole() {
 	case commonconstantpb.TaskRole_TaskRole_Sender:
 
@@ -216,12 +256,16 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		  User_3 = 3;    // Ethereum
 		*/
 
-		// fetch all datatoken contract adresses of metadata of task
-		metadataIds, err := policy.FetchAllMetedataIdsFromDataPolicy(localTask.GetTaskData().GetDataPolicyTypes(), localTask.GetTaskData().GetDataPolicyOptions())
+		// check metadataIds of dataPolicy of local task
+		done, filterMetadataIds, err := checkMetadataIdsFn()
 		if nil != err {
-			return fmt.Errorf("cannot fetch all metadataIds of dataPolicyOption on beginConsumeByDataToken(), %s", err)
+			return err
 		}
-		metadataList, err := m.resourceMng.GetDB().QueryMetadataByIds(metadataIds)
+		if done {
+			return nil
+		}
+
+		metadataList, err := m.resourceMng.GetDB().QueryMetadataByIds(filterMetadataIds)
 		if nil != err {
 			return fmt.Errorf("call QueryMetadataByIds() failed on beginConsumeByDataToken(), %s", err)
 		}
@@ -231,6 +275,9 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 
 		dataTokenAaddresses := make([]ethereumcommon.Address, len(metadataList))
 		for i, metadata := range metadataList {
+			if "" == metadata.GetData().GetTokenAddress() {
+				return fmt.Errorf("metadata has not tkAddress on beginConsumeByDataToken(), metadataId: {%s}", metadata.GetData().GetMetadataId())
+			}
 			addr := ethereumcommon.HexToAddress(metadata.GetData().GetTokenAddress())
 			dataTokenAaddresses[i] = addr
 			addrs[i] = addr.String()
@@ -238,7 +285,7 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 
 		user := ethereumcommon.HexToAddress(localTask.GetTaskData().GetUser())
 
-		log.Debugf("Start call token20PayManager.prepay(), taskId: {%s}, partyId: {%s}, call params{taskIdBigInt: %d, taskSponsorAccount: %s, dataTokenAaddresses: %s}",
+		log.Debugf("Start call token20PayManager.prepay() on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, call params{taskIdBigInt: %d, taskSponsorAccount: %s, dataTokenAaddresses: %s}",
 			task.GetTaskId(), partyId, taskIdBigInt, user.String(), "["+strings.Join(addrs, ",")+"]")
 
 		// start prepay dataToken
@@ -314,6 +361,39 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		return nil
 	case commonconstantpb.TaskRole_TaskRole_DataSupplier, commonconstantpb.TaskRole_TaskRole_PowerSupplier, commonconstantpb.TaskRole_TaskRole_Receiver:
 
+		// check metadataId of myself (only by dataSupplier)
+		if task.GetLocalTaskRole() == commonconstantpb.TaskRole_TaskRole_DataSupplier {
+			metadataId, err := m.policyEngine.FetchMetedataIdByPartyIdFromDataPolicy(task.GetLocalTaskOrganization().GetPartyId(),
+				localTask.GetTaskData().GetDataPolicyTypes(), localTask.GetTaskData().GetDataPolicyOptions())
+			if nil != err {
+				return fmt.Errorf("can not fetch metadataId from dataPolicy of task on on beginConsumeByDataToken(), %s", err)
+			}
+
+			is, err := m.resourceMng.GetDB().IsInternalMetadataById(metadataId)
+			if nil != err {
+				return fmt.Errorf("can not verify metadata is `internal metadata` whether or not on beginConsumeByDataToken(), %s", err)
+			}
+			if is {
+				log.Warnf("the metadata is `internal metadata` direct short circuit on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, metadataId: {%s}",
+					task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), metadataId)
+				return nil
+			}
+		}
+
+		// check metadataId of dataSupplier (just by powerSupplier OR receiver)
+		if task.GetLocalTaskRole() == commonconstantpb.TaskRole_TaskRole_PowerSupplier ||
+			task.GetLocalTaskRole() == commonconstantpb.TaskRole_TaskRole_Receiver {
+			// check metadataIds of dataPolicy of local task
+			done, _, err := checkMetadataIdsFn()
+			if nil != err {
+				return err
+			}
+			if done {
+				return nil
+			}
+		}
+
+
 		taskIdBigInt, err := hexutil.DecodeBig("0x" + strings.TrimLeft(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID+"0x"), "\x00"))
 		if nil != err {
 			return fmt.Errorf("cannot decode taskId to big.Int on beginConsumeByDataToken(), %s", err)
@@ -340,7 +420,7 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 					log.Warnf("Warning query task state of token20Pay time out on blockchain on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}, startTime: {%d <==> %s}, endTime: {%d <==> %s}, duration: %d ms",
 						task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt, start, time.Unix(start/1000, 0).Format("2006-01-02 15:04:05"), end, time.Unix(end/1000, 0).Format("2006-01-02 15:04:05"), end-start)
 
-					return 0, fmt.Errorf("query task state of token20Pay time out")
+					return 0, fmt.Errorf("query task state of token20Pay time out on beginConsumeByDataToken()")
 				case <-ticker.C:
 					state, err := m.token20PayMng.GetTaskState(taskIdBigInt)
 					if nil != err {
@@ -400,10 +480,58 @@ func (m *Manager) endConsumeByMetadataAuth(task *types.NeedExecuteTask, localTas
 }
 func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *types.Task) error {
 
-	partyId := task.GetLocalTaskOrganization().GetPartyId()
+
+	checkMetadataIdsFn := func() (bool, []string, error){
+		// fetch all datatoken contract adresses of metadata of task
+		metadataIds, err := m.policyEngine.FetchAllMetedataIdsFromDataPolicy(localTask.GetTaskData().GetDataPolicyTypes(), localTask.GetTaskData().GetDataPolicyOptions())
+		if nil != err {
+			return false, nil, fmt.Errorf("cannot fetch all metadataIds of dataPolicyOption on endConsumeByDataToken(), %s", err)
+		}
+		// filter ignoreMetadataId (internalMetadata of other organizations) AND internalMetadata of current organization from metadataIds
+		//
+		// #### NOTE ####
+		// If the `powerSupplier` or the `receiver` and the `dataSupplier` belong to the same organization,
+		// the `internal metadataId` can be obtained, so we must ignore it.
+		//
+		// `Internal metadata` will not be consumed datatoken.
+		//
+		filterMetadataIds := make([]string, 0)
+		for _, metadataId := range metadataIds {
+			// If it is not the `internal metadata` of other organizations,
+			// and it is not the `internal metadata` of the current organization.
+			if metadataId == policy.IgnoreMetadataId {
+				continue
+			}
+			is, err := m.resourceMng.GetDB().IsInternalMetadataById(metadataId)
+			if nil != err {
+				return false, nil, fmt.Errorf("can not verify metadata is `internal metadata` whether or not on endConsumeByDataToken(), %s", err)
+			}
+			if is {
+				continue
+			}
+
+			// collect `non-internal metadataId`.
+			filterMetadataIds = append(filterMetadataIds, metadataId)
+		}
+		if len(filterMetadataIds) == 0 {
+			log.Warnf("Has not found anyone non-ignoreMetadataId then we do not need to consume tk of metadata on endConsumeByDataToken(), taskId: {%s}, partyId: {%s}",
+				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
+			return true, nil, nil
+		}
+		return false, filterMetadataIds, nil
+	}
 
 	switch task.GetLocalTaskRole() {
 	case commonconstantpb.TaskRole_TaskRole_Sender:
+
+		// check metadataIds of dataPolicy of local task
+		done, _, err := checkMetadataIdsFn()
+		if nil != err {
+			return err
+		}
+		if done {
+			return nil
+		}
 
 		// query consumeSpec of task
 		var consumeSpec *types.DatatokenPaySpec
@@ -416,9 +544,9 @@ func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *
 			return fmt.Errorf("cannot json unmarshal consumeSpec on endConsumeByDataToken(), consumeSpec: %s, %s", task.GetConsumeSpec(), err)
 		}
 
-		if partyId != localTask.GetTaskSender().GetPartyId() {
+		if task.GetLocalTaskOrganization().GetPartyId() != localTask.GetTaskSender().GetPartyId() {
 			return fmt.Errorf("this partyId is not task sender on endConsumeByDataToken(), partyId: %s, sender partyId: %s",
-				partyId, localTask.GetTaskSender().GetPartyId())
+				task.GetLocalTaskOrganization().GetPartyId(), localTask.GetTaskSender().GetPartyId())
 		}
 
 		// check task state in contract
@@ -426,7 +554,7 @@ func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *
 		// If the state of the contract is not "prepay",
 		// the settlement action will not be performed
 		if consumeSpec.GetConsumed() != 1 {
-			log.Warnf("Warning the task state value of contract is not `prepay`, the settlement action will not be performed, taskId: {%s}, partyId: {%s}, state: {%d}",
+			log.Warnf("Warning the task state value of contract is not `prepay`, the settlement action will not be performed on endConsumeByDataToken(), taskId: {%s}, partyId: {%s}, state: {%d}",
 				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), consumeSpec.GetConsumed())
 			return nil
 		}
@@ -436,8 +564,8 @@ func (m *Manager) endConsumeByDataToken(task *types.NeedExecuteTask, localTask *
 			return fmt.Errorf("cannot decode taskId to big.Int on endConsumeByDataToken(), %s", err)
 		}
 
-		log.Debugf("Start call token20Pay.settle(), taskId: {%s}, partyId: {%s}, call params{taskIdBigInt: %d, gasUsedPrepay: %d}",
-			task.GetTaskId(), partyId, taskIdBigInt, consumeSpec.GetGasUsed())
+		log.Debugf("Start call token20Pay.settle() on endConsumeByDataToken(), taskId: {%s}, partyId: {%s}, call params{taskIdBigInt: %d, gasUsedPrepay: %d}",
+			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt, consumeSpec.GetGasUsed())
 
 		// start prepay dataToken
 		txHash, err := m.token20PayMng.Settle(taskIdBigInt, consumeSpec.GetGasUsed())
@@ -1170,7 +1298,7 @@ func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types
 		for i, policyType := range localTask.GetTaskData().GetDataPolicyTypes() {
 
 			switch policyType {
-			case uint32(commonconstantpb.OrigindataType_OrigindataType_CSV):
+			case types.TASK_DATA_POLICY_CSV:
 
 				var dataPolicy *types.TaskMetadataPolicyCSV
 				if err := json.Unmarshal([]byte(localTask.GetTaskData().GetDataPolicyOptions()[i]), &dataPolicy); nil != err {
@@ -1185,7 +1313,7 @@ func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types
 					}
 					inputDataArr = append(inputDataArr, inputData)
 				}
-			case uint32(commonconstantpb.OrigindataType_OrigindataType_DIR):
+			case types.TASK_DATA_POLICY_DIR:
 				var dataPolicy *types.TaskMetadataPolicyDIR
 				if err := json.Unmarshal([]byte(localTask.GetTaskData().GetDataPolicyOptions()[i]), &dataPolicy); nil != err {
 					return "", fmt.Errorf("can not unmarshal dataPolicyOption, %s, taskId: {%s}, partyId: {%s}", err, localTask.GetTaskId(), partyId)
@@ -1200,7 +1328,7 @@ func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types
 					inputDataArr = append(inputDataArr, inputData)
 				}
 
-			case uint32(commonconstantpb.OrigindataType_OrigindataType_BINARY):
+			case types.TASK_DATA_POLICY_BINARY:
 				var dataPolicy *types.TaskMetadataPolicyBINARY
 				if err := json.Unmarshal([]byte(localTask.GetTaskData().GetDataPolicyOptions()[i]), &dataPolicy); nil != err {
 					return "", fmt.Errorf("can not unmarshal dataPolicyOption, %s, taskId: {%s}, partyId: {%s}", err, localTask.GetTaskId(), partyId)
@@ -1211,6 +1339,21 @@ func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types
 					if nil != err {
 						return "", fmt.Errorf("can not unmarshal metadataInputBINARY, %s, taskId: {%s}, partyId: {%s}, metadataId: {%s}, metadataName: {%s}",
 							err, localTask.GetTaskId(), partyId, dataPolicy.GetMetadataId(), dataPolicy.GetMetadataName())
+					}
+					inputDataArr = append(inputDataArr, inputData)
+				}
+
+			case types.TASK_DATA_POLICY_CSV_WITH_TASKRESULTDATA:
+				var dataPolicy *types.TaskMetadataPolicyCSVWithTaskResultData
+				if err := json.Unmarshal([]byte(localTask.GetTaskData().GetDataPolicyOptions()[i]), &dataPolicy); nil != err {
+					return "", fmt.Errorf("can not unmarshal dataPolicyOption, %s, taskId: {%s}, partyId: {%s}", err, localTask.GetTaskId(), partyId)
+				}
+
+				if dataPolicy.GetPartyId() == partyId {
+					inputData, err := m.metadataInputCSVWithTaskResultData(task, localTask, dataPolicy)
+					if nil != err {
+						return "", fmt.Errorf("can not unmarshal metadataInputCSVWithTaskResultData, %s, taskId: {%s}, partyId: {%s}, taskId of taskResultData: {%s}",
+							err, localTask.GetTaskId(), partyId, dataPolicy.GetTaskId())
 					}
 					inputDataArr = append(inputDataArr, inputData)
 				}
@@ -1404,6 +1547,62 @@ func (m *Manager) metadataInputBINARY(task *types.NeedExecuteTask, localTask *ty
 		DataPath:   dataPath,
 	}, nil
 }
+func (m *Manager) metadataInputCSVWithTaskResultData(task *types.NeedExecuteTask, localTask *types.Task, dataPolicy *types.TaskMetadataPolicyCSVWithTaskResultData) (*types.InputDataCSV, error) {
+
+
+
+	summarry, err := m.resourceMng.GetDB().QueryTaskUpResulData(dataPolicy.GetTaskId())
+	if nil != err {
+		return nil, fmt.Errorf("cannot query taskUpResultData, %s", err)
+	}
+
+	metadata, err := m.resourceMng.GetDB().QueryInternalMetadataById(summarry.GetMetadataId())
+	if nil != err {
+		return nil, fmt.Errorf("cannot query internalMetadata, %s", err)
+	}
+
+	if types.IsNotCSVdata(metadata.GetData().GetDataType()) {
+		return nil, fmt.Errorf("dataType of metadata is not `CSV`, dataType: %s", metadata.GetData().GetDataType().String())
+	}
+
+	var metadataOption *types.MetadataOptionCSV
+	if err := json.Unmarshal([]byte(metadata.GetData().GetMetadataOption()), &metadataOption); nil != err {
+		return nil, fmt.Errorf("can not unmarshal `CSV` metadataOption, %s", err)
+	}
+
+	// collection all the column name cache
+	columnNameCache := make(map[string]struct{}, 0)
+	for _, mdop := range metadataOption.GetMetadataColumns() {
+		columnNameCache[mdop.GetName()] = struct{}{}
+	}
+	// find key column name
+	if _, ok := columnNameCache[dataPolicy.QueryKeyColumnName()]; !ok {
+		return nil, fmt.Errorf("not found the keyColumn of task dataPolicy on `CSV` metadataOption, columnName: {%s}", dataPolicy.QueryKeyColumnName())
+	}
+
+	// find all select column names
+	for _, selectedColumnName := range dataPolicy.QuerySelectedColumnNames() {
+
+		if _, ok := columnNameCache[selectedColumnName]; !ok {
+			return nil, fmt.Errorf("not found the selectColumn of task dataPolicy on `CSV` metadataOption, columnName: {%s}", selectedColumnName)
+		}
+	}
+
+	dataPath := metadataOption.GetDataPath()
+	if strings.Trim(dataPath, "") == "" {
+		return nil, fmt.Errorf("dataPath is empty")
+	}
+
+	return &types.InputDataCSV{
+		InputType:       dataPolicy.QueryInputType(),
+		AccessType:      uint32(metadata.GetData().GetLocationType()),
+		DataType:        uint32(metadata.GetData().GetDataType()),
+		DataPath:        dataPath,
+		KeyColumn:       dataPolicy.QueryKeyColumnName(),
+		SelectedColumns: dataPolicy.QuerySelectedColumnNames(),
+	}, nil
+}
+
 
 func (m *Manager) makeConnectPolicy(task *types.NeedExecuteTask, localTask *types.Task) (commonconstantpb.ConnectPolicyFormat, string, error) {
 
@@ -2098,7 +2297,7 @@ func (m *Manager) storeMetadataUsedTaskId(task *types.Task) error {
 	for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
 		if dataSupplier.GetIdentityId() == identityId {
 
-			metadataId, err := policy.FetchMetedataIdByPartyIdFromDataPolicy(dataSupplier.GetPartyId(), task.GetTaskData().GetDataPolicyTypes(), task.GetTaskData().GetDataPolicyOptions())
+			metadataId, err := m.policyEngine.FetchMetedataIdByPartyIdFromDataPolicy(dataSupplier.GetPartyId(), task.GetTaskData().GetDataPolicyTypes(), task.GetTaskData().GetDataPolicyOptions())
 			if nil != err {
 				return fmt.Errorf("not fetch metadataId from task dataPolicy, %s, partyId: {%s}", err, dataSupplier.GetPartyId())
 			}

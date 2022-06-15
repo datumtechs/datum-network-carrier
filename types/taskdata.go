@@ -109,7 +109,7 @@ func (s TaskDataArray) To() []*carriertypespb.TaskPB {
 	return arr
 }
 
-type TaskResultFileSummary struct {
+type TaskResultDataSummary struct {
 	TaskId         string
 	MetadataId     string
 	OriginId       string
@@ -121,8 +121,8 @@ type TaskResultFileSummary struct {
 	DataType       uint32
 }
 
-func NewTaskResultFileSummary(taskId, metadataId, originId, metadataName, dataHash, metadataOption, nodeId, extra string, dataType uint32) *TaskResultFileSummary {
-	return &TaskResultFileSummary{
+func NewTaskResultDataSummary(taskId, metadataId, originId, metadataName, dataHash, metadataOption, nodeId, extra string, dataType uint32) *TaskResultDataSummary {
+	return &TaskResultDataSummary{
 		TaskId:         taskId,
 		MetadataId:     metadataId,
 		OriginId:       originId,
@@ -134,14 +134,14 @@ func NewTaskResultFileSummary(taskId, metadataId, originId, metadataName, dataHa
 		DataType:       dataType,
 	}
 }
-func (trfs *TaskResultFileSummary) GetTaskId() string         { return trfs.TaskId }
-func (trfs *TaskResultFileSummary) GetMetadataName() string   { return trfs.MetadataName }
-func (trfs *TaskResultFileSummary) GetMetadataId() string     { return trfs.MetadataId }
-func (trfs *TaskResultFileSummary) GetOriginId() string       { return trfs.OriginId }
-func (trfs *TaskResultFileSummary) GetNodeId() string         { return trfs.NodeId }
-func (trfs *TaskResultFileSummary) GetExtra() string          { return trfs.Extra }
-func (trfs *TaskResultFileSummary) GetDataHash() string       { return trfs.DataHash }
-func (trfs *TaskResultFileSummary) GetMetadataOption() string { return trfs.MetadataOption }
-func (trfs *TaskResultFileSummary) GetDataType() uint32       { return trfs.DataType }
+func (trfs *TaskResultDataSummary) GetTaskId() string         { return trfs.TaskId }
+func (trfs *TaskResultDataSummary) GetMetadataName() string   { return trfs.MetadataName }
+func (trfs *TaskResultDataSummary) GetMetadataId() string     { return trfs.MetadataId }
+func (trfs *TaskResultDataSummary) GetOriginId() string       { return trfs.OriginId }
+func (trfs *TaskResultDataSummary) GetNodeId() string         { return trfs.NodeId }
+func (trfs *TaskResultDataSummary) GetExtra() string          { return trfs.Extra }
+func (trfs *TaskResultDataSummary) GetDataHash() string       { return trfs.DataHash }
+func (trfs *TaskResultDataSummary) GetMetadataOption() string { return trfs.MetadataOption }
+func (trfs *TaskResultDataSummary) GetDataType() uint32       { return trfs.DataType }
 
-type TaskResultFileSummaryArr []*TaskResultFileSummary
+type TaskResultDataSummaryArr []*TaskResultDataSummary
