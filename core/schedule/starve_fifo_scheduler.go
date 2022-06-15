@@ -4,8 +4,8 @@ import (
 	"container/heap"
 	"encoding/json"
 	"fmt"
-	"github.com/datumtechs/datum-network-carrier/blacklist"
 	"github.com/datumtechs/datum-network-carrier/ach/auth"
+	"github.com/datumtechs/datum-network-carrier/blacklist"
 	"github.com/datumtechs/datum-network-carrier/carrierdb/rawdb"
 	"github.com/datumtechs/datum-network-carrier/common/bytesutil"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
@@ -13,8 +13,6 @@ import (
 	"github.com/datumtechs/datum-network-carrier/core/election"
 	"github.com/datumtechs/datum-network-carrier/core/evengine"
 	"github.com/datumtechs/datum-network-carrier/core/policy"
-
-	//sche.policyEngine "github.com/datumtechs/datum-network-carrier/core/policy"
 	"github.com/datumtechs/datum-network-carrier/core/resource"
 	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
@@ -55,7 +53,7 @@ type SchedulerStarveFIFO struct {
 	policyEngine *policy.PolicyEngine
 	err error
 	// black org
-	identityBlackListCache   *blacklist.IdentityBackListCache
+	identityBlackListCache *blacklist.IdentityBackListCache
 }
 
 func NewSchedulerStarveFIFO(
@@ -205,7 +203,7 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (resTask *types.NeedConsensusTask
 			var provide *types.TaskPowerPolicyDataNodeProvide
 			if err := json.Unmarshal([]byte(task.GetTaskData().GetPowerPolicyOptions()[i]), &provide); nil != err {
 				log.WithError(err).Errorf("can not unmarshal powerPolicyType, on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
-				return types.NewNeedConsensusTask(task, "",""), bullet.GetTaskId(), fmt.Errorf("can not unmarshal powerPolicyType of task, %d", policyType)
+				return types.NewNeedConsensusTask(task, "", ""), bullet.GetTaskId(), fmt.Errorf("can not unmarshal powerPolicyType of task, %d", policyType)
 			}
 
 			var collecter *ScheduleWithDataNodeProvidePower
@@ -225,7 +223,7 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (resTask *types.NeedConsensusTask
 		// NOTE: unknown powerPolicyType
 		default:
 			log.WithError(err).Errorf("unknown powerPolicyType of task on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
-			return types.NewNeedConsensusTask(task, "",""), bullet.GetTaskId(), fmt.Errorf("unknown powerPolicyType of task, %d", policyType)
+			return types.NewNeedConsensusTask(task, "", ""), bullet.GetTaskId(), fmt.Errorf("unknown powerPolicyType of task, %d", policyType)
 		}
 
 	}
@@ -253,18 +251,18 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (resTask *types.NeedConsensusTask
 				}, coller.(*ScheduleWithSymbolRandomElectionPower).GetPartyIds())
 			if nil != err {
 				log.WithError(err).Errorf("vrf election powerSupplier failed on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
-				return types.NewNeedConsensusTask(task, "",""), bullet.GetTaskId(), err
+				return types.NewNeedConsensusTask(task, "", ""), bullet.GetTaskId(), err
 			}
 
 			if "" == strings.Trim(evidenceJson, "") {
 				log.Errorf("vrf election evidenceJson is empty on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
-				return types.NewNeedConsensusTask(task, "",""), bullet.GetTaskId(), fmt.Errorf("vrf election evidenceJson is empty")
+				return types.NewNeedConsensusTask(task, "", ""), bullet.GetTaskId(), fmt.Errorf("vrf election evidenceJson is empty")
 			}
 
 			for i, org := range orgs {
 				if index, ok := partyIdAndIndexCache[org.GetPartyId()]; !ok {
 					log.Errorf("not found partyId of powerSupplier in partyIdAndIndexCache with vrf election powerSupplier on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}, partyId: {%s}", task.GetTaskId(), org.GetPartyId())
-					return types.NewNeedConsensusTask(task, "",""), bullet.GetTaskId(), fmt.Errorf("invalid partyId")
+					return types.NewNeedConsensusTask(task, "", ""), bullet.GetTaskId(), fmt.Errorf("invalid partyId")
 				} else {
 					powerOrgs[index] = org
 					powerResources[index] = resources[i]
@@ -278,13 +276,13 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (resTask *types.NeedConsensusTask
 			orgs, resources, err := sche.scheduleDataNodeProvidePower(task, coller.(*ScheduleWithDataNodeProvidePower).Getprovides())
 			if nil != err {
 				log.WithError(err).Errorf("dataNodeProvider election powerSupplier failed on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
-				return types.NewNeedConsensusTask(task, "",""), bullet.GetTaskId(), err
+				return types.NewNeedConsensusTask(task, "", ""), bullet.GetTaskId(), err
 			}
 
 			for i, org := range orgs {
 				if index, ok := partyIdAndIndexCache[org.GetPartyId()]; !ok {
 					log.Errorf("not found partyId of powerSupplier in partyIdAndIndexCache with dataNodeProvider election powerSupplier on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}, partyId: {%s}", task.GetTaskId(), org.GetPartyId())
-					return types.NewNeedConsensusTask(task, "",""), bullet.GetTaskId(), fmt.Errorf("invalid partyId")
+					return types.NewNeedConsensusTask(task, "", ""), bullet.GetTaskId(), fmt.Errorf("invalid partyId")
 				} else {
 					powerOrgs[index] = org
 					powerResources[index] = resources[i]
@@ -302,10 +300,13 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (resTask *types.NeedConsensusTask
 	// restore task by power
 	if err := sche.resourceMng.GetDB().StoreLocalTask(task); nil != err {
 		log.WithError(err).Errorf("Failed to update local task by election powers on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
-		return types.NewNeedConsensusTask(task, "",""), bullet.GetTaskId(), fmt.Errorf("update local task failed, %s", err)
+		return types.NewNeedConsensusTask(task, "", ""), bullet.GetTaskId(), fmt.Errorf("update local task failed, %s", err)
 	}
-	blackOrgList,_:=json.Marshal(sche.identityBlackListCache.FilterEqualThresholdCountOrg())
-	return types.NewNeedConsensusTask(task, evidence,string(blackOrgList)), bullet.GetTaskId(), nil
+	orgblackList, err := json.Marshal(sche.identityBlackListCache.QueryBlackListIdentityIds())
+	if nil != err {
+		return types.NewNeedConsensusTask(task, "", ""), bullet.GetTaskId(), fmt.Errorf("cannot json unmarshal orgBlackList, %s", err)
+	}
+	return types.NewNeedConsensusTask(task, evidence, string(orgblackList)), bullet.GetTaskId(), nil
 }
 
 func (sche *SchedulerStarveFIFO) ReplaySchedule(
@@ -706,9 +707,13 @@ func (sche *SchedulerStarveFIFO) scheduleVrfElectionPower(taskId string, cost *c
 	now := timeutils.UnixMsecUint64()
 	vrfInput := append([]byte(taskId), bytesutil.Uint64ToBytes(now)...) // input == taskId + nowtime
 	// election other org's power resources
-	blackOrgList:=sche.identityBlackListCache.FilterEqualThresholdCountOrg()
+	blackOrgList := sche.identityBlackListCache.QueryBlackListIdentityIds()
+	skipIdentityIdCache :=  make(map[string]struct{}, 0)
+	for _, identityId := range blackOrgList {
+		skipIdentityIdCache[identityId] = struct{}{}
+	}
 	powers, resources, nonce, weights, err := sche.elector.ElectionOrganization(taskId, partyIds,
-		nil, cost.GetMem(), cost.GetBandwidth(), 0, cost.GetProcessor(), vrfInput, blackOrgList)
+		cost.GetMem(), cost.GetBandwidth(), 0, cost.GetProcessor(), vrfInput, skipIdentityIdCache)
 	if nil != err {
 		log.WithError(err).Errorf("Failed to election powers org on scheduleVrfElectionPower(), taskId: {%s}", taskId)
 		return "", nil, nil, fmt.Errorf("election powerOrg failed, %s", err)
@@ -774,8 +779,10 @@ func (sche *SchedulerStarveFIFO) reScheduleVrfElectionPower(taskId, nodeId strin
 		return fmt.Errorf("received evidence of vrf election is empty")
 	}
 
-	var evidence *policy.VRFElectionEvidence
-	blackOrg:=make(map[string]struct{},0)
+	var (
+		evidence *policy.VRFElectionEvidence
+		blackListOrgs []string
+	)
 
 	if err := json.Unmarshal([]byte(evidenceJson), &evidence); nil != err {
 		return fmt.Errorf("decode evidence failed, %s", err)
@@ -784,15 +791,20 @@ func (sche *SchedulerStarveFIFO) reScheduleVrfElectionPower(taskId, nodeId strin
 		return fmt.Errorf("evidence is nil")
 	}
 
-	if err := json.Unmarshal([]byte(blackOrgJson), &blackOrg); nil != err {
-		log.WithError(err).Errorf("blackOrgJson is %s", blackOrgJson)
+	if err := json.Unmarshal([]byte(blackOrgJson), &blackListOrgs); nil != err {
+		return fmt.Errorf("decode blackList failed, %s", err)
 	}
+	skipIdentityIdCache := make(map[string]struct{}, 0)
+	for _, identityId := range blackListOrgs {
+		skipIdentityIdCache[identityId] = struct{}{}
+	}
+
 	vrfInput := append([]byte(taskId), bytesutil.Uint64ToBytes(evidence.GetElectionAt())...) // input == taskId + nowtime
 	// verify orgs of power of task
 	if err := sche.elector.VerifyElectionOrganization(
 		taskId, powerSuppliers,
 		powerResources, nodeId,
-		vrfInput, evidence.GetNonce(), evidence.GetWeights(), blackOrg); nil != err {
+		vrfInput, evidence.GetNonce(), evidence.GetWeights(), skipIdentityIdCache); nil != err {
 		return fmt.Errorf("%s when election power organization", err)
 	}
 	return nil

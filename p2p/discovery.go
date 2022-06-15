@@ -83,15 +83,14 @@ func (s *Service) listenForNewNodes() {
 				log.WithError(err).Tracef("Could not connect with peer %s", info.String())
 				return
 			}
-			go func() {
-				for identityId,v:=range s.blackList.GetAllBlackListInfo(){
-					pid, _ := HexPeerID((*v[0]).NodeId)
-					if pid==info.ID {
-						s.blackList.RemoveBlackOrgByIdentity(identityId)
-						break
-					}
+
+			for nodeId, identityId := range s.blackList.GetBlackListOrgSymbolCache() {
+				pid, _ := HexPeerID(nodeId)
+				if pid == info.ID {
+					s.blackList.RemoveBlackOrgByIdentity(identityId)
+					return
 				}
-			}()
+			}
 		}(peerInfo)
 	}
 }
@@ -117,7 +116,7 @@ func (s *Service) createListener(ipAddr net.IP, privKey *ecdsa.PrivateKey) (*dis
 		bindIP = ipAddr
 	}
 	udpAddr := &net.UDPAddr{
-		IP: bindIP,
+		IP:   bindIP,
 		Port: int(s.cfg.UDPPort),
 	}
 	// Listen to all network interfaces for both ip protocols.
@@ -151,7 +150,7 @@ func (s *Service) createListener(ipAddr net.IP, privKey *ecdsa.PrivateKey) (*dis
 			localNode.SetFallbackIP(firstIP)
 		}
 	}
-	dv5Cfg := discover.Config{PrivateKey: privKey,}
+	dv5Cfg := discover.Config{PrivateKey: privKey}
 	dv5Cfg.Bootnodes = []*enode.Node{}
 	for _, addr := range s.cfg.Discv5BootStrapAddr {
 		bootNode, err := enode.Parse(enode.ValidSchemes, addr)
@@ -401,5 +400,3 @@ func checkGenericAddrs(addr string) error {
 	}
 	return nil
 }
-
-

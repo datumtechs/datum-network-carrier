@@ -203,8 +203,8 @@ func (w *walDB) DeleteState(key []byte) error {
 	return w.DeleteByKey(key)
 }
 
-func (w *walDB) DeleteBlackOrg(key []byte) error{
-	return w.DeleteByKey(key)
+func (w *walDB) RemoveBlackTaskOrg(identityId string) error{
+	return w.DeleteByKey(w.GetOrgBlacklistCacheKey(identityId))
 }
 
 func (w *walDB) DeleteByKey(key []byte) error {
@@ -256,7 +256,7 @@ func (w *walDB) UnmarshalTest() {
 	}
 }
 
-func (w *walDB) StoreBlackTaskOrg(identityId string, info []*blacklist.OrganizationTaskInfo) {
+func (w *walDB) StoreBlackTaskOrg(identityId string, info []*blacklist.ConsensusProposalTickInfo) {
 	key := w.GetOrgBlacklistCacheKey(identityId)
 	_, err := w.db.Get(key)
 	if rawdb.IsNoDBNotFoundErr(err) {
