@@ -158,6 +158,11 @@ func (t *Twopc) addmonitor(orgState *ctypes.OrgProposalState) {
 
 				_, ok := t.state.QueryProposalTaskWithTaskIdAndPartyId(orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId())
 
+				// query local task.
+				localTask, queryTaskErr := t.resourceMng.GetDB().QueryLocalTask(orgState.GetTaskId())
+				// check blacklist of organization before remove all things about proposal for task.
+				t.identityBlackListCache.CheckConsensusResultOfNotExistVote(orgState.GetProposalId(),localTask)
+				// then remove all things about proposal for task.
 				t.state.RemoveProposalTaskWithTaskIdAndPartyId(orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId())                   // remove proposal task with partyId
 				t.state.RemoveOrgProposalStateWithProposalIdAndPartyIdUnsafe(orgState.GetProposalId(), orgState.GetTaskOrg().GetPartyId()) // remove state with partyId
 				t.state.RemoveOrgPrepareVoteState(orgState.GetProposalId(), orgState.GetTaskOrg().GetPartyId())                            // remove prepare vote with partyId
@@ -177,8 +182,8 @@ func (t *Twopc) addmonitor(orgState *ctypes.OrgProposalState) {
 					return
 				}
 
-				task, err1 := t.resourceMng.GetDB().QueryLocalTask(orgState.GetTaskId())
-				if nil == err1 {
+
+				if nil == queryTaskErr {
 					// release local resource and clean some data  (on task partenr)
 					t.resourceMng.GetDB().StoreTaskEvent(&carriertypespb.TaskEvent{
 						Type:       evengine.TaskProposalStateDeadline.GetType(),
@@ -201,7 +206,6 @@ func (t *Twopc) addmonitor(orgState *ctypes.OrgProposalState) {
 							IdentityId: identity.GetIdentityId(),
 						},
 						orgState.GetTaskSender(), types.TaskConsensusInterrupt)
-					t.identityBlackListCache.CheckConsensusResultOfNotExistVote(orgState.GetProposalId(),task)
 				}
 			} else {
 				// OR epoch is commit but time just is commit time out

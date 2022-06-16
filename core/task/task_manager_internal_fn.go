@@ -197,12 +197,13 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 
 	partyId := task.GetLocalTaskOrganization().GetPartyId()
 
-	checkMetadataIdsFn := func() (bool, []string, error){
+	filterInternalMetadataFn := func() (bool, []string, []*types.Metadata, error){
 		// fetch all datatoken contract adresses of metadata of task
 		metadataIds, err := m.policyEngine.FetchAllMetedataIdsFromDataPolicy(localTask.GetTaskData().GetDataPolicyTypes(), localTask.GetTaskData().GetDataPolicyOptions())
 		if nil != err {
-			return false, nil, fmt.Errorf("cannot fetch all metadataIds of dataPolicyOption on beginConsumeByDataToken(), %s", err)
+			return false, nil, nil, fmt.Errorf("cannot fetch all metadataIds of dataPolicyOption on beginConsumeByDataToken(), %s", err)
 		}
+
 		// filter ignoreMetadataId (internalMetadata of other organizations) AND internalMetadata of current organization from metadataIds
 		//
 		// #### NOTE ####
@@ -211,30 +212,52 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		//
 		// `Internal metadata` will not be consumed datatoken.
 		//
-		filterMetadataIds := make([]string, 0)
-		for _, metadataId := range metadataIds {
-			// If it is not the `internal metadata` of other organizations,
-			// and it is not the `internal metadata` of the current organization.
-			if metadataId == policy.IgnoreMetadataId {
-				continue
-			}
-			is, err := m.resourceMng.GetDB().IsInternalMetadataById(metadataId)
-			if nil != err {
-				return false, nil, fmt.Errorf("can not verify metadata is `internal metadata` whether or not on beginConsumeByDataToken(), %s", err)
-			}
-			if is {
-				continue
-			}
-
-			// collect `non-internal metadataId`.
-			filterMetadataIds = append(filterMetadataIds, metadataId)
+		metadataList, err := m.resourceMng.GetDB().QueryMetadataByIds(metadataIds)
+		if nil != err {
+			return false, nil, nil, fmt.Errorf("call QueryMetadataByIds() failed on beginConsumeByDataToken(), %s", err)
 		}
-		if len(filterMetadataIds) == 0 {
+
+		// Just all internal metadata
+		if len(metadataList) == 0 {
 			log.Warnf("Has not found anyone non-ignoreMetadataId then we do not need to consume tk of metadata on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}",
 				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
-			return true, nil, nil
+			return true, nil, nil, nil
 		}
-		return false, filterMetadataIds, nil
+
+		// Just have some global metadata
+		if len(metadataIds) == len(metadataList) {
+			return false, metadataIds, metadataList, nil
+		}
+		ids := make([]string, len(metadataList))
+		for i, metadata := range metadataList {
+			ids[i] = metadata.GetData().GetMetadataId()
+		}
+		return false, ids, metadataList, nil
+
+		//filterMetadataIds := make([]string, 0)
+		//for _, metadataId := range metadataIds {
+		//	// If it is not the `internal metadata` of other organizations,
+		//	// and it is not the `internal metadata` of the current organization.
+		//	if metadataId == policy.IgnoreMetadataId {
+		//		continue
+		//	}
+		//	is, err := m.resourceMng.GetDB().IsInternalMetadataById(metadataId)
+		//	if nil != err {
+		//		return false, nil, fmt.Errorf("can not verify metadata is `internal metadata` whether or not on beginConsumeByDataToken(), %s", err)
+		//	}
+		//	if is {
+		//		continue
+		//	}
+		//
+		//	// collect `non-internal metadataId`.
+		//	filterMetadataIds = append(filterMetadataIds, metadataId)
+		//}
+		//if len(filterMetadataIds) == 0 {
+		//	log.Warnf("Has not found anyone non-ignoreMetadataId then we do not need to consume tk of metadata on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}",
+		//		task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
+		//	return true, nil, nil
+		//}
+		//return false, filterMetadataIds, nil
 	}
 
 	switch task.GetLocalTaskRole() {
@@ -257,17 +280,14 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		*/
 
 		// check metadataIds of dataPolicy of local task
-		done, filterMetadataIds, err := checkMetadataIdsFn()
+		done, filterMetadataIds, metadataList, err := filterInternalMetadataFn()
 		if nil != err {
 			return err
 		}
+		log.Warnf("call filterInternalMetadataFn() on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, done: {%v}, metadataIds: %s",
+			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), done, "[" + strings.Join(filterMetadataIds, ",") + "]")
 		if done {
 			return nil
-		}
-
-		metadataList, err := m.resourceMng.GetDB().QueryMetadataByIds(filterMetadataIds)
-		if nil != err {
-			return fmt.Errorf("call QueryMetadataByIds() failed on beginConsumeByDataToken(), %s", err)
 		}
 
 		// for debug log...
@@ -384,10 +404,12 @@ func (m *Manager) beginConsumeByDataToken(task *types.NeedExecuteTask, localTask
 		if task.GetLocalTaskRole() == commonconstantpb.TaskRole_TaskRole_PowerSupplier ||
 			task.GetLocalTaskRole() == commonconstantpb.TaskRole_TaskRole_Receiver {
 			// check metadataIds of dataPolicy of local task
-			done, _, err := checkMetadataIdsFn()
+			done, filterMetadataIds, _, err := filterInternalMetadataFn()
 			if nil != err {
 				return err
 			}
+			log.Warnf("call filterInternalMetadataFn() on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, done: {%v}, metadataIds: %s",
+				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), done, "[" + strings.Join(filterMetadataIds, ",") + "]")
 			if done {
 				return nil
 			}
