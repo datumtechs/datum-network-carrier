@@ -166,6 +166,29 @@
         ]
       }
     },
+    "/carrier/v1/debug/getAllBlackOrg": {
+      "get": {
+        "summary": "获取当前组织黑名单",
+        "operationId": "Debug_GetAllBlackOrg",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetConsensusBlackOrgResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "Debug"
+        ]
+      }
+    },
     "/carrier/v1/debug/logging": {
       "post": {
         "summary": "SetLoggingLevel sets the log-level of the beacon node programmatically.",
@@ -302,6 +325,20 @@
         }
       },
       "description": "Peer related metadata that is useful for debugging."
+    },
+    "GetConsensusBlackOrgResponseConsensusProposals": {
+      "type": "object",
+      "properties": {
+        "identity_id": {
+          "type": "string"
+        },
+        "proposal_infos": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ConsensusProposalTickInfo"
+          }
+        }
+      }
     },
     "LoggingLevelRequestLevel": {
       "type": "string",
@@ -469,6 +506,20 @@
       "default": "DISCONNECTED",
       "description": "ConnectionState states the current status of the peer."
     },
+    "v1ConsensusProposalTickInfo": {
+      "type": "object",
+      "properties": {
+        "task_id": {
+          "type": "string"
+        },
+        "node_id": {
+          "type": "string"
+        },
+        "proposal_id": {
+          "type": "string"
+        }
+      }
+    },
     "v1DebugPeerAddResponse": {
       "type": "object",
       "properties": {
@@ -602,6 +653,17 @@
           "type": "object",
           "additionalProperties": {
             "$ref": "#/definitions/v1ProposalState"
+          }
+        }
+      }
+    },
+    "v1GetConsensusBlackOrgResponse": {
+      "type": "object",
+      "properties": {
+        "all_black_org": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/GetConsensusBlackOrgResponseConsensusProposals"
           }
         }
       }
