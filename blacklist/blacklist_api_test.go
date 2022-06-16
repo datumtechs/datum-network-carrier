@@ -249,7 +249,7 @@ func TestFindBlackOrgByWalPrefix(t *testing.T) {
 	assert.NilError(t, err, "get blackOrg list info fail")
 
 
-	obj.RemoveBlackOrgByIdentity("identity:4d7b5f1f114b43b682d9c73d6d2bc18e")
+	obj.RemoveConsensusProposalTicksByIdentity("identity:4d7b5f1f114b43b682d9c73d6d2bc18e")
 	temp = 0
 	for _, _ = range obj.GetBlackListOrgSymbolCache() {
 		temp += 1
@@ -257,6 +257,6 @@ func TestFindBlackOrgByWalPrefix(t *testing.T) {
 
 	assert.Equal(t, temp, 3)
 	for _, identityId := range identityIds {
-		obj.RemoveBlackOrgByIdentity(identityId)
+		obj.RemoveConsensusProposalTicksByIdentity(identityId)
 	}
 }

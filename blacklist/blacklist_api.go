@@ -24,8 +24,8 @@ type BackListEngineAPI interface {
 
 type WalDB interface {
 	ForEachKVWithPrefix(prefix []byte, f func(key, value []byte) error) error
-	StoreBlackTaskOrg(identityId string, info []*ConsensusProposalTickInfo)
-	RemoveBlackTaskOrg(identityId string) error
+	StoreConsensusProposalTicks(identityId string, arr []*ConsensusProposalTickInfo)
+	RemoveConsensusProposalTicks(identityId string) error
 	GetOrgBlacklistCachePrefix() []byte
 }
 
@@ -57,6 +57,8 @@ func (iBlc *IdentityBackListCache) SetEngineAndWal(engine BackListEngineAPI, db 
 }
 
 func (iBlc *IdentityBackListCache) CheckConsensusResultOfNotExistVote(proposalId common.Hash, task *types.Task) {
+
+	log.Debugf("Start call CheckConsensusResultOfNotExistVote(), proposalId: {%s}, taskId: {%s}", proposalId.String(), task.GetTaskId())
 
 	iBlc.orgConsensusProposalTickInfosCacheLock.Lock()
 	defer iBlc.orgConsensusProposalTickInfosCacheLock.Unlock()
@@ -127,7 +129,9 @@ func (iBlc *IdentityBackListCache) CheckConsensusResultOfNotExistVote(proposalId
 			//	 		  when we first process the 'concensusproposalticks' of this organization.
 			if consensusProposalTicksCount < thresholdCount && consensusProposalTicksCount > 0 {
 				delete(iBlc.orgConsensusProposalTickInfosCache, identityId)
-				iBlc.RemoveBlackOrgByIdentity(identityId)
+				iBlc.RemoveConsensusProposalTicksByIdentity(identityId)
+				log.Debugf("Finished remove `consensusProposalTicks` by identityId on CheckConsensusResultOfNotExistVote(), proposalId: {%s}, taskId: {%s}, identityId: {%s}",
+					proposalId.String(), task.GetTaskId(), identityId)
 			}
 		}
 
@@ -156,20 +160,24 @@ func (iBlc *IdentityBackListCache) CheckConsensusResultOfNotExistVote(proposalId
 					ProposalId: proposalId.String(),
 				})
 				iBlc.orgConsensusProposalTickInfosCache[identityId] = consensusProposalTicks
-				iBlc.db.StoreBlackTaskOrg(identityId, consensusProposalTicks)
+				iBlc.db.StoreConsensusProposalTicks(identityId, consensusProposalTicks)
+				log.Debugf("Finished store `consensusProposalTicks` by identityId on CheckConsensusResultOfNotExistVote(), proposalId: {%s}, taskId: {%s}, identityId: {%s}, consensusProposalTicksLen: {%d}",
+					proposalId.String(), task.GetTaskId(), identityId, len(consensusProposalTicks))
 			}
 		}
 	}
 }
 
-func (iBlc *IdentityBackListCache) RemoveBlackOrgByIdentity(identityId string) {
+func (iBlc *IdentityBackListCache) RemoveConsensusProposalTicksByIdentity(identityId string) {
 
 	iBlc.orgConsensusProposalTickInfosCacheLock.Lock()
 	delete(iBlc.orgConsensusProposalTickInfosCache, identityId)
 	iBlc.orgConsensusProposalTickInfosCacheLock.Unlock()
 
-	if err := iBlc.db.RemoveBlackTaskOrg(identityId); nil != err {
-		log.WithError(err).Errorf("RemoveBlackOrgByIdentity failed, identityId: %s", identityId)
+	if err := iBlc.db.RemoveConsensusProposalTicks(identityId); nil != err {
+		log.WithError(err).Errorf("Failed to call db.RemoveConsensusProposalTicksByIdentity(), identityId: {%s}", identityId)
+	} else {
+		log.Debugf("Succeed call db.RemoveConsensusProposalTicksByIdentity(), identityId: {%s}", identityId)
 	}
 }
 
@@ -248,7 +256,7 @@ func (iBlc *IdentityBackListCache) recoveryBlackOrg() {
 		identityId := string(key[prefixLength:])
 		var proposalTicks []*ConsensusProposalTickInfo
 		if err := json.Unmarshal(value, &proposalTicks); nil != err {
-			return fmt.Errorf("cannot json unmarshal proposalTicks of blacklist, identityId: %s", identityId)
+			return fmt.Errorf("cannot json unmarshal `consensusProposalTicks` of blacklist, identityId: %s", identityId)
 		}
 		iBlc.orgConsensusProposalTickInfosCache[identityId] = proposalTicks
 		return nil

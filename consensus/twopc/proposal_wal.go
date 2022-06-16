@@ -17,11 +17,11 @@ import (
 )
 
 var (
-	proposalTaskCachePrefix     = []byte("proposalTaskCache:")  	//	taskId -> partyId -> proposalTask
-	proposalSetPrefix           = []byte("proposalSet:")			// 	proposalId -> partyId -> orgState
-	prepareVotesPrefix          = []byte("prepareVotes:")			//  proposalId -> partyId -> prepareVote
-	confirmVotesPrefix          = []byte("confirmVotes:")			//  proposalId -> partyId -> confirmVote
-	proposalPeerInfoCachePrefix = []byte("proposalPeerInfoCache:")	//  proposalId -> ConfirmTaskPeerInfo
+	proposalTaskCachePrefix     = []byte("proposalTaskCache:")     //	taskId -> partyId -> proposalTask
+	proposalSetPrefix           = []byte("proposalSet:")           // 	proposalId -> partyId -> orgState
+	prepareVotesPrefix          = []byte("prepareVotes:")          //  proposalId -> partyId -> prepareVote
+	confirmVotesPrefix          = []byte("confirmVotes:")          //  proposalId -> partyId -> confirmVote
+	proposalPeerInfoCachePrefix = []byte("proposalPeerInfoCache:") //  proposalId -> ConfirmTaskPeerInfo
 	orgBlacklistCachePrefix     = []byte("orgBlacklistCache:")     // identityId  -> map[string][]*organizationTaskInfo
 )
 
@@ -99,8 +99,8 @@ func (w *walDB) GetOrgBlacklistCacheKey(identityId string) []byte {
 func (w *walDB) StoreProposalTask(partyId string, task *ctypes.ProposalTask) {
 	data, err := proto.Marshal(&carriertypespb.ProposalTask{
 		ProposalId: task.GetProposalId().String(),
-		TaskId: task.GetTaskId(),
-		CreateAt: task.GetCreateAt(),
+		TaskId:     task.GetTaskId(),
+		CreateAt:   task.GetCreateAt(),
 	})
 	if err != nil {
 		log.WithError(err).Fatalf("marshal proposalTask failed, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
@@ -114,14 +114,14 @@ func (w *walDB) StoreProposalTask(partyId string, task *ctypes.ProposalTask) {
 
 func (w *walDB) StoreOrgProposalState(orgState *ctypes.OrgProposalState) {
 	data, err := proto.Marshal(&carriertypespb.OrgProposalState{
-		TaskId:             orgState.GetTaskId(),
-		TaskSender:         orgState.GetTaskSender(),
-		StartAt:            orgState.GetStartAt(),
-		DeadlineDuration:   orgState.GetDeadlineDuration(),
-		CreateAt:           orgState.GetCreateAt(),
-		TaskRole:           orgState.GetTaskRole(),
-		TaskOrg:            orgState.GetTaskOrg(),
-		PeriodNum:          uint32(orgState.GetPeriodNum()),
+		TaskId:           orgState.GetTaskId(),
+		TaskSender:       orgState.GetTaskSender(),
+		StartAt:          orgState.GetStartAt(),
+		DeadlineDuration: orgState.GetDeadlineDuration(),
+		CreateAt:         orgState.GetCreateAt(),
+		TaskRole:         orgState.GetTaskRole(),
+		TaskOrg:          orgState.GetTaskOrg(),
+		PeriodNum:        uint32(orgState.GetPeriodNum()),
 	})
 	if err != nil {
 		log.WithError(err).Fatalf("marshal org proposalState failed, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
@@ -203,7 +203,7 @@ func (w *walDB) DeleteState(key []byte) error {
 	return w.DeleteByKey(key)
 }
 
-func (w *walDB) RemoveBlackTaskOrg(identityId string) error{
+func (w *walDB) RemoveConsensusProposalTicks(identityId string) error {
 	return w.DeleteByKey(w.GetOrgBlacklistCacheKey(identityId))
 }
 
@@ -218,7 +218,7 @@ func (w *walDB) DeleteByKey(key []byte) error {
 	return w.db.Delete(key)
 }
 
-func (w *walDB)  ForEachKV (f func(key, value []byte) error) error {
+func (w *walDB) ForEachKV(f func(key, value []byte) error) error {
 	it := w.db.NewIterator()
 	defer it.Release()
 	for it.Next() {
@@ -229,7 +229,7 @@ func (w *walDB)  ForEachKV (f func(key, value []byte) error) error {
 	return nil
 }
 
-func (w *walDB)  ForEachKVWithPrefix (prefix []byte, f func(key, value []byte) error) error {
+func (w *walDB) ForEachKVWithPrefix(prefix []byte, f func(key, value []byte) error) error {
 	it := w.db.NewIteratorWithPrefix(prefix)
 	defer it.Release()
 	for it.Next() {
@@ -250,26 +250,26 @@ func (w *walDB) UnmarshalTest() {
 		key := it.Key()
 		proposalId := common.BytesToHash(key[prefixLength:])
 		if err := proto.Unmarshal(it.Value(), libProposalPeerInfoCache); err != nil {
-			log.Fatal("marshaling error: ", err)
+			log.WithError(err).Fatalf("marshaling confirmTaskPeerInfo failed, proposalId: {%s}", proposalId.String())
 		}
 		proposalPeerInfoCache[proposalId] = libProposalPeerInfoCache
 	}
 }
 
-func (w *walDB) StoreBlackTaskOrg(identityId string, info []*blacklist.ConsensusProposalTickInfo) {
+func (w *walDB) StoreConsensusProposalTicks(identityId string, arr []*blacklist.ConsensusProposalTickInfo) {
 	key := w.GetOrgBlacklistCacheKey(identityId)
 	_, err := w.db.Get(key)
 	if rawdb.IsNoDBNotFoundErr(err) {
-		log.WithError(err).Errorf("Failed to query local walDB")
+		log.WithError(err).Errorf("can not query old `consensusProposalTicks` from db, identityId: {%s}", identityId)
 		return
 	}
-	value, err := json.Marshal(info)
+	value, err := json.Marshal(arr)
 	if nil != err {
-		log.WithError(err).Errorf("marshal organization blocklist json failed")
+		log.WithError(err).Errorf("can not json marshal new `consensusProposalTicks`, identityId: {%s}", identityId)
 		return
 	}
 	if err := w.db.Put(key, value); err != nil {
-		log.WithError(err).Warnf("Warning save fail,identityId is %s", identityId)
+		log.WithError(err).Errorf("can not store new `consensusProposalTicks` into db, identityId: {%s}", identityId)
 	}
 }
 
