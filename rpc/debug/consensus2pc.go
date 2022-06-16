@@ -3,6 +3,7 @@ package debug
 import (
 	"context"
 	carrierrpcdebugpbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 func (ds *Server) Get2PcProposalStateByTaskId(_ context.Context, req *carrierrpcdebugpbv1.Get2PcProposalStateByTaskIdRequest) (*carrierrpcdebugpbv1.Get2PcProposalStateResponse, error) {
@@ -20,4 +21,7 @@ func (ds *Server) Get2PcProposalPrepare(_ context.Context, req *carrierrpcdebugp
 func (ds *Server) Get2PcProposalConfirm(_ context.Context, req *carrierrpcdebugpbv1.Get2PcProposalConfirmRequest) (*carrierrpcdebugpbv1.Get2PcProposalConfirmResponse, error) {
 	proposalId:=req.GetProposalId()
 	return ds.DebugAPI.Get2PcProposalConfirm(proposalId)
+}
+func (ds *Server) GetAllBlackOrg(_ context.Context, _ *emptypb.Empty) (*carrierrpcdebugpbv1.GetConsensusBlackOrgResponse, error) {
+	return ds.DebugAPI.GetAllBlackOrg()
 }
