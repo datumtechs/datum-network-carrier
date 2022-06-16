@@ -242,7 +242,7 @@ func TestFindBlackOrgByWalPrefix(t *testing.T) {
 	for _, _ = range obj.GetBlackListOrgSymbolCache() {
 		temp += 1
 	}
-	assert.Equal(t, temp, 6)
+	assert.Equal(t, temp, 3)
 
 
 	_, err := obj.GetAllBlackOrg()
@@ -255,7 +255,7 @@ func TestFindBlackOrgByWalPrefix(t *testing.T) {
 		temp += 1
 	}
 
-	assert.Equal(t, temp, 5)
+	assert.Equal(t, temp, 3)
 	for _, identityId := range identityIds {
 		obj.RemoveBlackOrgByIdentity(identityId)
 	}
