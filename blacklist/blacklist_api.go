@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/common"
+	carrierrpcdebugpbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/sirupsen/logrus"
@@ -211,6 +212,29 @@ func (iBlc *IdentityBackListCache) QueryConsensusProposalTickInfoCountByIdentity
 		return 0
 	}
 	return len(result)
+}
+
+func (iBlc *IdentityBackListCache) GetAllBlackOrg() (*carrierrpcdebugpbv1.GetConsensusBlackOrgResponse, error) {
+	result := make([]*carrierrpcdebugpbv1.GetConsensusBlackOrgResponse_ConsensusProposalList, 0)
+	for identityId, taskOrgArr := range iBlc.orgConsensusProposalTickInfosCache {
+		if len(taskOrgArr) == thresholdCount {
+			savePbOrgArr := make([]*carrierrpcdebugpbv1.ConsensusProposalTickInfo, 0)
+			for _, org := range taskOrgArr {
+				savePbOrgArr = append(savePbOrgArr, &carrierrpcdebugpbv1.ConsensusProposalTickInfo{
+					TaskId:     org.TaskId,
+					NodeId:     org.NodeId,
+					ProposalId: org.ProposalId,
+				})
+			}
+			result = append(result, &carrierrpcdebugpbv1.GetConsensusBlackOrgResponse_ConsensusProposalList{
+				IdentityId:       identityId,
+				ProposalInfoList: savePbOrgArr,
+			})
+		}
+	}
+	return &carrierrpcdebugpbv1.GetConsensusBlackOrgResponse{
+		AllBlackOrg: result,
+	}, nil
 }
 
 // internal methods ...

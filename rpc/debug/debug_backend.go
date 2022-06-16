@@ -8,6 +8,7 @@ type TwopcBackend interface {
 	Get2PcProposalStateByProposalId(proposalId string) (*carrierrpcdebugpbv1.Get2PcProposalStateResponse, error)
 	Get2PcProposalPrepare(proposalId string) (*carrierrpcdebugpbv1.Get2PcProposalPrepareResponse, error)
 	Get2PcProposalConfirm(proposalId string) (*carrierrpcdebugpbv1.Get2PcProposalConfirmResponse, error)
+	GetAllBlackOrg() (*carrierrpcdebugpbv1.GetConsensusBlackOrgResponse, error)
 }
 
 type DebugBackend interface {
