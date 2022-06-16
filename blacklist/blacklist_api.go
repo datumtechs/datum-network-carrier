@@ -60,57 +60,102 @@ func (iBlc *IdentityBackListCache) CheckConsensusResultOfNotExistVote(proposalId
 	iBlc.orgConsensusProposalTickInfosCacheLock.Lock()
 	defer iBlc.orgConsensusProposalTickInfosCacheLock.Unlock()
 
+	dataSuppliersIndex := len(task.GetTaskData().GetDataSuppliers())
+	powerSuppliersIndex := dataSuppliersIndex + len(task.GetTaskData().GetPowerSuppliers())
+	mergeTaskOrgsSize := powerSuppliersIndex + len(task.GetTaskData().GetReceivers())
+
 	// [TaskOrganization1, TaskOrganization2, ..., TaskOrganizationN]
-	mergeTaskOrg := append(append(task.GetTaskData().GetDataSuppliers(), task.GetTaskData().GetPowerSuppliers()...), task.GetTaskData().GetReceivers()...)
+	mergeTaskOrgs := make([]*carriertypespb.TaskOrganization, mergeTaskOrgsSize)
+	copy(mergeTaskOrgs[:dataSuppliersIndex], task.GetTaskData().GetDataSuppliers())
+	copy(mergeTaskOrgs[dataSuppliersIndex:powerSuppliersIndex], task.GetTaskData().GetPowerSuppliers())
+	copy(mergeTaskOrgs[powerSuppliersIndex:], task.GetTaskData().GetReceivers())
+
 	// Sort by the identityId field of taskOrg
-	sort.Slice(mergeTaskOrg, func(i, j int) bool {
-		return mergeTaskOrg[i].IdentityId == mergeTaskOrg[j].IdentityId
+	sort.Slice(mergeTaskOrgs, func(i, j int) bool {
+		return mergeTaskOrgs[i].GetIdentityId() == mergeTaskOrgs[j].GetIdentityId()
 	})
 	// Check and judge each taskOrg, and add the eligible taskOrg to blackList or remove it from blackList
 	var (
 		identityId string
-		// tempCount is used to mark whether all taskOrg in the same organization do not have votes
-		tempCount int
+		// identityHasNotVoteCount is used to mark whether all taskOrg in the same organization do not have votes
+		identityHasNotVoteCount int
 		// How many taskOrg are used by sameIdentityIdTaskOrgCount to mark the same identityId
 		sameIdentityIdTaskOrgCount int
+		skip                       = true
 	)
-	jump := true
-	taskId := task.GetTaskId()
-	n := len(mergeTaskOrg)
+
 	// TaskOrg with the same identityId in mergeTaskOrg are adjacent
-	for index, org := range mergeTaskOrg {
-		if identityId != org.IdentityId {
-			identityId = org.IdentityId
-			jump = false
-			tempCount, sameIdentityIdTaskOrgCount = 0, 0
+	for index, org := range mergeTaskOrgs {
+		if identityId != org.GetIdentityId() {
+			identityId = org.GetIdentityId()
+			skip = false
+			identityHasNotVoteCount, sameIdentityIdTaskOrgCount = 0, 0
 		}
 		sameIdentityIdTaskOrgCount += 1
-		if jump {
+		if skip {
 			continue
 		}
-		orgBlacklistCache, ok := iBlc.orgConsensusProposalTickInfosCache[identityId]
-		orgBlacklistCacheCount := len(orgBlacklistCache)
+		consensusProposalTicks, ok := iBlc.orgConsensusProposalTickInfosCache[identityId]
 		if !ok {
-			orgBlacklistCache = make([]*ConsensusProposalTickInfo, 0)
+			consensusProposalTicks = make([]*ConsensusProposalTickInfo, 0)
 		}
-		if !iBlc.hasVoting(proposalId, org) {
-			tempCount += 1
+		consensusProposalTicksCount := len(consensusProposalTicks)
+
+		// #### NOTE ####
+		// Check whether to remove a 'identityid' related information from the blacklist.
+		// ##############
+		//
+		// Whether to remove from the blacklist depends
+		// on whether the 'Taskorganization' of the current partyId of the current organization
+		// passes the "proposed" ticket.
+		if iBlc.hasNotVoting(proposalId, org) {
+			identityHasNotVoteCount += 1
 		} else {
-			jump = true
-			if orgBlacklistCacheCount < thresholdCount && orgBlacklistCacheCount > 0 {
+
+			// As long as a 'Taskorganization' of the organization has voted,
+			// it can skip the subsequent 'Taskorganization' check of the organization.
+			skip = true
+
+			// If the identity has voted (any partner in the local task),
+			// it should be removed from the blacklist directly.
+			//
+			// NOTE:
+			//
+			// condition: consensusProposalTicksCount > 0,
+			//			  the above conditions can only be met
+			//	 		  when we first process the 'concensusproposalticks' of this organization.
+			if consensusProposalTicksCount < thresholdCount && consensusProposalTicksCount > 0 {
 				delete(iBlc.orgConsensusProposalTickInfosCache, identityId)
 				iBlc.RemoveBlackOrgByIdentity(identityId)
 			}
 		}
-		if (index+1 == n) || (mergeTaskOrg[index+1].IdentityId != identityId) {
-			if tempCount == sameIdentityIdTaskOrgCount && orgBlacklistCacheCount < thresholdCount {
-				orgBlacklistCache = append(orgBlacklistCache, &ConsensusProposalTickInfo{
-					TaskId:     taskId,
+
+		// #### NOTE ####
+		// Check whether need to add a 'identityid' related information to the blacklist.
+		// ##############
+		//
+		// If all the 'mergetaskorgs' or all the' taskorganizations' of a 'identityid' are processed,
+		// it can determine whether to add them to the blacklist.
+		//
+		// (NOTE: If the '(index+1 = = mergetaskorgssize)' condition exists,
+		//  the condition '(mergetaskorgs[index+1] GetIdentityId() != Identityid)` out of bounds)
+		if (index+1 == mergeTaskOrgsSize) || (mergeTaskOrgs[index+1].GetIdentityId() != identityId) {
+
+			// When all the 'partyids' of the 'identityid' in a single task do not vote,
+			// and the 'Concensusproposaltick' of the 'identityid' participating in the [not voting],
+			// that is, the count of proposalids is less than the blacklist threshold,
+			// the count of 'concensusproposaltick' will continue to be added.
+			//
+			// (NOTE: When the number of 'consumusproposalstick' reaches the blacklist threshold,
+			//        no more 'consumusproposalstick' will be added)
+			if identityHasNotVoteCount == sameIdentityIdTaskOrgCount && consensusProposalTicksCount < thresholdCount {
+				consensusProposalTicks = append(consensusProposalTicks, &ConsensusProposalTickInfo{
+					TaskId:     task.GetTaskId(),
 					NodeId:     org.GetNodeId(),
 					ProposalId: proposalId.String(),
 				})
-				iBlc.orgConsensusProposalTickInfosCache[identityId] = orgBlacklistCache
-				iBlc.db.StoreBlackTaskOrg(identityId, orgBlacklistCache)
+				iBlc.orgConsensusProposalTickInfosCache[identityId] = consensusProposalTicks
+				iBlc.db.StoreBlackTaskOrg(identityId, consensusProposalTicks)
 			}
 		}
 	}
@@ -150,15 +195,17 @@ func (iBlc *IdentityBackListCache) GetBlackListOrgSymbolCache() map[string]strin
 	defer iBlc.orgConsensusProposalTickInfosCacheLock.RUnlock()
 
 	for identityId, ticks := range iBlc.orgConsensusProposalTickInfosCache {
-		if len(ticks) == thresholdCount {
-			cache[ticks[0].NodeId] = identityId
-		}
+		cache[ticks[0].NodeId] = identityId
 	}
 	return cache
 }
 
 // QueryConsensusProposalTickInfoCountByIdentity is reservation method,not called yet
 func (iBlc *IdentityBackListCache) QueryConsensusProposalTickInfoCountByIdentity(identityId string) int {
+
+	iBlc.orgConsensusProposalTickInfosCacheLock.RLock()
+	defer iBlc.orgConsensusProposalTickInfosCacheLock.RUnlock()
+
 	result, ok := iBlc.orgConsensusProposalTickInfosCache[identityId]
 	if !ok {
 		return 0
@@ -187,5 +234,9 @@ func (iBlc *IdentityBackListCache) recoveryBlackOrg() {
 }
 
 func (iBlc *IdentityBackListCache) hasVoting(proposalId common.Hash, taskOrg *carriertypespb.TaskOrganization) bool {
-	return iBlc.engine.HasPrepareVoting(proposalId, taskOrg) && iBlc.engine.HasConfirmVoting(proposalId, taskOrg)
+	return iBlc.engine.HasPrepareVoting(proposalId, taskOrg) || iBlc.engine.HasConfirmVoting(proposalId, taskOrg)
+}
+
+func (iBlc *IdentityBackListCache) hasNotVoting(proposalId common.Hash, taskOrg *carriertypespb.TaskOrganization) bool {
+	return !iBlc.hasVoting(proposalId, taskOrg)
 }
