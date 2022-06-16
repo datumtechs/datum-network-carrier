@@ -223,7 +223,7 @@ func (iBlc *IdentityBackListCache) QueryConsensusProposalTickInfoCountByIdentity
 }
 
 func (iBlc *IdentityBackListCache) GetAllBlackOrg() (*carrierrpcdebugpbv1.GetConsensusBlackOrgResponse, error) {
-	result := make([]*carrierrpcdebugpbv1.GetConsensusBlackOrgResponse_ConsensusProposalList, 0)
+	result := make([]*carrierrpcdebugpbv1.GetConsensusBlackOrgResponse_ConsensusProposals, 0)
 	for identityId, taskOrgArr := range iBlc.orgConsensusProposalTickInfosCache {
 		if len(taskOrgArr) == thresholdCount {
 			savePbOrgArr := make([]*carrierrpcdebugpbv1.ConsensusProposalTickInfo, 0)
@@ -234,9 +234,9 @@ func (iBlc *IdentityBackListCache) GetAllBlackOrg() (*carrierrpcdebugpbv1.GetCon
 					ProposalId: org.ProposalId,
 				})
 			}
-			result = append(result, &carrierrpcdebugpbv1.GetConsensusBlackOrgResponse_ConsensusProposalList{
+			result = append(result, &carrierrpcdebugpbv1.GetConsensusBlackOrgResponse_ConsensusProposals{
 				IdentityId:       identityId,
-				ProposalInfoList: savePbOrgArr,
+				ProposalInfos: savePbOrgArr,
 			})
 		}
 	}
