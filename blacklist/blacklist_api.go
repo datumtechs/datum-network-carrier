@@ -129,7 +129,7 @@ func (iBlc *IdentityBackListCache) CheckConsensusResultOfNotExistVote(proposalId
 			//	 		  when we first process the 'concensusproposalticks' of this organization.
 			if consensusProposalTicksCount < thresholdCount && consensusProposalTicksCount > 0 {
 				delete(iBlc.orgConsensusProposalTickInfosCache, identityId)
-				iBlc.RemoveConsensusProposalTicksByIdentity(identityId)
+				iBlc.RemoveConsensusProposalTicksByIdentity(identityId,false)
 				log.Debugf("Finished remove `consensusProposalTicks` by identityId on CheckConsensusResultOfNotExistVote(), proposalId: {%s}, taskId: {%s}, identityId: {%s}",
 					proposalId.String(), task.GetTaskId(), identityId)
 			}
@@ -168,11 +168,12 @@ func (iBlc *IdentityBackListCache) CheckConsensusResultOfNotExistVote(proposalId
 	}
 }
 
-func (iBlc *IdentityBackListCache) RemoveConsensusProposalTicksByIdentity(identityId string) {
-
-	iBlc.orgConsensusProposalTickInfosCacheLock.Lock()
+func (iBlc *IdentityBackListCache) RemoveConsensusProposalTicksByIdentity(identityId string,isP2P bool) {
+	if isP2P {
+		iBlc.orgConsensusProposalTickInfosCacheLock.Lock()
+		defer iBlc.orgConsensusProposalTickInfosCacheLock.Unlock()
+	}
 	delete(iBlc.orgConsensusProposalTickInfosCache, identityId)
-	iBlc.orgConsensusProposalTickInfosCacheLock.Unlock()
 
 	if err := iBlc.db.RemoveConsensusProposalTicks(identityId); nil != err {
 		log.WithError(err).Errorf("Failed to call db.RemoveConsensusProposalTicksByIdentity(), identityId: {%s}", identityId)
