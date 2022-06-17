@@ -311,14 +311,14 @@ func (syncQueue *SyncExecuteTaskMonitorQueue) Timer() *time.Timer {
 	return syncQueue.timer
 }
 
-func (syncQueue *SyncExecuteTaskMonitorQueue) CheckMonitors(now int64, syncCall bool) int64 {
+func (syncQueue *SyncExecuteTaskMonitorQueue) CheckMonitors(now int64, asyncCall bool) int64 {
 
 	syncQueue.lock.Lock()
 	defer syncQueue.lock.Unlock()
 	// Note that runMonitor may temporarily unlock queue.Lock.
 rerun:
 	for len(*(syncQueue.queue)) > 0 {
-		if future := syncQueue.runMonitor(now, syncCall); future > 0 {
+		if future := syncQueue.runMonitor(now, asyncCall); future > 0 {
 			now = timeutils.UnixMsec()
 			if future > now {
 				return future
@@ -414,7 +414,7 @@ func (syncQueue *SyncExecuteTaskMonitorQueue) delMonitor0() {
 }
 
 // NOTE: runMonitor() must be used in a logic between calling lock() and unlock().
-func (syncQueue *SyncExecuteTaskMonitorQueue) runMonitor(now int64, syncCall bool) int64 {
+func (syncQueue *SyncExecuteTaskMonitorQueue) runMonitor(now int64, asyncCall bool) int64 {
 
 	if len(*(syncQueue.queue)) == 0 {
 		return 0
@@ -432,7 +432,7 @@ func (syncQueue *SyncExecuteTaskMonitorQueue) runMonitor(now int64, syncCall boo
 		m.GetTaskId(), m.GetPartyId(), m.GetWhen(), timeutils.UnixMsec())
 
 	syncQueue.lock.Unlock()
-	if syncCall {
+	if asyncCall {
 		go f()
 	} else {
 		f()

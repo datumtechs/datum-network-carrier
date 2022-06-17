@@ -2882,8 +2882,8 @@ func (m *Manager) startTerminateWithNeedExecuteTask(needExecuteTask *types.NeedE
 	return nil
 }
 
-func (m *Manager) checkNeedExecuteTaskMonitors(now int64, syncCall bool) int64 {
-	return m.syncExecuteTaskMonitors.CheckMonitors(now, syncCall)
+func (m *Manager) checkNeedExecuteTaskMonitors(now int64, asyncCall bool) int64 {
+	return m.syncExecuteTaskMonitors.CheckMonitors(now, asyncCall)
 }
 
 func (m *Manager) needExecuteTaskMonitorTimer() *time.Timer {

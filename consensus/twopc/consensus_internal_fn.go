@@ -376,8 +376,8 @@ func (t *Twopc) makeConfirmTaskPeerDesc(proposalId common.Hash) *carriertwopcpb.
 	}
 }
 
-func (t *Twopc) checkProposalStateMonitors(now int64, syncCall bool) int64 {
-	return t.state.CheckProposalStateMonitors(now, syncCall)
+func (t *Twopc) checkProposalStateMonitors(now int64, asyncCall bool) int64 {
+	return t.state.CheckProposalStateMonitors(now, asyncCall)
 }
 
 func (t *Twopc) proposalStateMonitorTimer() *time.Timer {

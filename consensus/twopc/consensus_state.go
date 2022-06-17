@@ -964,8 +964,8 @@ func (s *state) RemoveConfirmTaskPeerInfo(proposalId common.Hash) {
 }
 
 // v 0.3.0 proposal state monitor
-func (s *state) CheckProposalStateMonitors(now int64, syncCall bool) int64 {
-	return s.syncProposalStateMonitors.CheckMonitors(now, syncCall)
+func (s *state) CheckProposalStateMonitors(now int64, asyncCall bool) int64 {
+	return s.syncProposalStateMonitors.CheckMonitors(now, asyncCall)
 }
 func (s *state) TimeSleepUntil() int64 {
 	return s.syncProposalStateMonitors.TimeSleepUntil()
