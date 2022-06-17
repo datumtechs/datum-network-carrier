@@ -7,12 +7,16 @@ import (
 	carrierrpcdebugpbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/types"
+	"github.com/hashicorp/golang-lru/simplelru"
 	"github.com/sirupsen/logrus"
 	"sort"
 	"sync"
 )
 
-const thresholdCount = 10
+const (
+	thresholdCount = 10
+	defaultCacheProposalIds = 512
+)
 
 // Global log object, used by the current package.
 var log = logrus.WithField("prefix", "blacklist")
@@ -38,16 +42,26 @@ type ConsensusProposalTickInfo struct {
 type IdentityBackListCache struct {
 	engine BackListEngineAPI
 	db     WalDB
+	/* lru is used to cache proposalId,
+	because we want to prevent the same proposalId from calling
+	CheckConsensusResultOfNotExistVote multiple times*/
+	lru  *simplelru.LRU
+	lruLock sync.RWMutex
 	// identityId -> [{taskId1, proposalId1}, {taskId2, proposalId2}, ..., {taskIdN, proposalIdN}]
 	// OR identityId -> [{taskId1, proposalId1}, {taskId1, proposalId2}, ..., {taskIdN, proposalIdN}]
 	orgConsensusProposalTickInfosCache     map[string][]*ConsensusProposalTickInfo
 	orgConsensusProposalTickInfosCacheLock sync.RWMutex
 }
 
-func NewIdentityBackListCache() *IdentityBackListCache {
+func NewIdentityBackListCache() (*IdentityBackListCache, error) {
+	lru, err := simplelru.NewLRU(defaultCacheProposalIds, nil)
+	if err != nil {
+		return nil, err
+	}
 	return &IdentityBackListCache{
 		orgConsensusProposalTickInfosCache: make(map[string][]*ConsensusProposalTickInfo, 0),
-	}
+		lru:                                lru,
+	}, nil
 }
 
 func (iBlc *IdentityBackListCache) SetEngineAndWal(engine BackListEngineAPI, db WalDB) {
@@ -59,7 +73,11 @@ func (iBlc *IdentityBackListCache) SetEngineAndWal(engine BackListEngineAPI, db 
 func (iBlc *IdentityBackListCache) CheckConsensusResultOfNotExistVote(proposalId common.Hash, task *types.Task) {
 
 	log.Debugf("Start call CheckConsensusResultOfNotExistVote(), proposalId: {%s}, taskId: {%s}", proposalId.String(), task.GetTaskId())
-
+	if iBlc.containsLru(proposalId) {
+		log.Debugf("proposalId {%s} already exists in IdentityBackListCache's lru", proposalId)
+		return
+	}
+	iBlc.addLru(proposalId, struct{}{})
 	iBlc.orgConsensusProposalTickInfosCacheLock.Lock()
 	defer iBlc.orgConsensusProposalTickInfosCacheLock.Unlock()
 
@@ -282,4 +300,19 @@ func (iBlc *IdentityBackListCache) hasVoting(proposalId common.Hash, taskOrg *ca
 
 func (iBlc *IdentityBackListCache) hasNotVoting(proposalId common.Hash, taskOrg *carriertypespb.TaskOrganization) bool {
 	return !iBlc.hasVoting(proposalId, taskOrg)
+}
+
+func (iBlc *IdentityBackListCache) addLru(key, value interface{}) bool {
+	iBlc.lruLock.Lock()
+	defer iBlc.lruLock.Unlock()
+	return iBlc.lru.Add(key, value)
+}
+
+func (iBlc *IdentityBackListCache) containsLru(key interface{}) bool {
+	iBlc.lruLock.RLock()
+	defer iBlc.lruLock.RUnlock()
+	if !iBlc.lru.Contains(key) {
+		return false
+	}
+	return true
 }

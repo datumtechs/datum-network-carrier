@@ -78,7 +78,10 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 	log.Debugf("Get some chan size value from config when carrier NewService, NeedReplayScheduleTaskChanSize: %d, NeedExecuteTaskChanSize: %d",
 		config.TaskManagerConfig.NeedReplayScheduleTaskChanSize, config.TaskManagerConfig.NeedExecuteTaskChanSize)
 
-	identityBlackListCache := blacklist.NewIdentityBackListCache()
+	identityBlackListCache, blackListError := blacklist.NewIdentityBackListCache()
+	if blackListError != nil {
+		return nil, blackListError
+	}
 	policyEngine := policy.NewPolicyEngine(config.CarrierDB)
 	resourceClientSet := grpclient.NewInternalResourceNodeSet()
 	resourceMng := resource.NewResourceManager(config.CarrierDB, resourceClientSet, mockIdentityIdsFile)

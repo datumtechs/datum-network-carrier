@@ -155,6 +155,7 @@ func (svr *Server) GetIdentityList(ctx context.Context, req *carrierapipb.GetIde
 			Status:     identity.GetStatus(),
 		}
 		arr[i] = iden
+		log.Debugf("the nodes that have entered the network have node id:{%s}", identity.GetNodeId())
 	}
 	log.Debugf("Query all org's identity list, len: {%d}", len(identityList))
 	return &carrierapipb.GetIdentityListResponse{

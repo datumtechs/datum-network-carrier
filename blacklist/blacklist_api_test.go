@@ -41,8 +41,11 @@ func generateJsonFile() {
 		fmt.Println("Encoder success")
 	}
 }
-func GenerateObg() *blacklist.IdentityBackListCache {
-	identityBlackListCache := blacklist.NewIdentityBackListCache()
+func GenerateObg() (*blacklist.IdentityBackListCache, error) {
+	identityBlackListCache, err := blacklist.NewIdentityBackListCache()
+	if err != nil {
+		return identityBlackListCache, err
+	}
 	_, _ = twopc.New(&twopc.Config{
 		PeerMsgQueueSize:   12,
 		ConsensusStateFile: "test.json",
@@ -53,7 +56,7 @@ func GenerateObg() *blacklist.IdentityBackListCache {
 		nil,
 		identityBlackListCache,
 	)
-	return identityBlackListCache
+	return identityBlackListCache, nil
 }
 
 func TestFindBlackOrgByWalPrefix(t *testing.T) {
@@ -231,7 +234,8 @@ func TestFindBlackOrgByWalPrefix(t *testing.T) {
 		"identity:4d7b5f1f114b43b682d9c73d6d2bc18q",
 	}
 	generateJsonFile()
-	obj := GenerateObg()
+	obj, blackListError := GenerateObg()
+	assert.NilError(t, blackListError, "GenerateObg fail")
 	for _, taskOrg := range taskOrgDatas {
 		for _, proposalId := range proposalIds {
 			obj.CheckConsensusResultOfNotExistVote(common.HexToHash(proposalId), taskOrg)
@@ -242,7 +246,7 @@ func TestFindBlackOrgByWalPrefix(t *testing.T) {
 	for _, _ = range obj.GetBlackListOrgSymbolCache() {
 		temp += 1
 	}
-	assert.Equal(t, temp, 3)
+	assert.Equal(t, temp, 2)
 
 
 	_, err := obj.GetAllBlackOrg()
@@ -255,7 +259,7 @@ func TestFindBlackOrgByWalPrefix(t *testing.T) {
 		temp += 1
 	}
 
-	assert.Equal(t, temp, 3)
+	assert.Equal(t, temp, 1)
 	for _, identityId := range identityIds {
 		obj.RemoveConsensusProposalTicksByIdentity(identityId,false)
 	}
