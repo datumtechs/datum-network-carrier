@@ -65,14 +65,23 @@ func (iBlc *IdentityBackListCache) CheckConsensusResultOfNotExistVote(proposalId
 
 	dataSuppliersIndex := len(task.GetTaskData().GetDataSuppliers())
 	powerSuppliersIndex := dataSuppliersIndex + len(task.GetTaskData().GetPowerSuppliers())
-	mergeTaskOrgsSize := powerSuppliersIndex + len(task.GetTaskData().GetReceivers())
+	mergeTaskOrgsAllSize := powerSuppliersIndex + len(task.GetTaskData().GetReceivers())
 
 	// [TaskOrganization1, TaskOrganization2, ..., TaskOrganizationN]
-	mergeTaskOrgs := make([]*carriertypespb.TaskOrganization, mergeTaskOrgsSize)
-	copy(mergeTaskOrgs[:dataSuppliersIndex], task.GetTaskData().GetDataSuppliers())
-	copy(mergeTaskOrgs[dataSuppliersIndex:powerSuppliersIndex], task.GetTaskData().GetPowerSuppliers())
-	copy(mergeTaskOrgs[powerSuppliersIndex:], task.GetTaskData().GetReceivers())
-
+	mergeTaskOrgsAll := make([]*carriertypespb.TaskOrganization, mergeTaskOrgsAllSize)
+	copy(mergeTaskOrgsAll[:dataSuppliersIndex], task.GetTaskData().GetDataSuppliers())
+	copy(mergeTaskOrgsAll[dataSuppliersIndex:powerSuppliersIndex], task.GetTaskData().GetPowerSuppliers())
+	copy(mergeTaskOrgsAll[powerSuppliersIndex:], task.GetTaskData().GetReceivers())
+	// Filter taskOrg containing taskSender
+	j := 0
+	for _, taskOrg := range mergeTaskOrgsAll {
+		if taskOrg.IdentityId != task.GetTaskSender().GetIdentityId() {
+			mergeTaskOrgsAll[j] = taskOrg
+			j++
+		}
+	}
+	mergeTaskOrgs := mergeTaskOrgsAll[:j]
+	mergeTaskOrgsSize := len(mergeTaskOrgs)
 	// Sort by the identityId field of taskOrg
 	sort.Slice(mergeTaskOrgs, func(i, j int) bool {
 		return mergeTaskOrgs[i].GetIdentityId() == mergeTaskOrgs[j].GetIdentityId()
