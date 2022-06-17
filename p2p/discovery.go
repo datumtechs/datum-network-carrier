@@ -83,12 +83,12 @@ func (s *Service) listenForNewNodes() {
 				log.WithError(err).Tracef("Could not connect with peer %s", info.String())
 				return
 			}
-
+			log.Debugf("connection from node in DHT works fine,node id is:{%s}", info.ID.String())
 			for nodeId, identityId := range s.blackList.GetBlackListOrgSymbolCache() {
 				pid, _ := HexPeerID(nodeId)
 				if pid == info.ID {
 					s.blackList.RemoveConsensusProposalTicksByIdentity(identityId,true)
-					log.Debugf("Finished remove `consensusProposalTicks` by identityId on discoveryService.listenForNewNodes(), identityId: {%s}", identityId)
+					log.Debugf("Finished remove `consensusProposalTicks` by identityId on discoveryService.listenForNewNodes(), identityId: {%s},nodeId {%s}", identityId, info.ID.String())
 					return
 				}
 			}

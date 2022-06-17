@@ -78,6 +78,9 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*carrierapipb.YarnNodeInfo, error) {
 		LocalBootstrapNode: enrStr,
 	}
 
+	for _, _peer := range s.carrier.config.P2P.Peers().Active() {
+		log.Debugf("show active peer id:{%s}", _peer.String())
+	}
 	multiAddr := s.carrier.config.P2P.Host().Addrs()
 	if len(multiAddr) != 0 {
 		// /ip4/192.168.35.1/tcp/16788
