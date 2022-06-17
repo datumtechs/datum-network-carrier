@@ -105,7 +105,6 @@ func NewOrgProposalState(
 	}
 }
 
-
 func NewOrgProposalStateWithFields(
 	proposalId common.Hash,
 	taskId string,
@@ -131,22 +130,21 @@ func NewOrgProposalStateWithFields(
 	}
 }
 
-
 func (pstate *OrgProposalState) String() string {
 	return fmt.Sprintf(`{"proposalId": %s, "taskId": %s, "taskRole": %s, "taskSender": %s, "taskOrg": %s, "periodNum": %s, "deadlineDuration": %d, "startAt": %d, "createAt": %d}`,
 		pstate.GetProposalId().String(), pstate.GetTaskId(), pstate.GetTaskRole().String(), pstate.GetTaskSender().String(), pstate.GetTaskOrg().String(), pstate.GetPeriodStr(), pstate.GetDeadlineDuration(), pstate.GetStartAt(), pstate.GetCreateAt())
 }
-func (pstate *OrgProposalState) GetProposalId() common.Hash        { return pstate.proposalId }
-func (pstate *OrgProposalState) GetTaskId() string                 { return pstate.taskId }
+func (pstate *OrgProposalState) GetProposalId() common.Hash             { return pstate.proposalId }
+func (pstate *OrgProposalState) GetTaskId() string                      { return pstate.taskId }
 func (pstate *OrgProposalState) GetTaskRole() commonconstantpb.TaskRole { return pstate.taskRole }
 func (pstate *OrgProposalState) GetTaskSender() *carriertypespb.TaskOrganization {
 	return pstate.taskSender
 }
 func (pstate *OrgProposalState) GetTaskOrg() *carriertypespb.TaskOrganization { return pstate.taskOrg }
-func (pstate *OrgProposalState) GetPeriodNum() ProposalStatePeriod         { return pstate.periodNum }
-func (pstate *OrgProposalState) GetDeadlineDuration() uint64               { return pstate.deadlineDuration }
-func (pstate *OrgProposalState) GetCreateAt() uint64                       { return pstate.createAt }
-func (pstate *OrgProposalState) GetStartAt() uint64                        { return pstate.startAt }
+func (pstate *OrgProposalState) GetPeriodNum() ProposalStatePeriod            { return pstate.periodNum }
+func (pstate *OrgProposalState) GetDeadlineDuration() uint64                  { return pstate.deadlineDuration }
+func (pstate *OrgProposalState) GetCreateAt() uint64                          { return pstate.createAt }
+func (pstate *OrgProposalState) GetStartAt() uint64                           { return pstate.startAt }
 func (pstate *OrgProposalState) GetPrepareExpireTime() int64 {
 	return int64(pstate.GetStartAt()) + PrepareMsgVotingDuration.Milliseconds()
 }
@@ -175,18 +173,19 @@ func (pstate *OrgProposalState) GetPeriodStr() string {
 	}
 }
 
-func (pstate *OrgProposalState) IsPreparePeriod() bool     { return pstate.periodNum == PeriodPrepare }
-func (pstate *OrgProposalState) IsConfirmPeriod() bool     { return pstate.periodNum == PeriodConfirm }
-func (pstate *OrgProposalState) IsCommitPeriod() bool      { return pstate.periodNum == PeriodCommit }
-func (pstate *OrgProposalState) IsFinishedPeriod() bool    { return pstate.periodNum == PeriodFinished }
-func (pstate *OrgProposalState) IsNotPreparePeriod() bool  { return !pstate.IsPreparePeriod() }
-func (pstate *OrgProposalState) IsNotConfirmPeriod() bool  { return !pstate.IsConfirmPeriod() }
-func (pstate *OrgProposalState) IsNotCommitPeriod() bool   { return !pstate.IsCommitPeriod() }
-func (pstate *OrgProposalState) IsNotFinishedPeriod() bool { return !pstate.IsFinishedPeriod() }
+func (pstate *OrgProposalState) IsPreparePeriod() bool  { return pstate.periodNum == PeriodPrepare }
+func (pstate *OrgProposalState) IsConfirmPeriod() bool  { return pstate.periodNum == PeriodConfirm }
+func (pstate *OrgProposalState) IsCommitPeriod() bool   { return pstate.periodNum == PeriodCommit }
+func (pstate *OrgProposalState) IsFinishedPeriod() bool { return pstate.periodNum == PeriodFinished }
 func (pstate *OrgProposalState) IsDeadline() bool {
 	now := timeutils.UnixMsecUint64()
 	return (now - pstate.GetStartAt()) >= ProposalDeadlineDuration
 }
+func (pstate *OrgProposalState) IsNotPreparePeriod() bool  { return !pstate.IsPreparePeriod() }
+func (pstate *OrgProposalState) IsNotConfirmPeriod() bool  { return !pstate.IsConfirmPeriod() }
+func (pstate *OrgProposalState) IsNotCommitPeriod() bool   { return !pstate.IsCommitPeriod() }
+func (pstate *OrgProposalState) IsNotFinishedPeriod() bool { return !pstate.IsFinishedPeriod() }
+func (pstate *OrgProposalState) IsNotDeadline() bool       { return !pstate.IsDeadline() }
 
 func (pstate *OrgProposalState) IsPrepareTimeout() bool {
 
@@ -280,13 +279,13 @@ func (psm *ProposalStateMonitor) String() string {
 	return fmt.Sprintf(`{"index": %d, "proposalId":, %s, "partyId": %s, "sender": %s, "orgState": %s, "when": %d, "next": %d}`,
 		psm.GetIndex(), psm.GetProposalId().String(), psm.GetPartyId(), psm.GetTaskSender().String(), psm.GetOrgState().String(), psm.GetWhen(), psm.GetNext())
 }
-func (psm *ProposalStateMonitor) GetIndex() int                                { return psm.index }
-func (psm *ProposalStateMonitor) GetProposalId() common.Hash                   { return psm.proposalId }
-func (psm *ProposalStateMonitor) GetPartyId() string                           { return psm.partyId }
+func (psm *ProposalStateMonitor) GetIndex() int                                   { return psm.index }
+func (psm *ProposalStateMonitor) GetProposalId() common.Hash                      { return psm.proposalId }
+func (psm *ProposalStateMonitor) GetPartyId() string                              { return psm.partyId }
 func (psm *ProposalStateMonitor) GetTaskSender() *carriertypespb.TaskOrganization { return psm.sender }
-func (psm *ProposalStateMonitor) GetOrgState() *OrgProposalState               { return psm.orgState }
-func (psm *ProposalStateMonitor) GetWhen() int64                               { return psm.when }
-func (psm *ProposalStateMonitor) GetNext() int64                               { return psm.next }
+func (psm *ProposalStateMonitor) GetOrgState() *OrgProposalState                  { return psm.orgState }
+func (psm *ProposalStateMonitor) GetWhen() int64                                  { return psm.when }
+func (psm *ProposalStateMonitor) GetNext() int64                                  { return psm.next }
 func (psm *ProposalStateMonitor) SetCallBackFn(f func(orgState *OrgProposalState)) {
 	psm.fn = f
 }
@@ -342,7 +341,7 @@ func (syncQueue *SyncProposalStateMonitorQueue) CheckMonitors(now int64, syncCal
 	// Note that runMonitor may temporarily unlock queue.Lock.
 rerun:
 	for len(*(syncQueue.queue)) > 0 {
-		if future := syncQueue.runMonitor(now, syncCall); future > 0  {
+		if future := syncQueue.runMonitor(now, syncCall); future > 0 {
 			now = timeutils.UnixMsec()
 			if future > now {
 				return future

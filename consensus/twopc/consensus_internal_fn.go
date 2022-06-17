@@ -64,7 +64,7 @@ func (t *Twopc) addmonitor(orgState *ctypes.OrgProposalState) {
 		when = orgState.GetConfirmExpireTime()
 		next = orgState.GetCommitExpireTime()
 	case ctypes.PeriodCommit, ctypes.PeriodFinished:
-		if !orgState.IsDeadline() {
+		if orgState.IsNotDeadline() {
 			if orgState.IsCommitTimeout() { // finished period => when: deadline, next: 0
 				when = orgState.GetDeadlineExpireTime()
 				next = 0
@@ -73,9 +73,91 @@ func (t *Twopc) addmonitor(orgState *ctypes.OrgProposalState) {
 				next = orgState.GetDeadlineExpireTime()
 			}
 		}
+		// ##################### NOTE #####################
+		// Because everything on the `deadline` has been removed
+		// ################################################
 	default:
 		log.Warnf("It is a unknown period org state on twopc.refreshProposalStateMonitor")
 		return
+	}
+
+	// ##################### NOTE #####################
+	//
+	// This function will be checked at each stage to prevent it from being in the 'deadline' state when restarting.
+	// At this time, the status should not be changed from 'prepare' to 'commit' or 'finished' one by one before the next step.
+	// Instead, it should be handled directly.
+	//
+	// ################################################
+	checkDealineFn := func(orgState *ctypes.OrgProposalState) (done bool) {
+
+		if orgState.IsDeadline() {
+			identity, err := t.resourceMng.GetDB().QueryIdentity()
+			if nil != err {
+				log.WithError(err).Errorf("Failed to query local identity, [the org proposalState was coming deadline now] on twopc.refreshProposalStateMonitor, proposalId: {%s}, taskId: {%s}, partyId: {%s}, periodNum: {%s}",
+					orgState.GetProposalId().String(), orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId(), orgState.GetPeriodStr())
+				return true
+			}
+
+			log.Debugf("Start refresh org proposalState, [the org proposalState was coming deadline now] on twopc.refreshProposalStateMonitor, proposalId: {%s}, taskId: {%s}, partyId: {%s}, periodNum: {%s}",
+				orgState.GetProposalId().String(), orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId(), orgState.GetPeriodStr())
+
+			_, ok := t.state.QueryProposalTaskWithTaskIdAndPartyId(orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId())
+
+			// query local task.
+			localTask, queryTaskErr := t.resourceMng.GetDB().QueryLocalTask(orgState.GetTaskId())
+			// check blacklist of organization before remove all things about proposal for task.
+			t.identityBlackListCache.CheckConsensusResultOfNotExistVote(orgState.GetProposalId(), localTask)
+			// then remove all things about proposal for task.
+			t.state.RemoveProposalTaskWithTaskIdAndPartyId(orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId())                   // remove proposal task with partyId
+			t.state.RemoveOrgProposalStateWithProposalIdAndPartyIdUnsafe(orgState.GetProposalId(), orgState.GetTaskOrg().GetPartyId()) // remove state with partyId
+			t.state.RemoveOrgPrepareVoteState(orgState.GetProposalId(), orgState.GetTaskOrg().GetPartyId())                            // remove prepare vote with partyId
+			t.state.RemoveOrgConfirmVoteState(orgState.GetProposalId(), orgState.GetTaskOrg().GetPartyId())                            // remove confirm vote with partyId
+
+			if _, has := t.state.proposalSet[orgState.GetProposalId()]; !has {
+				t.removeConfirmTaskPeerInfo(orgState.GetProposalId()) // remove confirm peers and wal
+			}
+			t.wal.DeleteState(t.wal.GetProposalTaskCacheKey(orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId()))
+			t.wal.DeleteState(t.wal.GetPrepareVotesKey(orgState.GetProposalId(), orgState.GetTaskOrg().GetPartyId()))
+			t.wal.DeleteState(t.wal.GetConfirmVotesKey(orgState.GetProposalId(), orgState.GetTaskOrg().GetPartyId()))
+			t.wal.DeleteState(t.wal.GetProposalSetKey(orgState.GetProposalId(), orgState.GetTaskOrg().GetPartyId()))
+
+			if !ok {
+				log.Errorf("Not found the proposalTask, skip this proposal state [the org proposalState was coming deadline now] on twopc.refreshProposalStateMonitor, proposalId: {%s}, taskId: {%s}, partyId: {%s}, periodNum: {%s}",
+					orgState.GetProposalId().String(), orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId(), orgState.GetPeriodStr())
+				return true
+			}
+
+			if nil == queryTaskErr {
+				// release local resource and clean some data  (on task partenr)
+				t.resourceMng.GetDB().StoreTaskEvent(&carriertypespb.TaskEvent{
+					Type:       evengine.TaskProposalStateDeadline.GetType(),
+					IdentityId: identity.GetIdentityId(),
+					PartyId:    orgState.GetTaskOrg().GetPartyId(),
+					TaskId:     orgState.GetTaskId(),
+					Content:    fmt.Sprintf("proposalId: %s, %s for myself", orgState.GetProposalId().TerminalString(), evengine.TaskProposalStateDeadline.GetMsg()),
+					CreateAt:   timeutils.UnixMsecUint64(),
+				})
+
+				t.finishTaskConsensus("the proposalState had been deadline",
+					orgState.GetProposalId(),
+					orgState.GetTaskId(),
+					orgState.GetTaskRole(),
+					commonconstantpb.TaskRole_TaskRole_Sender,
+					&carriertypespb.TaskOrganization{
+						PartyId:    orgState.GetTaskOrg().GetPartyId(),
+						NodeName:   identity.GetNodeName(),
+						NodeId:     identity.GetNodeId(),
+						IdentityId: identity.GetIdentityId(),
+					},
+					orgState.GetTaskSender(), types.TaskConsensusInterrupt)
+			}
+			log.Debugf("Finished refresh org proposalState and clean all things and finished interrupt consensus, [the org proposalState was coming deadline now] on twopc.refreshProposalStateMonitor, proposalId: {%s}, taskId: {%s}, partyId: {%s}, periodNum: {%s}",
+				orgState.GetProposalId().String(), orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId(), orgState.GetPeriodStr())
+
+			return true
+		} else {
+			return false
+		}
 	}
 
 	monitor := ctypes.NewProposalStateMonitor(orgState, when, next, nil)
@@ -108,9 +190,23 @@ func (t *Twopc) addmonitor(orgState *ctypes.OrgProposalState) {
 
 		case ctypes.PeriodPrepare:
 
+			if checkDealineFn(orgState) {
+				return
+			}
+
 			if orgState.IsPrepareTimeout() {
-				log.Debugf("Started refresh org proposalState, the org proposalState was prepareTimeout, change to confirm epoch on twopc.refreshProposalStateMonitor, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
-					orgState.GetProposalId().String(), orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId())
+				//
+				// ### NOTE:
+				//
+				//  In function SyncProposalStateMonitorQueue.runMonitor() (That is, before the function call is triggered),
+				//  [when value] changed `confirmExpireTime`, [next value] cleared and need fill here (need fill `commitExpireTime`).
+				//
+				//     prepare              |               confirm               |                commit                 |         finished |deadline
+				//	               prepareExpireTime	                  confirmExpireTime                       commitExpireTime     deadlineExpireTime
+				//						now									      when                                    next
+				//`
+				log.Debugf("Started refresh org proposalState, the org proposalState was prepareTimeout, change to confirm epoch on twopc.refreshProposalStateMonitor, proposalId: {%s}, taskId: {%s}, partyId: {%s}, periodNum: {%s}",
+					orgState.GetProposalId().String(), orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId(), orgState.GetPeriodStr())
 
 				orgState.ChangeToConfirm()
 				monitor.SetNext(orgState.GetCommitExpireTime())
@@ -118,6 +214,22 @@ func (t *Twopc) addmonitor(orgState *ctypes.OrgProposalState) {
 				t.wal.StoreOrgProposalState(orgState)
 
 			} else {
+				//
+				// ### NOTE:
+				//
+				//  In function SyncProposalStateMonitorQueue.runMonitor() (That is, before the function call is triggered),
+				//  [when value] changed `confirmExpireTime`, [next value] cleared and need fill here.
+				//  (But, `prepareExpireTime` has arrived in advance and needs to be reset again,
+				//  so [when value] need reset to `prepareExpireTime`, [next value] need reset to `confirmExpireTime`)
+				//
+				//
+				//     prepare              |               confirm               |                commit                 |         finished |deadline
+				//	               prepareExpireTime	                  confirmExpireTime                       commitExpireTime     deadlineExpireTime
+				//		now					when								  next
+				//`
+				log.Debugf("Started refresh org proposalState, the org proposalState `prepareTimeout` seems to arrive too early, reset the values of when and next on twopc.refreshProposalStateMonitor, proposalId: {%s}, taskId: {%s}, partyId: {%s}, periodNum: {%s}",
+					orgState.GetProposalId().String(), orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId(), orgState.GetPeriodStr())
+
 				// There is only one possibility that the `prepare epoch` expire time is set incorrectly,
 				// and the monitor arrived early. At this time, you need to ensure the `prepare epoch` expire time again (reset).
 				monitor.SetWhen(orgState.GetPrepareExpireTime())
@@ -126,9 +238,23 @@ func (t *Twopc) addmonitor(orgState *ctypes.OrgProposalState) {
 
 		case ctypes.PeriodConfirm:
 
+			if checkDealineFn(orgState) {
+				return
+			}
+
 			if orgState.IsConfirmTimeout() {
-				log.Debugf("Started refresh org proposalState, the org proposalState was confirmTimeout, change to commit epoch on twopc.refreshProposalStateMonitor, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
-					orgState.GetProposalId().String(), orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId())
+				//
+				// ### NOTE:
+				//
+				//  In function SyncProposalStateMonitorQueue.runMonitor() (That is, before the function call is triggered),
+				//  [when value] changed `commitExpireTime`, [next value] cleared and need fill here (need fill `deadlineExpireTime`).
+				//
+				//     prepare              |               confirm               |                commit                 |         finished |deadline
+				//	               prepareExpireTime	                  confirmExpireTime                       commitExpireTime     deadlineExpireTime
+				//															      now                                    when                 next
+				//`
+				log.Debugf("Started refresh org proposalState, the org proposalState was confirmTimeout, change to commit epoch on twopc.refreshProposalStateMonitor, proposalId: {%s}, taskId: {%s}, partyId: {%s}, periodNum: {%s}",
+					orgState.GetProposalId().String(), orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId(), orgState.GetPeriodStr())
 
 				orgState.ChangeToCommit()
 				monitor.SetNext(orgState.GetDeadlineExpireTime()) // Ensure that the next expire time is `dealine time`.
@@ -136,6 +262,22 @@ func (t *Twopc) addmonitor(orgState *ctypes.OrgProposalState) {
 				t.wal.StoreOrgProposalState(orgState)
 
 			} else {
+				//
+				// ### NOTE:
+				//
+				//  In function SyncProposalStateMonitorQueue.runMonitor() (That is, before the function call is triggered),
+				//  [when value] changed `commitExpireTime`, [next value] cleared and need fill here.
+				//  (But, `confirmExpireTime` has arrived in advance and needs to be reset again,
+				//  so [when value] need reset to `confirmExpireTime`, [next value] need reset to `commitExpireTime`)
+				//
+				//
+				//     prepare              |               confirm               |                commit                 |         finished |deadline
+				//	               prepareExpireTime	                  confirmExpireTime                       commitExpireTime     deadlineExpireTime
+				//											now					when								  next
+				//`
+				log.Debugf("Started refresh org proposalState, the org proposalState `confirmTimeout` seems to arrive too early, reset the values of when and next on twopc.refreshProposalStateMonitor, proposalId: {%s}, taskId: {%s}, partyId: {%s}, periodNum: {%s}",
+					orgState.GetProposalId().String(), orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId(), orgState.GetPeriodStr())
+
 				// There is only one possibility that the `confirm epoch` expire time is set incorrectly,
 				// and the monitor arrived early. At this time, you need to ensure the `confirm epoch` expire time again (reset).
 				monitor.SetWhen(orgState.GetConfirmExpireTime())
@@ -144,91 +286,56 @@ func (t *Twopc) addmonitor(orgState *ctypes.OrgProposalState) {
 
 		case ctypes.PeriodCommit, ctypes.PeriodFinished:
 
-			// when epoch is commit or finished AND time is dealine.
-			if orgState.IsDeadline() {
-				identity, err := t.resourceMng.GetDB().QueryIdentity()
-				if nil != err {
-					log.WithError(err).Errorf("Failed to query local identity on proposate monitor expire deadline on twopc.refreshProposalStateMonitor, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
-						orgState.GetProposalId().String(), orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId())
-					return
-				}
+			if checkDealineFn(orgState) {
+				return
+			}
 
-				log.Debugf("Started refresh org proposalState, the org proposalState was finished, but coming deadline now on twopc.refreshProposalStateMonitor, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
-					orgState.GetProposalId().String(), orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId())
+			//  just is commit time out
+			if orgState.IsCommitTimeout() {
+				//
+				// ### NOTE:
+				//
+				//  In function SyncProposalStateMonitorQueue.runMonitor() (That is, before the function call is triggered),
+				//  [when value] changed `commitExpireTime`, [next value] cleared and need fill here (need fill `deadlineExpireTime`).
+				//
+				//     prepare              |               confirm               |                commit                 |         finished |deadline
+				//	               prepareExpireTime	                  confirmExpireTime                       commitExpireTime     deadlineExpireTime
+				//															      									     now                  when                 next <be cleard, fill value 0>
+				//`
+				log.Debugf("Started refresh org proposalState, the org proposalState was commitTimeout, change to finished epoch on twopc.refreshProposalStateMonitor, proposalId: {%s}, taskId: {%s}, partyId: {%s}, periodNum: {%s}",
+					orgState.GetProposalId().String(), orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId(), orgState.GetPeriodStr())
 
-				_, ok := t.state.QueryProposalTaskWithTaskIdAndPartyId(orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId())
+				orgState.ChangeToFinished()
+				monitor.SetNext(0) // clean next target timestamp, let monitor would been able to clean from monitor queue.
+				t.state.StoreOrgProposalStateUnsafe(orgState)
+				t.wal.StoreOrgProposalState(orgState)
 
-				// query local task.
-				localTask, queryTaskErr := t.resourceMng.GetDB().QueryLocalTask(orgState.GetTaskId())
-				// check blacklist of organization before remove all things about proposal for task.
-				t.identityBlackListCache.CheckConsensusResultOfNotExistVote(orgState.GetProposalId(),localTask)
-				// then remove all things about proposal for task.
-				t.state.RemoveProposalTaskWithTaskIdAndPartyId(orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId())                   // remove proposal task with partyId
-				t.state.RemoveOrgProposalStateWithProposalIdAndPartyIdUnsafe(orgState.GetProposalId(), orgState.GetTaskOrg().GetPartyId()) // remove state with partyId
-				t.state.RemoveOrgPrepareVoteState(orgState.GetProposalId(), orgState.GetTaskOrg().GetPartyId())                            // remove prepare vote with partyId
-				t.state.RemoveOrgConfirmVoteState(orgState.GetProposalId(), orgState.GetTaskOrg().GetPartyId())                            // remove confirm vote with partyId
-
-				if _, has := t.state.proposalSet[orgState.GetProposalId()]; !has {
-					t.removeConfirmTaskPeerInfo(orgState.GetProposalId()) // remove confirm peers and wal
-				}
-				t.wal.DeleteState(t.wal.GetProposalTaskCacheKey(orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId()))
-				t.wal.DeleteState(t.wal.GetPrepareVotesKey(orgState.GetProposalId(), orgState.GetTaskOrg().GetPartyId()))
-				t.wal.DeleteState(t.wal.GetConfirmVotesKey(orgState.GetProposalId(), orgState.GetTaskOrg().GetPartyId()))
-				t.wal.DeleteState(t.wal.GetProposalSetKey(orgState.GetProposalId(), orgState.GetTaskOrg().GetPartyId()))
-
-				if !ok {
-					log.Errorf("Not found the proposalTask, skip this proposal state on twopc.refreshProposalStateMonitor, taskId: {%s}, partyId: {%s}",
-						orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId())
-					return
-				}
-
-
-				if nil == queryTaskErr {
-					// release local resource and clean some data  (on task partenr)
-					t.resourceMng.GetDB().StoreTaskEvent(&carriertypespb.TaskEvent{
-						Type:       evengine.TaskProposalStateDeadline.GetType(),
-						IdentityId: identity.GetIdentityId(),
-						PartyId:    orgState.GetTaskOrg().GetPartyId(),
-						TaskId:     orgState.GetTaskId(),
-						Content:    fmt.Sprintf("proposalId: %s, %s for myself", orgState.GetProposalId().TerminalString(), evengine.TaskProposalStateDeadline.GetMsg()),
-						CreateAt:   timeutils.UnixMsecUint64(),
-					})
-
-					t.finishTaskConsensus("the proposalState had been deadline",
-						orgState.GetProposalId(),
-						orgState.GetTaskId(),
-						orgState.GetTaskRole(),
-						commonconstantpb.TaskRole_TaskRole_Sender,
-						&carriertypespb.TaskOrganization{
-							PartyId:    orgState.GetTaskOrg().GetPartyId(),
-							NodeName:   identity.GetNodeName(),
-							NodeId:     identity.GetNodeId(),
-							IdentityId: identity.GetIdentityId(),
-						},
-						orgState.GetTaskSender(), types.TaskConsensusInterrupt)
-				}
 			} else {
-				// OR epoch is commit but time just is commit time out
-				if orgState.IsCommitTimeout() {
-					log.Debugf("Started refresh org proposalState, the org proposalState was commitTimeout, change to finished epoch on twopc.refreshProposalStateMonitor, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
-						orgState.GetProposalId().String(), orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId())
+				//
+				// ### NOTE:
+				//
+				//  In function SyncProposalStateMonitorQueue.runMonitor() (That is, before the function call is triggered),
+				//  [when value] changed `deadlineExpireTime`, [next value] cleared and need fill here.
+				//  (But, `commitExpireTime` has arrived in advance and needs to be reset again,
+				//  so [when value] need reset to `commitExpireTime`, [next value] need reset to `deadlineExpireTime`)
+				//
+				//
+				//     prepare              |               confirm               |                commit                 |         finished |deadline
+				//	               prepareExpireTime	                  confirmExpireTime                       commitExpireTime     deadlineExpireTime
+				//																						now				when				next
+				//`
+				log.Debugf("Started refresh org proposalState, the org proposalState `commitTimeout` seems to arrive too early, reset the values of when and next on twopc.refreshProposalStateMonitor, proposalId: {%s}, taskId: {%s}, partyId: {%s}, periodNum: {%s}",
+					orgState.GetProposalId().String(), orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId(), orgState.GetPeriodStr())
 
-					orgState.ChangeToFinished()
-					monitor.SetNext(0) // clean next target timestamp, let monitor would been able to clean from monitor queue.
-					t.state.StoreOrgProposalStateUnsafe(orgState)
-					t.wal.StoreOrgProposalState(orgState)
-
-				} else {
-					// There is only one possibility that the `commit epoch` expire time is set incorrectly,
-					// and the monitor arrived early. At this time, you need to ensure the `commit epoch` expire time again (reset).
-					monitor.SetWhen(orgState.GetCommitExpireTime())
-					monitor.SetNext(orgState.GetDeadlineExpireTime())
-				}
+				// There is only one possibility that the `commit epoch` expire time is set incorrectly,
+				// and the monitor arrived early. At this time, you need to ensure the `commit epoch` expire time again (reset).
+				monitor.SetWhen(orgState.GetCommitExpireTime())
+				monitor.SetNext(orgState.GetDeadlineExpireTime())
 			}
 
 		default:
-			log.Errorf("Unknown the proposalState period on twopc.refreshProposalStateMonitor,  proposalId: {%s}, taskId: {%s}, partyId: {%s}",
-				orgState.GetProposalId().String(), orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId())
+			log.Errorf("Unknown the proposalState period on twopc.refreshProposalStateMonitor, proposalId: {%s}, taskId: {%s}, partyId: {%s}, periodNum: {%s}",
+				orgState.GetProposalId().String(), orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId(), orgState.GetPeriodStr())
 		}
 	})
 
