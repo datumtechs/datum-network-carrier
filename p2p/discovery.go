@@ -87,7 +87,7 @@ func (s *Service) listenForNewNodes() {
 			for nodeId, identityId := range s.blackList.GetBlackListOrgSymbolCache() {
 				pid, _ := HexPeerID(nodeId)
 				if pid == info.ID {
-					s.blackList.RemoveConsensusProposalTicksByIdentity(identityId)
+					s.blackList.RemoveConsensusProposalTicksByIdentity(identityId,true)
 					log.Debugf("Finished remove `consensusProposalTicks` by identityId on discoveryService.listenForNewNodes(), identityId: {%s}", identityId)
 					return
 				}

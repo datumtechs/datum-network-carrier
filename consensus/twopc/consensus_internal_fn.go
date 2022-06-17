@@ -161,7 +161,9 @@ func (t *Twopc) addmonitor(orgState *ctypes.OrgProposalState) {
 				// query local task.
 				localTask, queryTaskErr := t.resourceMng.GetDB().QueryLocalTask(orgState.GetTaskId())
 				// check blacklist of organization before remove all things about proposal for task.
-				t.identityBlackListCache.CheckConsensusResultOfNotExistVote(orgState.GetProposalId(),localTask)
+				if localTask != nil && localTask.GetTaskSender().GetIdentityId() == identity.IdentityId {
+					t.identityBlackListCache.CheckConsensusResultOfNotExistVote(orgState.GetProposalId(), localTask)
+				}
 				// then remove all things about proposal for task.
 				t.state.RemoveProposalTaskWithTaskIdAndPartyId(orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId())                   // remove proposal task with partyId
 				t.state.RemoveOrgProposalStateWithProposalIdAndPartyIdUnsafe(orgState.GetProposalId(), orgState.GetTaskOrg().GetPartyId()) // remove state with partyId
