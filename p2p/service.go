@@ -246,11 +246,15 @@ func (s *Service) Start() error {
 		s.RefreshENR()
 	})
 	runutil.RunEvery(s.ctx, 1*time.Minute, func() {
+		inBoundConnectedPeers := s.peers.InboundConnected()
 		log.WithFields(logrus.Fields{
-			"inbound":     len(s.peers.InboundConnected()),
+			"inbound":     len(inBoundConnectedPeers),
 			"outbound":    len(s.peers.OutboundConnected()),
 			"activePeers": len(s.peers.Active()),
 		}).Info("Peer Summary Info")
+		for _, peerId := range inBoundConnectedPeers {
+			s.checkBlackListNodeCanConnection(peerId)
+		}
 	})
 	//TODO: need to do more coding...
 	multiAddrs := s.host.Network().ListenAddresses()
