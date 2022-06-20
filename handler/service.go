@@ -8,9 +8,9 @@ import (
 	statefeed "github.com/datumtechs/datum-network-carrier/common/feed/state"
 	"github.com/datumtechs/datum-network-carrier/common/runutil"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
-	carrierrpcdebugpbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
 	"github.com/datumtechs/datum-network-carrier/p2p"
 	"github.com/datumtechs/datum-network-carrier/params"
+	carrierrpcdebugpbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
 	"github.com/datumtechs/datum-network-carrier/types"
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -109,11 +109,12 @@ func (s *Service) Start() error {
 		return nil
 	})
 	s.cfg.P2P.AddPingMethod(s.sendPingRequest)
-	s.processPendingBlocksQueue()
+	// TODO: processPendingBlocksQueue,not needed for now
+	//s.processPendingBlocksQueue()
 	// TODO: Enable at the right time.
 	//s.maintainPeerStatuses()
-	// Update sync metrics.
-	runutil.RunEvery(s.ctx, syncMetricsInterval, s.updateMetrics)
+	// TODO: Update sync metrics.
+	//runutil.RunEvery(s.ctx, syncMetricsInterval, s.updateMetrics)
 
 	// for testing
 	runutil.RunEvery(s.ctx, 5*time.Second, func() {
