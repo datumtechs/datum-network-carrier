@@ -230,7 +230,7 @@ func (m *Manager) loop() {
 			now := timeutils.UnixMsec()
 			if future > now {
 				taskMonitorTimer.Reset(time.Duration(future-now) * time.Millisecond)
-			} else if future < now {
+			} else if 0 < future && future < now {
 				taskMonitorTimer.Reset(time.Duration(now) * time.Millisecond)
 			}
 			// when future value is 0, we do nothing

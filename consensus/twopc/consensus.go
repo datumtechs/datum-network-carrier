@@ -102,7 +102,7 @@ func (t *Twopc) loop() {
 			now := timeutils.UnixMsec()
 			if future > now {
 				proposalStateMonitorTimer.Reset(time.Duration(future-now) * time.Millisecond)
-			} else if future < now {
+			} else if 0 < future && future < now {
 				proposalStateMonitorTimer.Reset(time.Duration(now) * time.Millisecond)
 			}
 			// when future value is 0, we do nothing
