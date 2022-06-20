@@ -9,7 +9,39 @@ import (
 func NewTaskDetailShowFromTaskData(input *types.Task) *carriertypespb.TaskDetail {
 	return &carriertypespb.TaskDetail{
 		Information: &carriertypespb.TaskDetailSummary{
-
+			/**
+			TaskId                   string
+			TaskName                 string
+			User                     string
+			UserType                 constant.UserType
+			Sender                   *TaskOrganization
+			AlgoSupplier             *TaskOrganization
+			DataSuppliers            []*TaskOrganization
+			PowerSuppliers           []*TaskOrganization
+			Receivers                []*TaskOrganization
+			DataPolicyTypes          []uint32
+			DataPolicyOptions        []string
+			PowerPolicyTypes         []uint32
+			PowerPolicyOptions       []string
+			ReceiverPolicyTypes      []uint32
+			ReceiverPolicyOptions    []string
+			DataFlowPolicyTypes      []uint32
+			DataFlowPolicyOptions    []string
+			OperationCost            *TaskResourceCostDeclare
+			AlgorithmCode            string
+			MetaAlgorithmId          string
+			AlgorithmCodeExtraParams string
+			PowerResourceOptions     []*TaskPowerResourceOption
+			State                    constant.TaskState
+			Reason                   string
+			Desc                     string
+			CreateAt                 uint64
+			StartAt                  uint64
+			EndAt                    uint64
+			Sign                     []byte
+			Nonce                    uint64
+			UpdateAt                 uint64
+			*/
 			TaskId:                   input.GetTaskData().GetTaskId(),
 			TaskName:                 input.GetTaskData().GetTaskName(),
 			UserType:                 input.GetTaskData().GetUserType(),

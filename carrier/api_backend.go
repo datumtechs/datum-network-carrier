@@ -31,15 +31,16 @@ type CarrierAPIBackend struct {
 func NewCarrierAPIBackend(carrier *Service) *CarrierAPIBackend {
 	return &CarrierAPIBackend{carrier: carrier}
 }
+
 // add by v0.4.0
 func (s *CarrierAPIBackend) GetCarrierChainConfig() *types.CarrierChainConfig {
 	return params.CarrierConfig()
 }
+
 // add by v0.4.0
 func (s *CarrierAPIBackend) GetPolicyEngine() *policy.PolicyEngine {
 	return s.carrier.policyEngine
 }
-
 
 func (s *CarrierAPIBackend) SendMsg(msg types.Msg) error {
 	return s.carrier.mempool.Add(msg)
@@ -1085,6 +1086,39 @@ func (s *CarrierAPIBackend) GetLocalTask(taskId string) (*carriertypespb.TaskDet
 
 	return &carriertypespb.TaskDetail{
 		Information: &carriertypespb.TaskDetailSummary{
+			/**
+			TaskId                   string
+			TaskName                 string
+			User                     string
+			UserType                 constant.UserType
+			Sender                   *TaskOrganization
+			AlgoSupplier             *TaskOrganization
+			DataSuppliers            []*TaskOrganization
+			PowerSuppliers           []*TaskOrganization
+			Receivers                []*TaskOrganization
+			DataPolicyTypes          []uint32
+			DataPolicyOptions        []string
+			PowerPolicyTypes         []uint32
+			PowerPolicyOptions       []string
+			ReceiverPolicyTypes      []uint32
+			ReceiverPolicyOptions    []string
+			DataFlowPolicyTypes      []uint32
+			DataFlowPolicyOptions    []string
+			OperationCost            *TaskResourceCostDeclare
+			AlgorithmCode            string
+			MetaAlgorithmId          string
+			AlgorithmCodeExtraParams string
+			PowerResourceOptions     []*TaskPowerResourceOption
+			State                    constant.TaskState
+			Reason                   string
+			Desc                     string
+			CreateAt                 uint64
+			StartAt                  uint64
+			EndAt                    uint64
+			Sign                     []byte
+			Nonce                    uint64
+			UpdateAt                 uint64
+			*/
 			TaskId:                   localTask.GetTaskData().GetTaskId(),
 			TaskName:                 localTask.GetTaskData().GetTaskName(),
 			UserType:                 localTask.GetTaskData().GetUserType(),
@@ -1098,6 +1132,8 @@ func (s *CarrierAPIBackend) GetLocalTask(taskId string) (*carriertypespb.TaskDet
 			DataPolicyOptions:        localTask.GetTaskData().GetDataPolicyOptions(),
 			PowerPolicyTypes:         localTask.GetTaskData().GetPowerPolicyTypes(),
 			PowerPolicyOptions:       localTask.GetTaskData().GetPowerPolicyOptions(),
+			ReceiverPolicyTypes:      localTask.GetTaskData().GetReceiverPolicyTypes(),
+			ReceiverPolicyOptions:    localTask.GetTaskData().GetReceiverPolicyOptions(),
 			DataFlowPolicyTypes:      localTask.GetTaskData().GetDataFlowPolicyTypes(),
 			DataFlowPolicyOptions:    localTask.GetTaskData().GetDataFlowPolicyOptions(),
 			OperationCost:            localTask.GetTaskData().GetOperationCost(),
@@ -1125,7 +1161,7 @@ func (s *CarrierAPIBackend) GetLocalTaskDetailList(lastUpdate, pageSize uint64) 
 		return nil, fmt.Errorf("query local identity failed, %s", err)
 	}
 	// the task is executing.
-	localTaskArray, err := s.carrier.carrierDB.QueryLocalTaskList()
+	localTaskList, err := s.carrier.carrierDB.QueryLocalTaskList()
 
 	if rawdb.IsNoDBNotFoundErr(err) {
 		return nil, err
@@ -1137,49 +1173,16 @@ func (s *CarrierAPIBackend) GetLocalTaskDetailList(lastUpdate, pageSize uint64) 
 		return nil, err
 	}
 
-	makeTaskViewFn := func(task *types.Task) *carriertypespb.TaskDetail {
-		return policy.NewTaskDetailShowFromTaskData(task)
-	}
-
-	result := make([]*carriertypespb.TaskDetail, 0)
-
-next:
-	for _, task := range localTaskArray {
-
-		// Filter out the local tasks belonging to the computing power provider that have not been started
-		// (Note: the tasks under consensus are also tasks that have not been started)
-		if identity.GetIdentityId() != task.GetTaskSender().GetIdentityId() {
-			for _, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
-				if identity.GetIdentityId() == powerSupplier.GetIdentityId() {
-					running, err := s.carrier.carrierDB.HasLocalTaskExecuteStatusRunningByPartyId(task.GetTaskId(), powerSupplier.GetPartyId())
-					if nil != err || !running {
-						continue next // goto next task, if running one party of current identity is  still not executing this task.
-					}
-				}
-			}
-		}
-
-		// For the initiator's local task, when the task has not started execution
-		// (i.e. the status is still: pending), the 'powersuppliers' of the task should not be returned.
-		if identity.GetIdentityId() == task.GetTaskSender().GetIdentityId() && task.GetTaskData().GetState() == commonconstantpb.TaskState_TaskState_Pending {
-			task.RemovePowerSuppliers() // clean powerSupplier when before return.
-			task.RemovePowerResources()
-		}
-
-		if taskView := makeTaskViewFn(task); nil != taskView {
-			result = append(result, taskView)
-		}
-	}
-	for _, networkTask := range networkTaskList {
-		if taskView := makeTaskViewFn(networkTask); nil != taskView {
-			result = append(result, taskView)
-		}
-	}
-	return result, err
+	return s.mergeLocalAndNetworkTasks(identity, localTaskList, networkTaskList), err
 }
 
 // v0.4.0
 func (s *CarrierAPIBackend) GetGlobalTaskDetailList(lastUpdate, pageSize uint64) ([]*carriertypespb.TaskDetail, error) {
+
+	_, err := s.carrier.carrierDB.QueryIdentity()
+	if nil != err {
+		return nil, fmt.Errorf("query local identity failed, %s", err)
+	}
 
 	// the task has been executed.
 	networkTaskList, err := s.carrier.carrierDB.QueryGlobalTaskList(lastUpdate, pageSize)
@@ -1214,37 +1217,33 @@ func (s *CarrierAPIBackend) GetTaskDetailListByTaskIds(taskIds []string) ([]*car
 		return nil, err
 	}
 
-	taskIdCache := make(map[string]struct{}, 0)
-	for _, taskId := range taskIds {
-		taskIdCache[taskId] = struct{}{}
-	}
-
-	for _, task := range localTaskList {
-		if _, ok := taskIdCache[task.GetTaskId()]; ok {
-			delete(taskIdCache, task.GetTaskId())
-		}
-	}
-
-	var ids []string
-	if len(taskIds) == len(taskIdCache) {
-		ids = taskIds
-	} else {
-		for taskId, _ := range taskIdCache {
-			ids = append(ids, taskId)
-		}
-	}
-
 	// the task status was finished (failed or succeed).
-	networkTaskList, err := s.carrier.carrierDB.QueryTaskListByTaskIds(ids)
+	networkTaskList, err := s.carrier.carrierDB.QueryTaskListByTaskIds(taskIds)
 	if rawdb.IsNoDBNotFoundErr(err) {
 		return nil, err
 	}
+
+	return s.mergeLocalAndNetworkTasks(identity, localTaskList, networkTaskList), err
+}
+
+func (s *CarrierAPIBackend) mergeLocalAndNetworkTasks(identity *carriertypespb.Organization, localTaskList, networkTaskList []*types.Task) []*carriertypespb.TaskDetail {
 
 	makeTaskViewFn := func(task *types.Task) *carriertypespb.TaskDetail {
 		return policy.NewTaskDetailShowFromTaskData(task)
 	}
 
-	result := make([]*carriertypespb.TaskDetail, 0)
+	networkTasks := make([]*carriertypespb.TaskDetail, 0)
+
+	filterTaskIdCache := make(map[string]struct{}, 0)
+
+	for _, networkTask := range networkTaskList {
+		if taskView := makeTaskViewFn(networkTask); nil != taskView {
+			networkTasks = append(networkTasks, taskView)
+			filterTaskIdCache[taskView.GetInformation().GetTaskId()] = struct{}{}
+		}
+	}
+
+	localTasks := make([]*carriertypespb.TaskDetail, 0)
 
 next:
 	for _, task := range localTaskList {
@@ -1273,16 +1272,19 @@ next:
 			task.RemovePowerResources()
 		}
 
+		// If the taskId already appears in the finished task,
+		// the localtask to which the taskId belongs should be filtered out
+		// (sometimes the localtask may not be cleaned up when the task is finished)
+		if _, ok := filterTaskIdCache[task.GetTaskId()]; ok {
+			continue
+		}
+
 		if taskView := makeTaskViewFn(task); nil != taskView {
-			result = append(result, taskView)
+			localTasks = append(localTasks, taskView)
 		}
 	}
-	for _, networkTask := range networkTaskList {
-		if taskView := makeTaskViewFn(networkTask); nil != taskView {
-			result = append(result, taskView)
-		}
-	}
-	return result, err
+
+	return append(localTasks, networkTasks...)
 }
 
 func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*carriertypespb.TaskEvent, error) {
@@ -1442,7 +1444,7 @@ func (s *CarrierAPIBackend) StoreTaskResultDataSummary(taskId, originId, dataHas
 		DataType:       dataType,
 		Industry:       "Unknown",
 		State:          commonconstantpb.MetadataState_MetadataState_Created, // metaData status, eg: create/release/revoke
-		PublishAt:      0,                                            // have not publish
+		PublishAt:      0,                                                    // have not publish
 		UpdateAt:       timeutils.UnixMsecUint64(),
 		Nonce:          0,
 		MetadataOption: metadataOption,
