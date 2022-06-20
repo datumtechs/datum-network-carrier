@@ -84,15 +84,19 @@ func (s *Service) listenForNewNodes() {
 				return
 			}
 			log.Debugf("connection from node in DHT works fine,node id is:{%s}", info.ID.String())
-			for nodeId, identityId := range s.blackList.GetBlackListOrgSymbolCache() {
-				pid, _ := HexPeerID(nodeId)
-				if pid == info.ID {
-					s.blackList.RemoveConsensusProposalTicksByIdentity(identityId,true)
-					log.Debugf("Finished remove `consensusProposalTicks` by identityId on discoveryService.listenForNewNodes(), identityId: {%s},nodeId {%s}", identityId, info.ID.String())
-					return
-				}
-			}
+			s.checkBlackListNodeCanConnection(info.ID)
 		}(peerInfo)
+	}
+}
+
+func (s *Service) checkBlackListNodeCanConnection(peerId peer.ID) {
+	for nodeId, identityId := range s.blackList.GetBlackListOrgSymbolCache() {
+		pid, _ := HexPeerID(nodeId)
+		if pid == peerId {
+			s.blackList.RemoveConsensusProposalTicksByIdentity(identityId, true)
+			log.Debugf("Finished remove `consensusProposalTicks` by identityId on discoveryService.listenForNewNodes(), identityId: {%s},nodeId {%s}", identityId, peerId.String())
+			return
+		}
 	}
 }
 
