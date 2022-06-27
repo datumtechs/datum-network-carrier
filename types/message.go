@@ -1119,6 +1119,26 @@ func NewTaskBullet(taskId string) *TaskBullet {
 	}
 }
 
+func (b *TaskBullet) IsNewBullet() bool {
+
+	var flag int
+
+	if 0 != b.GetTerm() {
+		flag |= 1
+	}
+
+	if 0 != b.GetResched() {
+		flag |= 1
+	}
+
+	if 0 != flag {
+		return false
+	}
+
+	return true
+}
+func (b *TaskBullet) IsNotNewBullet() bool { return !b.IsNewBullet() }
+
 func (b *TaskBullet) GetTaskId() string    { return b.TaskId }
 func (b *TaskBullet) IsStarve() bool       { return b.Starve }
 func (b *TaskBullet) GetTerm() uint32      { return b.Term }

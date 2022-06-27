@@ -45,7 +45,14 @@ type SchedulerStarveFIFO struct {
 	starveQueue *types.TaskBullets
 	// the scheduling task, it is ejected from the queue (taskId -> taskBullet)
 	schedulings   map[string]*types.TaskBullet
-	scheduleMutex sync.Mutex
+
+	// #### NOTE ####
+	// ##############
+	// This lock is a large lock shared by queue,
+	// starvequeue and schedules
+	// ##############
+	// ##############
+	bulletsLock sync.Mutex
 
 	//quit            chan struct{}
 	eventEngine *evengine.EventEngine
@@ -136,19 +143,7 @@ func (sche *SchedulerStarveFIFO) AddTask(task *types.Task) error {
 }
 
 func (sche *SchedulerStarveFIFO) RepushTask(task *types.Task) error {
-
-	sche.scheduleMutex.Lock()
-	defer sche.scheduleMutex.Unlock()
-
-	bullet, ok := sche.schedulings[task.GetTaskId()]
-	if !ok {
-		return nil
-	}
-
-	if bullet.IsOverlowReschedThreshold(ReschedMaxCount) {
-		return ErrRescheduleLargeThreshold
-	}
-
+	bullet := types.NewTaskBullet(task.GetTaskId())
 	return sche.repushTaskBullet(bullet)
 }
 

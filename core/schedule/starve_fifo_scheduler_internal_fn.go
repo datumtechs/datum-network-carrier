@@ -8,8 +8,10 @@ import (
 )
 
 func (sche *SchedulerStarveFIFO) pushTaskBullet(bullet *types.TaskBullet) error {
-	sche.scheduleMutex.Lock()
-	defer sche.scheduleMutex.Unlock()
+
+	sche.bulletsLock.Lock()
+	defer sche.bulletsLock.Unlock()
+
 	// The bullet is first into queue
 	_, ok := sche.schedulings[bullet.GetTaskId()]
 	if !ok {
@@ -24,6 +26,20 @@ func (sche *SchedulerStarveFIFO) pushTaskBullet(bullet *types.TaskBullet) error 
 }
 
 func (sche *SchedulerStarveFIFO) repushTaskBullet(bullet *types.TaskBullet) error {
+
+	sche.bulletsLock.Lock()
+	defer sche.bulletsLock.Unlock()
+
+	if bullet.IsNewBullet() {
+		b, ok := sche.schedulings[bullet.GetTaskId()]
+		if ok {
+			bullet = b
+		}
+	}
+
+	if bullet.IsOverlowReschedThreshold(ReschedMaxCount) {
+		return ErrRescheduleLargeThreshold
+	}
 
 	if bullet.GetInQueueFlag() {
 		log.Warnf("Warning repush local bullet task on scheduler, task was not exist in schedulings map, taskId: {%s}, inQueueFlag: {%v}",
@@ -49,8 +65,9 @@ func (sche *SchedulerStarveFIFO) repushTaskBullet(bullet *types.TaskBullet) erro
 }
 
 func (sche *SchedulerStarveFIFO) removeTaskBullet(taskId string) error {
-	sche.scheduleMutex.Lock()
-	defer sche.scheduleMutex.Unlock()
+
+	sche.bulletsLock.Lock()
+	defer sche.bulletsLock.Unlock()
 
 	_ ,ok := sche.schedulings[taskId]
 	if !ok {
@@ -100,6 +117,9 @@ func (sche *SchedulerStarveFIFO) removeTaskBullet(taskId string) error {
 
 func (sche *SchedulerStarveFIFO) popTaskBullet() *types.TaskBullet {
 
+	sche.bulletsLock.Lock()
+	defer sche.bulletsLock.Unlock()
+
 	var bullet *types.TaskBullet
 	if sche.starveQueue.Len() != 0 {
 		x := heap.Pop(sche.starveQueue)
@@ -120,6 +140,10 @@ func (sche *SchedulerStarveFIFO) popTaskBullet() *types.TaskBullet {
 }
 
 func (sche *SchedulerStarveFIFO) increaseTotalTaskTerm() {
+
+	sche.bulletsLock.Lock()
+	defer sche.bulletsLock.Unlock()
+
 	// handle starve queue
 	sche.starveQueue.IncreaseTermByCallbackFn(func(bullet *types.TaskBullet) {
 		sche.resourceMng.GetDB().StoreTaskBullet(bullet)  		// update bullet into wal
