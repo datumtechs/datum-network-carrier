@@ -339,7 +339,6 @@ func (dc *DataCenter) QueryJobNodeRunningTaskCount(jobNodeId string) (uint32, er
 	return rawdb.QueryJobNodeRunningTaskIdCount(dc.db, jobNodeId)
 }
 
-
 func (dc *DataCenter) QueryJobNodeRunningTaskIdsAndPartyIdsPairs(jobNodeId string) (map[string][]string, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
@@ -522,15 +521,17 @@ func (dc *DataCenter) RemoveNeedExecuteTask(taskId string) error {
 	return rawdb.RemoveNeedExecuteTask(dc.db, taskId)
 }
 
+// #### NOTE ####
+//
+//  We need to maintain the lock myself
 func (dc *DataCenter) ForEachNeedExecuteTaskWithPrefix(prifix []byte, f func(key, value []byte) error) error {
-	dc.mu.RLock()
-	defer dc.mu.RUnlock()
 	return rawdb.ForEachNeedExecuteTaskWwithPrefix(dc.db, prifix, f)
 }
 
+// #### NOTE ####
+//
+//  We need to maintain the lock myself
 func (dc *DataCenter) ForEachNeedExecuteTask(f func(key, value []byte) error) error {
-	dc.mu.RLock()
-	defer dc.mu.RUnlock()
 	return rawdb.ForEachNeedExecuteTask(dc.db, f)
 }
 
@@ -547,8 +548,9 @@ func (dc *DataCenter) RemoveTaskBullet(taskId string) error {
 	return rawdb.RemoveTaskBullet(dc.db, taskId)
 }
 
+// #### NOTE ####
+//
+//  We need to maintain the lock myself
 func (dc *DataCenter) ForEachTaskBullets(f func(key, value []byte) error) error {
-	dc.mu.RLock()
-	defer dc.mu.RUnlock()
 	return rawdb.ForEachTaskBullets(dc.db, f)
 }
