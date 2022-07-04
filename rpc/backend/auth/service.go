@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/carrierdb/rawdb"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	"github.com/datumtechs/datum-network-carrier/p2p"
 	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
@@ -155,7 +156,9 @@ func (svr *Server) GetIdentityList(ctx context.Context, req *carrierapipb.GetIde
 			Status:     identity.GetStatus(),
 		}
 		arr[i] = iden
-		log.Debugf("the nodes that have entered the network have node id:{%s}", identity.GetNodeId())
+		if hexNodeId, err := p2p.HexPeerID(identity.GetNodeId()); err == nil {
+			log.Debugf("the nodes that have entered the network have node id:{%s}", hexNodeId)
+		}
 	}
 	log.Debugf("Query all org's identity list, len: {%d}", len(identityList))
 	return &carrierapipb.GetIdentityListResponse{

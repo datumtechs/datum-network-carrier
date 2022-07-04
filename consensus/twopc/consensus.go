@@ -14,7 +14,6 @@ import (
 	ev "github.com/datumtechs/datum-network-carrier/core/evengine"
 	"github.com/datumtechs/datum-network-carrier/core/resource"
 	"github.com/datumtechs/datum-network-carrier/p2p"
-	carriernetmsgcommonpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/common"
 	carriertwopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
 	carrierrpcdebugpbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
@@ -1453,25 +1452,25 @@ func (t *Twopc) Get2PcProposalPrepare(proposalId string) (*carrierrpcdebugpbv1.G
 	if !ok {
 		return &carrierrpcdebugpbv1.Get2PcProposalPrepareResponse{}, nil
 	}
-	votes := make(map[string]*carriertwopcpb.PrepareVote, 0)
+	votes := make(map[string]*carrierrpcdebugpbv1.PrepareVote, 0)
 	for partyId, obj := range prepareVoteInfo.votes {
-		votes[partyId] = &carriertwopcpb.PrepareVote{
-			MsgOption: &carriernetmsgcommonpb.MsgOption{
-				ProposalId:      obj.MsgOption.ProposalId.Bytes(),
+		votes[partyId] = &carrierrpcdebugpbv1.PrepareVote{
+			MsgOption: &carrierrpcdebugpbv1.MsgOption{
+				ProposalId:      obj.MsgOption.ProposalId.String(),
 				SenderRole:      uint64(obj.MsgOption.SenderRole),
-				SenderPartyId:   []byte(obj.MsgOption.SenderPartyId),
+				SenderPartyId:   obj.MsgOption.SenderPartyId,
 				ReceiverRole:    uint64(obj.MsgOption.ReceiverRole),
-				ReceiverPartyId: []byte(obj.MsgOption.ReceiverPartyId),
-				MsgOwner: &carriernetmsgcommonpb.TaskOrganizationIdentityInfo{
-					Name:       []byte(obj.MsgOption.Owner.GetNodeName()),
-					NodeId:     []byte(obj.MsgOption.Owner.GetNodeId()),
-					IdentityId: []byte(obj.MsgOption.Owner.GetIdentityId()),
-					PartyId:    []byte(obj.MsgOption.Owner.GetPartyId()),
+				ReceiverPartyId: obj.MsgOption.ReceiverPartyId,
+				MsgOwner: &carrierrpcdebugpbv1.MsgOwner{
+					Name:       obj.MsgOption.Owner.GetNodeName(),
+					NodeId:     obj.MsgOption.Owner.GetNodeId(),
+					IdentityId: obj.MsgOption.Owner.GetIdentityId(),
+					PartyId:    obj.MsgOption.Owner.GetPartyId(),
 				},
 			},
-			VoteOption: obj.VoteOption.Bytes(),
+			VoteOption: obj.VoteOption.String(),
 			CreateAt:   obj.CreateAt,
-			Sign:       obj.Sign,
+			Sign:       common.Bytes2Hex(obj.Sign),
 		}
 	}
 
@@ -1497,25 +1496,25 @@ func (t *Twopc) Get2PcProposalConfirm(proposalId string) (*carrierrpcdebugpbv1.G
 	if !ok {
 		return &carrierrpcdebugpbv1.Get2PcProposalConfirmResponse{}, nil
 	}
-	votes := make(map[string]*carriertwopcpb.ConfirmVote, 0)
+	votes := make(map[string]*carrierrpcdebugpbv1.ConfirmVote, 0)
 	for partyId, obj := range confirmVoteInfo.votes {
-		votes[partyId] = &carriertwopcpb.ConfirmVote{
-			MsgOption: &carriernetmsgcommonpb.MsgOption{
-				ProposalId:      obj.MsgOption.ProposalId.Bytes(),
+		votes[partyId] = &carrierrpcdebugpbv1.ConfirmVote{
+			MsgOption: &carrierrpcdebugpbv1.MsgOption{
+				ProposalId:      obj.MsgOption.ProposalId.String(),
 				SenderRole:      uint64(obj.MsgOption.SenderRole),
-				SenderPartyId:   []byte(obj.MsgOption.SenderPartyId),
+				SenderPartyId:   obj.MsgOption.SenderPartyId,
 				ReceiverRole:    uint64(obj.MsgOption.ReceiverRole),
-				ReceiverPartyId: []byte(obj.MsgOption.ReceiverPartyId),
-				MsgOwner: &carriernetmsgcommonpb.TaskOrganizationIdentityInfo{
-					Name:       []byte(obj.MsgOption.Owner.GetNodeName()),
-					NodeId:     []byte(obj.MsgOption.Owner.GetNodeId()),
-					IdentityId: []byte(obj.MsgOption.Owner.GetIdentityId()),
-					PartyId:    []byte(obj.MsgOption.Owner.GetPartyId()),
+				ReceiverPartyId: obj.MsgOption.ReceiverPartyId,
+				MsgOwner: &carrierrpcdebugpbv1.MsgOwner{
+					Name:       obj.MsgOption.Owner.GetNodeName(),
+					NodeId:     obj.MsgOption.Owner.GetNodeId(),
+					IdentityId: obj.MsgOption.Owner.GetIdentityId(),
+					PartyId:    obj.MsgOption.Owner.GetPartyId(),
 				},
 			},
-			VoteOption: obj.VoteOption.Bytes(),
+			VoteOption: obj.VoteOption.String(),
 			CreateAt:   obj.CreateAt,
-			Sign:       obj.Sign,
+			Sign:       string(obj.Sign),
 		}
 	}
 
