@@ -200,6 +200,7 @@ func (w *walDB) StoreConfirmTaskPeerInfo(proposalId common.Hash, peerDesc *carri
 }
 
 func (w *walDB) DeleteState(key []byte) error {
+	log.Debugf("Delete state,key is:%s", string(key))
 	return w.DeleteByKey(key)
 }
 
