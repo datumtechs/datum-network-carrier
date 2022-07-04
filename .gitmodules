@@ -1,4 +1,4 @@
 [submodule "proto/armada-common"]
 	path = proto/armada-common
 	url = git@github.com:datumtechs/datum-network-armada-common.git
-	branch = v0.4.0-blacklist
+	branch = v0.5.0
