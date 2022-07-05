@@ -2,12 +2,32 @@
 
 Official Golang implementation of the datum-network-carrier protocol.
 
+
+## Clone the source
+
+Clone the repository and download dependency (datum-network-carrier includes submodule 'proto/armada-common')
+```
+git clone -b targetBranchName --recurse-submodules https://github.com/datumtechs/datum-network-carrier.git
+```
+
+If the submodule's repository has been updated
+
+```
+git submodule update --remote
+```
+
+## Generate golang from the proto files
+```
+go run build.go
+```
+
 ## Building the source
 
 Building `carrier` requires both a Go (version 1.16 or later) and a C compiler. You can install
 them using your favourite package manager. Once the dependencies are installed, run
 
 ```shell
+
 make carrier
 ```
 
