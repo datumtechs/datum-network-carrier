@@ -320,6 +320,15 @@
       "default": "DataStatus_Unknown",
       "title": "the status of data for local storage, 1 means valid, 2 means invalid"
     },
+    "constantIdentityType": {
+      "type": "string",
+      "enum": [
+        "Identity_Unknown",
+        "Identity_DID"
+      ],
+      "default": "Identity_Unknown",
+      "title": "add by 0.5.0"
+    },
     "constantPowerState": {
       "type": "string",
       "enum": [
@@ -369,37 +378,33 @@
       "type": "object",
       "properties": {
         "node_name": {
-          "type": "string",
-          "title": "org name"
+          "type": "string"
         },
         "node_id": {
-          "type": "string",
-          "title": "the node_id for org"
+          "type": "string"
         },
         "identity_id": {
-          "type": "string",
-          "title": "the identity for org"
+          "type": "string"
+        },
+        "ideneity_type": {
+          "$ref": "#/definitions/constantIdentityType"
         },
         "data_status": {
-          "$ref": "#/definitions/constantDataStatus",
-          "title": "the status of data for local storage, 1 means valid, 2 means invalid"
+          "$ref": "#/definitions/constantDataStatus"
         },
         "status": {
-          "$ref": "#/definitions/constantCommonStatus",
-          "title": "the status of data for datacenter, 1 means valid, 2 means invalid"
+          "$ref": "#/definitions/constantCommonStatus"
         },
         "update_at": {
           "type": "string",
           "format": "uint64",
-          "title": "v 3.0\nthe last_update time of corresponding datacenter (unit: UTC ms)"
+          "title": "add by v 0.3.0"
         },
         "image_url": {
-          "type": "string",
-          "title": "the link of face image (with a length limit)"
+          "type": "string"
         },
         "details": {
-          "type": "string",
-          "title": "description of the node (with a length limit)"
+          "type": "string"
         }
       },
       "description": "A represents the basic information of the organization."

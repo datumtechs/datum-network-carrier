@@ -26,16 +26,17 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 // IdentityData represents the stored data structure.
 type IdentityPB struct {
 	IdentityId           string                `protobuf:"bytes,1,opt,name=identity_id,json=identityId,proto3" json:"identity_id,omitempty"`
-	NodeId               string                `protobuf:"bytes,2,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
-	NodeName             string                `protobuf:"bytes,3,opt,name=node_name,json=nodeName,proto3" json:"node_name,omitempty"`
-	DataId               string                `protobuf:"bytes,4,opt,name=data_id,json=dataId,proto3" json:"data_id,omitempty"`
-	DataStatus           constant.DataStatus   `protobuf:"varint,5,opt,name=data_status,json=dataStatus,proto3,enum=common.constant.DataStatus" json:"data_status,omitempty"`
-	Status               constant.CommonStatus `protobuf:"varint,6,opt,name=status,proto3,enum=common.constant.CommonStatus" json:"status,omitempty"`
-	Credential           string                `protobuf:"bytes,7,opt,name=credential,proto3" json:"credential,omitempty"`
-	UpdateAt             uint64                `protobuf:"varint,8,opt,name=update_at,json=updateAt,proto3" json:"update_at,omitempty"`
-	ImageUrl             string                `protobuf:"bytes,9,opt,name=image_url,json=imageUrl,proto3" json:"image_url,omitempty"`
-	Details              string                `protobuf:"bytes,10,opt,name=details,proto3" json:"details,omitempty"`
-	Nonce                uint64                `protobuf:"varint,11,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	IdeneityType         constant.IdentityType `protobuf:"varint,2,opt,name=ideneity_type,json=ideneityType,proto3,enum=common.constant.IdentityType" json:"ideneity_type,omitempty"`
+	NodeId               string                `protobuf:"bytes,3,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
+	NodeName             string                `protobuf:"bytes,4,opt,name=node_name,json=nodeName,proto3" json:"node_name,omitempty"`
+	DataId               string                `protobuf:"bytes,5,opt,name=data_id,json=dataId,proto3" json:"data_id,omitempty"`
+	DataStatus           constant.DataStatus   `protobuf:"varint,6,opt,name=data_status,json=dataStatus,proto3,enum=common.constant.DataStatus" json:"data_status,omitempty"`
+	Status               constant.CommonStatus `protobuf:"varint,7,opt,name=status,proto3,enum=common.constant.CommonStatus" json:"status,omitempty"`
+	Credential           string                `protobuf:"bytes,8,opt,name=credential,proto3" json:"credential,omitempty"`
+	UpdateAt             uint64                `protobuf:"varint,9,opt,name=update_at,json=updateAt,proto3" json:"update_at,omitempty"`
+	ImageUrl             string                `protobuf:"bytes,10,opt,name=image_url,json=imageUrl,proto3" json:"image_url,omitempty"`
+	Details              string                `protobuf:"bytes,11,opt,name=details,proto3" json:"details,omitempty"`
+	Nonce                uint64                `protobuf:"varint,12,opt,name=nonce,proto3" json:"nonce,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
 	XXX_unrecognized     []byte                `json:"-"`
 	XXX_sizecache        int32                 `json:"-"`
@@ -79,6 +80,13 @@ func (m *IdentityPB) GetIdentityId() string {
 		return m.IdentityId
 	}
 	return ""
+}
+
+func (m *IdentityPB) GetIdeneityType() constant.IdentityType {
+	if m != nil {
+		return m.IdeneityType
+	}
+	return constant.IdentityType_Identity_Unknown
 }
 
 func (m *IdentityPB) GetNodeId() string {
@@ -153,23 +161,16 @@ func (m *IdentityPB) GetNonce() uint64 {
 
 // A represents the basic information of the organization.
 type Organization struct {
-	// org name
-	NodeName string `protobuf:"bytes,1,opt,name=node_name,json=nodeName,proto3" json:"node_name,omitempty"`
-	// the node_id for org
-	NodeId string `protobuf:"bytes,2,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
-	// the identity for org
-	IdentityId string `protobuf:"bytes,3,opt,name=identity_id,json=identityId,proto3" json:"identity_id,omitempty"`
-	// the status of data for local storage, 1 means valid, 2 means invalid
-	DataStatus constant.DataStatus `protobuf:"varint,4,opt,name=data_status,json=dataStatus,proto3,enum=common.constant.DataStatus" json:"data_status,omitempty"`
-	// the status of data for datacenter, 1 means valid, 2 means invalid
-	Status constant.CommonStatus `protobuf:"varint,5,opt,name=status,proto3,enum=common.constant.CommonStatus" json:"status,omitempty"`
-	//v 3.0
-	// the last_update time of corresponding datacenter (unit: UTC ms)
-	UpdateAt uint64 `protobuf:"varint,6,opt,name=update_at,json=updateAt,proto3" json:"update_at,omitempty"`
-	// the link of face image (with a length limit)
-	ImageUrl string `protobuf:"bytes,7,opt,name=image_url,json=imageUrl,proto3" json:"image_url,omitempty"`
-	// description of the node (with a length limit)
-	Details              string   `protobuf:"bytes,8,opt,name=details,proto3" json:"details,omitempty"`
+	NodeName     string                `protobuf:"bytes,1,opt,name=node_name,json=nodeName,proto3" json:"node_name,omitempty"`
+	NodeId       string                `protobuf:"bytes,2,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
+	IdentityId   string                `protobuf:"bytes,3,opt,name=identity_id,json=identityId,proto3" json:"identity_id,omitempty"`
+	IdeneityType constant.IdentityType `protobuf:"varint,4,opt,name=ideneity_type,json=ideneityType,proto3,enum=common.constant.IdentityType" json:"ideneity_type,omitempty"`
+	DataStatus   constant.DataStatus   `protobuf:"varint,5,opt,name=data_status,json=dataStatus,proto3,enum=common.constant.DataStatus" json:"data_status,omitempty"`
+	Status       constant.CommonStatus `protobuf:"varint,6,opt,name=status,proto3,enum=common.constant.CommonStatus" json:"status,omitempty"`
+	// add by v 0.3.0
+	UpdateAt             uint64   `protobuf:"varint,7,opt,name=update_at,json=updateAt,proto3" json:"update_at,omitempty"`
+	ImageUrl             string   `protobuf:"bytes,8,opt,name=image_url,json=imageUrl,proto3" json:"image_url,omitempty"`
+	Details              string   `protobuf:"bytes,9,opt,name=details,proto3" json:"details,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -229,6 +230,13 @@ func (m *Organization) GetIdentityId() string {
 	return ""
 }
 
+func (m *Organization) GetIdeneityType() constant.IdentityType {
+	if m != nil {
+		return m.IdeneityType
+	}
+	return constant.IdentityType_Identity_Unknown
+}
+
 func (m *Organization) GetDataStatus() constant.DataStatus {
 	if m != nil {
 		return m.DataStatus
@@ -272,33 +280,35 @@ func init() {
 func init() { proto.RegisterFile("carrier/types/identitydata.proto", fileDescriptor_a09da595969ee46a) }
 
 var fileDescriptor_a09da595969ee46a = []byte{
-	// 415 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x93, 0xb1, 0x8e, 0x13, 0x31,
-	0x10, 0x86, 0xe5, 0x5c, 0xb2, 0x49, 0x26, 0x40, 0x61, 0x21, 0x61, 0x71, 0x22, 0x44, 0xa9, 0xd2,
-	0xdc, 0xae, 0x04, 0xa2, 0xbb, 0x86, 0x83, 0x26, 0x14, 0x80, 0x82, 0x68, 0x68, 0xa2, 0xc9, 0xda,
-	0xca, 0x59, 0xec, 0xda, 0x2b, 0xef, 0xac, 0xd0, 0xf1, 0x50, 0x3c, 0x07, 0x25, 0x8f, 0x80, 0xf2,
-	0x1a, 0x34, 0xc8, 0xf6, 0x2e, 0x68, 0x13, 0x40, 0xe2, 0x3a, 0xcf, 0xfc, 0xf3, 0x8f, 0x66, 0x3e,
-	0x6b, 0x60, 0x91, 0xa3, 0x73, 0x5a, 0xb9, 0x8c, 0x6e, 0x2a, 0x55, 0x67, 0x5a, 0x2a, 0x43, 0x9a,
-	0x6e, 0x24, 0x12, 0xa6, 0x95, 0xb3, 0x64, 0xf9, 0xdd, 0xb6, 0x22, 0x0d, 0x15, 0x0f, 0x97, 0xb9,
-	0x2d, 0x4b, 0x6b, 0xb2, 0xdc, 0x9a, 0x9a, 0xd0, 0x50, 0xd6, 0xca, 0x5b, 0x65, 0x9a, 0x32, 0x5a,
-	0x96, 0x3f, 0x06, 0x00, 0xeb, 0xb6, 0xd3, 0xdb, 0x2b, 0xfe, 0x18, 0x66, 0x5d, 0xdf, 0xad, 0x96,
-	0x82, 0x2d, 0xd8, 0x6a, 0xba, 0x81, 0x2e, 0xb5, 0x96, 0xfc, 0x01, 0x8c, 0x8d, 0x95, 0xca, 0x8b,
-	0x83, 0x20, 0x26, 0x3e, 0x5c, 0x4b, 0x7e, 0x0e, 0xd3, 0x20, 0x18, 0x2c, 0x95, 0x38, 0x0b, 0xd2,
-	0xc4, 0x27, 0x5e, 0x63, 0xa9, 0xbc, 0xcb, 0x8f, 0xe9, 0x5d, 0xc3, 0xe8, 0xf2, 0xe1, 0x5a, 0xf2,
-	0x4b, 0x98, 0x05, 0xa1, 0x26, 0xa4, 0xa6, 0x16, 0xa3, 0x05, 0x5b, 0xdd, 0x7b, 0x72, 0x9e, 0xc6,
-	0xc1, 0xd3, 0x6e, 0xf0, 0xf4, 0x25, 0x12, 0xbe, 0x0b, 0x25, 0x1b, 0x90, 0xbf, 0xde, 0xfc, 0x19,
-	0x24, 0xad, 0x31, 0x09, 0xc6, 0x47, 0x27, 0xc6, 0x17, 0x21, 0x6e, 0xad, 0x6d, 0x31, 0x9f, 0x03,
-	0xe4, 0x4e, 0x85, 0x9d, 0xb0, 0x10, 0xe3, 0xb8, 0xe3, 0xef, 0x8c, 0x5f, 0xa5, 0xa9, 0x24, 0x92,
-	0xda, 0x22, 0x89, 0xc9, 0x82, 0xad, 0x86, 0x9b, 0x49, 0x4c, 0x3c, 0x27, 0x2f, 0xea, 0x12, 0xf7,
-	0x6a, 0xdb, 0xb8, 0x42, 0x4c, 0xe3, 0x9e, 0x21, 0xf1, 0xde, 0x15, 0x5c, 0xc0, 0x58, 0x2a, 0x42,
-	0x5d, 0xd4, 0x02, 0x82, 0xd4, 0x85, 0xfc, 0x3e, 0x8c, 0x8c, 0x35, 0xb9, 0x12, 0xb3, 0xd0, 0x2f,
-	0x06, 0xcb, 0x2f, 0x03, 0xb8, 0xf3, 0xc6, 0xed, 0xd1, 0xe8, 0xcf, 0x48, 0xda, 0x9a, 0x3e, 0x45,
-	0x76, 0x4a, 0xf1, 0xcf, 0xec, 0x8f, 0x7e, 0xed, 0xec, 0xe4, 0xd7, 0x8e, 0x30, 0x0f, 0x6f, 0x8b,
-	0x79, 0xf4, 0x3f, 0x98, 0x7b, 0x18, 0x93, 0x7f, 0x61, 0x1c, 0xff, 0x1d, 0xe3, 0xa4, 0x87, 0xf1,
-	0xea, 0xd5, 0xd7, 0xc3, 0x9c, 0x7d, 0x3b, 0xcc, 0xd9, 0xf7, 0xc3, 0x9c, 0x7d, 0xb8, 0xdc, 0x6b,
-	0xba, 0x6e, 0x76, 0x7e, 0x9c, 0x4c, 0x22, 0x35, 0x25, 0xa9, 0xfc, 0xba, 0x8e, 0xcf, 0x0b, 0xa3,
-	0xe8, 0x93, 0x75, 0x1f, 0x2f, 0xba, 0xab, 0xa9, 0x76, 0x59, 0xef, 0x80, 0x76, 0x49, 0xb8, 0x80,
-	0xa7, 0x3f, 0x03, 0x00, 0x00, 0xff, 0xff, 0xa2, 0x99, 0x50, 0xee, 0x58, 0x03, 0x00, 0x00,
+	// 445 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x53, 0xcd, 0x8e, 0xd3, 0x30,
+	0x10, 0x56, 0xfa, 0x93, 0xb6, 0xd3, 0x2e, 0x07, 0x0b, 0x09, 0x8b, 0x15, 0xa5, 0xea, 0xa9, 0x97,
+	0x4d, 0x24, 0x10, 0xb7, 0xbd, 0x50, 0xb8, 0x94, 0x03, 0xa0, 0x02, 0x17, 0x2e, 0xd5, 0x34, 0xb6,
+	0xba, 0x16, 0x89, 0x1d, 0x39, 0x13, 0xa1, 0xf2, 0x72, 0x5c, 0x39, 0xf2, 0x08, 0xa8, 0x8f, 0xc0,
+	0x13, 0x20, 0x3b, 0x31, 0x28, 0xbb, 0x5a, 0xd0, 0x72, 0xf3, 0x37, 0xdf, 0x7c, 0x33, 0x9e, 0xf9,
+	0x34, 0xb0, 0xc8, 0xd0, 0x5a, 0x25, 0x6d, 0x4a, 0xc7, 0x52, 0x56, 0xa9, 0x12, 0x52, 0x93, 0xa2,
+	0xa3, 0x40, 0xc2, 0xa4, 0xb4, 0x86, 0x0c, 0x3b, 0x6b, 0x33, 0x12, 0x9f, 0xf1, 0x70, 0x99, 0x99,
+	0xa2, 0x30, 0x3a, 0xcd, 0x8c, 0xae, 0x08, 0x35, 0xa5, 0x2d, 0xbd, 0x93, 0xba, 0x2e, 0x1a, 0xc9,
+	0xf2, 0x6b, 0x1f, 0x60, 0xd3, 0x56, 0x7a, 0xbb, 0x66, 0x8f, 0x61, 0x1a, 0xea, 0xee, 0x94, 0xe0,
+	0xd1, 0x22, 0x5a, 0x4d, 0xb6, 0x10, 0x42, 0x1b, 0xc1, 0xd6, 0x70, 0xe6, 0x90, 0x74, 0x09, 0xae,
+	0x0b, 0xef, 0x2d, 0xa2, 0xd5, 0xbd, 0x27, 0x8f, 0x92, 0xa6, 0x57, 0x12, 0x7a, 0x25, 0xa1, 0xe8,
+	0xfb, 0x63, 0x29, 0xb7, 0xb3, 0xa0, 0x71, 0x88, 0x3d, 0x80, 0x91, 0x36, 0x42, 0xba, 0x06, 0x7d,
+	0xdf, 0x20, 0x76, 0x70, 0x23, 0xd8, 0x39, 0x4c, 0x3c, 0xa1, 0xb1, 0x90, 0x7c, 0xe0, 0xa9, 0xb1,
+	0x0b, 0xbc, 0xc6, 0xc2, 0xab, 0xdc, 0xa8, 0x4e, 0x35, 0x6c, 0x54, 0x0e, 0x6e, 0x04, 0xbb, 0x84,
+	0xa9, 0x27, 0x2a, 0x42, 0xaa, 0x2b, 0x1e, 0xfb, 0x0f, 0x9d, 0xdf, 0xf8, 0xd0, 0x4b, 0x24, 0x7c,
+	0xe7, 0x53, 0xb6, 0x20, 0x7e, 0xbf, 0xd9, 0x33, 0x88, 0x5b, 0xe1, 0xe8, 0x96, 0x49, 0x5e, 0x78,
+	0xdc, 0x4a, 0xdb, 0x64, 0x36, 0x07, 0xc8, 0xac, 0xf4, 0x33, 0x62, 0xce, 0xc7, 0xcd, 0x9e, 0xfe,
+	0x44, 0xdc, 0x28, 0x75, 0x29, 0x90, 0xe4, 0x0e, 0x89, 0x4f, 0x16, 0xd1, 0x6a, 0xb0, 0x1d, 0x37,
+	0x81, 0xe7, 0xe4, 0x48, 0x55, 0xe0, 0x41, 0xee, 0x6a, 0x9b, 0x73, 0x68, 0xe6, 0xf4, 0x81, 0x0f,
+	0x36, 0x67, 0x1c, 0x46, 0x42, 0x12, 0xaa, 0xbc, 0xe2, 0x53, 0x4f, 0x05, 0xc8, 0xee, 0xc3, 0x50,
+	0x1b, 0x9d, 0x49, 0x3e, 0xf3, 0xf5, 0x1a, 0xb0, 0xfc, 0xd9, 0x83, 0xd9, 0x1b, 0x7b, 0x40, 0xad,
+	0xbe, 0x20, 0x29, 0xa3, 0xbb, 0x5b, 0x8c, 0x6e, 0x6e, 0x31, 0xec, 0xbe, 0xd7, 0xd9, 0xfd, 0x35,
+	0xe7, 0xfb, 0xff, 0x76, 0x7e, 0x70, 0x77, 0xe7, 0xaf, 0x59, 0x35, 0xfc, 0x5f, 0xab, 0xe2, 0xbb,
+	0x58, 0xd5, 0xb1, 0x62, 0xf4, 0x37, 0x2b, 0xc6, 0xb7, 0x5b, 0x31, 0xe9, 0x58, 0xb1, 0x7e, 0xf5,
+	0xed, 0x34, 0x8f, 0xbe, 0x9f, 0xe6, 0xd1, 0x8f, 0xd3, 0x3c, 0xfa, 0x78, 0x79, 0x50, 0x74, 0x55,
+	0xef, 0xdd, 0x77, 0x52, 0x81, 0x54, 0x17, 0x24, 0xb3, 0xab, 0xaa, 0x79, 0x5e, 0x68, 0x49, 0x9f,
+	0x8d, 0xfd, 0x74, 0x11, 0xae, 0xb7, 0xdc, 0xa7, 0x9d, 0x43, 0xde, 0xc7, 0xfe, 0x12, 0x9f, 0xfe,
+	0x0a, 0x00, 0x00, 0xff, 0xff, 0xc4, 0x92, 0xc7, 0x4e, 0xe0, 0x03, 0x00, 0x00,
 }
 
 func (m *IdentityPB) Marshal() (dAtA []byte, err error) {
@@ -328,64 +338,69 @@ func (m *IdentityPB) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	if m.Nonce != 0 {
 		i = encodeVarintIdentitydata(dAtA, i, uint64(m.Nonce))
 		i--
-		dAtA[i] = 0x58
+		dAtA[i] = 0x60
 	}
 	if len(m.Details) > 0 {
 		i -= len(m.Details)
 		copy(dAtA[i:], m.Details)
 		i = encodeVarintIdentitydata(dAtA, i, uint64(len(m.Details)))
 		i--
-		dAtA[i] = 0x52
+		dAtA[i] = 0x5a
 	}
 	if len(m.ImageUrl) > 0 {
 		i -= len(m.ImageUrl)
 		copy(dAtA[i:], m.ImageUrl)
 		i = encodeVarintIdentitydata(dAtA, i, uint64(len(m.ImageUrl)))
 		i--
-		dAtA[i] = 0x4a
+		dAtA[i] = 0x52
 	}
 	if m.UpdateAt != 0 {
 		i = encodeVarintIdentitydata(dAtA, i, uint64(m.UpdateAt))
 		i--
-		dAtA[i] = 0x40
+		dAtA[i] = 0x48
 	}
 	if len(m.Credential) > 0 {
 		i -= len(m.Credential)
 		copy(dAtA[i:], m.Credential)
 		i = encodeVarintIdentitydata(dAtA, i, uint64(len(m.Credential)))
 		i--
-		dAtA[i] = 0x3a
+		dAtA[i] = 0x42
 	}
 	if m.Status != 0 {
 		i = encodeVarintIdentitydata(dAtA, i, uint64(m.Status))
 		i--
-		dAtA[i] = 0x30
+		dAtA[i] = 0x38
 	}
 	if m.DataStatus != 0 {
 		i = encodeVarintIdentitydata(dAtA, i, uint64(m.DataStatus))
 		i--
-		dAtA[i] = 0x28
+		dAtA[i] = 0x30
 	}
 	if len(m.DataId) > 0 {
 		i -= len(m.DataId)
 		copy(dAtA[i:], m.DataId)
 		i = encodeVarintIdentitydata(dAtA, i, uint64(len(m.DataId)))
 		i--
-		dAtA[i] = 0x22
+		dAtA[i] = 0x2a
 	}
 	if len(m.NodeName) > 0 {
 		i -= len(m.NodeName)
 		copy(dAtA[i:], m.NodeName)
 		i = encodeVarintIdentitydata(dAtA, i, uint64(len(m.NodeName)))
 		i--
-		dAtA[i] = 0x1a
+		dAtA[i] = 0x22
 	}
 	if len(m.NodeId) > 0 {
 		i -= len(m.NodeId)
 		copy(dAtA[i:], m.NodeId)
 		i = encodeVarintIdentitydata(dAtA, i, uint64(len(m.NodeId)))
 		i--
-		dAtA[i] = 0x12
+		dAtA[i] = 0x1a
+	}
+	if m.IdeneityType != 0 {
+		i = encodeVarintIdentitydata(dAtA, i, uint64(m.IdeneityType))
+		i--
+		dAtA[i] = 0x10
 	}
 	if len(m.IdentityId) > 0 {
 		i -= len(m.IdentityId)
@@ -426,27 +441,32 @@ func (m *Organization) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		copy(dAtA[i:], m.Details)
 		i = encodeVarintIdentitydata(dAtA, i, uint64(len(m.Details)))
 		i--
-		dAtA[i] = 0x42
+		dAtA[i] = 0x4a
 	}
 	if len(m.ImageUrl) > 0 {
 		i -= len(m.ImageUrl)
 		copy(dAtA[i:], m.ImageUrl)
 		i = encodeVarintIdentitydata(dAtA, i, uint64(len(m.ImageUrl)))
 		i--
-		dAtA[i] = 0x3a
+		dAtA[i] = 0x42
 	}
 	if m.UpdateAt != 0 {
 		i = encodeVarintIdentitydata(dAtA, i, uint64(m.UpdateAt))
 		i--
-		dAtA[i] = 0x30
+		dAtA[i] = 0x38
 	}
 	if m.Status != 0 {
 		i = encodeVarintIdentitydata(dAtA, i, uint64(m.Status))
 		i--
-		dAtA[i] = 0x28
+		dAtA[i] = 0x30
 	}
 	if m.DataStatus != 0 {
 		i = encodeVarintIdentitydata(dAtA, i, uint64(m.DataStatus))
+		i--
+		dAtA[i] = 0x28
+	}
+	if m.IdeneityType != 0 {
+		i = encodeVarintIdentitydata(dAtA, i, uint64(m.IdeneityType))
 		i--
 		dAtA[i] = 0x20
 	}
@@ -494,6 +514,9 @@ func (m *IdentityPB) Size() (n int) {
 	l = len(m.IdentityId)
 	if l > 0 {
 		n += 1 + l + sovIdentitydata(uint64(l))
+	}
+	if m.IdeneityType != 0 {
+		n += 1 + sovIdentitydata(uint64(m.IdeneityType))
 	}
 	l = len(m.NodeId)
 	if l > 0 {
@@ -554,6 +577,9 @@ func (m *Organization) Size() (n int) {
 	l = len(m.IdentityId)
 	if l > 0 {
 		n += 1 + l + sovIdentitydata(uint64(l))
+	}
+	if m.IdeneityType != 0 {
+		n += 1 + sovIdentitydata(uint64(m.IdeneityType))
 	}
 	if m.DataStatus != 0 {
 		n += 1 + sovIdentitydata(uint64(m.DataStatus))
@@ -646,6 +672,25 @@ func (m *IdentityPB) Unmarshal(dAtA []byte) error {
 			m.IdentityId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field IdeneityType", wireType)
+			}
+			m.IdeneityType = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowIdentitydata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.IdeneityType |= constant.IdentityType(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field NodeId", wireType)
 			}
@@ -677,7 +722,7 @@ func (m *IdentityPB) Unmarshal(dAtA []byte) error {
 			}
 			m.NodeId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 3:
+		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field NodeName", wireType)
 			}
@@ -709,7 +754,7 @@ func (m *IdentityPB) Unmarshal(dAtA []byte) error {
 			}
 			m.NodeName = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 4:
+		case 5:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field DataId", wireType)
 			}
@@ -741,7 +786,7 @@ func (m *IdentityPB) Unmarshal(dAtA []byte) error {
 			}
 			m.DataId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 5:
+		case 6:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field DataStatus", wireType)
 			}
@@ -760,7 +805,7 @@ func (m *IdentityPB) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 6:
+		case 7:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
 			}
@@ -779,7 +824,7 @@ func (m *IdentityPB) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 7:
+		case 8:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Credential", wireType)
 			}
@@ -811,7 +856,7 @@ func (m *IdentityPB) Unmarshal(dAtA []byte) error {
 			}
 			m.Credential = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 8:
+		case 9:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field UpdateAt", wireType)
 			}
@@ -830,7 +875,7 @@ func (m *IdentityPB) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 9:
+		case 10:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ImageUrl", wireType)
 			}
@@ -862,7 +907,7 @@ func (m *IdentityPB) Unmarshal(dAtA []byte) error {
 			}
 			m.ImageUrl = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 10:
+		case 11:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Details", wireType)
 			}
@@ -894,7 +939,7 @@ func (m *IdentityPB) Unmarshal(dAtA []byte) error {
 			}
 			m.Details = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 11:
+		case 12:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Nonce", wireType)
 			}
@@ -1062,6 +1107,25 @@ func (m *Organization) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 4:
 			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field IdeneityType", wireType)
+			}
+			m.IdeneityType = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowIdentitydata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.IdeneityType |= constant.IdentityType(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 5:
+			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field DataStatus", wireType)
 			}
 			m.DataStatus = 0
@@ -1079,7 +1143,7 @@ func (m *Organization) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 5:
+		case 6:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
 			}
@@ -1098,7 +1162,7 @@ func (m *Organization) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 6:
+		case 7:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field UpdateAt", wireType)
 			}
@@ -1117,7 +1181,7 @@ func (m *Organization) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 7:
+		case 8:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ImageUrl", wireType)
 			}
@@ -1149,7 +1213,7 @@ func (m *Organization) Unmarshal(dAtA []byte) error {
 			}
 			m.ImageUrl = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 8:
+		case 9:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Details", wireType)
 			}
