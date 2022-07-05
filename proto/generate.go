@@ -27,8 +27,8 @@ import (
 //go:generate protoc -I ../ -I ./armada-common -I . -I ../repos/grpc-gateway/third_party/googleapis --grpc-gateway_out=logtostderr=true:./../pb ./armada-common/carrier/rpc/debug/v1/debug.proto
 //go:generate protoc -I ../ -I ./armada-common -I . -I ../repos/grpc-gateway/third_party/googleapis --swagger_out=logtostderr=true:./../pb ./armada-common/carrier/rpc/debug/v1/debug.proto
 
-// go:generate protoc -I ../ -I ./armada-common -I . -I ../repos/grpc-gateway/third_party/googleapis --grpc-gateway_out=logtostderr=true:./../pb ./armada-common/carrier/api/*.proto
-// go:generate protoc -I ../ -I ./armada-common -I . -I ../repos/grpc-gateway/third_party/googleapis --swagger_out=logtostderr=true:./../pb ./armada-common/carrier/api/*.proto
+//go:generate protoc -I ../ -I ./armada-common -I . -I ../repos/grpc-gateway/third_party/googleapis --grpc-gateway_out=logtostderr=true:./../pb ./armada-common/carrier/api/*.proto
+//go:generate protoc -I ../ -I ./armada-common -I . -I ../repos/grpc-gateway/third_party/googleapis --swagger_out=logtostderr=true:./../pb ./armada-common/carrier/api/*.proto
 
 
 func main() {
