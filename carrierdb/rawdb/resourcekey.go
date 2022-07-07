@@ -52,6 +52,7 @@ var (
 	// ---------  for message_handler  ---------
 	powerMsgKeyPrefix        = []byte("powerMsgKeyPrefix:")
 	metadataMsgKeyPrefix     = []byte("metadataMsgKeyPrefix:")
+	metadataUpdateMsgPrefix  = []byte("metadataUpdateMsgPrefix:")
 	metadataAuthMsgKeyPrefix = []byte("metadataAuthMsgKeyPrefix:")
 	taskMsgKeyPrefix         = []byte("taskMsgKeyPrefix:")
 
@@ -226,6 +227,10 @@ func GetMetadataMsgKeyPrefix() []byte {
 	return metadataMsgKeyPrefix
 }
 
+func GetMetadataUpdateMsgKeyPrefix() []byte {
+	return metadataUpdateMsgPrefix
+}
+
 func GetMetadataAuthMsgKeyPrefix() []byte {
 	return metadataAuthMsgKeyPrefix
 }
@@ -240,6 +245,10 @@ func GetPowerMsgKey(powerId string) []byte {
 
 func GetMetadataMsgKey(metadataId string) []byte {
 	return append(metadataMsgKeyPrefix, []byte(metadataId)...)
+}
+
+func GetMetadataUpdateMsgKey(metadataId string) []byte {
+	return append(metadataUpdateMsgPrefix, []byte(metadataId)...)
 }
 
 func GetMetadataAuthMsgKey(metadataAuthId string) []byte {

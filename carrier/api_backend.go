@@ -1448,8 +1448,6 @@ func (s *CarrierAPIBackend) StoreTaskResultDataSummary(taskId, originId, dataHas
 		UpdateAt:       timeutils.UnixMsecUint64(),
 		Nonce:          0,
 		MetadataOption: metadataOption,
-		AllowExpose:    false,
-		TokenAddress:   "",
 	})
 	s.carrier.carrierDB.StoreInternalMetadata(metadata)
 

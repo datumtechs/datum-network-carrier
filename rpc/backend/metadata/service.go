@@ -2,6 +2,8 @@ package metadata
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
 	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
@@ -141,62 +143,6 @@ func (svr *Server) GetMetadataUsedTaskIdList(ctx context.Context, req *carrierap
 	}, nil
 }
 
-func (svr *Server) BindDataTokenAddress(ctx context.Context, req *carrierapipb.BindDataTokenAddressRequest) (*carriertypespb.SimpleResponse, error) {
-
-	_, err := svr.B.GetNodeIdentity()
-	if nil != err {
-		log.WithError(err).Errorf("RPC-API:BindDataTokenAddress failed, query local identity failed, can not publish metadata")
-		return &carriertypespb.SimpleResponse{Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
-	}
-
-	if "" == strings.Trim(req.GetMetadataId(), "") {
-		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require metadataId"}, nil
-	}
-	if "" == strings.Trim(req.GetTokenAddress(), "") {
-		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require dataToken address"}, nil
-	}
-
-	metadataId := strings.Trim(req.GetMetadataId(), "")
-
-	var metadata *types.Metadata
-
-	metadata, err = svr.B.GetInternalMetadataDetail(metadataId)
-	if nil != err {
-		log.WithError(err).Errorf("RPC-API:BindDataTokenAddress failed, check is internal metadata failed, metadataId: {%s}, dataTokenAddress: {%s}", req.GetMetadataId(), req.GetTokenAddress())
-		return &carriertypespb.SimpleResponse{Status: backend.ErrBindDataTokenAddress.ErrCode(), Msg: fmt.Sprintf("%s, check is internal metadata failed", backend.ErrBindDataTokenAddress.Error())}, nil
-	}
-	if nil != metadata {
-		log.Errorf("RPC-API:BindDataTokenAddress failed, internal metadata be not able to bind datatoken address, metadataId: {%s}, dataTokenAddress: {%s}", req.GetMetadataId(), req.GetTokenAddress())
-		return &carriertypespb.SimpleResponse{Status: backend.ErrBindDataTokenAddress.ErrCode(), Msg: fmt.Sprintf("%s, internal metadata be not able to bind datatoken address", backend.ErrBindDataTokenAddress.Error())}, nil
-	}
-
-	metadata, err = svr.B.GetMetadataDetail(metadataId)
-	if nil != err {
-		log.WithError(err).Errorf("RPC-API:BindDataTokenAddress failed, query metadata failed, metadataId: {%s}, dataTokenAddress: {%s}", req.GetMetadataId(), req.GetTokenAddress())
-		return &carriertypespb.SimpleResponse{Status: backend.ErrBindDataTokenAddress.ErrCode(), Msg: fmt.Sprintf("%s, query metadata failed", backend.ErrBindDataTokenAddress.Error())}, nil
-	}
-	if nil == metadata {
-		log.Errorf("RPC-API:BindDataTokenAddress failed, not found metadata")
-		return &carriertypespb.SimpleResponse{Status: backend.ErrBindDataTokenAddress.ErrCode(), Msg: fmt.Sprintf("%s, not found metadata", backend.ErrBindDataTokenAddress.Error())}, nil
-	}
-	if "" != metadata.GetData().GetTokenAddress() {
-		log.Errorf("RPC-API:BindDataTokenAddress failed, the metadata had tokenAddress already")
-		return &carriertypespb.SimpleResponse{Status: backend.ErrBindDataTokenAddress.ErrCode(), Msg: fmt.Sprintf("%s, the metadata had tokenAddress already", backend.ErrBindDataTokenAddress.Error())}, nil
-
-	}
-
-	metadata.GetData().TokenAddress = strings.Trim(req.GetTokenAddress(), "")
-	if err := svr.B.UpdateGlobalMetadata(metadata); nil != err {
-		log.WithError(err).Errorf("RPC-API:BindDataTokenAddress failed, update global metadata failed, metadataId: {%s}, dataTokenAddress: {%s}", req.GetMetadataId(), req.GetTokenAddress())
-		return &carriertypespb.SimpleResponse{Status: backend.ErrBindDataTokenAddress.ErrCode(), Msg: fmt.Sprintf("%s, update global metadata failed", backend.ErrBindDataTokenAddress.Error())}, nil
-	}
-	log.Debugf("RPC-API:BindDataTokenAddress succeed, metadataId: {%s}, dataTokenAddress: {%s}", req.GetMetadataId(), req.GetTokenAddress())
-	return &carriertypespb.SimpleResponse{
-		Status: 0,
-		Msg:    backend.OK,
-	}, nil
-}
-
 func (svr *Server) PublishMetadataByInteranlMetadata(ctx context.Context, req *carrierapipb.PublishMetadataByInteranlMetadataRequest) (*carrierapipb.PublishMetadataResponse, error) {
 
 	_, err := svr.B.GetNodeIdentity()
@@ -281,8 +227,6 @@ func (svr *Server) PublishMetadataByInteranlMetadata(ctx context.Context, req *c
 			UpdateAt:       req.GetInformation().GetUpdateAt(),
 			Nonce:          req.GetInformation().GetNonce(),
 			MetadataOption: req.GetInformation().GetMetadataOption(),
-			AllowExpose:    req.GetInformation().GetAllowExpose(),
-			//TokenAddress:   req.GetInformation().GetTokenAddress(),
 		},
 		CreateAt: timeutils.UnixMsecUint64(),
 	}
@@ -395,7 +339,7 @@ func (svr *Server) PublishMetadataByTaskResultFile(ctx context.Context, req *car
 			UpdateAt:       req.GetInformation().GetUpdateAt(),
 			Nonce:          req.GetInformation().GetNonce(),
 			MetadataOption: req.GetInformation().GetMetadataOption(),
-			AllowExpose:    req.GetInformation().GetAllowExpose(),
+			//AllowExpose:    req.GetInformation().GetAllowExpose(),
 			//TokenAddress:   req.GetInformation().GetTokenAddress(),
 		},
 		CreateAt: timeutils.UnixMsecUint64(),
@@ -413,4 +357,189 @@ func (svr *Server) PublishMetadataByTaskResultFile(ctx context.Context, req *car
 		Msg:        backend.OK,
 		MetadataId: metadataMsg.GetMetadataId(),
 	}, nil
+}
+
+func (svr *Server) UpdateMetadata(ctx context.Context, req *carrierapipb.UpdateMetadataRequest) (*carriertypespb.SimpleResponse, error) {
+	log.Debugf("RPC-API:UpdateMetadata req is:%s", req.String())
+	_, err := svr.B.GetNodeIdentity()
+	if nil != err {
+		log.WithError(err).Errorf("RPC-API:UpdateMetadata failed, query local identity failed, can not publish metadata")
+		return &carriertypespb.SimpleResponse{Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
+	}
+
+	if nil == req.GetInformation() {
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require metadataInfomation"}, nil
+	}
+	if "" == strings.Trim(req.GetInformation().GetMetadataId(), "") {
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require metadataId"}, nil
+	}
+	if "" == strings.Trim(req.GetInformation().GetMetadataName(), "") {
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require metadataName"}, nil
+	}
+	if req.GetInformation().GetMetadataType() == commonconstantpb.MetadataType_MetadataType_Unknown {
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown metadataType"}, nil
+	}
+	// DataHash
+	if "" == strings.Trim(req.GetInformation().GetDesc(), "") {
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require desc"}, nil
+	}
+	if req.GetInformation().GetLocationType() == commonconstantpb.DataLocationType_DataLocationType_Unknown {
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown locationType"}, nil
+	}
+	if req.GetInformation().GetDataType() == commonconstantpb.OrigindataType_OrigindataType_Unknown {
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown dataType"}, nil
+	}
+	if "" == strings.Trim(req.GetInformation().GetIndustry(), "") {
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require industry"}, nil
+	}
+	if "" == strings.Trim(req.GetInformation().GetMetadataOption(), "") {
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require metadataOption"}, nil
+	}
+
+	// get old metadata info by dataCenter
+	var oldMetadataInfo *types.Metadata
+	oldMetadataInfo, err = svr.B.GetMetadataDetail(req.GetInformation().GetMetadataId())
+	if err != nil {
+		return &carriertypespb.SimpleResponse{Status: backend.ErrQueryMetadataDetailById.ErrCode(), Msg: "call GetMetadataDetail fail"}, err
+	}
+	oldMetadata := oldMetadataInfo.GetData()
+	if result, err := checkCanUpdateMetadataFieldIsLegal(oldMetadata, req); err != nil {
+		return result, err
+	}
+
+	metadataUpdateMsg := &types.MetadataUpdateMsg{
+		MetadataSummary: &carriertypespb.MetadataSummary{
+			MetadataId:     req.GetInformation().GetMetadataId(),
+			MetadataName:   req.GetInformation().GetMetadataName(),
+			MetadataType:   req.GetInformation().GetMetadataType(),
+			DataHash:       req.GetInformation().GetDataHash(),
+			Desc:           req.GetInformation().GetDesc(),
+			LocationType:   req.GetInformation().GetLocationType(),
+			DataType:       req.GetInformation().GetDataType(),
+			Industry:       req.GetInformation().GetIndustry(),
+			State:          req.GetInformation().GetState(),
+			PublishAt:      req.GetInformation().GetPublishAt(),
+			UpdateAt:       req.GetInformation().GetUpdateAt(),
+			Nonce:          req.GetInformation().GetNonce(),
+			MetadataOption: req.GetInformation().GetMetadataOption(),
+			User:           req.GetInformation().GetUser(),
+			UserType:       req.GetInformation().GetUserType(),
+		},
+		CreateAt: timeutils.UnixMsecUint64(),
+	}
+	if err := svr.B.SendMsg(metadataUpdateMsg); nil != err {
+		log.WithError(err).Error("RPC-API:UpdateMetadata failed")
+
+		errMsg := fmt.Sprintf("%s, metadataId: {%s}", backend.ErrPublishMetadataMsg.Error(), req.GetInformation().GetMetadataId())
+		return &carriertypespb.SimpleResponse{Status: backend.ErrPublishMetadataMsg.ErrCode(), Msg: errMsg}, nil
+	}
+	log.Debugf("RPC-API:UpdateMetadata succeed, metadataId: {%s}", req.Information.GetMetadataId())
+	return &carriertypespb.SimpleResponse{
+		Status: 0,
+		Msg:    backend.OK,
+	}, nil
+}
+
+func checkCanUpdateMetadataFieldIsLegal(oldMetadata *carriertypespb.MetadataPB, req *carrierapipb.UpdateMetadataRequest) (*carriertypespb.SimpleResponse, error) {
+	responseMsg := ""
+	if oldMetadata.MetadataType != req.GetInformation().MetadataType {
+		responseMsg = "update MetadataType not equal to old MetadataType"
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: responseMsg}, errors.New(responseMsg)
+	}
+	if oldMetadata.DataType != req.GetInformation().DataType {
+		responseMsg = "update DataType not equal to old DataType"
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: responseMsg}, errors.New(responseMsg)
+	}
+	if oldMetadata.DataHash != req.GetInformation().DataHash {
+		responseMsg = "update DataHash not equal to old DataHash"
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: responseMsg}, errors.New(responseMsg)
+	}
+	if oldMetadata.State != req.GetInformation().State {
+		responseMsg = "update State not equal to old State"
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: responseMsg}, errors.New(responseMsg)
+	}
+	if oldMetadata.LocationType != req.GetInformation().LocationType {
+		responseMsg = "update LocationType not equal to old LocationType"
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: responseMsg}, errors.New(responseMsg)
+	}
+	if oldMetadata.User != req.GetInformation().User {
+		responseMsg = "update User not equal to old User"
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: responseMsg}, errors.New(responseMsg)
+	}
+	if oldMetadata.UserType != req.GetInformation().UserType {
+		responseMsg = "update UserType not equal to old UserType"
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: responseMsg}, errors.New(responseMsg)
+	}
+
+	metadataOption := req.GetInformation().GetMetadataOption()
+	var (
+		consumeOptions   []string
+		consumeTypes     []uint8
+		duplicateAddress []string
+	)
+	if req.GetInformation().GetDataType() == commonconstantpb.OrigindataType_OrigindataType_CSV {
+		var option *types.MetadataOptionCSV
+		err := json.Unmarshal([]byte(metadataOption), &option)
+		if err != nil {
+			responseMsg = "MetadataOption is not a valid json string"
+			return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: responseMsg}, errors.New(responseMsg)
+		}
+		consumeOptions, consumeTypes = option.GetConsumeOptions(), option.GetConsumeTypes()
+		// Return directly without consumption, no need to do follow-up checks
+		if len(consumeTypes) == 0 {
+			return nil, nil
+		}
+	} else {
+		//todo other dataType
+		return nil, nil
+	}
+
+	if len(consumeOptions) != len(consumeTypes) {
+		responseMsg = "consumeOptions len not equal to consumeTypes len"
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: responseMsg}, errors.New(responseMsg)
+	}
+
+	for index, consumeOption := range consumeOptions {
+		if consumeTypes[index] == types.ConsumeMetadataAuth {
+			continue
+		} else if consumeTypes[index] == types.ConsumeERC20 {
+			var info []map[string]interface{}
+			if err := json.Unmarshal([]byte(consumeOption), &info); err != nil {
+				set := make(map[string]struct{}, 0)
+				for _, consumeMap := range info {
+					if consumeMap["contract"] == nil {
+						responseMsg = "erc20 consumeOption no contract field"
+						return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: responseMsg}, errors.New(responseMsg)
+					}
+					contractAddress := consumeMap["contract"].(string)
+					if _, ok := set[contractAddress]; !ok {
+						set[contractAddress] = struct{}{}
+					} else {
+						duplicateAddress = append(duplicateAddress, contractAddress)
+					}
+				}
+			}
+		} else if consumeTypes[index] == types.ConsumeERC721 {
+			var addressArr []string
+			if err := json.Unmarshal([]byte(consumeOption), &addressArr); err != nil {
+				set := make(map[string]struct{}, 0)
+				for _, address := range addressArr {
+					if _, ok := set[address]; !ok {
+						set[address] = struct{}{}
+					} else {
+						duplicateAddress = append(duplicateAddress, address)
+					}
+				}
+			}
+		} else {
+			responseMsg = fmt.Sprintf("consumeType %s unknown,please check!", string(consumeTypes[index]))
+			return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: responseMsg}, errors.New(responseMsg)
+		}
+	}
+	if len(duplicateAddress) != 0 {
+		jsonStr, _ := json.Marshal(duplicateAddress)
+		responseMsg = fmt.Sprintf("exits duplicate contract Address,it's %s", jsonStr)
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: responseMsg}, errors.New(responseMsg)
+	}
+	return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: responseMsg}, nil
 }

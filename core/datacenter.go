@@ -320,6 +320,12 @@ func (dc *DataCenter) RemoveMetadataMsg(metadataId string) error {
 	return rawdb.RemoveMetadataMsg(dc.db, metadataId)
 }
 
+func (dc *DataCenter) RemoveMetadataUpdateMsg(metadataId string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.RemoveMetadataUpdateMsg(dc.db, metadataId)
+}
+
 func (dc *DataCenter) RemoveAllMetadataMsg() error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
@@ -360,6 +366,12 @@ func (dc *DataCenter) QueryMetadataMsgArr() (types.MetadataMsgArr,error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.QueryMetadataMsgArr(dc.db)
+}
+
+func (dc *DataCenter) QueryMetadataUpdateMsgArr() (types.MetadataUpdateMsgArr,error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.QueryMetadataUpdateMsgArr(dc.db)
 }
 
 func (dc *DataCenter) QueryMetadataAuthorityMsgArr() (types.MetadataAuthorityMsgArr,error) {

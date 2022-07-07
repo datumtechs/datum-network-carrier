@@ -94,6 +94,13 @@ func (pool *Mempool) Add(msg types.Msg) error {
 			Type: types.ApplyMetadata,
 			Data: &types.MetadataMsgEvent{Msg: m},
 		})
+	case *types.MetadataUpdateMsg:
+
+		// We've directly injected a replacement MetadataUpdateMsg, notify subsystems
+		pool.msgFeed.Send(&feed.Event{
+		Type: types.UpdateMetadata,
+		Data: &types.MetadataUpdateMsgEvent{Msg: m},
+		})
 
 	case *types.MetadataRevokeMsg:
 
