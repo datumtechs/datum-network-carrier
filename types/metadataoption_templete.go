@@ -11,8 +11,8 @@ var (
 
 const (
 	ConsumeMetadataAuth = iota + 1
-	ConsumeERC20
-	ConsumeERC721
+	ConsumeTk20
+	ConsumeTk721
 )
 
 func IsNotCSVdata(dataType commonconstantpb.OrigindataType) bool { return !IsCSVdata(dataType) }

@@ -502,7 +502,7 @@ func checkCanUpdateMetadataFieldIsLegal(oldMetadata *carriertypespb.MetadataPB, 
 	for index, consumeOption := range consumeOptions {
 		if consumeTypes[index] == types.ConsumeMetadataAuth {
 			continue
-		} else if consumeTypes[index] == types.ConsumeERC20 {
+		} else if consumeTypes[index] == types.ConsumeTk20 {
 			var info []map[string]interface{}
 			if err := json.Unmarshal([]byte(consumeOption), &info); err != nil {
 				set := make(map[string]struct{}, 0)
@@ -519,7 +519,7 @@ func checkCanUpdateMetadataFieldIsLegal(oldMetadata *carriertypespb.MetadataPB, 
 					}
 				}
 			}
-		} else if consumeTypes[index] == types.ConsumeERC721 {
+		} else if consumeTypes[index] == types.ConsumeTk721 {
 			var addressArr []string
 			if err := json.Unmarshal([]byte(consumeOption), &addressArr); err != nil {
 				set := make(map[string]struct{}, 0)
