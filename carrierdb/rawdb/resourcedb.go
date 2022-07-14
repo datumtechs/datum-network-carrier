@@ -1,6 +1,7 @@
 package rawdb
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/common/bytesutil"
 	"github.com/datumtechs/datum-network-carrier/db"
@@ -1331,6 +1332,15 @@ func StoreMessageCache(db KeyValueStore, value interface{}) error {
 		if nil != err {
 			return fmt.Errorf("marshal taskMsg failed, %s", err)
 		}
+	case types.MetadataUpdateMsg:
+		key = GetMetadataUpdateMsgKey(v.GetMetadataId())
+		val, err = json.Marshal(&types.MetadataUpdateMsg{
+			MetadataSummary: v.GetMetadataSummary(),
+			CreateAt:        v.GetCreateAt(),
+		})
+		if nil!=err{
+			return fmt.Errorf("marshal metadataMsg failed, %s", err)
+		}
 	}
 	return db.Put(key, val)
 }
@@ -1361,6 +1371,18 @@ func RemoveAllPowerMsg(db KeyValueStore) error {
 
 func RemoveMetadataMsg(db KeyValueStore, metadataId string) error {
 	key := GetMetadataMsgKey(metadataId)
+	has, err := db.Has(key)
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return err
+	case IsDBNotFoundErr(err), nil == err && !has:
+		return nil
+	}
+	return db.Delete(key)
+}
+
+func RemoveMetadataUpdateMsg(db KeyValueStore,metadataId string) error {
+	key := GetMetadataUpdateMsgKey(metadataId)
 	has, err := db.Has(key)
 	switch {
 	case IsNoDBNotFoundErr(err):
@@ -1470,6 +1492,30 @@ func QueryMetadataMsgArr(db KeyValueStore) (types.MetadataMsgArr, error) {
 				continue
 			}
 			arr = append(arr, &types.MetadataMsg{
+				MetadataSummary: res.GetMetadataSummary(),
+				CreateAt:        res.GetCreateAt(),
+			})
+		}
+	}
+	if len(arr) == 0 {
+		return nil, ErrNotFound
+	}
+	return arr, nil
+}
+
+func QueryMetadataUpdateMsgArr(db KeyValueStore) (types.MetadataUpdateMsgArr, error) {
+	it := db.NewIteratorWithPrefixAndStart(GetMetadataMsgKeyPrefix(), nil)
+	defer it.Release()
+
+	arr := make(types.MetadataUpdateMsgArr, 0)
+
+	for it.Next() {
+		if val := it.Value(); len(val) != 0 {
+			var res types.MetadataUpdateMsg
+			if err := json.Unmarshal(val, &res); nil != err {
+				continue
+			}
+			arr = append(arr, &types.MetadataUpdateMsg{
 				MetadataSummary: res.GetMetadataSummary(),
 				CreateAt:        res.GetCreateAt(),
 			})

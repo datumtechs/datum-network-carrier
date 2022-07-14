@@ -60,6 +60,7 @@ type LocalStoreCarrierDB interface {
 	RemovePowerMsg(powerId string) error
 	RemoveAllPowerMsg() error
 	RemoveMetadataMsg(metadataId string) error
+	RemoveMetadataUpdateMsg(metadataId string) error
 	RemoveAllMetadataMsg() error
 	RemoveMetadataAuthMsg(metadataAuthId string) error
 	RemoveAllMetadataAuthMsg() error
@@ -67,6 +68,7 @@ type LocalStoreCarrierDB interface {
 	RemoveAllTaskMsg() error
 	QueryPowerMsgArr() (types.PowerMsgArr, error)
 	QueryMetadataMsgArr() (types.MetadataMsgArr, error)
+	QueryMetadataUpdateMsgArr() (types.MetadataUpdateMsgArr, error)
 	QueryMetadataAuthorityMsgArr() (types.MetadataAuthorityMsgArr, error)
 	QueryTaskMsgArr() (types.TaskMsgArr, error)
 
