@@ -412,7 +412,7 @@ func (svr *Server) GenerateObServerProxyWalletAddress(ctx context.Context, req *
 }
 
 func (svr *Server) EstimateTaskGas(ctx context.Context, req *carrierapipb.EstimateTaskGasRequest) (*carrierapipb.EstimateTaskGasResponse, error) {
-	gasLimit, gasPrice, err := svr.B.EstimateTaskGas(req.GetTaskSponsorAddress(), req.GetTokenItems())
+	gasLimit, gasPrice, err := svr.B.EstimateTaskGas(req.GetTaskSponsorAddress(), req.GetTkItems())
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:EstimateTaskGas failed")
 		return &carrierapipb.EstimateTaskGasResponse{Status: backend.ErrEstimateTaskGas.ErrCode(), Msg: backend.ErrEstimateTaskGas.Error()}, nil
