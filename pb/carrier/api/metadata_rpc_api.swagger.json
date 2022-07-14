@@ -11,39 +11,6 @@
     "application/json"
   ],
   "paths": {
-    "/carrier/v1/metadata/bindDataTokenAddress": {
-      "post": {
-        "summary": "v 0.4.0 将元数据发布的 datatoken 合约地址绑定 元数据信息中 (metadata : datatoken == 1 : 1)",
-        "operationId": "MetadataService_BindDataTokenAddress",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/typesSimpleResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/apiBindDataTokenAddressRequest"
-            }
-          }
-        ],
-        "tags": [
-          "MetadataService"
-        ]
-      }
-    },
     "/carrier/v1/metadata/globalList": {
       "get": {
         "summary": "查看 全网元数据列表",
@@ -277,6 +244,39 @@
         ]
       }
     },
+    "/carrier/v1/metadata/updateMetadata": {
+      "post": {
+        "summary": "v 0.5.0 更新已经发布元数据相关信息",
+        "operationId": "MetadataService_UpdateMetadata",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/typesSimpleResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiUpdateMetadataRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MetadataService"
+        ]
+      }
+    },
     "/carrier/v1/metadata/usedTaskIdList": {
       "post": {
         "summary": "V 0.2.0 新增\n查询某 metadata 参与过的任务的taskId列表",
@@ -312,18 +312,6 @@
     }
   },
   "definitions": {
-    "apiBindDataTokenAddressRequest": {
-      "type": "object",
-      "properties": {
-        "metadata_id": {
-          "type": "string"
-        },
-        "token_address": {
-          "type": "string"
-        }
-      },
-      "title": "v 0.4.0 datatoken合约地址和metadata一对一绑定"
-    },
     "apiGetGlobalMetadataDetail": {
       "type": "object",
       "properties": {
@@ -475,6 +463,15 @@
       },
       "title": "数据下架 req"
     },
+    "apiUpdateMetadataRequest": {
+      "type": "object",
+      "properties": {
+        "information": {
+          "$ref": "#/definitions/typesMetadataSummary"
+        }
+      },
+      "title": "v 0.5.0 更新已发布的元数据 req"
+    },
     "constantCommonStatus": {
       "type": "string",
       "enum": [
@@ -504,6 +501,15 @@
       ],
       "default": "DataStatus_Unknown",
       "title": "the status of data for local storage, 1 means valid, 2 means invalid"
+    },
+    "constantIdentityType": {
+      "type": "string",
+      "enum": [
+        "Identity_Unknown",
+        "Identity_DID"
+      ],
+      "default": "Identity_Unknown",
+      "title": "add by 0.5.0"
     },
     "constantMetadataState": {
       "type": "string",
@@ -540,6 +546,16 @@
       ],
       "default": "OrigindataType_Unknown",
       "title": "原始数据类型 (文件类型)"
+    },
+    "constantUserType": {
+      "type": "string",
+      "enum": [
+        "User_Unknown",
+        "User_1",
+        "User_2",
+        "User_3"
+      ],
+      "default": "User_Unknown"
     },
     "protobufAny": {
       "type": "object",
@@ -632,11 +648,12 @@
         "metadata_option": {
           "type": "string"
         },
-        "allow_expose": {
-          "type": "boolean"
+        "user": {
+          "type": "string",
+          "title": "add by v0.5.0"
         },
-        "token_address": {
-          "type": "string"
+        "user_type": {
+          "$ref": "#/definitions/constantUserType"
         }
       },
       "title": "=============================== For API =========================\n元数据的摘要内容 (不包含详细 列描述)"
@@ -645,37 +662,33 @@
       "type": "object",
       "properties": {
         "node_name": {
-          "type": "string",
-          "title": "org name"
+          "type": "string"
         },
         "node_id": {
-          "type": "string",
-          "title": "the node_id for org"
+          "type": "string"
         },
         "identity_id": {
-          "type": "string",
-          "title": "the identity for org"
+          "type": "string"
+        },
+        "ideneity_type": {
+          "$ref": "#/definitions/constantIdentityType"
         },
         "data_status": {
-          "$ref": "#/definitions/constantDataStatus",
-          "title": "the status of data for local storage, 1 means valid, 2 means invalid"
+          "$ref": "#/definitions/constantDataStatus"
         },
         "status": {
-          "$ref": "#/definitions/constantCommonStatus",
-          "title": "the status of data for datacenter, 1 means valid, 2 means invalid"
+          "$ref": "#/definitions/constantCommonStatus"
         },
         "update_at": {
           "type": "string",
           "format": "uint64",
-          "title": "v 3.0\nthe last_update time of corresponding datacenter (unit: UTC ms)"
+          "title": "add by v 0.3.0"
         },
         "image_url": {
-          "type": "string",
-          "title": "the link of face image (with a length limit)"
+          "type": "string"
         },
         "details": {
-          "type": "string",
-          "title": "description of the node (with a length limit)"
+          "type": "string"
         }
       },
       "description": "A represents the basic information of the organization."

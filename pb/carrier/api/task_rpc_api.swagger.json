@@ -297,7 +297,7 @@
         "task_sponsor_address": {
           "type": "string"
         },
-        "data_token_addresses": {
+        "token_items": {
           "type": "array",
           "items": {
             "type": "string"
