@@ -96,5 +96,5 @@ type Backend interface {
 	QueryTaskResultDataSummaryList() (types.TaskResultDataSummaryArr, error)
 
 	// v 0.4.0
-	EstimateTaskGas(taskSponsorAddress string, dataTokenTransferList []string) (gasLimit uint64, gasPrice *big.Int, err error)
+	EstimateTaskGas(taskSponsorAddress string, tkItemList []*carrierapipb.TkItem) (gasLimit uint64, gasPrice *big.Int, err error)
 }

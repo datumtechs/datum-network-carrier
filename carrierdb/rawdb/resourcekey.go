@@ -52,14 +52,15 @@ var (
 	// ---------  for message_handler  ---------
 	powerMsgKeyPrefix        = []byte("powerMsgKeyPrefix:")
 	metadataMsgKeyPrefix     = []byte("metadataMsgKeyPrefix:")
+	metadataUpdateMsgPrefix  = []byte("metadataUpdateMsgPrefix:")
 	metadataAuthMsgKeyPrefix = []byte("metadataAuthMsgKeyPrefix:")
 	taskMsgKeyPrefix         = []byte("taskMsgKeyPrefix:")
 
 	// ---------- for scheduler (task bullet) ----------
 	taskBulletKeyPrefix = []byte("taskBulletKeyPrefix:")
 
-	// ---------- for organization built-in wallet ----------
-	orgWalletKeyPrefix = []byte("orgWalletKeyPrefix:")
+	// ---------- for organization built-in private key ----------
+	orgPriKeyPrefix = []byte("orgPriKeyPrefix:")
 )
 
 const (
@@ -226,6 +227,10 @@ func GetMetadataMsgKeyPrefix() []byte {
 	return metadataMsgKeyPrefix
 }
 
+func GetMetadataUpdateMsgKeyPrefix() []byte {
+	return metadataUpdateMsgPrefix
+}
+
 func GetMetadataAuthMsgKeyPrefix() []byte {
 	return metadataAuthMsgKeyPrefix
 }
@@ -240,6 +245,10 @@ func GetPowerMsgKey(powerId string) []byte {
 
 func GetMetadataMsgKey(metadataId string) []byte {
 	return append(metadataMsgKeyPrefix, []byte(metadataId)...)
+}
+
+func GetMetadataUpdateMsgKey(metadataId string) []byte {
+	return append(metadataUpdateMsgPrefix, []byte(metadataId)...)
 }
 
 func GetMetadataAuthMsgKey(metadataAuthId string) []byte {
@@ -259,6 +268,6 @@ func GetTaskBulletKey(taskId string) []byte {
 	return append(taskBulletKeyPrefix, []byte(taskId)...)
 }
 
-func GetOrgWalletKeyPrefix() []byte {
-	return orgWalletKeyPrefix
+func GetOrgPriKeyPrefix() []byte {
+	return orgPriKeyPrefix
 }

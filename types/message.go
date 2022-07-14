@@ -25,6 +25,7 @@ const (
 	MSG_POWER           = "powerMsg"
 	MSG_POWER_REVOKE    = "powerRevokeMsg"
 	MSG_METADATA        = "metaDataMsg"
+	MSG_UPDATEMETADATA		= "updateMetadataMsg"
 	MSG_METADATA_REVOKE = "metaDataRevokeMsg"
 	MSG_TASK            = "taskMsg"
 	MSG_TASK_TERMINATE  = "taskTerminateMsg"
@@ -318,10 +319,8 @@ func NewMetadataMessageFromRequest(req *carrierapipb.PublishMetadataRequest) *Me
 			State:        req.GetInformation().GetState(),
 			PublishAt:    req.GetInformation().GetPublishAt(),
 			UpdateAt:     req.GetInformation().GetUpdateAt(),
-			//Nonce:          req.GetInformation().GetNonce(),
+			Nonce:          req.GetInformation().GetNonce(),
 			MetadataOption: req.GetInformation().GetMetadataOption(),
-			AllowExpose:    req.GetInformation().GetAllowExpose(),
-			//TokenAddress:   req.GetInformation().GetTokenAddress(),
 		},
 		CreateAt: timeutils.UnixMsecUint64(),
 	}
@@ -367,8 +366,6 @@ func (msg *MetadataMsg) ToDataCenter(identity *carriertypespb.Organization) *Met
 		UpdateAt:       timeutils.UnixMsecUint64(),
 		Nonce:          msg.GetNonce(),
 		MetadataOption: msg.GetMetadataOption(),
-		AllowExpose:    msg.GetAllowExpose(),
-		TokenAddress:   msg.GetTokenAddress(),
 	})
 }
 func (msg *MetadataMsg) Marshal() ([]byte, error) { return nil, nil }
@@ -403,8 +400,6 @@ func (msg *MetadataMsg) GetState() commonconstantpb.MetadataState {
 }
 func (msg *MetadataMsg) GetIndustry() string       { return msg.GetMetadataSummary().Industry }
 func (msg *MetadataMsg) GetMetadataOption() string { return msg.GetMetadataSummary().MetadataOption }
-func (msg *MetadataMsg) GetAllowExpose() bool      { return msg.GetMetadataSummary().AllowExpose }
-func (msg *MetadataMsg) GetTokenAddress() string   { return msg.GetMetadataSummary().TokenAddress }
 func (msg *MetadataMsg) GetCreateAt() uint64       { return msg.CreateAt }
 func (msg *MetadataMsg) GetMetadataId() string     { return msg.GetMetadataSummary().MetadataId }
 
@@ -444,7 +439,6 @@ func (msg *MetadataMsg) Hash() common.Hash {
 	buf.Write([]byte(msg.GetState().String()))
 	//buf.Write(bytesutil.Uint64ToBytes(msg.GetNonce()))
 	buf.Write([]byte(msg.GetMetadataOption()))
-	buf.Write([]byte{bytesutil.FromBool(msg.GetAllowExpose())})
 
 	v := rlputil.RlpHash(buf.Bytes())
 	msg.hash.Store(v)
@@ -464,11 +458,52 @@ func (msg *MetadataMsg) HashByCreateTime() common.Hash {
 	buf.Write([]byte(msg.GetState().String()))
 	//buf.Write(bytesutil.Uint64ToBytes(msg.GetNonce()))
 	buf.Write([]byte(msg.GetMetadataOption()))
-	buf.Write([]byte{bytesutil.FromBool(msg.GetAllowExpose())})
 	buf.Write(bytesutil.Uint64ToBytes(timeutils.UnixMsecUint64()))
 
 	return rlputil.RlpHash(buf.Bytes())
 }
+
+type MetadataUpdateMsg struct {
+	MetadataSummary *carriertypespb.MetadataSummary `json:"metadataSummary"`
+	CreateAt        uint64                    `json:"createAt"`
+	// caches
+	hash atomic.Value
+}
+
+func (msg *MetadataUpdateMsg) Marshal() ([]byte, error) { return nil, nil }
+func (msg *MetadataUpdateMsg) Unmarshal(b []byte) error { return nil }
+func (msg *MetadataUpdateMsg) String() string {
+	result, err := json.Marshal(msg)
+	if err != nil {
+		return "Failed to generate string"
+	}
+	return string(result)
+}
+func (msg *MetadataUpdateMsg) MsgType() string { return MSG_UPDATEMETADATA }
+func (msg *MetadataUpdateMsg) GetMetadataSummary() *carriertypespb.MetadataSummary {
+	return msg.MetadataSummary
+}
+func (msg *MetadataUpdateMsg) GetMetadataId() string     { return msg.GetMetadataSummary().GetMetadataId()}
+func (msg *MetadataUpdateMsg) GetCreateAt() uint64       { return msg.CreateAt }
+func (msg *MetadataUpdateMsg) GetMetadataName() string { return msg.GetMetadataSummary().MetadataName }
+func (msg *MetadataUpdateMsg) GetMetadataType() commonconstantpb.MetadataType {
+	return msg.GetMetadataSummary().MetadataType
+}
+func (msg *MetadataUpdateMsg) GetDataHash() string { return msg.GetMetadataSummary().DataHash }
+func (msg *MetadataUpdateMsg) GetDesc() string     { return msg.GetMetadataSummary().Desc }
+func (msg *MetadataUpdateMsg) GetLocationType() commonconstantpb.DataLocationType {
+	return msg.GetMetadataSummary().LocationType
+}
+func (msg *MetadataUpdateMsg) GetDataType() commonconstantpb.OrigindataType {
+	return msg.GetMetadataSummary().DataType
+}
+func (msg *MetadataUpdateMsg) GetNonce() uint64 { return msg.GetMetadataSummary().Nonce }
+func (msg *MetadataUpdateMsg) GetState() commonconstantpb.MetadataState {
+	return msg.GetMetadataSummary().State
+}
+func (msg *MetadataUpdateMsg) GetIndustry() string       { return msg.GetMetadataSummary().Industry }
+func (msg *MetadataUpdateMsg) GetMetadataOption() string { return msg.GetMetadataSummary().MetadataOption }
+func (msg *MetadataUpdateMsg) GetPublishAt() uint64 { return msg.GetMetadataSummary().PublishAt }
 
 type MetadataRevokeMsg struct {
 	MetadataId string `json:"metadataId"`
@@ -525,13 +560,20 @@ func (msg *MetadataRevokeMsg) Hash() common.Hash {
 
 type MetadataMsgArr []*MetadataMsg
 type MetadataRevokeMsgArr []*MetadataRevokeMsg
-
+type MetadataUpdateMsgArr []*MetadataUpdateMsg
 // Len returns the length of s.
 func (s MetadataMsgArr) Len() int { return len(s) }
 
 // Swap swaps the i'th and the j'th element in s.
 func (s MetadataMsgArr) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 func (s MetadataMsgArr) Less(i, j int) bool { return s[i].GetCreateAt() < s[j].GetCreateAt() }
+
+// Len returns the length of s.
+func (s MetadataUpdateMsgArr) Len() int { return len(s) }
+
+// Swap swaps the i'th and the j'th element in s.
+func (s MetadataUpdateMsgArr) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
+func (s MetadataUpdateMsgArr) Less(i, j int) bool { return s[i].GetCreateAt() < s[j].GetCreateAt() }
 
 // Len returns the length of s.
 func (s MetadataRevokeMsgArr) Len() int { return len(s) }

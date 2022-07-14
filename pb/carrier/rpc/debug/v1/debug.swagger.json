@@ -395,7 +395,8 @@
           "format": "uint64"
         },
         "sign": {
-          "type": "string"
+          "type": "string",
+          "format": "byte"
         }
       }
     },
@@ -655,7 +656,8 @@
           "format": "uint64"
         },
         "sign": {
-          "type": "string"
+          "type": "string",
+          "format": "byte"
         }
       }
     },

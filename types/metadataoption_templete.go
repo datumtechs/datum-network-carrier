@@ -9,6 +9,12 @@ var (
 	CannotMatchMetadataOption = fmt.Errorf("cannot match metadata option")
 )
 
+const (
+	ConsumeMetadataAuth = iota + 1
+	ConsumeTk20
+	ConsumeTk721
+)
+
 func IsNotCSVdata(dataType commonconstantpb.OrigindataType) bool { return !IsCSVdata(dataType) }
 func IsCSVdata(dataType commonconstantpb.OrigindataType) bool {
 	if dataType == commonconstantpb.OrigindataType_OrigindataType_CSV {
@@ -63,6 +69,8 @@ type MetadataOptionCSV struct {
 	Size            uint64            `json:"size"`
 	HasTitle        bool              `json:"hasTitle"`
 	MetadataColumns []*MetadataColumn `json:"metadataColumns"`
+	ConsumeTypes    []uint8			  `json:"consumeTypes"`
+	ConsumeOptions	[]string		  `json:"consumeOptions"`
 }
 
 func (option *MetadataOptionCSV) GetOriginId() string { return option.OriginId }
@@ -74,7 +82,12 @@ func (option *MetadataOptionCSV) GetHasTitle() bool   { return option.HasTitle }
 func (option *MetadataOptionCSV) GetMetadataColumns() []*MetadataColumn {
 	return option.MetadataColumns
 }
-
+func (option *MetadataOptionCSV) GetConsumeTypes() []uint8 {
+	return option.ConsumeTypes
+}
+func (option *MetadataOptionCSV) GetConsumeOptions() []string {
+	return option.ConsumeOptions
+}
 type MetadataColumn struct {
 	Index   uint32 `json:"index"`
 	Name    string `json:"name"`

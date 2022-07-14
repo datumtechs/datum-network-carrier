@@ -19,10 +19,11 @@ import (
 )
 
 const (
-	defaultPowerMsgsCacheSize        = 3
-	defaultMetadataMsgsCacheSize     = 3
-	defaultMetadataAuthMsgsCacheSize = 3
-	defaultTaskMsgsCacheSize         = 5
+	defaultPowerMsgsCacheSize          = 3
+	defaultMetadataMsgsCacheSize       = 3
+	defaultMetadataUpdateMsgsCacheSize = 3
+	defaultMetadataAuthMsgsCacheSize   = 3
+	defaultTaskMsgsCacheSize           = 5
 
 	defaultBroadcastPowerMsgInterval        = 30 * time.Second
 	defaultBroadcastMetadataMsgInterval     = 30 * time.Second
@@ -42,15 +43,16 @@ type MessageHandler struct {
 
 	msgSub event.Subscription
 
-	powerMsgCache        types.PowerMsgArr
-	metadataMsgCache     types.MetadataMsgArr
-	metadataAuthMsgCache types.MetadataAuthorityMsgArr
-	taskMsgCache         types.TaskMsgArr
-
-	lockPower        sync.Mutex
-	lockMetadata     sync.Mutex
-	lockMetadataAuth sync.Mutex
-	lockTask         sync.Mutex
+	powerMsgCache          types.PowerMsgArr
+	metadataMsgCache       types.MetadataMsgArr
+	metadataAuthMsgCache   types.MetadataAuthorityMsgArr
+	taskMsgCache           types.TaskMsgArr
+	metadataUpdateMsgCache types.MetadataUpdateMsgArr
+	lockPower          sync.Mutex
+	lockMetadata       sync.Mutex
+	lockMetadataAuth   sync.Mutex
+	lockTask           sync.Mutex
+	lockMetadataUpdate sync.Mutex
 }
 
 func NewHandler(pool *Mempool, resourceMng *resource.Manager, taskManager *task.Manager, authManager *auth.AuthorityManager) *MessageHandler {
@@ -109,6 +111,17 @@ func (m *MessageHandler) recoveryCache() {
 		}
 	} else {
 		m.metadataMsgCache = metadataMsgCache
+	}
+
+	metadataUpdateMsgCache, err := m.resourceMng.GetDB().QueryMetadataUpdateMsgArr()
+	if nil != err {
+		if rawdb.IsNoDBNotFoundErr(err) {
+			log.WithError(err).Errorf("Failed to get metadataUpdateMsgCache from QueryMetadataUpdateMsgArr")
+		} else {
+			log.WithError(err).Warnf("Not found metadataUpdateMsgCache from QueryMetadataUpdateMsgArr")
+		}
+	} else {
+		m.metadataUpdateMsgCache = metadataUpdateMsgCache
 	}
 
 	powerMsgCache, err := m.resourceMng.GetDB().QueryPowerMsgArr()
@@ -266,6 +279,16 @@ func (m *MessageHandler) loop() {
 				if !flag {
 					m.BroadcastTaskTerminateMsgArr(types.TaskTerminateMsgArr{terminate.Msg})
 				}
+			case types.UpdateMetadata:
+				msg := event.Data.(*types.MetadataUpdateMsgEvent)
+				m.lockMetadataUpdate.Lock()
+				m.metadataUpdateMsgCache = append(m.metadataUpdateMsgCache, msg.Msg)
+				m.resourceMng.GetDB().StoreMessageCache(msg.Msg) // backup metadata msg into disk
+				if len(m.metadataUpdateMsgCache) >= defaultMetadataUpdateMsgsCacheSize {
+					m.BroadcastMetadataUpdateMsgArr(m.metadataUpdateMsgCache)
+					m.metadataUpdateMsgCache = make(types.MetadataUpdateMsgArr, 0)
+				}
+				m.lockMetadataUpdate.Unlock()
 			}
 
 		case <-powerTicker.C:
@@ -280,6 +303,10 @@ func (m *MessageHandler) loop() {
 			if len(m.metadataMsgCache) > 0 {
 				m.BroadcastMetadataMsgArr(m.metadataMsgCache)
 				m.metadataMsgCache = make(types.MetadataMsgArr, 0)
+			}
+			if len(m.metadataUpdateMsgCache) > 0{
+				m.BroadcastMetadataUpdateMsgArr(m.metadataUpdateMsgCache)
+				m.metadataUpdateMsgCache = make(types.MetadataUpdateMsgArr, 0)
 			}
 
 		case <-metadataAuthTicker.C:
@@ -642,6 +669,50 @@ func (m *MessageHandler) BroadcastMetadataMsgArr(metadataMsgArr types.MetadataMs
 	}
 
 	return
+}
+
+func (m *MessageHandler) BroadcastMetadataUpdateMsgArr(metadataUpdateMsgArr types.MetadataUpdateMsgArr) {
+	identity, err := m.resourceMng.GetDB().QueryIdentity()
+	if nil != err {
+		log.WithError(err).Errorf("Failed to query local identity on MessageHandler with broadcast metadata update msg")
+		return
+	}
+	for _, msg := range metadataUpdateMsgArr {
+		if types.IsCSVdata(msg.GetMetadataSummary().DataType) {
+			var option *types.MetadataOptionCSV
+			if err := json.Unmarshal([]byte(msg.GetMetadataSummary().MetadataOption), &option); nil != err {
+				log.WithError(err).Errorf("Failed to unmashal metadataOption on MessageHandler with broadcast msg, metadataId: {%s}",
+					msg.GetMetadataId())
+				continue
+			}
+			newMetadata := types.NewMetadata(&carriertypespb.MetadataPB{
+				MetadataId:     msg.GetMetadataId(),
+				Owner:          identity,
+				DataId:         msg.GetMetadataId(),
+				DataStatus:     commonconstantpb.DataStatus_DataStatus_Valid,
+				MetadataName:   msg.GetMetadataName(),
+				MetadataType:   msg.GetMetadataType(),
+				DataHash:       msg.GetDataHash(),
+				Desc:           msg.GetDesc(),
+				LocationType:   msg.GetLocationType(),
+				DataType:       msg.GetDataType(),
+				Industry:       msg.GetIndustry(),
+				State:          commonconstantpb.MetadataState_MetadataState_Released, // metaData status, eg: create/release/revoke
+				PublishAt:      msg.GetPublishAt(),
+				UpdateAt:       timeutils.UnixMsecUint64(),
+				Nonce:          msg.GetNonce(),
+				MetadataOption: msg.GetMetadataOption(),
+			})
+			if err := m.resourceMng.GetDB().UpdateGlobalMetadata(newMetadata); nil != err {
+				log.WithError(err).Errorf("Failed to store msg to dataCenter on MessageHandler with broadcast msg, metadataId: {%s}",
+					msg.GetMetadataId())
+				continue
+			}
+
+			log.Debugf("broadcast metadata msg succeed, metadataId: {%s}", msg.GetMetadataId())
+			m.resourceMng.GetDB().RemoveMetadataUpdateMsg(msg.GetMetadataId()) // remove from disk if msg been handle
+		}
+	}
 }
 
 func (m *MessageHandler) BroadcastMetadataRevokeMsgArr(metadataRevokeMsgArr types.MetadataRevokeMsgArr) {

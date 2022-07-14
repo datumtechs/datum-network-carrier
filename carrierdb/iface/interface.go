@@ -60,6 +60,7 @@ type LocalStoreCarrierDB interface {
 	RemovePowerMsg(powerId string) error
 	RemoveAllPowerMsg() error
 	RemoveMetadataMsg(metadataId string) error
+	RemoveMetadataUpdateMsg(metadataId string) error
 	RemoveAllMetadataMsg() error
 	RemoveMetadataAuthMsg(metadataAuthId string) error
 	RemoveAllMetadataAuthMsg() error
@@ -67,12 +68,13 @@ type LocalStoreCarrierDB interface {
 	RemoveAllTaskMsg() error
 	QueryPowerMsgArr() (types.PowerMsgArr, error)
 	QueryMetadataMsgArr() (types.MetadataMsgArr, error)
+	QueryMetadataUpdateMsgArr() (types.MetadataUpdateMsgArr, error)
 	QueryMetadataAuthorityMsgArr() (types.MetadataAuthorityMsgArr, error)
 	QueryTaskMsgArr() (types.TaskMsgArr, error)
 
-	StoreOrgWallet(orgWallet *types.OrgWallet) error
-	// QueryOrgWallet does not return ErrNotFound if the organization wallet not found.
-	QueryOrgWallet() (*types.OrgWallet, error)
+	SaveOrgPriKey(priKey string) error
+	// FindOrgPriKey does not return ErrNotFound if the organization wallet not found.
+	FindOrgPriKey() (string, error)
 }
 
 type MetadataCarrierDB interface {
