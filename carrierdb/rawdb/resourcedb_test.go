@@ -315,28 +315,16 @@ func TestOrgWallet(t *testing.T) {
 
 	key, _ := crypto.GenerateKey()
 	keyHex := hex.EncodeToString(crypto.FromECDSA(key))
-	addr := crypto.PubkeyToAddress(key.PublicKey)
 
-	/*if token20Pay.Kms != nil {
-		if cipher, err := token20Pay.Kms.Encrypt(keyHex); err != nil {
-			return "", errors.New("cannot encrypt organization wallet private key")
-		} else {
-			keyHex = cipher
-		}
-	}*/
+	t.Logf("store keyHex: %s", keyHex)
 
-	wallet := new(types.OrgWallet)
-	wallet.PriKey = keyHex
-	wallet.Address = addr
-	t.Logf("store wallet: %s", addr.Hex())
-
-	if err := StoreOrgWallet(database, wallet); err != nil {
+	if err := SaveOrgPriKey(database, keyHex); err != nil {
 		t.Fatal(err)
 	}
 
-	if w, err := QueryOrgWallet(database); err != nil {
+	if k, err := FindOrgPriKey(database); err != nil {
 		t.Fatal(err)
 	} else {
-		t.Logf("load wallet: %s", w.Address.Hex())
+		t.Logf("load keyHex: %s", k)
 	}
 }

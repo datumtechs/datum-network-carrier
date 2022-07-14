@@ -5,7 +5,6 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/ach/auth"
-	"github.com/datumtechs/datum-network-carrier/ach/token"
 	"github.com/datumtechs/datum-network-carrier/carrierdb/rawdb"
 	"github.com/datumtechs/datum-network-carrier/common"
 	"github.com/datumtechs/datum-network-carrier/common/bytesutil"
@@ -45,7 +44,7 @@ type Manager struct {
 	eventEngine     *ev.EventEngine
 	resourceMng     *resource.Manager
 	authMng         *auth.AuthorityManager
-	token20PayMng   *token.Token20PayManager
+	token20PayMng   *tk.DatumPayManager
 	parser          *TaskParser
 	validator       *TaskValidator
 	eventCh         chan *carriertypespb.TaskEvent
@@ -59,8 +58,8 @@ type Manager struct {
 	quit                     chan struct{}
 	runningTaskCacheLock     sync.RWMutex
 	// add by v 0.4.0
-	config   *params.TaskManagerConfig
-	msgCache *TaskmngMsgCache
+	config       *params.TaskManagerConfig
+	msgCache     *TaskmngMsgCache
 	policyEngine *policy.PolicyEngine
 }
 
@@ -72,7 +71,7 @@ func NewTaskManager(
 	eventEngine *ev.EventEngine,
 	resourceMng *resource.Manager,
 	authMng *auth.AuthorityManager,
-	token20PayMng *token.Token20PayManager,
+	token20PayMng *tk.DatumPayManager,
 	needReplayScheduleTaskCh chan *types.NeedReplayScheduleTask,
 	needExecuteTaskCh chan *types.NeedExecuteTask,
 	config *params.TaskManagerConfig,
@@ -198,7 +197,6 @@ func (m *Manager) loop() {
 					log.WithError(err).Errorf("Failed to call handleTaskEventWithCurrentOranization() on taskManager.loop(), taskId: {%s}, event: %s", event.GetTaskId(), event.String())
 				}
 			}(event)
-
 
 		// To schedule local task interval
 		case <-taskTicker.C:
@@ -328,7 +326,7 @@ func (m *Manager) terminateExecuteTaskBySender(task *types.Task) error {
 			task.GetTaskSender(),
 			task.GetTaskId(),
 			types.TaskTerminate,
-			&types.PrepareVoteResource{},   // zero value
+			&types.PrepareVoteResource{},          // zero value
 			&carriertwopcpb.ConfirmTaskPeerInfo{}, // zero value
 			fmt.Errorf("task was terminated"),
 		))

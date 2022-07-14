@@ -192,13 +192,13 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *carrierapipb.Pub
 		return &carrierapipb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "invalid receiverPolicys len"}, nil
 	}
 
-	if len(req.GetDataFlowPolicyTypes()) == 0  {
+	if len(req.GetDataFlowPolicyTypes()) == 0 {
 		log.Errorf("RPC-API:PublishTaskDeclare failed, check DataFlowPolicyType failed, DataFlowPolicyTypes len is %d", len(req.GetDataFlowPolicyTypes()))
 		return &carrierapipb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown dataFlowPolicyTypes"}, nil
 	}
 	if len(req.GetDataFlowPolicyOptions()) == 0 {
 		log.Errorf("RPC-API:PublishTaskDeclare failed, check DataFlowPolicyOption failed, DataFlowPolicyOptions len is %d", len(req.GetDataFlowPolicyOptions()))
-		return &carrierapipb.PublishTaskDeclareResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "require dataFlowPolicyOptions"}, nil
+		return &carrierapipb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require dataFlowPolicyOptions"}, nil
 	}
 	if len(req.GetDataFlowPolicyTypes()) != len(req.GetDataFlowPolicyOptions()) {
 		log.Errorf("RPC-API:PublishTaskDeclare failed, invalid dataFlowPolicys len")
@@ -412,7 +412,7 @@ func (svr *Server) GenerateObServerProxyWalletAddress(ctx context.Context, req *
 }
 
 func (svr *Server) EstimateTaskGas(ctx context.Context, req *carrierapipb.EstimateTaskGasRequest) (*carrierapipb.EstimateTaskGasResponse, error) {
-	gasLimit, gasPrice, err := svr.B.EstimateTaskGas(req.GetTaskSponsorAddress(), req.GetDataTokenAddresses())
+	gasLimit, gasPrice, err := svr.B.EstimateTaskGas(req.GetTaskSponsorAddress(), req.GetTokenItems())
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:EstimateTaskGas failed")
 		return &carrierapipb.EstimateTaskGasResponse{Status: backend.ErrEstimateTaskGas.ErrCode(), Msg: backend.ErrEstimateTaskGas.Error()}, nil

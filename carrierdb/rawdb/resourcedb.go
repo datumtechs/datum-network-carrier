@@ -1578,31 +1578,31 @@ func QueryTaskMsgArr(db KeyValueStore) (types.TaskMsgArr, error) {
 	return arr, nil
 }
 
-func StoreOrgWallet(db db.Database, orgWallet *types.OrgWallet) error {
-	key := GetOrgWalletKeyPrefix()
-	val, err := rlp.EncodeToBytes(orgWallet)
+func SaveOrgPriKey(db db.Database, priKey string) error {
+	key := GetOrgPriKeyPrefix()
+	val, err := rlp.EncodeToBytes(priKey)
 	if nil != err {
 		return err
 	}
 	return db.Put(key, val)
 }
 
-// QueryOrgWallet does not return ErrNotFound if the organization wallet not found.
-func QueryOrgWallet(db DatabaseReader) (*types.OrgWallet, error) {
-	key := GetOrgWalletKeyPrefix()
+// FindOrgPriKey does not return ErrNotFound if the organization private key not found.
+func FindOrgPriKey(db DatabaseReader) (string, error) {
+	key := GetOrgPriKeyPrefix()
 	if has, err := db.Has(key); err != nil {
-		return nil, err
+		return "", err
 	} else if has {
 		if val, err := db.Get(key); err != nil {
-			return nil, err
+			return "", err
 		} else {
-			wallet := new(types.OrgWallet)
-			if err := rlp.DecodeBytes(val, wallet); err != nil {
-				return nil, err
+			var priKey string
+			if err := rlp.DecodeBytes(val, priKey); err != nil {
+				return "", err
 			} else {
-				return wallet, nil
+				return priKey, nil
 			}
 		}
 	}
-	return nil, nil
+	return "", nil
 }
