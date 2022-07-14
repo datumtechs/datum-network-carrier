@@ -70,9 +70,9 @@ type LocalStoreCarrierDB interface {
 	QueryMetadataAuthorityMsgArr() (types.MetadataAuthorityMsgArr, error)
 	QueryTaskMsgArr() (types.TaskMsgArr, error)
 
-	StoreOrgWallet(orgWallet *types.OrgWallet) error
-	// QueryOrgWallet does not return ErrNotFound if the organization wallet not found.
-	QueryOrgWallet() (*types.OrgWallet, error)
+	SaveOrgPriKey(priKey string) error
+	// FindOrgPriKey does not return ErrNotFound if the organization wallet not found.
+	FindOrgPriKey() (string, error)
 }
 
 type MetadataCarrierDB interface {

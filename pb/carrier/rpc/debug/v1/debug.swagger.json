@@ -168,7 +168,6 @@
     },
     "/carrier/v1/debug/getAllBlackOrg": {
       "get": {
-        "summary": "获取当前组织黑名单",
         "operationId": "Debug_GetAllBlackOrg",
         "responses": {
           "200": {
@@ -349,57 +348,6 @@
       ],
       "default": "INFO"
     },
-    "commonMsgOption": {
-      "type": "object",
-      "properties": {
-        "proposal_id": {
-          "type": "string",
-          "format": "byte"
-        },
-        "sender_role": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "sender_party_id": {
-          "type": "string",
-          "format": "byte"
-        },
-        "receiver_role": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "receiver_party_id": {
-          "type": "string",
-          "format": "byte"
-        },
-        "msg_owner": {
-          "$ref": "#/definitions/commonTaskOrganizationIdentityInfo"
-        }
-      },
-      "title": "消息选项"
-    },
-    "commonTaskOrganizationIdentityInfo": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string",
-          "format": "byte"
-        },
-        "node_id": {
-          "type": "string",
-          "format": "byte"
-        },
-        "identity_id": {
-          "type": "string",
-          "format": "byte"
-        },
-        "party_id": {
-          "type": "string",
-          "format": "byte"
-        }
-      },
-      "title": "组织(节点)唯一标识抽象"
-    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -433,63 +381,20 @@
         }
       }
     },
-    "twopcConfirmVote": {
+    "v1ConfirmVote": {
       "type": "object",
       "properties": {
         "msg_option": {
-          "$ref": "#/definitions/commonMsgOption"
+          "$ref": "#/definitions/v1MsgOption"
         },
         "vote_option": {
-          "type": "string",
-          "format": "byte"
+          "type": "string"
         },
         "create_at": {
           "type": "string",
           "format": "uint64"
         },
         "sign": {
-          "type": "string",
-          "format": "byte"
-        }
-      },
-      "title": "2pc confirmVote"
-    },
-    "twopcPrepareVote": {
-      "type": "object",
-      "properties": {
-        "msg_option": {
-          "$ref": "#/definitions/commonMsgOption"
-        },
-        "vote_option": {
-          "type": "string",
-          "format": "byte"
-        },
-        "peer_info": {
-          "$ref": "#/definitions/twopcTaskPeerInfo"
-        },
-        "create_at": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "sign": {
-          "type": "string",
-          "format": "byte"
-        }
-      },
-      "title": "2pc prepareVote"
-    },
-    "twopcTaskPeerInfo": {
-      "type": "object",
-      "properties": {
-        "ip": {
-          "type": "string",
-          "format": "byte"
-        },
-        "port": {
-          "type": "string",
-          "format": "byte"
-        },
-        "party_id": {
           "type": "string",
           "format": "byte"
         }
@@ -599,7 +504,7 @@
         "votes": {
           "type": "object",
           "additionalProperties": {
-            "$ref": "#/definitions/twopcConfirmVote"
+            "$ref": "#/definitions/v1ConfirmVote"
           }
         },
         "yesVotes": {
@@ -624,7 +529,7 @@
         "votes": {
           "type": "object",
           "additionalProperties": {
-            "$ref": "#/definitions/twopcPrepareVote"
+            "$ref": "#/definitions/v1PrepareVote"
           }
         },
         "yesVotes": {
@@ -682,6 +587,48 @@
       },
       "title": "Spec Definition:\nMetaData\n(\nseq_number: uint64\nattnets: Bitvector[ATTESTATION_SUBNET_COUNT]\n)"
     },
+    "v1MsgOption": {
+      "type": "object",
+      "properties": {
+        "proposal_id": {
+          "type": "string"
+        },
+        "sender_role": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "sender_party_id": {
+          "type": "string"
+        },
+        "receiver_role": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "receiver_party_id": {
+          "type": "string"
+        },
+        "msg_owner": {
+          "$ref": "#/definitions/v1MsgOwner"
+        }
+      }
+    },
+    "v1MsgOwner": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "node_id": {
+          "type": "string"
+        },
+        "identity_id": {
+          "type": "string"
+        },
+        "party_id": {
+          "type": "string"
+        }
+      }
+    },
     "v1PeerDirection": {
       "type": "string",
       "enum": [
@@ -691,6 +638,28 @@
       ],
       "default": "UNKNOWN",
       "description": "PeerDirection states the direction of the connection to a peer."
+    },
+    "v1PrepareVote": {
+      "type": "object",
+      "properties": {
+        "msg_option": {
+          "$ref": "#/definitions/v1MsgOption"
+        },
+        "vote_option": {
+          "type": "string"
+        },
+        "peer_info": {
+          "$ref": "#/definitions/v1TaskPeerInfo"
+        },
+        "create_at": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "sign": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
     },
     "v1ProposalState": {
       "type": "object",
@@ -774,6 +743,20 @@
         "head_slot": {
           "type": "string",
           "format": "uint64"
+        }
+      }
+    },
+    "v1TaskPeerInfo": {
+      "type": "object",
+      "properties": {
+        "ip": {
+          "type": "string"
+        },
+        "port": {
+          "type": "string"
+        },
+        "party_id": {
+          "type": "string"
         }
       }
     },

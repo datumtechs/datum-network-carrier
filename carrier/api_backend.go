@@ -95,7 +95,7 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*carrierapipb.YarnNodeInfo, error) {
 		nodeInfo.LocalMultiAddr = selfMultiAddrs[0].String()
 	}
 
-	if addr, err := s.carrier.token20PayManager.QueryOrgWallet(); err == nil {
+	if addr, err := s.carrier.datumPayManager.WalletManager.GetOrgWalletAddress(); err == nil {
 		nodeInfo.ObserverProxyWalletAddress = addr.Hex()
 	} else {
 		log.WithError(err).Errorf("cannot load organization wallet of node info: %v", err)
@@ -625,8 +625,8 @@ func (s *CarrierAPIBackend) ReportTaskResourceUsage(nodeType carrierapipb.NodeTy
 }
 
 func (s *CarrierAPIBackend) GenerateObServerProxyWalletAddress() (string, error) {
-	if s.carrier.token20PayManager != nil {
-		if addr, err := s.carrier.token20PayManager.GenerateOrgWallet(); nil != err {
+	if s.carrier.datumPayManager != nil {
+		if addr, err := s.carrier.datumPayManager.WalletManager.GetOrgWalletAddress(); nil != err {
 			log.WithError(err).Error("Failed to call GenerateOrgWallet() on CarrierAPIBackend.GenerateObServerProxyWalletAddress()")
 			return "", err
 		} else {
@@ -1549,19 +1549,12 @@ func (s *CarrierAPIBackend) QueryTaskResultDataSummaryList() (types.TaskResultDa
 	return arr, nil
 }
 
-func (s *CarrierAPIBackend) EstimateTaskGas(taskSponsorAddress string, dataTokenAddressList []string) (gasLimit uint64, gasPrice *big.Int, err error) {
-	gasLimit, gasPrice, err = s.carrier.token20PayManager.EstimateTaskGas(taskSponsorAddress, dataTokenAddressList)
+func (s *CarrierAPIBackend) EstimateTaskGas(taskSponsorAddress string, tokenItemList []*carrierapipb.TokenItem) (gasLimit uint64, gasPrice *big.Int, err error) {
+	gasLimit, gasPrice, err = s.carrier.datumPayManager.EstimateTaskGas(taskSponsorAddress, tokenItemList)
 	if err != nil {
 		log.WithError(err).Error("Failed to call EstimateTaskGas() on CarrierAPIBackend.EstimateTaskGas()")
 	}
 	return
-
-	/*if gasLimit, gasPrice, err = s.carrier.token20PayManager.EstimateTaskGas(dataTokenTransferList); nil != err {
-		log.WithError(err).Error("Failed to call EstimateTaskGas() on CarrierAPIBackend.EstimateTaskGas()")
-		return 0, nil, err
-	} else {
-		return gasLimit, gasPrice, nil
-	}*/
 }
 
 // EstimateTaskGas

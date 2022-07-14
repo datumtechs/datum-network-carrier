@@ -3,9 +3,10 @@ package carrier
 import (
 	"context"
 	"fmt"
+	"github.com/bglmmz/chainclient"
 	"github.com/datumtechs/datum-network-carrier/ach/auth"
-	"github.com/datumtechs/datum-network-carrier/ach/token"
-	"github.com/datumtechs/datum-network-carrier/ach/token/kms"
+	"github.com/datumtechs/datum-network-carrier/ach/tk"
+	"github.com/datumtechs/datum-network-carrier/ach/tk/kms"
 	"github.com/datumtechs/datum-network-carrier/blacklist"
 	"github.com/datumtechs/datum-network-carrier/carrierdb"
 	"github.com/datumtechs/datum-network-carrier/common/flags"
@@ -25,6 +26,7 @@ import (
 	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	"github.com/datumtechs/datum-network-carrier/service/discovery"
 	"github.com/datumtechs/datum-network-carrier/types"
+	"github.com/datumtechs/did-sdk-go/did"
 	"github.com/urfave/cli/v2"
 	"strconv"
 	"sync"
@@ -53,9 +55,10 @@ type Service struct {
 	consulManager   *discovery.ConnectConsul
 	runError        error
 	// add by v0.4.0
-	token20PayManager *token.Token20PayManager
-	policyEngine      *policy.PolicyEngine
-	quit              chan struct{}
+	datumPayManager *tk.DatumPayManager
+	didService      *did.DIDService
+	policyEngine    *policy.PolicyEngine
+	quit            chan struct{}
 }
 
 // NewService creates a new CarrierServer object (including the
@@ -111,23 +114,26 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 	if nil != err {
 		return nil, err
 	}
-	var token20PayManager *token.Token20PayManager
 
-	if cliCtx.IsSet(flags.BlockChain.Name) {
-		var token20payConfig *token.Config
-		token20payConfig = &token.Config{URL: cliCtx.String(flags.BlockChain.Name)}
-
-		var kmsConfig *kms.Config
-		if cliCtx.IsSet(flags.KMSKeyId.Name) && cliCtx.IsSet(flags.KMSRegionId.Name) && cliCtx.IsSet(flags.KMSAccessKeyId.Name) && cliCtx.IsSet(flags.KMSAccessKeySecret.Name) {
-			kmsConfig = &kms.Config{
-				KeyId:           cliCtx.String(flags.KMSKeyId.Name),
-				RegionId:        cliCtx.String(flags.KMSRegionId.Name),
-				AccessKeyId:     cliCtx.String(flags.KMSAccessKeyId.Name),
-				AccessKeySecret: cliCtx.String(flags.KMSAccessKeySecret.Name),
-			}
+	var kmsConfig *kms.Config
+	if cliCtx.IsSet(flags.KMSKeyId.Name) && cliCtx.IsSet(flags.KMSRegionId.Name) && cliCtx.IsSet(flags.KMSAccessKeyId.Name) && cliCtx.IsSet(flags.KMSAccessKeySecret.Name) {
+		kmsConfig = &kms.Config{
+			KeyId:           cliCtx.String(flags.KMSKeyId.Name),
+			RegionId:        cliCtx.String(flags.KMSRegionId.Name),
+			AccessKeyId:     cliCtx.String(flags.KMSAccessKeyId.Name),
+			AccessKeySecret: cliCtx.String(flags.KMSAccessKeySecret.Name),
 		}
-		token20PayManager = token.NewToken20PayManager(config.CarrierDB, token20payConfig, kmsConfig)
 	}
+	walletManager := tk.NewWalletManager(config.CarrierDB, kmsConfig)
+
+	walletManager.GenerateOrgWallet()
+
+	var ethContext *chainclient.EthContext
+	if cliCtx.IsSet(flags.BlockChain.Name) {
+		ethContext = chainclient.NewEthClientContext(cliCtx.String(flags.BlockChain.Name), walletManager.LoadPrivateKey())
+	}
+	token20PayManager := tk.NewDatumPayManager(walletManager, ethContext)
+	didService := did.NewDIDService(ethContext)
 
 	taskManager, err := task.NewTaskManager(
 		config.P2P.PirKey(),
@@ -148,18 +154,19 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 	}
 
 	s := &Service{
-		ctx:               ctx,
-		cancel:            cancel,
-		config:            config,
-		carrierDB:         config.CarrierDB,
-		mempool:           pool,
-		resourceManager:   resourceMng,
-		messageManager:    message.NewHandler(pool, resourceMng, taskManager, authManager),
-		TaskManager:       taskManager,
-		authManager:       authManager,
-		token20PayManager: token20PayManager,
-		policyEngine:      policyEngine,
-		scheduler:         scheduler,
+		ctx:             ctx,
+		cancel:          cancel,
+		config:          config,
+		carrierDB:       config.CarrierDB,
+		mempool:         pool,
+		resourceManager: resourceMng,
+		messageManager:  message.NewHandler(pool, resourceMng, taskManager, authManager),
+		TaskManager:     taskManager,
+		authManager:     authManager,
+		datumPayManager: token20PayManager,
+		didService:      didService,
+		policyEngine:    policyEngine,
+		scheduler:       scheduler,
 		consulManager: discovery.NewConsulClient(&discovery.ConsulService{
 			ServiceIP:   p2p.IpAddr().String(),
 			ServicePort: strconv.Itoa(cliCtx.Int(flags.RPCPort.Name)),
@@ -177,7 +184,7 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 
 	//s.APIBackend = &CarrierAPIBackend{carrier: s}
 	s.APIBackend = NewCarrierAPIBackend(s)
-	s.DebugAPIBackend = NewCarrierDebugAPIBackend(twopcEngine,identityBlackListCache)
+	s.DebugAPIBackend = NewCarrierDebugAPIBackend(twopcEngine, identityBlackListCache)
 	s.Engines = make(map[types.ConsensusEngineType]handler.Engine, 0)
 	s.Engines[types.TwopcTyp] = twopcEngine
 	s.Engines[types.ChainconsTyp] = chaincons.New()

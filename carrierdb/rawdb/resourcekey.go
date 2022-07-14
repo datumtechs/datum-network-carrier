@@ -58,8 +58,8 @@ var (
 	// ---------- for scheduler (task bullet) ----------
 	taskBulletKeyPrefix = []byte("taskBulletKeyPrefix:")
 
-	// ---------- for organization built-in wallet ----------
-	orgWalletKeyPrefix = []byte("orgWalletKeyPrefix:")
+	// ---------- for organization built-in private key ----------
+	orgPriKeyPrefix = []byte("orgPriKeyPrefix:")
 )
 
 const (
@@ -259,6 +259,6 @@ func GetTaskBulletKey(taskId string) []byte {
 	return append(taskBulletKeyPrefix, []byte(taskId)...)
 }
 
-func GetOrgWalletKeyPrefix() []byte {
-	return orgWalletKeyPrefix
+func GetOrgPriKeyPrefix() []byte {
+	return orgPriKeyPrefix
 }
