@@ -1549,7 +1549,7 @@ func (s *CarrierAPIBackend) QueryTaskResultDataSummaryList() (types.TaskResultDa
 	return arr, nil
 }
 
-func (s *CarrierAPIBackend) EstimateTaskGas(taskSponsorAddress string, tokenItemList []*carrierapipb.TokenItem) (gasLimit uint64, gasPrice *big.Int, err error) {
+func (s *CarrierAPIBackend) EstimateTaskGas(taskSponsorAddress string, tokenItemList []*carrierapipb.TkItem) (gasLimit uint64, gasPrice *big.Int, err error) {
 	gasLimit, gasPrice, err = s.carrier.datumPayManager.EstimateTaskGas(taskSponsorAddress, tokenItemList)
 	if err != nil {
 		log.WithError(err).Error("Failed to call EstimateTaskGas() on CarrierAPIBackend.EstimateTaskGas()")
