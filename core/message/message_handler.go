@@ -48,11 +48,11 @@ type MessageHandler struct {
 	metadataAuthMsgCache   types.MetadataAuthorityMsgArr
 	taskMsgCache           types.TaskMsgArr
 	metadataUpdateMsgCache types.MetadataUpdateMsgArr
-	lockPower          sync.Mutex
-	lockMetadata       sync.Mutex
-	lockMetadataAuth   sync.Mutex
-	lockTask           sync.Mutex
-	lockMetadataUpdate sync.Mutex
+	lockPower              sync.Mutex
+	lockMetadata           sync.Mutex
+	lockMetadataAuth       sync.Mutex
+	lockTask               sync.Mutex
+	lockMetadataUpdate     sync.Mutex
 }
 
 func NewHandler(pool *Mempool, resourceMng *resource.Manager, taskManager *task.Manager, authManager *auth.AuthorityManager) *MessageHandler {
@@ -147,6 +147,9 @@ func (m *MessageHandler) loop() {
 			case types.ApplyIdentity:
 				eventMessage := event.Data.(*types.IdentityMsgEvent)
 				m.BroadcastIdentityMsg(eventMessage.Msg)
+			case types.UpdateIdentityCredential:
+				eventMessage := event.Data.(*types.UpdateIdentityCredentialEvent)
+				m.BroadcastUpdateIdentityCredentialMsg(eventMessage.Msg)
 			case types.RevokeIdentity:
 				m.BroadcastIdentityRevokeMsg()
 			case types.ApplyPower:
@@ -304,7 +307,7 @@ func (m *MessageHandler) loop() {
 				m.BroadcastMetadataMsgArr(m.metadataMsgCache)
 				m.metadataMsgCache = make(types.MetadataMsgArr, 0)
 			}
-			if len(m.metadataUpdateMsgCache) > 0{
+			if len(m.metadataUpdateMsgCache) > 0 {
 				m.BroadcastMetadataUpdateMsgArr(m.metadataUpdateMsgCache)
 				m.metadataUpdateMsgCache = make(types.MetadataUpdateMsgArr, 0)
 			}
@@ -427,7 +430,29 @@ func (m *MessageHandler) BroadcastIdentityRevokeMsg() {
 	log.Debugf("Revoke identity msg succeed, identityId: {%s}, nodeId: {%s}, nodeName: {%s}", identity.GetIdentityId(), identity.GetNodeId(), identity.GetNodeName())
 	return
 }
-
+func (m *MessageHandler) BroadcastUpdateIdentityCredentialMsg(msg *types.UpdateIdentityCredentialMsg) {
+	// query local identity
+	identity, err := m.resourceMng.GetDB().QueryIdentity()
+	if nil != err {
+		log.WithError(err).Errorf("query local identityInfo failed on MessageHandler with broadcast power UpdateIdentityCredentialMsg")
+		return
+	}
+	if identity.GetIdentityId() != msg.IdentityId {
+		log.Warnf("BroadcastUpdateIdentityCredentialMsg msg IdentityId %s not equal local identityId %s", msg.IdentityId, identity.GetIdentityId())
+		return
+	}
+	err = m.resourceMng.GetDB().UpdateIdentityCredential(msg.IdentityId, msg.Credential)
+	if err != nil {
+		log.WithError(err).Errorf("call dc_auth UpdateIdentityCredential fail")
+		return
+	}
+	identity.Credential = msg.Credential
+	err = m.resourceMng.GetDB().StoreIdentity(identity)
+	if err != nil {
+		log.WithError(err).Errorf("BroadcastUpdateIdentityCredentialMsg call StoreIdentity fail!")
+		return
+	}
+}
 func (m *MessageHandler) BroadcastPowerMsgArr(powerMsgArr types.PowerMsgArr) {
 
 	identity, err := m.resourceMng.GetDB().QueryIdentity()

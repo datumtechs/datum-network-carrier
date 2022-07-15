@@ -1047,7 +1047,6 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, n
 						log.Errorf("Failed to call `sendCommitMsg` with `start` consensus confirm epoch on `onConfirmVote`, proposalId: {%s}, taskId: {%s}, partyId: {%s}, err: \n%s",
 							vote.GetMsgOption().GetProposalId().String(), orgProposalState.GetTaskId(), vote.GetMsgOption().GetReceiverPartyId(), err)
 
-
 						reason = fmt.Sprintf("send commitMsg failed for proposal '%s'", vote.GetMsgOption().GetProposalId().TerminalString())
 						taskActionStatus = types.TaskConsensusInterrupt
 					} else {
@@ -1297,7 +1296,6 @@ func (t *Twopc) onTerminateTaskConsensus(pid peer.ID, terminateConsensusMsg *typ
 
 		log.Debugf("Start [terminate task] consensus when received terminateConsensusMsg , taskId: {%s}", msg.GetTaskId())
 
-
 		var hasCheckBlackListFlag bool
 
 		terminateFn := func(party *carriertypespb.TaskOrganization, role commonconstantpb.TaskRole) error {
@@ -1470,7 +1468,7 @@ func (t *Twopc) Get2PcProposalPrepare(proposalId string) (*carrierrpcdebugpbv1.G
 			},
 			VoteOption: obj.VoteOption.String(),
 			CreateAt:   obj.CreateAt,
-			Sign:       common.Bytes2Hex(obj.Sign),
+			Sign:       obj.Sign,
 		}
 	}
 
@@ -1514,7 +1512,7 @@ func (t *Twopc) Get2PcProposalConfirm(proposalId string) (*carrierrpcdebugpbv1.G
 			},
 			VoteOption: obj.VoteOption.String(),
 			CreateAt:   obj.CreateAt,
-			Sign:       string(obj.Sign),
+			Sign:       obj.Sign,
 		}
 	}
 
