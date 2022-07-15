@@ -1,7 +1,6 @@
 package tk
 
 import (
-	"context"
 	"errors"
 	"github.com/datumtechs/datum-network-carrier/ach/tk/contracts"
 	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
@@ -9,6 +8,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"math/big"
 	"strconv"
+	"time"
 )
 
 var (
@@ -31,13 +31,17 @@ func (m *DatumPayManager) inspectTkErc721ExtInfo(taskSponsorAddress common.Addre
 		return NotOwner
 	}
 
-	expiredBlockNo, err := strconv.ParseUint(extInfo.Term, 10, 64)
+	utcMilli, err := strconv.ParseInt(extInfo.Term, 10, 64)
 	if err != nil {
 		log.WithError(err).Errorf("the tk term is error, tk: %s, id: %d", tk.TkAddress, tk.Id)
 		return TermError
 	}
 
-	currentBlockNo, err := m.ethContext.BlockNumber(context.Background())
+	if utcMilli < time.Now().UTC().UnixMilli() {
+		log.WithError(err).Errorf("the tk is Expired, tk: %s, id: %d", tk.TkAddress, tk.Id)
+		return TermExpired
+	}
+	/*currentBlockNo, err := m.ethContext.BlockNumber(context.Background())
 	if err != nil {
 		log.WithError(err).Errorf("get the current block number error, tk: %s, id: %d", tk.TkAddress, tk.Id)
 		return SysError
@@ -47,7 +51,7 @@ func (m *DatumPayManager) inspectTkErc721ExtInfo(taskSponsorAddress common.Addre
 		log.WithError(err).Errorf("the tk is Expired, tk: %s, id: %d", tk.TkAddress, tk.Id)
 		return TermExpired
 	}
-
+	*/
 	return nil
 
 }
