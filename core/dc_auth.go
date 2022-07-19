@@ -166,3 +166,18 @@ func (dc *DataCenter) QueryMetadataAuthorityList(lastUpdate uint64, pageSize uin
 	}
 	return types.NewMetadataAuthArrayFromResponse(response.GetMetadataAuthorities()), nil
 }
+
+func (dc *DataCenter) UpdateIdentityCredential(identityId, credential string) error {
+	dc.serviceMu.RLock()
+	defer dc.serviceMu.RUnlock()
+	req := &datacenterapipb.UpdateIdentityCredentialRequest{
+		IdentityId: identityId,
+		Credential: credential,
+	}
+	response, err := dc.client.UpdateIdentityCredential(dc.ctx, req)
+	if err != nil {
+		log.WithError(err).Errorf("response status %d,msg %s", response.Status, response.Msg)
+		return err
+	}
+	return nil
+}

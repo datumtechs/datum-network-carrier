@@ -24,14 +24,15 @@ var (
 
 // auth
 var (
-	ErrApplyIdentityMsg        = &RpcBizErr{Code: 10001, Msg: "ApplyIdentity failed"}
-	ErrRevokeIdentityMsg       = &RpcBizErr{Code: 10002, Msg: "RevokeIdentity failed"}
-	ErrQueryNodeIdentity       = &RpcBizErr{Code: 10003, Msg: "Query local identity failed"}
-	ErrQueryIdentityList       = &RpcBizErr{Code: 10004, Msg: "Query all identity list failed"}
-	ErrQueryAuthorityList      = &RpcBizErr{Code: 10005, Msg: "Query all authority list failed"}
-	ErrApplyMetadataAuthority  = &RpcBizErr{Code: 10006, Msg: "ApplyMetadataAuthority failed"}
-	ErrRevokeMetadataAuthority = &RpcBizErr{Code: 10007, Msg: "RevokeMetadataAuthority failed"}
-	ErrAuditMetadataAuth       = &RpcBizErr{Code: 10008, Msg: "AuditMetadataAuth failed"}
+	ErrApplyIdentityMsg         = &RpcBizErr{Code: 10001, Msg: "ApplyIdentity failed"}
+	ErrRevokeIdentityMsg        = &RpcBizErr{Code: 10002, Msg: "RevokeIdentity failed"}
+	ErrQueryNodeIdentity        = &RpcBizErr{Code: 10003, Msg: "Query local identity failed"}
+	ErrQueryIdentityList        = &RpcBizErr{Code: 10004, Msg: "Query all identity list failed"}
+	ErrQueryAuthorityList       = &RpcBizErr{Code: 10005, Msg: "Query all authority list failed"}
+	ErrApplyMetadataAuthority   = &RpcBizErr{Code: 10006, Msg: "ApplyMetadataAuthority failed"}
+	ErrRevokeMetadataAuthority  = &RpcBizErr{Code: 10007, Msg: "RevokeMetadataAuthority failed"}
+	ErrAuditMetadataAuth        = &RpcBizErr{Code: 10008, Msg: "AuditMetadataAuth failed"}
+	ErrUpdateIdentityCredential = &RpcBizErr{Code: 10009, Msg: "UpdateIdentityCredential params error"}
 )
 
 // metadata
@@ -41,7 +42,7 @@ var (
 	ErrPublishMetadataMsg          = &RpcBizErr{Code: 11003, Msg: "PublishMetaData failed"}
 	ErrRevokeMetadataMsg           = &RpcBizErr{Code: 11004, Msg: "RevokemetaData failed"}
 	ErrQueryMetadataUsedTaskIdList = &RpcBizErr{Code: 11005, Msg: "Query metadata used taskId list failed"}
-	ErrQueryMetadataDetailById	   = &RpcBizErr{Code: 11007, Msg: "Query metadata detail failed by metadataId"}
+	ErrQueryMetadataDetailById     = &RpcBizErr{Code: 11007, Msg: "Query metadata detail failed by metadataId"}
 )
 
 // power

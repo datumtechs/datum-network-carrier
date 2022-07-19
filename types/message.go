@@ -20,15 +20,16 @@ const (
 	PREFIX_TASK_ID          = "task:"
 	PREFIX_METADATA_AUTH_ID = "metadataAuth:"
 
-	MSG_IDENTITY        = "identityMsg"
-	MSG_IDENTITY_REVOKE = "identityRevokeMsg"
-	MSG_POWER           = "powerMsg"
-	MSG_POWER_REVOKE    = "powerRevokeMsg"
-	MSG_METADATA        = "metaDataMsg"
-	MSG_UPDATEMETADATA		= "updateMetadataMsg"
-	MSG_METADATA_REVOKE = "metaDataRevokeMsg"
-	MSG_TASK            = "taskMsg"
-	MSG_TASK_TERMINATE  = "taskTerminateMsg"
+	MSG_IDENTITY                      = "identityMsg"
+	MSG_UPDATE_IDENTITY_CREDENTIALMSG = "updateIdentityCredentialMsg"
+	MSG_IDENTITY_REVOKE               = "identityRevokeMsg"
+	MSG_POWER                         = "powerMsg"
+	MSG_POWER_REVOKE                  = "powerRevokeMsg"
+	MSG_METADATA                      = "metaDataMsg"
+	MSG_UPDATEMETADATA                = "updateMetadataMsg"
+	MSG_METADATA_REVOKE               = "metaDataRevokeMsg"
+	MSG_TASK                          = "taskMsg"
+	MSG_TASK_TERMINATE                = "taskTerminateMsg"
 
 	MSG_METADATAAUTHORITY       = "MetadataAuthorityMsg"
 	MSG_METADATAAUTHORITYREVOKE = "MetadataAuthorityRevokeMsg"
@@ -91,13 +92,13 @@ func (msg *IdentityMsg) String() string {
 	}
 	return string(result)
 }
-func (msg *IdentityMsg) MsgType() string                         { return MSG_IDENTITY }
+func (msg *IdentityMsg) MsgType() string                               { return MSG_IDENTITY }
 func (msg *IdentityMsg) GetOrganization() *carriertypespb.Organization { return msg.organization }
-func (msg *IdentityMsg) GetOwnerName() string                    { return msg.GetOrganization().NodeName }
-func (msg *IdentityMsg) GetOwnerNodeId() string                  { return msg.GetOrganization().NodeId }
-func (msg *IdentityMsg) GetOwnerIdentityId() string              { return msg.GetOrganization().IdentityId }
-func (msg *IdentityMsg) GetCreateAt() uint64                     { return msg.CreateAt }
-func (msg *IdentityMsg) SetOwnerNodeId(nodeId string)            { msg.GetOrganization().NodeId = nodeId }
+func (msg *IdentityMsg) GetOwnerName() string                          { return msg.GetOrganization().NodeName }
+func (msg *IdentityMsg) GetOwnerNodeId() string                        { return msg.GetOrganization().NodeId }
+func (msg *IdentityMsg) GetOwnerIdentityId() string                    { return msg.GetOrganization().IdentityId }
+func (msg *IdentityMsg) GetCreateAt() uint64                           { return msg.CreateAt }
+func (msg *IdentityMsg) SetOwnerNodeId(nodeId string)                  { msg.GetOrganization().NodeId = nodeId }
 
 func (msg *IdentityMsg) CheckLength() error {
 
@@ -283,7 +284,7 @@ func (s PowerRevokeMsgArr) Less(i, j int) bool { return s[i].GetCreateAt() < s[j
 
 type MetadataMsg struct {
 	MetadataSummary *carriertypespb.MetadataSummary `json:"metadataSummary"`
-	CreateAt        uint64                    `json:"createAt"`
+	CreateAt        uint64                          `json:"createAt"`
 	// caches
 	hash atomic.Value
 }
@@ -308,17 +309,17 @@ func NewMetadataMessageFromRequest(req *carrierapipb.PublishMetadataRequest) *Me
 			AllowExpose          bool
 			TokenAddress         string
 			*/
-			MetadataId:   req.GetInformation().GetMetadataId(),
-			MetadataName: req.GetInformation().GetMetadataName(),
-			MetadataType: req.GetInformation().GetMetadataType(),
-			DataHash:     req.GetInformation().GetDataHash(),
-			Desc:         req.GetInformation().GetDesc(),
-			LocationType: req.GetInformation().GetLocationType(),
-			DataType:     req.GetInformation().GetDataType(),
-			Industry:     req.GetInformation().GetIndustry(),
-			State:        req.GetInformation().GetState(),
-			PublishAt:    req.GetInformation().GetPublishAt(),
-			UpdateAt:     req.GetInformation().GetUpdateAt(),
+			MetadataId:     req.GetInformation().GetMetadataId(),
+			MetadataName:   req.GetInformation().GetMetadataName(),
+			MetadataType:   req.GetInformation().GetMetadataType(),
+			DataHash:       req.GetInformation().GetDataHash(),
+			Desc:           req.GetInformation().GetDesc(),
+			LocationType:   req.GetInformation().GetLocationType(),
+			DataType:       req.GetInformation().GetDataType(),
+			Industry:       req.GetInformation().GetIndustry(),
+			State:          req.GetInformation().GetState(),
+			PublishAt:      req.GetInformation().GetPublishAt(),
+			UpdateAt:       req.GetInformation().GetUpdateAt(),
 			Nonce:          req.GetInformation().GetNonce(),
 			MetadataOption: req.GetInformation().GetMetadataOption(),
 		},
@@ -465,7 +466,7 @@ func (msg *MetadataMsg) HashByCreateTime() common.Hash {
 
 type MetadataUpdateMsg struct {
 	MetadataSummary *carriertypespb.MetadataSummary `json:"metadataSummary"`
-	CreateAt        uint64                    `json:"createAt"`
+	CreateAt        uint64                          `json:"createAt"`
 	// caches
 	hash atomic.Value
 }
@@ -483,8 +484,8 @@ func (msg *MetadataUpdateMsg) MsgType() string { return MSG_UPDATEMETADATA }
 func (msg *MetadataUpdateMsg) GetMetadataSummary() *carriertypespb.MetadataSummary {
 	return msg.MetadataSummary
 }
-func (msg *MetadataUpdateMsg) GetMetadataId() string     { return msg.GetMetadataSummary().GetMetadataId()}
-func (msg *MetadataUpdateMsg) GetCreateAt() uint64       { return msg.CreateAt }
+func (msg *MetadataUpdateMsg) GetMetadataId() string   { return msg.GetMetadataSummary().GetMetadataId() }
+func (msg *MetadataUpdateMsg) GetCreateAt() uint64     { return msg.CreateAt }
 func (msg *MetadataUpdateMsg) GetMetadataName() string { return msg.GetMetadataSummary().MetadataName }
 func (msg *MetadataUpdateMsg) GetMetadataType() commonconstantpb.MetadataType {
 	return msg.GetMetadataSummary().MetadataType
@@ -501,9 +502,50 @@ func (msg *MetadataUpdateMsg) GetNonce() uint64 { return msg.GetMetadataSummary(
 func (msg *MetadataUpdateMsg) GetState() commonconstantpb.MetadataState {
 	return msg.GetMetadataSummary().State
 }
-func (msg *MetadataUpdateMsg) GetIndustry() string       { return msg.GetMetadataSummary().Industry }
-func (msg *MetadataUpdateMsg) GetMetadataOption() string { return msg.GetMetadataSummary().MetadataOption }
+func (msg *MetadataUpdateMsg) GetIndustry() string { return msg.GetMetadataSummary().Industry }
+func (msg *MetadataUpdateMsg) GetMetadataOption() string {
+	return msg.GetMetadataSummary().MetadataOption
+}
 func (msg *MetadataUpdateMsg) GetPublishAt() uint64 { return msg.GetMetadataSummary().PublishAt }
+func (msg *MetadataUpdateMsg) Hash() common.Hash {
+	if hash := msg.hash.Load(); hash != nil {
+		return hash.(common.Hash)
+	}
+	var buf bytes.Buffer
+	buf.Write([]byte(msg.GetMetadataName()))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(msg.GetMetadataType())))
+	buf.Write([]byte(msg.GetDataHash()))
+	buf.Write([]byte(msg.GetDesc()))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(msg.GetLocationType())))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(msg.GetDataType())))
+	buf.Write([]byte(msg.GetIndustry()))
+	buf.Write([]byte(msg.GetState().String()))
+	//buf.Write(bytesutil.Uint64ToBytes(msg.GetNonce()))
+	buf.Write([]byte(msg.GetMetadataOption()))
+
+	v := rlputil.RlpHash(buf.Bytes())
+	msg.hash.Store(v)
+	return v
+}
+
+type UpdateIdentityCredentialMsg struct {
+	IdentityId string `json:"identity_id"`
+	Credential string `json:"credential"`
+	CreateAt   uint64 `json:"createAt"`
+	// caches
+	hash atomic.Value
+}
+
+func (msg *UpdateIdentityCredentialMsg) String() string {
+	result, err := json.Marshal(msg)
+	if err != nil {
+		return "Failed to generate string"
+	}
+	return string(result)
+}
+func (msg *UpdateIdentityCredentialMsg) Unmarshal(b []byte) error { return nil }
+func (msg *UpdateIdentityCredentialMsg) Marshal() ([]byte, error) { return nil, nil }
+func (msg *UpdateIdentityCredentialMsg) MsgType() string          { return MSG_UPDATE_IDENTITY_CREDENTIALMSG }
 
 type MetadataRevokeMsg struct {
 	MetadataId string `json:"metadataId"`
@@ -561,6 +603,7 @@ func (msg *MetadataRevokeMsg) Hash() common.Hash {
 type MetadataMsgArr []*MetadataMsg
 type MetadataRevokeMsgArr []*MetadataRevokeMsg
 type MetadataUpdateMsgArr []*MetadataUpdateMsg
+
 // Len returns the length of s.
 func (s MetadataMsgArr) Len() int { return len(s) }
 
@@ -585,12 +628,12 @@ func (s MetadataRevokeMsgArr) Less(i, j int) bool { return s[i].GetCreateAt() < 
 // ------------------- metadata authority apply -------------------
 
 type MetadataAuthorityMsg struct {
-	MetadataAuthId string                   `json:"metaDataAuthId"`
-	User           string                   `json:"user"`
-	UserType       commonconstantpb.UserType        `json:"userType"`
+	MetadataAuthId string                            `json:"metaDataAuthId"`
+	User           string                            `json:"user"`
+	UserType       commonconstantpb.UserType         `json:"userType"`
 	Auth           *carriertypespb.MetadataAuthority `json:"auth"`
-	Sign           []byte                   `json:"sign"`
-	CreateAt       uint64                   `json:"createAt"`
+	Sign           []byte                            `json:"sign"`
+	CreateAt       uint64                            `json:"createAt"`
 	// caches
 	hash atomic.Value
 }
@@ -605,10 +648,12 @@ func NewMetadataAuthorityMessageFromRequest(req *carrierapipb.ApplyMetadataAutho
 	}
 }
 
-func (msg *MetadataAuthorityMsg) GetMetadataAuthId() string                      { return msg.MetadataAuthId }
-func (msg *MetadataAuthorityMsg) GetUser() string                                { return msg.User }
-func (msg *MetadataAuthorityMsg) GetUserType() commonconstantpb.UserType                 { return msg.UserType }
-func (msg *MetadataAuthorityMsg) GetMetadataAuthority() *carriertypespb.MetadataAuthority { return msg.Auth }
+func (msg *MetadataAuthorityMsg) GetMetadataAuthId() string              { return msg.MetadataAuthId }
+func (msg *MetadataAuthorityMsg) GetUser() string                        { return msg.User }
+func (msg *MetadataAuthorityMsg) GetUserType() commonconstantpb.UserType { return msg.UserType }
+func (msg *MetadataAuthorityMsg) GetMetadataAuthority() *carriertypespb.MetadataAuthority {
+	return msg.Auth
+}
 func (msg *MetadataAuthorityMsg) GetMetadataAuthorityOwner() *carriertypespb.Organization {
 	return msg.Auth.GetOwner()
 }
@@ -734,11 +779,11 @@ func NewMetadataAuthorityRevokeMessageFromRequest(req *carrierapipb.RevokeMetada
 	}
 }
 
-func (msg *MetadataAuthorityRevokeMsg) GetMetadataAuthId() string      { return msg.MetadataAuthId }
-func (msg *MetadataAuthorityRevokeMsg) GetUser() string                { return msg.User }
+func (msg *MetadataAuthorityRevokeMsg) GetMetadataAuthId() string              { return msg.MetadataAuthId }
+func (msg *MetadataAuthorityRevokeMsg) GetUser() string                        { return msg.User }
 func (msg *MetadataAuthorityRevokeMsg) GetUserType() commonconstantpb.UserType { return msg.UserType }
-func (msg *MetadataAuthorityRevokeMsg) GetSign() []byte                { return msg.Sign }
-func (msg *MetadataAuthorityRevokeMsg) GetCreateAt() uint64            { return msg.CreateAt }
+func (msg *MetadataAuthorityRevokeMsg) GetSign() []byte                        { return msg.Sign }
+func (msg *MetadataAuthorityRevokeMsg) GetCreateAt() uint64                    { return msg.CreateAt }
 
 func (msg *MetadataAuthorityRevokeMsg) Marshal() ([]byte, error) { return nil, nil }
 func (msg *MetadataAuthorityRevokeMsg) Unmarshal(b []byte) error { return nil }
@@ -845,10 +890,10 @@ func (msg *TaskMsg) String() string {
 }
 func (msg *TaskMsg) MsgType() string { return MSG_TASK }
 
-func (msg *TaskMsg) GetTask() *Task             { return msg.Data }
+func (msg *TaskMsg) GetTask() *Task                      { return msg.Data }
 func (msg *TaskMsg) GetTaskData() *carriertypespb.TaskPB { return msg.GetTask().GetTaskData() }
-func (msg *TaskMsg) GetTaskId() string          { return msg.GetTask().GetTaskData().GetTaskId() }
-func (msg *TaskMsg) GetUser() string            { return msg.GetTask().GetTaskData().GetUser() }
+func (msg *TaskMsg) GetTaskId() string                   { return msg.GetTask().GetTaskData().GetTaskId() }
+func (msg *TaskMsg) GetUser() string                     { return msg.GetTask().GetTaskData().GetUser() }
 func (msg *TaskMsg) GetUserType() commonconstantpb.UserType {
 	return msg.GetTask().GetTaskData().GetUserType()
 }
@@ -856,10 +901,12 @@ func (msg *TaskMsg) GetTaskName() string { return msg.GetTask().GetTaskData().Ge
 func (msg *TaskMsg) GetSender() *carriertypespb.TaskOrganization {
 	return msg.GetTask().GetTaskSender()
 }
-func (msg *TaskMsg) GetSenderName() string       { return msg.GetTask().GetTaskSender().GetNodeName() }
-func (msg *TaskMsg) GetSenderNodeId() string     { return msg.GetTask().GetTaskSender().GetNodeId() }
-func (msg *TaskMsg) GetSenderIdentityId() string { return msg.GetTask().GetTaskSender().GetIdentityId() }
-func (msg *TaskMsg) GetSenderPartyId() string    { return msg.GetTask().GetTaskSender().GetPartyId() }
+func (msg *TaskMsg) GetSenderName() string   { return msg.GetTask().GetTaskSender().GetNodeName() }
+func (msg *TaskMsg) GetSenderNodeId() string { return msg.GetTask().GetTaskSender().GetNodeId() }
+func (msg *TaskMsg) GetSenderIdentityId() string {
+	return msg.GetTask().GetTaskSender().GetIdentityId()
+}
+func (msg *TaskMsg) GetSenderPartyId() string { return msg.GetTask().GetTaskSender().GetPartyId() }
 func (msg *TaskMsg) GetAlgoSupplier() *carriertypespb.TaskOrganization {
 	return &carriertypespb.TaskOrganization{
 		PartyId:    msg.GetTask().GetTaskData().GetAlgoSupplier().GetPartyId(),
@@ -911,12 +958,12 @@ func (msg *TaskMsg) GetPowerResourceOptions() []*carriertypespb.TaskPowerResourc
 	return msg.Data.GetTaskData().GetPowerResourceOptions()
 }
 func (msg *TaskMsg) GetState() commonconstantpb.TaskState { return msg.Data.GetTaskData().GetState() }
-func (msg *TaskMsg) GetReason() string            { return msg.Data.GetTaskData().GetReason() }
-func (msg *TaskMsg) GetDesc() string              { return msg.Data.GetTaskData().GetDesc() }
-func (msg *TaskMsg) GetCreateAt() uint64          { return msg.GetTask().GetTaskData().GetCreateAt() }
-func (msg *TaskMsg) GetEndAt() uint64             { return msg.GetTask().GetTaskData().GetEndAt() }
-func (msg *TaskMsg) GetStartAt() uint64           { return msg.GetTask().GetTaskData().GetStartAt() }
-func (msg *TaskMsg) GetSign() []byte              { return msg.Data.GetTaskData().GetSign() }
+func (msg *TaskMsg) GetReason() string                    { return msg.Data.GetTaskData().GetReason() }
+func (msg *TaskMsg) GetDesc() string                      { return msg.Data.GetTaskData().GetDesc() }
+func (msg *TaskMsg) GetCreateAt() uint64                  { return msg.GetTask().GetTaskData().GetCreateAt() }
+func (msg *TaskMsg) GetEndAt() uint64                     { return msg.GetTask().GetTaskData().GetEndAt() }
+func (msg *TaskMsg) GetStartAt() uint64                   { return msg.GetTask().GetTaskData().GetStartAt() }
+func (msg *TaskMsg) GetSign() []byte                      { return msg.Data.GetTaskData().GetSign() }
 
 func (msg *TaskMsg) GenTaskId() string {
 	if "" != msg.GetTask().GetTaskId() {
@@ -1047,11 +1094,11 @@ func (msg *TaskMsg) HashByCreateTime() common.Hash {
 }
 
 type TaskTerminateMsg struct {
-	TaskId   string            `json:"taskId"`
-	User     string            `json:"user"`
+	TaskId   string                    `json:"taskId"`
+	User     string                    `json:"user"`
 	UserType commonconstantpb.UserType `json:"userType"`
-	Sign     []byte            `json:"sign"`
-	CreateAt uint64            `json:"createAt"`
+	Sign     []byte                    `json:"sign"`
+	CreateAt uint64                    `json:"createAt"`
 	// caches
 	hash atomic.Value
 }
@@ -1072,12 +1119,12 @@ func (msg *TaskTerminateMsg) String() string {
 	return fmt.Sprintf(`{"userType": %s, "user": %s, "taskId": %s, "sign": %v, "createAt": %d}`,
 		msg.UserType.String(), msg.User, msg.TaskId, msg.Sign, msg.CreateAt)
 }
-func (msg *TaskTerminateMsg) MsgType() string                { return MSG_TASK_TERMINATE }
+func (msg *TaskTerminateMsg) MsgType() string                        { return MSG_TASK_TERMINATE }
 func (msg *TaskTerminateMsg) GetUserType() commonconstantpb.UserType { return msg.UserType }
-func (msg *TaskTerminateMsg) GetUser() string                { return msg.User }
-func (msg *TaskTerminateMsg) GetTaskId() string              { return msg.TaskId }
-func (msg *TaskTerminateMsg) GetSign() []byte                { return msg.Sign }
-func (msg *TaskTerminateMsg) GetCreateAt() uint64            { return msg.CreateAt }
+func (msg *TaskTerminateMsg) GetUser() string                        { return msg.User }
+func (msg *TaskTerminateMsg) GetTaskId() string                      { return msg.TaskId }
+func (msg *TaskTerminateMsg) GetSign() []byte                        { return msg.Sign }
+func (msg *TaskTerminateMsg) GetCreateAt() uint64                    { return msg.CreateAt }
 func (msg *TaskTerminateMsg) Hash() common.Hash {
 	if hash := msg.hash.Load(); hash != nil {
 		return hash.(common.Hash)

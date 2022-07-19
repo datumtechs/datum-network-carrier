@@ -94,14 +94,21 @@ func (pool *Mempool) Add(msg types.Msg) error {
 			Type: types.ApplyMetadata,
 			Data: &types.MetadataMsgEvent{Msg: m},
 		})
+
 	case *types.MetadataUpdateMsg:
 
 		// We've directly injected a replacement MetadataUpdateMsg, notify subsystems
 		pool.msgFeed.Send(&feed.Event{
-		Type: types.UpdateMetadata,
-		Data: &types.MetadataUpdateMsgEvent{Msg: m},
+			Type: types.UpdateMetadata,
+			Data: &types.MetadataUpdateMsgEvent{Msg: m},
 		})
 
+	case *types.UpdateIdentityCredentialMsg:
+		pool.msgFeed.Send(&feed.Event{
+			Type: types.UpdateIdentityCredential,
+			Data: &types.UpdateIdentityCredentialEvent{Msg: m},
+		})
+		
 	case *types.MetadataRevokeMsg:
 
 		// We've directly injected a replacement metaDataRevokeMsg, notify subsystems
@@ -159,7 +166,6 @@ type msgLookup struct {
 
 	metaDataMsgLock sync.RWMutex
 	powerMsgLock    sync.RWMutex
-
 }
 
 func newMsgLookup() *msgLookup {

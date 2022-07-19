@@ -18,6 +18,7 @@ const (
 	ApplyTask
 	TerminateTask
 	UpdateMetadata
+	UpdateIdentityCredential
 )
 
 type IdentityMsgEvent struct{ Msg *IdentityMsg }
@@ -30,7 +31,9 @@ type PowerMsgEvent struct{ Msg *PowerMsg }
 type PowerRevokeMsgEvent struct{ Msg *PowerRevokeMsg }
 type TaskMsgEvent struct{ Msg *TaskMsg }
 type TaskTerminateMsgEvent struct{ Msg *TaskTerminateMsg }
-type MetadataUpdateMsgEvent struct { Msg *MetadataUpdateMsg}
+type MetadataUpdateMsgEvent struct{ Msg *MetadataUpdateMsg }
+type UpdateIdentityCredentialEvent struct{ Msg *UpdateIdentityCredentialMsg }
+
 func (msg *IdentityMsgEvent) String() string {
 	result, err := json.Marshal(msg)
 	if err != nil {

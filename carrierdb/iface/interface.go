@@ -130,6 +130,7 @@ type MetadataAuthorityCarrierDB interface {
 	QueryMetadataAuthorityListByIds(metadataAuthIds []string) (types.MetadataAuthArray, error)
 	QueryMetadataAuthorityListByIdentityId(identityId string, lastUpdate, pageSize uint64) (types.MetadataAuthArray, error)
 	QueryMetadataAuthorityList(lastUpdate, pageSize uint64) (types.MetadataAuthArray, error)
+	UpdateIdentityCredential(identityId, credential string) error
 }
 
 type TaskCarrierDB interface {
