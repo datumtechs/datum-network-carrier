@@ -507,6 +507,26 @@ func (msg *MetadataUpdateMsg) GetMetadataOption() string {
 	return msg.GetMetadataSummary().MetadataOption
 }
 func (msg *MetadataUpdateMsg) GetPublishAt() uint64 { return msg.GetMetadataSummary().PublishAt }
+func (msg *MetadataUpdateMsg) Hash() common.Hash {
+	if hash := msg.hash.Load(); hash != nil {
+		return hash.(common.Hash)
+	}
+	var buf bytes.Buffer
+	buf.Write([]byte(msg.GetMetadataName()))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(msg.GetMetadataType())))
+	buf.Write([]byte(msg.GetDataHash()))
+	buf.Write([]byte(msg.GetDesc()))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(msg.GetLocationType())))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(msg.GetDataType())))
+	buf.Write([]byte(msg.GetIndustry()))
+	buf.Write([]byte(msg.GetState().String()))
+	//buf.Write(bytesutil.Uint64ToBytes(msg.GetNonce()))
+	buf.Write([]byte(msg.GetMetadataOption()))
+
+	v := rlputil.RlpHash(buf.Bytes())
+	msg.hash.Store(v)
+	return v
+}
 
 type UpdateIdentityCredentialMsg struct {
 	IdentityId string `json:"identity_id"`

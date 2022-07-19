@@ -18,7 +18,9 @@ type CarrierChainConfig struct {
 	DiscoveryServiceName string
 	DiscoveryServiceTags []string
 	// add by v 0.4.0
-	BlockChainIdCache     map[commonconstantpb.UserType]*big.Int   // blockchain {userAddress -> chainId}
+	BlockChainIdCache map[commonconstantpb.UserType]*big.Int // blockchain {userAddress -> chainId}
+	//// add by v 0.5.0
+	//SignerFunc map[commonconstantpb.UserType]interface{}
 }
 
 // Copy returns a copy of the config object.
