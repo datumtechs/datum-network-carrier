@@ -3,6 +3,7 @@ package rawdb
 import (
 	"github.com/datumtechs/datum-network-carrier/db"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"gotest.tools/assert"
 	"strings"
@@ -19,10 +20,10 @@ func TestRunningTask(t *testing.T) {
 			NodeName:   "nodeName",
 		},
 		DataId:     "",
-		DataStatus: carriertypespb.DataStatus_DataStatus_Valid,
+		DataStatus: commonconstantpb.DataStatus_DataStatus_Valid,
 		TaskId:     "taskID-01",
 		TaskName:   "taskName-01",
-		State:      carriertypespb.TaskState_TaskState_Succeed,
+		State:      commonconstantpb.TaskState_TaskState_Succeed,
 		Reason:     "",
 		Desc:       "",
 		CreateAt:   0,

@@ -502,6 +502,27 @@ func (svr *Server) GetGlobalMetadataAuthorityList(ctx context.Context, req *carr
 	}, nil
 }
 
+func (svr *Server) UpdateIdentityCredential(ctx context.Context, req *carrierapipb.UpdateIdentityCredentialRequest) (*carriertypespb.SimpleResponse, error) {
+	identityId := req.GetIdentityId()
+	credential := req.GetCredential()
+	if identityId == "" {
+		return &carriertypespb.SimpleResponse{Status: backend.ErrUpdateIdentityCredential.Code, Msg: "identityId can not be empty "}, nil
+	}
+	if len(identityId) != 41 {
+		return &carriertypespb.SimpleResponse{Status: backend.ErrUpdateIdentityCredential.Code, Msg: "identityId len not equal 41 "}, nil
+	}
+	updateIdentityCredentialMsg := &types.UpdateIdentityCredentialMsg{
+		IdentityId: identityId,
+		Credential: credential,
+	}
+	if err := svr.B.SendMsg(updateIdentityCredentialMsg); nil != err {
+		log.WithError(err).Error("RPC-API:UpdateIdentityCredential failed")
+		errMsg := fmt.Sprintf("UpdateIdentityCredential SendMsg fail, identity is %s,Credential is %s", identityId, credential)
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: errMsg}, nil
+	}
+	return &carriertypespb.SimpleResponse{Status: 0, Msg: backend.OK}, nil
+}
+
 func verifyUserType(userType commonconstantpb.UserType) bool {
 	switch userType {
 	case commonconstantpb.UserType_User_1: // PlatON

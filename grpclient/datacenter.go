@@ -3,8 +3,8 @@ package grpclient
 import (
 	"context"
 	"fmt"
-	datacenterapipb "github.com/datumtechs/datum-network-carrier/pb/datacenter/api"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	datacenterapipb "github.com/datumtechs/datum-network-carrier/pb/datacenter/api"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"time"
@@ -124,6 +124,7 @@ func (gc *GrpcClient) RevokeMetadata(ctx context.Context, request *datacenterapi
 	defer cancel()
 	return gc.metadataService.RevokeMetadata(ctx, request)
 }
+
 // add by v 0.4.0
 func (gc *GrpcClient) UpdateMetadata(ctx context.Context, request *datacenterapipb.UpdateMetadataRequest) (*carriertypespb.SimpleResponse, error) {
 	if nil == gc {
@@ -323,4 +324,14 @@ func (gc *GrpcClient) ListTaskEvent(ctx context.Context, request *datacenterapip
 	ctx, cancel := context.WithTimeout(ctx, TweentySecondGrpcRequestTimeout)
 	defer cancel()
 	return gc.taskService.ListTaskEvent(ctx, request, RPCMaxCallRecvMsgSize)
+}
+
+func (gc *GrpcClient) UpdateIdentityCredential(ctx context.Context, request *datacenterapipb.UpdateIdentityCredentialRequest) (*carriertypespb.SimpleResponse, error) {
+	if nil == gc {
+		return nil, fmt.Errorf("datacenter rpc client is nil")
+	}
+	// TODO: Requests take too long, consider stream processing
+	ctx, cancel := context.WithTimeout(ctx, TweentySecondGrpcRequestTimeout)
+	defer cancel()
+	return gc.identityService.UpdateIdentityCredential(ctx, request)
 }
