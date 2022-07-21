@@ -35,6 +35,8 @@ import (
 	"time"
 )
 
+const localTest = false
+
 func (m *Manager) tryScheduleTask() error {
 
 	nonConsTask, taskId, err := m.scheduler.TrySchedule()
@@ -127,11 +129,17 @@ func (m *Manager) tryScheduleTask() error {
 
 func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsume bool) (error, map[uint8][]types.DataConsumePolicy, map[string]string) {
 	dataPolicyTypes, dataPolicyOptions := localTask.GetTaskData().GetDataPolicyTypes(), localTask.GetTaskData().GetDataPolicyOptions()
+	if len(dataPolicyTypes) != len(dataPolicyOptions) {
+		return errors.New("dataPolicyTypes len not equal dataPolicyOptions len"), nil, nil
+	}
 	var (
 		consumeTypeDataConsumePolicy map[uint8][]types.DataConsumePolicy
 		err                          = errors.New("")
 	)
 	checkTaskMetadataConsumeOptionsFn := func(metadataId string, consumeTypes []uint8, consumeOptions []string) (error, map[uint8][]types.DataConsumePolicy) {
+		if len(consumeTypes) != len(consumeOptions) {
+			return errors.New("consumeTypes len not equal consumeOptions len,please check"), nil
+		}
 		/*
 			consumeMap:
 			{
@@ -197,14 +205,22 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 		if !isBeginConsume {
 			return nil, consumeMap
 		}
-
-		metadataFromDataCenter, err := m.resourceMng.GetDB().QueryMetadataById(metadataId)
+		var (
+			metadataFromDataCenter *types.Metadata
+		)
+		if localTest {
+			metadataFromDataCenter, err = generateTestMetadata(metadataId)
+		} else {
+			metadataFromDataCenter, err = m.resourceMng.GetDB().QueryMetadataById(metadataId)
+		}
 		if err != nil {
 			return errors.New(fmt.Sprintf("Failed to query %s from data center", metadataId)), nil
 		}
 
 		var option *types.MetadataOptionCSV
-		err = json.Unmarshal([]byte(metadataFromDataCenter.GetData().GetMetadataOption()), &option)
+		metadataOption := metadataFromDataCenter.GetData().GetMetadataOption()
+		log.Debugf(fmt.Sprintf("QueryMetadataById metadataId is %s,it's metadataOption is %s", metadataId, metadataOption))
+		err = json.Unmarshal([]byte(metadataOption), &option)
 		if err != nil {
 			return err, nil
 		}
@@ -223,6 +239,8 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 			case types.ConsumeTk721:
 				var addressArr []string
 				if err := json.Unmarshal([]byte(consumeOptionsDataCenter[idx]), &addressArr); err != nil {
+					return errors.New(fmt.Sprintf("json %s Unmarshal fail.", consumeOptionsDataCenter[idx])), nil
+				} else {
 					for _, address := range addressArr {
 						result[address] = struct{}{}
 						metadataConsumeOptionsAddressMap[consumeType] = result
@@ -231,21 +249,24 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 			case types.ConsumeTk20:
 				var infos []map[string]interface{}
 				if err := json.Unmarshal([]byte(consumeOptionsDataCenter[idx]), &infos); err != nil {
+					return errors.New(fmt.Sprintf("json %s Unmarshal fail.", consumeOptionsDataCenter[idx])), nil
+				} else {
 					for _, info := range infos {
 						contractAddress := info["contract"].(string)
-						cryptoAlgoConsumeUnit := info["cryptoAlgoConsumeUnit"].(uint64)
-						plainAlgoConsumeUnit := info["plainAlgoConsumeUnit"].(uint64)
+						cryptoAlgoConsumeUnit := uint64(info["cryptoAlgoConsumeUnit"].(float64))
+						plainAlgoConsumeUnit := uint64(info["plainAlgoConsumeUnit"].(float64))
 						result[contractAddress] = struct{}{}
 						metadataConsumeOptionsAddressMap[consumeType] = result
 						balance, ok := tk20ConsumeCount[contractAddress]
 						if !ok {
 							continue
 						}
-						if localTask.GetTaskData().GetMetaAlgorithmId() == "ciphertext" && balance < cryptoAlgoConsumeUnit {
-							return errors.New(fmt.Sprintf("MetaAlgorithmId is ciphertext balance %d less than cryptoAlgoConsumeUnit %d", balance, cryptoAlgoConsumeUnit)), nil
+						metaAlgorithmId := strings.TrimSpace(localTask.GetTaskData().GetMetaAlgorithmId())
+						if metaAlgorithmId == "ciphertext" && balance < cryptoAlgoConsumeUnit {
+							return errors.New(fmt.Sprintf("MetaAlgorithmId is ciphertext balance %d less than cryptoAlgoConsumeUnit %d,contract address %s", balance, cryptoAlgoConsumeUnit, contractAddress)), nil
 						}
-						if localTask.GetTaskData().GetMetaAlgorithmId() == "plaintext" && balance < plainAlgoConsumeUnit {
-							return errors.New(fmt.Sprintf("MetaAlgorithmId is plaintext balance %d less than plainAlgoConsumeUnit %d", balance, cryptoAlgoConsumeUnit)), nil
+						if metaAlgorithmId == "plaintext" && balance < plainAlgoConsumeUnit {
+							return errors.New(fmt.Sprintf("MetaAlgorithmId is plaintext balance %d less than plainAlgoConsumeUnit %d,contract address %s", balance, plainAlgoConsumeUnit, contractAddress)), nil
 						}
 					}
 				}
@@ -266,13 +287,13 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 		return nil, consumeMap
 	}
 	partyIdToMetadataId := make(map[string]string, 0)
-
 	// dataPolicyTypes -> [40001,40002,40001]
 	for index, policyType := range dataPolicyTypes {
 		// if policyType is 40001
 		switch policyType {
 		case types.TASK_DATA_POLICY_IS_CSV_HAVE_CONSUME:
 			policyOption := dataPolicyOptions[index]
+			log.Debugf(fmt.Sprintf(`"checkConsumeOptionsParams type is csv,policyOption %s"`, policyOption))
 			var consumePolicy *types.TaskMetadataPolicyCsvConsume
 			if err := json.Unmarshal([]byte(policyOption), &consumePolicy); nil != err {
 				return errors.New(fmt.Sprintf("json Unmarshal fail,the json string is %s", policyOption)), nil, nil
@@ -294,11 +315,6 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 			consumeOptions := consumePolicy.GetConsumeOptions()
 			metadataId := consumePolicy.GetMetadataId()
 			partyIdToMetadataId[consumePolicy.GetPartyId()] = metadataId
-			_, err = m.resourceMng.GetDB().QueryMetadataById(metadataId)
-			if nil != err {
-				log.Infof("cannot query publish metadata, %s", metadataId)
-				continue
-			}
 			err, consumeTypeDataConsumePolicy = checkTaskMetadataConsumeOptionsFn(metadataId, consumePolicy.GetConsumeTypes(), consumeOptions)
 			if err != nil {
 				return err, nil, nil
@@ -3380,4 +3396,31 @@ func fetchOrgByPartyRole(partyId string, role commonconstantpb.TaskRole, task *t
 		}
 	}
 	return nil
+}
+
+func generateTestMetadata(metadataId string) (*types.Metadata, error) {
+	testMetadata := make(map[string]*types.Metadata, 0)
+	id := "MetadataId001"
+	metadataOption := `{"originId": "originId001", "dataPath": "dataPath001", "rows": 12, "columns": 7, "size": 56, "hasTitle": true, "metadataColumns": [], "consumeTypes": [1, 2, 3], "consumeOptions": ["[]", "[{\"contract\": \"0x67e4b947F015f3f7C06E5173C2CfF41F2DDBAF03\", \"cryptoAlgoConsumeUnit\": 1000000, \"plainAlgoConsumeUnit\": 2}, {\"contract\": \"0x67e4b947F015f3f7C06E5173C2CfF41F2DDBAF04\", \"cryptoAlgoConsumeUnit\": 1000000, \"plainAlgoConsumeUnit\": 4}, {\"contract\": \"0x67e4b947F015f3f7C06E5173C2CfF41F2DDBAF06\", \"cryptoAlgoConsumeUnit\": 1000000, \"plainAlgoConsumeUnit\": 11}, {\"contract\": \"0x67e4b947F015f3f7C06E5173C2CfF41F2DDBAF07\", \"cryptoAlgoConsumeUnit\": 1000000, \"plainAlgoConsumeUnit\": 7}]", "[\"0x77e4b947F015f3f7C06E5173C2CfF41F2DDBAF07\", \"0x77e4b947F015f3f7C06E5173C2CfF41F2DDBAF11\", \"0x79e4b947F015f3f7C06E5173C2CfF41F2DDBAF07\"]"]}`
+	testMetadata[id] = types.NewMetadata(&carriertypespb.MetadataPB{
+		MetadataId:     id,
+		MetadataOption: metadataOption,
+	})
+	id = "MetadataId002"
+	metadataOption = `{"originId": "originId002", "dataPath": "dataPath001", "rows": 12, "columns": 7, "size": 56, "hasTitle": true, "metadataColumns": [], "consumeTypes": [1, 2, 3], "consumeOptions": ["[]", "[{\"contract\": \"0x77e4b947F015f3f7C06E5173C2CfF41F2DDBAF03\", \"cryptoAlgoConsumeUnit\": 2000000, \"plainAlgoConsumeUnit\": 3}, {\"contract\": \"0x77e4b947F015f3f7C06E5173C2CfF41F2DDBAF04\", \"cryptoAlgoConsumeUnit\": 2000000, \"plainAlgoConsumeUnit\": 4}, {\"contract\": \"0x77e4b947F015f3f7C06E5173C2CfF41F2DDBAF06\", \"cryptoAlgoConsumeUnit\": 2000000, \"plainAlgoConsumeUnit\": 11}, {\"contract\": \"0x77e4b947F015f3f7C06E5173C2CfF41F2DDBAF07\", \"cryptoAlgoConsumeUnit\": 2000000, \"plainAlgoConsumeUnit\": 12}]", "[\"0x87e4b947F015f3f7C06E5173C2CfF41F2DDBAF07\", \"0x87e4b947F015f3f7C06E5173C2CfF41F2DDBAF11\", \"0x89e4b947F015f3f7C06E5173C2CfF41F2DDBAF07\"]"]}`
+	testMetadata[id] = types.NewMetadata(&carriertypespb.MetadataPB{
+		MetadataId:     id,
+		MetadataOption: metadataOption,
+	})
+	id = "MetadataId003"
+	metadataOption = `{"originId": "originId003", "dataPath": "dataPath001", "rows": 12, "columns": 7, "size": 56, "hasTitle": true, "metadataColumns": [], "consumeTypes": [1, 2, 3], "consumeOptions": ["[]", "[{\"contract\": \"0x87e4b947F015f3f7C06E5173C2CfF41F2DDBAF03\", \"cryptoAlgoConsumeUnit\": 3000000, \"plainAlgoConsumeUnit\": 5}, {\"contract\": \"0x87e4b947F015f3f7C06E5173C2CfF41F2DDBAF04\", \"cryptoAlgoConsumeUnit\": 3000000, \"plainAlgoConsumeUnit\": 4}, {\"contract\": \"0x87e4b947F015f3f7C06E5173C2CfF41F2DDBAF06\", \"cryptoAlgoConsumeUnit\": 3000000, \"plainAlgoConsumeUnit\": 11}, {\"contract\": \"0x87e4b947F015f3f7C06E5173C2CfF41F2DDBAF07\", \"cryptoAlgoConsumeUnit\": 3000000, \"plainAlgoConsumeUnit\": 7}]", "[\"0x97e4b947F015f3f7C06E5173C2CfF41F2DDBAF07\", \"0x97e4b947F015f3f7C06E5173C2CfF41F2DDBAF11\", \"0x99e4b947F015f3f7C06E5173C2CfF41F2DDBAF07\"]"]}`
+	testMetadata[id] = types.NewMetadata(&carriertypespb.MetadataPB{
+		MetadataId:     id,
+		MetadataOption: metadataOption,
+	})
+	if result, ok := testMetadata[metadataId]; !ok {
+		return nil, errors.New(fmt.Sprintf("metadataId %s not exits", metadataId))
+	} else {
+		return result, nil
+	}
 }
