@@ -3,6 +3,7 @@ package schedule
 import (
 	"container/heap"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/ach/auth"
 	"github.com/datumtechs/datum-network-carrier/blacklist"
@@ -17,6 +18,7 @@ import (
 	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
+	"github.com/datumtechs/datum-network-carrier/rpc/backend"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/ethereum/go-ethereum/rlp"
 	log "github.com/sirupsen/logrus"
@@ -44,7 +46,7 @@ type SchedulerStarveFIFO struct {
 	// the very very starve local task by priority
 	starveQueue *types.TaskBullets
 	// the scheduling task, it is ejected from the queue (taskId -> taskBullet)
-	schedulings   map[string]*types.TaskBullet
+	schedulings map[string]*types.TaskBullet
 
 	// #### NOTE ####
 	// ##############
@@ -58,7 +60,7 @@ type SchedulerStarveFIFO struct {
 	eventEngine *evengine.EventEngine
 	//add by v0.4.0
 	policyEngine *policy.PolicyEngine
-	err error
+	err          error
 	// black org
 	identityBlackListCache *blacklist.IdentityBackListCache
 }
@@ -69,17 +71,17 @@ func NewSchedulerStarveFIFO(
 	resourceMng *resource.Manager,
 	authMng *auth.AuthorityManager,
 	policyEngine *policy.PolicyEngine,
-	identityBlackListCache   *blacklist.IdentityBackListCache,
+	identityBlackListCache *blacklist.IdentityBackListCache,
 ) *SchedulerStarveFIFO {
 
 	return &SchedulerStarveFIFO{
-		elector:     elector,
-		resourceMng: resourceMng,
-		authMng:     authMng,
-		queue:       new(types.TaskBullets),
-		starveQueue: new(types.TaskBullets),
-		schedulings: make(map[string]*types.TaskBullet),
-		eventEngine: eventEngine,
+		elector:      elector,
+		resourceMng:  resourceMng,
+		authMng:      authMng,
+		queue:        new(types.TaskBullets),
+		starveQueue:  new(types.TaskBullets),
+		schedulings:  make(map[string]*types.TaskBullet),
+		eventEngine:  eventEngine,
 		policyEngine: policyEngine,
 		//quit:                 make(chan struct{}),
 		identityBlackListCache: identityBlackListCache,
@@ -216,6 +218,27 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (resTask *types.NeedConsensusTask
 			// collection partyId index into cache.
 			partyIdAndIndexCache[provide.GetPowerPartyId()] = i
 		// NOTE: unknown powerPolicyType
+		case types.TASK_POWER_POLICY_FIXED_ORGANIZATION_PROVIDE:
+			var provide *types.TaskPowerPolicyFixedOrganizationProvide
+			if err := json.Unmarshal([]byte(task.GetTaskData().GetPowerPolicyOptions()[i]), &provide); nil != err {
+				log.WithError(err).Errorf("can not unmarshal powerPolicyType, on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
+				return types.NewNeedConsensusTask(task, "", ""), bullet.GetTaskId(), fmt.Errorf("can not unmarshal powerPolicyType of task, %d", policyType)
+			}
+
+			var collecter *ScheduleWithFixedOrganizationProvidePower
+			cache, ok := caches[policyType]
+			if !ok {
+				collecter = &ScheduleWithFixedOrganizationProvidePower{
+					provides: make([]*types.TaskPowerPolicyFixedOrganizationProvide, 0),
+				}
+			} else {
+				collecter = cache.(*ScheduleWithFixedOrganizationProvidePower)
+			}
+			collecter.AppendProvide(provide)
+			caches[policyType] = collecter
+
+			// collection partyId index into cache.
+			partyIdAndIndexCache[provide.GetPowerPartyId()] = i
 		default:
 			log.WithError(err).Errorf("unknown powerPolicyType of task on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
 			return types.NewNeedConsensusTask(task, "", ""), bullet.GetTaskId(), fmt.Errorf("unknown powerPolicyType of task, %d", policyType)
@@ -282,6 +305,12 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (resTask *types.NeedConsensusTask
 					powerOrgs[index] = org
 					powerResources[index] = resources[i]
 				}
+			}
+		case *ScheduleWithFixedOrganizationProvidePower:
+			powerOrgs, powerResources, err = sche.fixedFixedOrganizationProvidePower(coller.(*ScheduleWithFixedOrganizationProvidePower).Getprovides())
+			if nil != err {
+				log.WithError(err).Errorf("fixedFixedOrganizationProvidePower election powerSupplier failed on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
+				return types.NewNeedConsensusTask(task, "", ""), bullet.GetTaskId(), err
 			}
 		}
 	}
@@ -419,7 +448,25 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 				collecter.AppendSupplier(task.GetTaskData().GetPowerSuppliers()[i])
 				collecter.AppendProvide(provide)
 				caches[policyType] = collecter
-
+			case types.TASK_POWER_POLICY_FIXED_ORGANIZATION_PROVIDE:
+				var provide *types.TaskPowerPolicyFixedOrganizationProvide
+				if err := json.Unmarshal([]byte(task.GetTaskData().GetPowerPolicyOptions()[i]), &provide); nil != err {
+					log.WithError(err).Errorf("can not unmarshal powerPolicyType, on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}", task.GetTaskId())
+					return types.NewReplayScheduleResult(task.GetTaskId(), fmt.Errorf("can not unmarshal powerPolicyType of task, %d", policyType), nil)
+				}
+				var collecter *ReScheduleWithFixedOrganizationProvidePower
+				cache, ok := caches[policyType]
+				if !ok {
+					collecter = &ReScheduleWithFixedOrganizationProvidePower{
+						suppliers: make([]*carriertypespb.TaskOrganization, 0),
+						provides:  make([]*types.TaskPowerPolicyFixedOrganizationProvide, 0),
+					}
+				} else {
+					collecter = cache.(*ReScheduleWithFixedOrganizationProvidePower)
+				}
+				collecter.AppendSupplier(task.GetTaskData().GetPowerSuppliers()[i])
+				collecter.AppendProvide(provide)
+				caches[policyType] = collecter
 			// NOTE: unknown powerPolicyType
 			default:
 				log.WithError(err).Errorf("unknown powerPolicyType of task on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}", task.GetTaskId())
@@ -455,6 +502,14 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 					return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)
 				}
 				if err := sche.reScheduleDataNodeProvidePower(task.GetTaskId(), task.GetTaskData().GetDataSuppliers(), c.GetSuppliers(), c.GetProvides()); nil != err {
+					return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)
+				}
+			case *ReScheduleWithFixedOrganizationProvidePower:
+				c := coller.(*ReScheduleWithDataNodeProvidePower)
+
+				if len(c.GetSuppliers()) != len(c.GetProvides()) {
+					log.Errorf("fixedOrganizationProvider: election powerSuppliers count and election providePolicys count is not same on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, powerSuppliers len: %d, providePolicys len: %d",
+						task.GetTaskId(), len(c.GetSuppliers()), len(c.GetProvides()))
 					return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)
 				}
 			}
@@ -506,7 +561,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 		for i, policyType := range task.GetTaskData().GetPowerPolicyTypes() {
 
 			switch policyType {
-			case types.TASK_POWER_POLICY_ASSIGNMENT_SYMBOL_RANDOM_ELECTION:
+			case types.TASK_POWER_POLICY_ASSIGNMENT_SYMBOL_RANDOM_ELECTION, types.TASK_POWER_POLICY_FIXED_ORGANIZATION_PROVIDE:
 
 				if task.GetTaskData().GetPowerPolicyOptions()[i] == partyId && task.GetTaskData().GetPowerSuppliers()[i].GetPartyId() == partyId {
 
@@ -580,7 +635,6 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 
 					break // break the external loop
 				}
-
 			// NOTE: unknown powerPolicyType
 			default:
 				log.WithError(err).Errorf("unknown powerPolicyType of task on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}", task.GetTaskId())
@@ -703,7 +757,7 @@ func (sche *SchedulerStarveFIFO) scheduleVrfElectionPower(taskId string, cost *c
 	vrfInput := append([]byte(taskId), bytesutil.Uint64ToBytes(now)...) // input == taskId + nowtime
 	// election other org's power resources
 	blackOrgList := sche.identityBlackListCache.QueryBlackListIdentityIds()
-	skipIdentityIdCache :=  make(map[string]struct{}, 0)
+	skipIdentityIdCache := make(map[string]struct{}, 0)
 	for _, identityId := range blackOrgList {
 		skipIdentityIdCache[identityId] = struct{}{}
 	}
@@ -766,6 +820,47 @@ func (sche *SchedulerStarveFIFO) scheduleDataNodeProvidePower(task *types.Task, 
 	return powers, resources, nil
 }
 
+func (sche *SchedulerStarveFIFO) fixedFixedOrganizationProvidePower(provides []*types.TaskPowerPolicyFixedOrganizationProvide) ([]*carriertypespb.TaskOrganization, []*carriertypespb.TaskPowerResourceOption, error) {
+	identityInfoArr, err := sche.resourceMng.GetDB().QueryIdentityList(timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
+	if nil != err {
+		log.WithError(err).Errorf("Failed to query global identity list fixedFixedOrganizationProvidePower")
+		return nil, nil, err
+	}
+	checkExitsIdentity := make(map[string]*types.Identity, 0)
+	for _, identity := range identityInfoArr {
+		checkExitsIdentity[identity.GetIdentityId()] = identity
+	}
+
+	powers := make([]*carriertypespb.TaskOrganization, len(provides))
+	resources := make([]*carriertypespb.TaskPowerResourceOption, len(provides))
+	for idx, provide := range provides {
+		if identity, ok := checkExitsIdentity[provide.GetIdentityId()]; !ok {
+			return nil, nil, errors.New(fmt.Sprintf("%s is not exits nonexistent organization id", provide.GetIdentityId()))
+		} else {
+			powers[idx] = &carriertypespb.TaskOrganization{
+				IdentityId: provide.GetIdentityId(),
+				NodeId:     identity.GetNodeId(),
+				NodeName:   identity.GetName(),
+				PartyId:    provide.GetPowerPartyId(),
+			}
+			resources[idx] = &carriertypespb.TaskPowerResourceOption{
+				PartyId: provide.GetPowerPartyId(),
+				ResourceUsedOverview: &carriertypespb.ResourceUsageOverview{
+					TotalMem:       0, // total resource value of org.
+					UsedMem:        0, // used resource of this task (real time max used)
+					TotalBandwidth: 0,
+					UsedBandwidth:  0, // used resource of this task (real time max used)
+					TotalDisk:      0,
+					UsedDisk:       0,
+					TotalProcessor: 0,
+					UsedProcessor:  0, // used resource of this task (real time max used)
+				},
+			}
+		}
+	}
+	return powers, resources, nil
+}
+
 // NOTE: reSchedule powerSuppliers by powerPolicy of task
 
 func (sche *SchedulerStarveFIFO) reScheduleVrfElectionPower(taskId, nodeId string, powerSuppliers []*carriertypespb.TaskOrganization, powerResources []*carriertypespb.TaskPowerResourceOption, evidenceJson, blackOrgJson string) error {
@@ -775,7 +870,7 @@ func (sche *SchedulerStarveFIFO) reScheduleVrfElectionPower(taskId, nodeId strin
 	}
 
 	var (
-		evidence *policy.VRFElectionEvidence
+		evidence      *policy.VRFElectionEvidence
 		blackListOrgs []string
 	)
 

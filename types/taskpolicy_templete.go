@@ -51,13 +51,13 @@ const (
 
 	TASK_DATA_POLICY_CSV_WITH_TASKRESULTDATA = 30001 // csv for task result data
 	/*
-	"{
-		"partyId": "p0",
-		"taskId": "task:0x43b3d8c65b877adfd05a77dc6b3bb1ad27e4727edbccb3cc76ffd51f78794479",
-		"inputType": 1, // 输入数据的类型，0:unknown, 1:origin_data, 2:psi_output, 3:model
-		"keyColumnName": "id",
-		"selectedColumnNames": ["name", "age", "point"]
-	}"
+		"{
+			"partyId": "p0",
+			"taskId": "task:0x43b3d8c65b877adfd05a77dc6b3bb1ad27e4727edbccb3cc76ffd51f78794479",
+			"inputType": 1, // 输入数据的类型，0:unknown, 1:origin_data, 2:psi_output, 3:model
+			"keyColumnName": "id",
+			"selectedColumnNames": ["name", "age", "point"]
+		}"
 	*/
 	TASK_DATA_POLICY_IS_CSV_HAVE_CONSUME = 40001
 	/*
@@ -88,7 +88,13 @@ const (
 		"powerPartyId": "y0"
 	}"
 	*/
-
+	TASK_POWER_POLICY_FIXED_ORGANIZATION_PROVIDE = 3
+	/*
+		"{
+			"identityId": "identit:0xsaaa...fff",
+			"powerPartyId": "y0"
+		}"
+	*/
 	// ==================================================================== receiver policy option ====================================================================
 	TASK_RECEIVER_POLICY_RANDOM_UNKNOWN = 0
 
@@ -239,6 +245,7 @@ func (p *TaskMetadataPolicyCsvConsume) GetConsumeTypes() []uint8 {
 func (p *TaskMetadataPolicyCsvConsume) GetConsumeOptions() []string {
 	return p.ConsumeOptions
 }
+
 /**
 TASK_DATA_POLICY_DIR
 value: 2
@@ -361,6 +368,14 @@ type TaskPowerPolicyDataNodeProvide struct {
 
 func (p *TaskPowerPolicyDataNodeProvide) GetProviderPartyId() string { return p.ProviderPartyId }
 func (p *TaskPowerPolicyDataNodeProvide) GetPowerPartyId() string    { return p.PowerPartyId }
+
+type TaskPowerPolicyFixedOrganizationProvide struct {
+	IdentityId   string `json:"identityId"`
+	PowerPartyId string `json:"powerPartyId"`
+}
+
+func (p *TaskPowerPolicyFixedOrganizationProvide) GetIdentityId() string   { return p.IdentityId }
+func (p *TaskPowerPolicyFixedOrganizationProvide) GetPowerPartyId() string { return p.PowerPartyId }
 
 // ==================================================================== receiver policy option ====================================================================
 
