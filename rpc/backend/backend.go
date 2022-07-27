@@ -2,6 +2,7 @@ package backend
 
 import (
 	"github.com/datumtechs/datum-network-carrier/core/policy"
+	"github.com/datumtechs/datum-network-carrier/grpclient"
 	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
@@ -97,4 +98,6 @@ type Backend interface {
 
 	// v 0.4.0
 	EstimateTaskGas(taskSponsorAddress string, tkItemList []*carrierapipb.TkItem) (gasLimit uint64, gasPrice *big.Int, err error)
+	// v 0.5.0
+	GetQueryDataNodeClientByNodeId(nodeId string) (*grpclient.DataNodeClient, bool)
 }

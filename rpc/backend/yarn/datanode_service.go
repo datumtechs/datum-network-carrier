@@ -7,36 +7,36 @@ import (
 	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
+	fighterapipb "github.com/datumtechs/datum-network-carrier/pb/fighter/api/data"
 	"github.com/datumtechs/datum-network-carrier/rpc/backend"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"google.golang.org/protobuf/types/known/emptypb"
+	"io"
 	"strings"
 )
 
 func (svr *Server) ReportUpFileSummary(ctx context.Context, req *carrierapipb.ReportUpFileSummaryRequest) (*carriertypespb.SimpleResponse, error) {
 
 	if "" == req.GetOriginId() {
-		return &carriertypespb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "require originId"}, nil
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require originId"}, nil
 	}
 
-
 	if "" == req.GetIp() || "" == req.GetPort() {
-		return &carriertypespb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "require ip and port"}, nil
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require ip and port"}, nil
 	}
 
 	// add by v 0.4.0
 	if "" == req.GetDataHash() {
-		return &carriertypespb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "require dataHash"}, nil
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require dataHash"}, nil
 	}
 	// add by v 0.4.0
 	if commonconstantpb.OrigindataType_OrigindataType_Unknown == req.GetDataType() {
-		return &carriertypespb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "require dataType"}, nil
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require dataType"}, nil
 	}
 	// add by v 0.4.0
 	if "" == req.GetMetadataOption() {
-		return &carriertypespb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "require metadataOption"}, nil
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require metadataOption"}, nil
 	}
-
 
 	dataNodeList, err := svr.B.GetRegisterNodeList(carrierapipb.PrefixTypeDataNode)
 	if nil != err {
@@ -45,7 +45,7 @@ func (svr *Server) ReportUpFileSummary(ctx context.Context, req *carrierapipb.Re
 
 		errMsg := fmt.Sprintf("%s,req.GetOriginId: {%s}, req.GetDataType: {%s}, req.Ip: {%s}, req.Port: {%s}, req.GetDataHash: {%s}, req.GetMetadataOption: %s", backend.ErrReportUpDataSummary.Error(),
 			req.GetOriginId(), req.GetDataType().String(), req.GetIp(), req.GetPort(), req.GetDataHash(), req.GetMetadataOption())
-		return &carriertypespb.SimpleResponse{ Status: backend.ErrReportUpDataSummary.ErrCode(), Msg: errMsg}, nil
+		return &carriertypespb.SimpleResponse{Status: backend.ErrReportUpDataSummary.ErrCode(), Msg: errMsg}, nil
 	}
 	var nodeId string
 	for _, dataNode := range dataNodeList {
@@ -60,7 +60,7 @@ func (svr *Server) ReportUpFileSummary(ctx context.Context, req *carrierapipb.Re
 
 		errMsg := fmt.Sprintf("%s, not found nodeId, req.GetOriginId: {%s}, req.GetDataType: {%s}, req.Ip: {%s}, req.Port: {%s}, req.GetDataHash: {%s}, req.GetMetadataOption: %s, dataNodeId: %s", backend.ErrReportUpDataSummary.Error(),
 			req.GetOriginId(), req.GetDataType().String(), req.GetIp(), req.GetPort(), req.GetDataHash(), req.GetMetadataOption(), nodeId)
-		return &carriertypespb.SimpleResponse{ Status: backend.ErrReportUpDataSummary.ErrCode(), Msg: errMsg}, nil
+		return &carriertypespb.SimpleResponse{Status: backend.ErrReportUpDataSummary.ErrCode(), Msg: errMsg}, nil
 	}
 	// store data upload summary when the file upload first.
 	err = svr.B.StoreDataResourceDataUpload(types.NewDataResourceDataUpload(uint32(req.GetDataType()), nodeId, req.GetOriginId(), "", req.GetMetadataOption(), req.GetDataHash()))
@@ -70,7 +70,7 @@ func (svr *Server) ReportUpFileSummary(ctx context.Context, req *carrierapipb.Re
 
 		errMsg := fmt.Sprintf("%s, call StoreDataResourceDataUpload() failed, req.GetOriginId: {%s}, req.GetDataType: {%s}, req.Ip: {%s}, req.Port: {%s}, req.GetDataHash: {%s}, req.GetMetadataOption: %s, dataNodeId: %s", backend.ErrReportUpDataSummary.Error(),
 			req.GetOriginId(), req.GetDataType().String(), req.GetIp(), req.GetPort(), req.GetDataHash(), req.GetMetadataOption(), nodeId)
-		return &carriertypespb.SimpleResponse{ Status: backend.ErrReportUpDataSummary.ErrCode(), Msg: errMsg}, nil
+		return &carriertypespb.SimpleResponse{Status: backend.ErrReportUpDataSummary.ErrCode(), Msg: errMsg}, nil
 	}
 
 	log.Debugf("RPC-API:ReportUpFileSummary succeed, req.GetOriginId: {%s}, req.GetDataType: {%s}, req.Ip: {%s}, req.Port: {%s}, req.GetDataHash: {%s}, req.GetMetadataOption: %s, found dataNodeId: {%s}",
@@ -85,15 +85,15 @@ func (svr *Server) ReportUpFileSummary(ctx context.Context, req *carrierapipb.Re
 func (svr *Server) ReportTaskResultFileSummary(ctx context.Context, req *carrierapipb.ReportTaskResultFileSummaryRequest) (*carriertypespb.SimpleResponse, error) {
 
 	if "" == strings.Trim(req.GetTaskId(), "") {
-		return &carriertypespb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "require taskId"}, nil
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require taskId"}, nil
 	}
 
 	if "" == strings.Trim(req.GetOriginId(), "") {
-		return &carriertypespb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "require originId"}, nil
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require originId"}, nil
 	}
 
 	if "" == strings.Trim(req.GetIp(), "") || "" == strings.Trim(req.GetPort(), "") {
-		return &carriertypespb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "require ip and port"}, nil
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require ip and port"}, nil
 	}
 	// add by v 0.4.0
 	//if "" == strings.Trim(req.GetExtra(), "") {
@@ -105,11 +105,11 @@ func (svr *Server) ReportTaskResultFileSummary(ctx context.Context, req *carrier
 	//}
 	// add by v 0.4.0
 	if commonconstantpb.OrigindataType_OrigindataType_Unknown == req.GetDataType() {
-		return &carriertypespb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "require dataType"}, nil
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require dataType"}, nil
 	}
 	// add by v 0.4.0
 	if "" == req.GetMetadataOption() {
-		return &carriertypespb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "require metadataOption"}, nil
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require metadataOption"}, nil
 	}
 
 	dataNodeList, err := svr.B.GetRegisterNodeList(carrierapipb.PrefixTypeDataNode)
@@ -119,7 +119,7 @@ func (svr *Server) ReportTaskResultFileSummary(ctx context.Context, req *carrier
 
 		errMsg := fmt.Sprintf("%s, call QueryRegisterNodeList() failed, originId: %s, dataType: %s, ip: %s, port: %s, metadataOption: %s", backend.ErrReportTaskResultDataSummary.Error(),
 			req.GetOriginId(), req.GetDataType().String(), req.GetIp(), req.GetPort(), req.GetMetadataOption())
-		return &carriertypespb.SimpleResponse{ Status: backend.ErrReportTaskResultDataSummary.ErrCode(), Msg: errMsg}, nil
+		return &carriertypespb.SimpleResponse{Status: backend.ErrReportTaskResultDataSummary.ErrCode(), Msg: errMsg}, nil
 	}
 	var dataNodeId string
 	for _, dataNode := range dataNodeList {
@@ -134,7 +134,7 @@ func (svr *Server) ReportTaskResultFileSummary(ctx context.Context, req *carrier
 
 		errMsg := fmt.Sprintf("%s, not found dataNodeId, originId: %s, dataType: %s, ip: %s, port: %s, metadataOption: %s, dataNodeId: %s", backend.ErrReportTaskResultDataSummary.Error(),
 			req.GetOriginId(), req.GetDataType().String(), req.GetIp(), req.GetPort(), req.GetMetadataOption(), dataNodeId)
-		return &carriertypespb.SimpleResponse{ Status: backend.ErrReportTaskResultDataSummary.ErrCode(), Msg: errMsg}, nil
+		return &carriertypespb.SimpleResponse{Status: backend.ErrReportTaskResultDataSummary.ErrCode(), Msg: errMsg}, nil
 	}
 
 	// the empty fileHash for task result data
@@ -145,7 +145,7 @@ func (svr *Server) ReportTaskResultFileSummary(ctx context.Context, req *carrier
 
 		errMsg := fmt.Sprintf("%s, call StoreTaskResultDataSummary() failed, originId: %s, dataType: %s, ip: %s, port: %s, dataHash: %s, metadataOption: %s, dataNodeId: %s", backend.ErrReportTaskResultDataSummary.Error(),
 			req.GetOriginId(), req.GetDataType().String(), req.GetIp(), req.GetPort(), req.GetDataHash(), req.GetMetadataOption(), dataNodeId)
-		return &carriertypespb.SimpleResponse{ Status: backend.ErrReportTaskResultDataSummary.ErrCode(), Msg: errMsg}, nil
+		return &carriertypespb.SimpleResponse{Status: backend.ErrReportTaskResultDataSummary.ErrCode(), Msg: errMsg}, nil
 	}
 
 	log.Debugf("RPC-API:ReportTaskResultFileSummary succeed, req.TaskId: {%s}, req.GetOriginId: {%s}, req.GetDataType: {%s}, req.Ip: {%s}, req.Port: {%s}, req.DataHash: {%s}, req.MetadataOption: %s, found dataNodeId: {%s}",
@@ -381,4 +381,74 @@ func (svr *Server) GetTaskResultFileSummaryList(ctx context.Context, empty *empt
 		Msg:             backend.OK,
 		TaskResultFiles: arr,
 	}, nil
+}
+
+func (svr *Server) DownloadTaskResultData(req *carrierapipb.DownloadTaskResultDataRequest, server carrierapipb.YarnService_DownloadTaskResultDataServer) error {
+	taskId := req.GetTaskId()
+	if taskId == "" {
+		return fmt.Errorf("RPC-API:DownloadTaskResultData req params taskId is empty")
+	}
+	taskResultSummary, err := svr.B.QueryTaskResultDataSummary(taskId)
+	if err != nil {
+		return err
+	}
+	dataNodeClient, ok := svr.B.GetQueryDataNodeClientByNodeId(taskResultSummary.GetNodeId())
+	if !ok {
+		return fmt.Errorf("RPC-API:DownloadTaskResultData call GetQueryDataNodeClientByNodeId fail")
+	}
+	metadataOption := taskResultSummary.GetMetadataOption()
+	var dataPath string
+	switch taskResultSummary.GetDataType() {
+	case uint32(commonconstantpb.OrigindataType_OrigindataType_CSV):
+		var option *types.MetadataOptionCSV
+		if err := json.Unmarshal([]byte(metadataOption), &option); err != nil {
+			return fmt.Errorf("RPC-API:DownloadTaskResultData json %s Unmarshal,csv", metadataOption)
+		}
+		dataPath = option.GetDataPath()
+	case uint32(commonconstantpb.OrigindataType_OrigindataType_DIR):
+		var option *types.MetadataOptionDIR
+		if err := json.Unmarshal([]byte(metadataOption), &option); err != nil {
+			return fmt.Errorf("RPC-API:DownloadTaskResultData json %s Unmarshal,dir", metadataOption)
+		}
+		dataPath = option.GetDirPath()
+	default:
+		return fmt.Errorf("RPC-API:DownloadTaskResultDat not support data type %d", taskResultSummary.GetDataType())
+	}
+	dataNodeStream, err := dataNodeClient.DownloadData(&fighterapipb.DownloadRequest{
+		DataPath: dataPath,
+		Options:  req.GetOptions(),
+	})
+	if err != nil {
+		log.WithError(err).Errorf("Falied to call DownloadData to `data-Fighter` node to terminating, taskId: {%s}, dataNodeId: {%s}",
+			taskId, taskResultSummary.GetNodeId())
+		return fmt.Errorf("call dataNode rpc api DownloadData failed")
+	}
+	for {
+		res, err := dataNodeStream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Errorf("Conversations get stream err: %v", err)
+			return err
+		}
+		// Send the data stream of the internal dataNode to the client corresponding to DownloadTaskResultData
+		if res.GetStatus() == commonconstantpb.TaskStatus_Start {
+			err = server.Send(&carrierapipb.DownloadTaskResultDataResponse{
+				Data: &carrierapipb.DownloadTaskResultDataResponse_Content{
+					Content: res.GetContent(),
+				},
+			})
+		} else {
+			err = server.Send(&carrierapipb.DownloadTaskResultDataResponse{
+				Data: &carrierapipb.DownloadTaskResultDataResponse_Status{
+					Status: res.GetStatus(),
+				},
+			})
+		}
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
