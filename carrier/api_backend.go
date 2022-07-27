@@ -1556,3 +1556,6 @@ func (s *CarrierAPIBackend) EstimateTaskGas(taskSponsorAddress string, tkItemLis
 }
 
 // EstimateTaskGas
+func (s *CarrierAPIBackend) GetQueryDataNodeClientByNodeId(nodeId string) (*grpclient.DataNodeClient, bool) {
+	return s.carrier.resourceManager.QueryDataNodeClient(nodeId)
+}

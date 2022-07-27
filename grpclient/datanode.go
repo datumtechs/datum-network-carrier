@@ -151,8 +151,10 @@ func (c *DataNodeClient) BatchUpload() (fighterapipb.DataProvider_BatchUploadCli
 	return nil, errors.New("method BatchUpload not implemented")
 }
 
-func (c *DataNodeClient) DownloadData(in *fighterapipb.DownloadRequest) (fighterapipb.DataProvider_DownloadDataClient, error) {
-	return nil, errors.New("method DownloadData not implemented")
+func (c *DataNodeClient) DownloadData(req *fighterapipb.DownloadRequest) (fighterapipb.DataProvider_DownloadDataClient, error) {
+	ctx, cancel := context.WithTimeout(c.ctx, 20*defaultRequestTime)
+	defer cancel()
+	return c.dataProviderClient.DownloadData(ctx, req)
 }
 
 func (c *DataNodeClient) DeleteData(in *fighterapipb.DownloadRequest) (*fighterapipb.UploadReply, error) {
