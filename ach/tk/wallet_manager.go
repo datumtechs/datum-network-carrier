@@ -21,6 +21,7 @@ type WalletManager struct {
 	dataCenter    carrierdb.CarrierDB
 	kms           kms.KmsService
 	priKey        *ecdsa.PrivateKey
+	pubKey        *ecdsa.PublicKey
 	walletAddress common.Address
 }
 
@@ -66,6 +67,7 @@ func (m *WalletManager) GenerateWallet() (common.Address, error) {
 	}
 
 	m.priKey = key
+	m.pubKey = &key.PublicKey
 	m.walletAddress = addr
 
 	log.Infof("generate organization wallet successful, address: %s", m.walletAddress)
@@ -80,6 +82,11 @@ func (m *WalletManager) GetAddress() common.Address {
 // GetPrivateKey returns the organization private key
 func (m *WalletManager) GetPrivateKey() *ecdsa.PrivateKey {
 	return m.priKey
+}
+
+// GetPrivateKey returns the organization private key
+func (m *WalletManager) GetPublicKey() *ecdsa.PublicKey {
+	return m.pubKey
 }
 
 // loadPrivateKey loads private key from local DB, and caches the private key
@@ -109,6 +116,7 @@ func (m *WalletManager) loadPrivateKey() {
 				return
 			} else {
 				m.priKey = priKey
+				m.pubKey = &priKey.PublicKey
 				m.walletAddress = crypto.PubkeyToAddress(priKey.PublicKey)
 				return
 			}
@@ -120,6 +128,7 @@ func (m *WalletManager) loadPrivateKey() {
 			return
 		}
 		m.priKey = priKey
+		m.pubKey = &priKey.PublicKey
 		m.walletAddress = crypto.PubkeyToAddress(priKey.PublicKey)
 		return
 	}
