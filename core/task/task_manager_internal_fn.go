@@ -368,7 +368,7 @@ func (m *Manager) beginConsumeByTk(task *types.NeedExecuteTask, localTask *types
 				tkTtems = append(tkTtems, &carrierapipb.TkItem{
 					TkType:    commonconstantpb.TkType_Tk721,
 					TkAddress: (consumePolicy.(*types.Tk721Consume)).Address(),
-					//Id:        (consumePolicy.(*types.Tk721Consume)).TokenId, the need string or bytes type
+					Id:        (consumePolicy.(*types.Tk721Consume)).GetTokenId(),
 				})
 			}
 		}
