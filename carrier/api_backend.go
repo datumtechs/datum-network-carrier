@@ -3,8 +3,8 @@ package carrier
 import (
 	"bytes"
 	"encoding/base64"
-	"errors"
 	"fmt"
+	"github.com/datumtechs/datum-network-carrier/ach/tk"
 	rawdb "github.com/datumtechs/datum-network-carrier/carrierdb/rawdb"
 	"github.com/datumtechs/datum-network-carrier/common/bytesutil"
 	"github.com/datumtechs/datum-network-carrier/common/rlputil"
@@ -17,6 +17,7 @@ import (
 	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	fighterapicomputepb "github.com/datumtechs/datum-network-carrier/pb/fighter/api/compute"
 	"github.com/datumtechs/datum-network-carrier/types"
+	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"math/big"
@@ -95,13 +96,12 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*carrierapipb.YarnNodeInfo, error) {
 		nodeInfo.LocalMultiAddr = selfMultiAddrs[0].String()
 	}
 
-	if addr, err := s.carrier.datumPayManager.WalletManager.GetOrgWalletAddress(); err == nil {
-		nodeInfo.ObserverProxyWalletAddress = addr.Hex()
+	if addr := tk.WalletManagerInstance().GetAddress(); addr == (ethcommon.Address{}) {
+		log.Warn("organization wallet not found")
+		//return nil
 	} else {
-		log.WithError(err).Errorf("cannot load organization wallet of node info: %v", err)
-		return nil, err
+		nodeInfo.ObserverProxyWalletAddress = addr.Hex()
 	}
-
 	return nodeInfo, nil
 }
 
@@ -625,16 +625,12 @@ func (s *CarrierAPIBackend) ReportTaskResourceUsage(nodeType carrierapipb.NodeTy
 }
 
 func (s *CarrierAPIBackend) GenerateObServerProxyWalletAddress() (string, error) {
-	if s.carrier.datumPayManager != nil {
-		if addr, err := s.carrier.datumPayManager.WalletManager.GetOrgWalletAddress(); nil != err {
-			log.WithError(err).Error("Failed to call GenerateOrgWallet() on CarrierAPIBackend.GenerateObServerProxyWalletAddress()")
-			return "", err
-		} else {
-			log.Debugf("Success to generate organization wallet %s", addr)
-			return addr.Hex(), nil
-		}
+	if addr, err := tk.WalletManagerInstance().GenerateWallet(); nil != err {
+		log.WithError(err).Error("Failed to call GenerateWallet() on CarrierAPIBackend.GenerateObServerProxyWalletAddress()")
+		return "", err
 	} else {
-		return "", errors.New("token20Pay manager not initialized properly")
+		log.Debugf("Success to generate organization wallet:%s", addr)
+		return addr.Hex(), nil
 	}
 }
 
@@ -1548,7 +1544,7 @@ func (s *CarrierAPIBackend) QueryTaskResultDataSummaryList() (types.TaskResultDa
 }
 
 func (s *CarrierAPIBackend) EstimateTaskGas(taskSponsorAddress string, tkItemList []*carrierapipb.TkItem) (gasLimit uint64, gasPrice *big.Int, err error) {
-	gasLimit, gasPrice, err = s.carrier.datumPayManager.EstimateTaskGas(taskSponsorAddress, tkItemList)
+	gasLimit, gasPrice, err = s.carrier.payAgent.EstimateTaskGas(taskSponsorAddress, tkItemList)
 	if err != nil {
 		log.WithError(err).Error("Failed to call EstimateTaskGas() on CarrierAPIBackend.EstimateTaskGas()")
 	}

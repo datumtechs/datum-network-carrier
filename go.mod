@@ -5,7 +5,7 @@ go 1.18
 require (
 	contrib.go.opencensus.io/exporter/jaeger v0.2.1
 	github.com/aliyun/alibaba-cloud-sdk-go v1.61.1545
-	github.com/bglmmz/chainclient v0.0.0-20220714061753-6a55eac1b98d
+	github.com/bglmmz/chainclient v0.0.0-20220728023359-fff703c130ba
 	github.com/btcsuite/btcutil v1.0.2
 	github.com/d4l3k/messagediff v1.2.1
 	github.com/datumtechs/did-sdk-go v0.0.0-20220714062558-f24654fcec8f

@@ -55,10 +55,10 @@ type Service struct {
 	consulManager   *discovery.ConnectConsul
 	runError        error
 	// add by v0.4.0
-	datumPayManager *tk.DatumPayManager
-	didService      *did.DIDService
-	policyEngine    *policy.PolicyEngine
-	quit            chan struct{}
+	payAgent     *tk.PayAgent
+	didService   *did.DIDService
+	policyEngine *policy.PolicyEngine
+	quit         chan struct{}
 }
 
 // NewService creates a new CarrierServer object (including the
@@ -124,15 +124,14 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 			AccessKeySecret: cliCtx.String(flags.KMSAccessKeySecret.Name),
 		}
 	}
-	walletManager := tk.NewWalletManager(config.CarrierDB, kmsConfig)
-
-	walletManager.GenerateOrgWallet()
+	//初始化钱包管理器
+	tk.InitWalletManager(config.CarrierDB, kmsConfig)
 
 	var ethContext *chainclient.EthContext
 	if cliCtx.IsSet(flags.BlockChain.Name) {
-		ethContext = chainclient.NewEthClientContext(cliCtx.String(flags.BlockChain.Name), walletManager.LoadPrivateKey())
+		ethContext = chainclient.NewEthClientContext(cliCtx.String(flags.BlockChain.Name), tk.WalletManagerInstance())
 	}
-	token20PayManager := tk.NewDatumPayManager(walletManager, ethContext)
+	payAgent := tk.NewPayAgent(ethContext)
 	didService := did.NewDIDService(ethContext)
 
 	taskManager, err := task.NewTaskManager(
@@ -143,7 +142,7 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 		eventEngine,
 		resourceMng,
 		authManager,
-		token20PayManager,
+		payAgent,
 		needReplayScheduleTaskCh,
 		needExecuteTaskCh,
 		config.TaskManagerConfig,
@@ -163,7 +162,7 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 		messageManager:  message.NewHandler(pool, resourceMng, taskManager, authManager),
 		TaskManager:     taskManager,
 		authManager:     authManager,
-		datumPayManager: token20PayManager,
+		payAgent:        payAgent,
 		didService:      didService,
 		policyEngine:    policyEngine,
 		scheduler:       scheduler,
