@@ -208,11 +208,14 @@ type Tk20Consume struct {
 
 type Tk721Consume struct {
 	Contract string `json:"contract"`
-	TokenId  string `json:"tokenId"`
+	TokenId  uint64 `json:"tokenId"`
 }
 
 func (tk *Tk721Consume) Address() string {
 	return tk.Contract
+}
+func (tk *Tk721Consume) GetTokenId() uint64 {
+	return tk.TokenId
 }
 func (tk *Tk20Consume) Address() string {
 	return tk.Contract
