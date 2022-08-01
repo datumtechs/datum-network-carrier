@@ -14,7 +14,7 @@ func (svr *Server) CreateDID(ctx context.Context, req *emptypb.Empty) (*carriera
 		log.WithError(err).Errorf("RPC-API:CreateDID failed")
 		return &carrierapipb.CreateDIDResponse{Status: backend.ErrCreateDID.ErrCode(), Msg: backend.ErrCreateDID.Error(), Did: ""}, nil
 	}
-	log.Debugf("RPC-API:CreateDID Succeed: didString {%S}", didString)
+	log.Debugf("RPC-API:CreateDID Succeed: didString {%s}", didString)
 	return &carrierapipb.CreateDIDResponse{
 		Status: 0,
 		Msg:    backend.OK,
