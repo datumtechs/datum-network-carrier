@@ -128,8 +128,14 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 	tk.InitWalletManager(config.CarrierDB, kmsConfig)
 
 	var ethContext *chainclient.EthContext
+
 	if cliCtx.IsSet(flags.BlockChain.Name) {
-		ethContext = chainclient.NewEthClientContext(cliCtx.String(flags.BlockChain.Name), tk.WalletManagerInstance())
+		chainUrl := cliCtx.String(flags.BlockChain.Name)
+		chainHrp := ""
+		if cliCtx.IsSet(flags.HRP.Name) {
+			chainHrp = cliCtx.String(flags.HRP.Name)
+		}
+		ethContext = chainclient.NewEthClientContext(chainUrl, chainHrp, tk.WalletManagerInstance())
 	}
 	payAgent := tk.NewPayAgent(ethContext)
 	didService := did.NewDIDService(ethContext)
