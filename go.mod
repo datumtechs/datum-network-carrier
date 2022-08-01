@@ -8,7 +8,7 @@ require (
 	github.com/bglmmz/chainclient v0.0.0-20220731143903-9b327389888a
 	github.com/btcsuite/btcutil v1.0.2
 	github.com/d4l3k/messagediff v1.2.1
-	github.com/datumtechs/did-sdk-go v0.0.0-20220801025357-d75d58361592
+	github.com/datumtechs/did-sdk-go v0.0.0-20220801075002-352d9dd94b4d
 	github.com/ethereum/go-ethereum v1.10.20
 	github.com/ferranbt/fastssz v0.0.0-20210526181520-7df50c8568f8
 	github.com/fjl/memsize v0.0.0-20190710130421-bcb5799ab5e5
@@ -200,4 +200,4 @@ require (
 
 //replace github.com/bglmmz/chainclient => D:\github.com\bglmmz\chainclient
 
-replace github.com/datumtechs/did-sdk-go => D:\github.com\datumtechs\did-sdk-go
+//replace github.com/datumtechs/did-sdk-go => D:\github.com\datumtechs\did-sdk-go
