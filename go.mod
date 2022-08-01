@@ -200,4 +200,4 @@ require (
 
 //replace github.com/bglmmz/chainclient => D:\github.com\bglmmz\chainclient
 
-//replace github.com/datumtechs/did-sdk-go => D:\github.com\datumtechs\did-sdk-go
+replace github.com/datumtechs/did-sdk-go => D:\github.com\datumtechs\did-sdk-go
