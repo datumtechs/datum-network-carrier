@@ -19,7 +19,7 @@ var (
 	SysError                = errors.New("system internal error")
 )
 
-func (m *DatumPayManager) inspectTkErc721ExtInfo(taskSponsorAddress common.Address, tk *carrierapipb.TkItem) error {
+func (m *PayAgent) inspectTkErc721ExtInfo(taskSponsorAddress common.Address, tk *carrierapipb.TkItem) error {
 	extInfo, err := m.getTkErc721ExtInfo(tk)
 	if err != nil {
 		log.WithError(err).Errorf("cannot fetch erc721 token ext info: tk:%s, id: %d", tk.TkAddress, tk.Id)
@@ -56,7 +56,7 @@ func (m *DatumPayManager) inspectTkErc721ExtInfo(taskSponsorAddress common.Addre
 
 }
 
-func (m *DatumPayManager) getTkErc721ExtInfo(tk *carrierapipb.TkItem) (*struct {
+func (m *PayAgent) getTkErc721ExtInfo(tk *carrierapipb.TkItem) (*struct {
 	Owner         common.Address
 	Term          string
 	ForEncryptAlg bool

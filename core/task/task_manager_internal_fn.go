@@ -368,7 +368,7 @@ func (m *Manager) beginConsumeByTk(task *types.NeedExecuteTask, localTask *types
 				tkTtems = append(tkTtems, &carrierapipb.TkItem{
 					TkType:    commonconstantpb.TkType_Tk721,
 					TkAddress: (consumePolicy.(*types.Tk721Consume)).Address(),
-					//Id:        (consumePolicy.(*types.Tk721Consume)).TokenId, the need string or bytes type
+					Id:        (consumePolicy.(*types.Tk721Consume)).GetTokenId(),
 				})
 			}
 		}
@@ -378,7 +378,7 @@ func (m *Manager) beginConsumeByTk(task *types.NeedExecuteTask, localTask *types
 			task.GetTaskId(), partyId, taskIdBigInt, user.String(), "["+strings.Join(addrs, ",")+"]")
 		//consumeTk20:=ConsumePolicyArray.(types.Tk20Consume)
 		// start prepay dataToken
-		txHash, err := m.token20PayMng.Prepay(taskIdBigInt, user, tkTtems)
+		txHash, err := m.payAgent.Prepay(taskIdBigInt, user, tkTtems)
 		if nil != err {
 			return fmt.Errorf("cannot call token20Pay to prepay datatoken on beginConsumeByTk(), %s", err)
 		}
@@ -392,7 +392,7 @@ func (m *Manager) beginConsumeByTk(task *types.NeedExecuteTask, localTask *types
 		//ctx, cancelFn := context.WithCancel(context.Background())
 		defer cancelFn()
 
-		receipt := m.token20PayMng.GetReceipt(ctx, txHash, time.Duration(500)*time.Millisecond) // period 500 ms
+		receipt := m.payAgent.GetReceipt(ctx, txHash, time.Duration(500)*time.Millisecond) // period 500 ms
 		if nil == receipt {
 			return fmt.Errorf("prepay dataToken failed, the transaction had not receipt on beginConsumeByTk(), txHash: {%s}", txHash.String())
 		}
@@ -402,7 +402,7 @@ func (m *Manager) beginConsumeByTk(task *types.NeedExecuteTask, localTask *types
 		}
 
 		// query task state
-		state, err := m.token20PayMng.GetTaskState(taskIdBigInt)
+		state, err := m.payAgent.GetTaskState(taskIdBigInt)
 		if nil != err {
 			//including NotFound
 			return fmt.Errorf("query task state of token20Pay failed, %s on beginConsumeByTk()", err)
@@ -483,7 +483,7 @@ func (m *Manager) beginConsumeByTk(task *types.NeedExecuteTask, localTask *types
 
 					return 0, fmt.Errorf("query task state of token20Pay time out on beginConsumeByTk()")
 				case <-ticker.C:
-					state, err := m.token20PayMng.GetTaskState(taskIdBigInt)
+					state, err := m.payAgent.GetTaskState(taskIdBigInt)
 					if nil != err {
 						//including NotFound
 						log.WithError(err).Warnf("Warning cannot query task state of token20Pay on beginConsumeByTk(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}",
@@ -703,7 +703,7 @@ func (m *Manager) beginConsumeByTk(task *types.NeedExecuteTask, localTask *types
 //			task.GetTaskId(), partyId, taskIdBigInt, user.String(), "["+strings.Join(addrs, ",")+"]")
 //
 //		// start prepay dataToken
-//		txHash, err := m.token20PayMng.Prepay(taskIdBigInt, user, dataTokenAaddresses)
+//		txHash, err := m.payAgent.Prepay(taskIdBigInt, user, dataTokenAaddresses)
 //		if nil != err {
 //			return fmt.Errorf("cannot call token20Pay to prepay datatoken on beginConsumeByDataToken(), %s", err)
 //		}
@@ -717,7 +717,7 @@ func (m *Manager) beginConsumeByTk(task *types.NeedExecuteTask, localTask *types
 //		//ctx, cancelFn := context.WithCancel(context.Background())
 //		defer cancelFn()
 //
-//		receipt := m.token20PayMng.GetReceipt(ctx, txHash, time.Duration(500)*time.Millisecond) // period 500 ms
+//		receipt := m.payAgent.GetReceipt(ctx, txHash, time.Duration(500)*time.Millisecond) // period 500 ms
 //		if nil == receipt {
 //			return fmt.Errorf("prepay dataToken failed, the transaction had not receipt on beginConsumeByDataToken(), txHash: {%s}", txHash.String())
 //		}
@@ -727,7 +727,7 @@ func (m *Manager) beginConsumeByTk(task *types.NeedExecuteTask, localTask *types
 //		}
 //
 //		// query task state
-//		state, err := m.token20PayMng.GetTaskState(taskIdBigInt)
+//		state, err := m.payAgent.GetTaskState(taskIdBigInt)
 //		if nil != err {
 //			//including NotFound
 //			return fmt.Errorf("query task state of token20Pay failed, %s on beginConsumeByDataToken()", err)
@@ -837,7 +837,7 @@ func (m *Manager) beginConsumeByTk(task *types.NeedExecuteTask, localTask *types
 //
 //					return 0, fmt.Errorf("query task state of token20Pay time out on beginConsumeByDataToken()")
 //				case <-ticker.C:
-//					state, err := m.token20PayMng.GetTaskState(taskIdBigInt)
+//					state, err := m.payAgent.GetTaskState(taskIdBigInt)
 //					if nil != err {
 //						//including NotFound
 //						log.WithError(err).Warnf("Warning cannot query task state of token20Pay on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}",
@@ -992,7 +992,7 @@ func (m *Manager) endConsumeTk20(task *types.NeedExecuteTask, localTask *types.T
 			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt, consumeSpec.GetGasUsed())
 
 		// start prepay dataToken
-		txHash, err := m.token20PayMng.Settle(taskIdBigInt, consumeSpec.GetGasUsed())
+		txHash, err := m.payAgent.Settle(taskIdBigInt, consumeSpec.GetGasUsed())
 		if nil != err {
 			return fmt.Errorf("cannot call token20Pay to settle datatoken on endConsumeTk20(), %s", err)
 		}
@@ -1006,7 +1006,7 @@ func (m *Manager) endConsumeTk20(task *types.NeedExecuteTask, localTask *types.T
 		//ctx, cancelFn := context.WithCancel(context.Background())
 		defer cancelFn()
 
-		receipt := m.token20PayMng.GetReceipt(ctx, txHash, time.Duration(500)*time.Millisecond) // period 500 ms
+		receipt := m.payAgent.GetReceipt(ctx, txHash, time.Duration(500)*time.Millisecond) // period 500 ms
 		if nil == receipt {
 			return fmt.Errorf("settle dataToken failed, the transaction had not receipt on endConsumeTk20(), txHash: {%s}", txHash.String())
 		}

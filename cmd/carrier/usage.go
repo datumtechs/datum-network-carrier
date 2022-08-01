@@ -127,6 +127,7 @@ var appHelpFlagGroups = []flagGroup{
 		Name: "chain",
 		Flags: []cli.Flag{
 			flags.BlockChain,
+			flags.HRP,
 		},
 	},
 	// add by v0.4.0

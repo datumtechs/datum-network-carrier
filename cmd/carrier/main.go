@@ -115,6 +115,7 @@ var (
 
 	chainFlags = []cli.Flag{
 		flags.BlockChain,
+		flags.HRP,
 	}
 
 	taskFlags = []cli.Flag{

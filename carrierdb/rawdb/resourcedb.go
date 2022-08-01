@@ -1338,7 +1338,7 @@ func StoreMessageCache(db KeyValueStore, value interface{}) error {
 			MetadataSummary: v.GetMetadataSummary(),
 			CreateAt:        v.GetCreateAt(),
 		})
-		if nil!=err{
+		if nil != err {
 			return fmt.Errorf("marshal metadataMsg failed, %s", err)
 		}
 	}
@@ -1381,7 +1381,7 @@ func RemoveMetadataMsg(db KeyValueStore, metadataId string) error {
 	return db.Delete(key)
 }
 
-func RemoveMetadataUpdateMsg(db KeyValueStore,metadataId string) error {
+func RemoveMetadataUpdateMsg(db KeyValueStore, metadataId string) error {
 	key := GetMetadataUpdateMsgKey(metadataId)
 	has, err := db.Has(key)
 	switch {
@@ -1597,7 +1597,7 @@ func FindOrgPriKey(db DatabaseReader) (string, error) {
 			return "", err
 		} else {
 			var priKey string
-			if err := rlp.DecodeBytes(val, priKey); err != nil {
+			if err := rlp.DecodeBytes(val, &priKey); err != nil {
 				return "", err
 			} else {
 				return priKey, nil

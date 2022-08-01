@@ -31,7 +31,7 @@ var (
 		altsrc.NewStringFlag(flags.KMSAccessKeyId),
 		altsrc.NewStringFlag(flags.KMSAccessKeySecret),
 		altsrc.NewStringFlag(flags.BlockChain),
-
+		altsrc.NewStringFlag(flags.HRP),
 		keystoreFlag,
 		inputFlag,
 	}

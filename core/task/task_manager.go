@@ -45,7 +45,7 @@ type Manager struct {
 	eventEngine     *ev.EventEngine
 	resourceMng     *resource.Manager
 	authMng         *auth.AuthorityManager
-	token20PayMng   *tk.DatumPayManager
+	payAgent        *tk.PayAgent
 	parser          *TaskParser
 	validator       *TaskValidator
 	eventCh         chan *carriertypespb.TaskEvent
@@ -72,7 +72,7 @@ func NewTaskManager(
 	eventEngine *ev.EventEngine,
 	resourceMng *resource.Manager,
 	authMng *auth.AuthorityManager,
-	token20PayMng *tk.DatumPayManager,
+	payAgent *tk.PayAgent,
 	needReplayScheduleTaskCh chan *types.NeedReplayScheduleTask,
 	needExecuteTaskCh chan *types.NeedExecuteTask,
 	config *params.TaskManagerConfig,
@@ -92,7 +92,7 @@ func NewTaskManager(
 		eventEngine:              eventEngine,
 		resourceMng:              resourceMng,
 		authMng:                  authMng,
-		token20PayMng:            token20PayMng,
+		payAgent:                 payAgent,
 		parser:                   newTaskParser(resourceMng),
 		validator:                newTaskValidator(resourceMng, authMng),
 		eventCh:                  make(chan *carriertypespb.TaskEvent, 800),

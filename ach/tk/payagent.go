@@ -37,18 +37,16 @@ type Config struct {
 	walletAddress common.Address
 }
 
-type DatumPayManager struct {
-	WalletManager         *WalletManager
+type PayAgent struct {
 	ethContext            *chainclient.EthContext
 	abi                   abi.ABI
 	tkPayContractInstance *contracts.DatumPay
 	txSyncLocker          sync.Mutex
 }
 
-func NewDatumPayManager(walletManager *WalletManager, ethContext *chainclient.EthContext) *DatumPayManager {
-	log.Info("Init DatumPay manager ...")
-	m := new(DatumPayManager)
-	m.WalletManager = walletManager
+func NewPayAgent(ethContext *chainclient.EthContext) *PayAgent {
+	log.Info("Init payAgent agent...")
+	m := new(PayAgent)
 	m.ethContext = ethContext
 
 	instance, err := contracts.NewDatumPay(datumPayAddress, m.ethContext.GetClient())
@@ -83,7 +81,7 @@ func groupingTkList(tkItemList []*carrierapipb.TkItem) ([]common.Address, []*big
 
 // EstimateTaskGas estimates gas fee for a task's sponsor.
 // EstimateTaskGas returns estimated gas and suggested gas price.
-func (m *DatumPayManager) EstimateTaskGas(taskSponsorAddress string, tkItemList []*carrierapipb.TkItem) (uint64, *big.Int, error) {
+func (m *PayAgent) EstimateTaskGas(taskSponsorAddress string, tkItemList []*carrierapipb.TkItem) (uint64, *big.Int, error) {
 	log.Debugf("call EstimateTaskGas, sponsorAddress: %s, tknAddressList:%v", taskSponsorAddress, tkItemList)
 
 	tk20AddressList, tk20AmountList, _ := groupingTkList(tkItemList)
@@ -116,24 +114,24 @@ func (m *DatumPayManager) EstimateTaskGas(taskSponsorAddress string, tkItemList 
 }
 
 // estimateGas call EstimateGas() by RPC
-func (m *DatumPayManager) buildInput(method string, params ...interface{}) []byte {
+func (m *PayAgent) buildInput(method string, params ...interface{}) []byte {
 	input, err := m.abi.Pack(method, params...)
 	if err != nil {
-		log.WithError(err).Error("failed to build input for method: %s ", method)
+		log.WithError(err).Errorf("failed to build input for method: %s", method)
 		return nil
 	}
 	return input
 }
 
-// Prepay transfers more than enough gas from task sponsor to DatumPay, this gas will pay carrier to call Prepay()/Settle(), and remaining gas will refund to task sponsor.
+// Prepay transfers more than enough gas from task sponsor to DatumPay, this gas will payAgent carrier to call Prepay()/Settle(), and remaining gas will refund to task sponsor.
 // Prepay returns hx.Hash, and error.
 // The complete procedure consists of two calls to DatumPay, the first is Prepay, the second is Settle.
-func (m *DatumPayManager) Prepay(taskID *big.Int, taskSponsorAccount common.Address, tkItemList []*carrierapipb.TkItem) (common.Hash, error) {
+func (m *PayAgent) Prepay(taskID *big.Int, taskSponsorAccount common.Address, tkItemList []*carrierapipb.TkItem) (common.Hash, error) {
 	m.txSyncLocker.Lock()
 	defer m.txSyncLocker.Unlock()
 
 	taskIDHex := hexutil.EncodeBig(taskID)
-	if m.ethContext.GetPrivateKey() == nil {
+	if WalletManagerInstance().GetPrivateKey() == nil {
 		log.Errorf("cannot send Prepay transaction cause organization wallet missing")
 		return common.Hash{}, errors.New("organization private key is missing")
 	}
@@ -191,13 +189,13 @@ func (m *DatumPayManager) Prepay(taskID *big.Int, taskSponsorAccount common.Addr
 // Settle returns hx.Hash, and error.
 // gasUsedPrepay - carrier used gas for Prepay()
 
-func (m *DatumPayManager) Settle(taskID *big.Int, gasUsedPrepay uint64) (common.Hash, error) {
+func (m *PayAgent) Settle(taskID *big.Int, gasUsedPrepay uint64) (common.Hash, error) {
 	m.txSyncLocker.Lock()
 	defer m.txSyncLocker.Unlock()
 
 	taskIDHex := hexutil.EncodeBig(taskID)
 
-	if m.ethContext.GetPrivateKey() == nil {
+	if WalletManagerInstance().GetPrivateKey() == nil {
 		log.Errorf("cannot send Settle transaction cause organization wallet missing")
 		return common.Hash{}, errors.New("organization private key is missing")
 	}
@@ -238,7 +236,7 @@ func (m *DatumPayManager) Settle(taskID *big.Int, gasUsedPrepay uint64) (common.
 }
 
 // GetReceipt returns the tx receipt. The caller goroutine will be blocked, and the caller could receive the receipt by channel.
-func (m *DatumPayManager) GetReceipt(ctx context.Context, txHash common.Hash, interval time.Duration) *ethereumtypes.Receipt {
+func (m *PayAgent) GetReceipt(ctx context.Context, txHash common.Hash, interval time.Duration) *ethereumtypes.Receipt {
 	return m.ethContext.WaitReceipt(ctx, txHash, interval)
 }
 
@@ -249,7 +247,7 @@ func (m *DatumPayManager) GetReceipt(ctx context.Context, txHash common.Hash, in
 // constant int8 private PREPAY = 1;
 // constant int8 private SETTLE = 2;
 // constant int8 private END = 3;
-func (m *DatumPayManager) GetTaskState(taskId *big.Int) (int, error) {
+func (m *PayAgent) GetTaskState(taskId *big.Int) (int, error) {
 	log.Debugf("Start call contract taskState(), params{taskID: %s}", hexutil.EncodeBig(taskId))
 	if state, err := m.tkPayContractInstance.TaskState(&bind.CallOpts{}, taskId); err != nil {
 		return -1, err

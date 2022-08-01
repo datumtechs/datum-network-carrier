@@ -86,3 +86,13 @@ var (
 	ErrReportTaskResourceExpense      = &RpcBizErr{Code: 14039, Msg: "Report taskResourceExpense failed"}
 	ErrGenerateObserverProxyWallet    = &RpcBizErr{Code: 14040, Msg: "Generate observer proxy wallet failed"}
 )
+
+// did
+var (
+	ErrCreateDID        = &RpcBizErr{Code: 15001, Msg: "Create DID failed"}
+	ErrCreateVC         = &RpcBizErr{Code: 15002, Msg: "Create VC failed"}
+	ErrSubmitProposal   = &RpcBizErr{Code: 15003, Msg: "Submit proposal failed"}
+	ErrWithdrawProposal = &RpcBizErr{Code: 15004, Msg: "Withdraw proposal failed"}
+	ErrVoteProposal     = &RpcBizErr{Code: 15005, Msg: "Vote proposal failed"}
+	ErrEffectProposal   = &RpcBizErr{Code: 15006, Msg: "Effect proposal failed"}
+)

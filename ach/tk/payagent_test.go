@@ -37,9 +37,9 @@ var (
 	tkAddress = ethcrypto.PubkeyToAddress(tkKey.PublicKey) //0xC00b0635a7660f1e7AA3Cfe789Eb04311c3A6E40
 )
 
-var tk20Manager *DatumPayManager
+var payAgent *PayAgent
 
-func init() {
+func setup() {
 	database := db.NewMemoryDatabase()
 	carrierDB := core.NewDataCenter(context.Background(), database)
 
@@ -48,14 +48,18 @@ func init() {
 
 	//wss://devnetopenapi2.platon.network/ws
 	//chainid:2203181
+	InitWalletManager(carrierDB, nil)
 
-	walletManager := NewWalletManager(carrierDB, nil)
-	ethContext := chainclient.NewEthClientContext("https://devnetopenapi2.platon.network/rpc", walletManager.LoadPrivateKey())
+	WalletManagerInstance().GenerateWallet()
 
-	tk20Manager = NewDatumPayManager(walletManager, ethContext)
+	ethContext := chainclient.NewEthClientContext("https://devnetopenapi2.platon.network/rpc", WalletManagerInstance())
+
+	payAgent = NewPayAgent(ethContext)
 }
 
 func Test_getChainID(t *testing.T) {
+	setup()
+
 	client, err := ethclient.Dial("https://devnetopenapi2.platon.network/rpc")
 	if err != nil {
 		t.Fatal(err)
@@ -68,6 +72,8 @@ func Test_getChainID(t *testing.T) {
 }
 
 func Test_genKey(t *testing.T) {
+	setup()
+
 	key, _ := ethcrypto.GenerateKey()
 	keyHex := hex.EncodeToString(ethcrypto.FromECDSA(key))
 	addr := ethcrypto.PubkeyToAddress(key.PublicKey)
@@ -84,6 +90,8 @@ func Test_genKey(t *testing.T) {
 
 //在SimulatedBackend部署合约
 func TestToken20Pay_DeployToken20Pay(t *testing.T) {
+	setup()
+
 	var genAlloc ethcore.GenesisAlloc
 	var gasLimit uint64 = 8000029
 	var sim *backends.SimulatedBackend
@@ -120,24 +128,27 @@ func TestToken20Pay_DeployToken20Pay(t *testing.T) {
 
 //增加白名单, 需要在https://devnetopenapi2.platon.network/rpc开发链上， walletAddress上有LAT
 func TestToken20Pay_AddWhiteList(t *testing.T) {
-	opts, err := tk20Manager.ethContext.BuildTxOpts(0, 500000)
+	setup()
+
+	opts, err := payAgent.ethContext.BuildTxOpts(0, 500000)
 	if err != nil {
 		t.Fatalf("failed to build transact options: %v", err)
 	}
 
-	tx, err := tk20Manager.tkPayContractInstance.AddWhitelist(opts, walletAddress)
+	tx, err := payAgent.tkPayContractInstance.AddWhitelist(opts, walletAddress)
 	if err != nil {
 		t.Fatalf("failed to AddWhitelist : %v", err)
 	}
 	timeout := time.Duration(10) * time.Second
 	ctx, cancelFn := context.WithTimeout(context.Background(), timeout)
 	defer cancelFn()
-	receipt := tk20Manager.GetReceipt(ctx, tx.Hash(), time.Duration(1000)*time.Millisecond)
+	receipt := payAgent.GetReceipt(ctx, tx.Hash(), time.Duration(1000)*time.Millisecond)
 	t.Logf("AddWhitelist receipt: %v", receipt)
 }
 
 //任务gas预估，需要在https://devnetopenapi2.platon.network/rpc开发链上，walletAddress上有LAT，并兑换有wLAT， tkAddress上有tk
 func TestToken20Pay_EstimateTaskGas(t *testing.T) {
+	setup()
 
 	tkItem := new(carrierapipb.TkItem)
 	tkItem.TkAddress = tkAddress.Hex()
@@ -145,7 +156,7 @@ func TestToken20Pay_EstimateTaskGas(t *testing.T) {
 	tkItem.Value = 1
 
 	dataTokenTransferItemList := []*carrierapipb.TkItem{tkItem}
-	gasLimit, gasPrice, err := tk20Manager.EstimateTaskGas(walletAddress.Hex(), dataTokenTransferItemList)
+	gasLimit, gasPrice, err := payAgent.EstimateTaskGas(walletAddress.Hex(), dataTokenTransferItemList)
 	if err != nil {
 		t.Fatalf("Failed to EstimateTaskGas : %v", err)
 	}
@@ -153,6 +164,8 @@ func TestToken20Pay_EstimateTaskGas(t *testing.T) {
 }
 
 func TestToken20Pay_Prepay(t *testing.T) {
+	setup()
+
 	database := db.NewMemoryDatabase()
 	carrierDB := core.NewDataCenter(context.Background(), database)
 
@@ -161,10 +174,9 @@ func TestToken20Pay_Prepay(t *testing.T) {
 	priKey := hex.EncodeToString(ethcrypto.FromECDSA(key))
 	carrierDB.SaveOrgPriKey(priKey)
 
-	walletManager := NewWalletManager(carrierDB, nil)
-	ethContext := chainclient.NewEthClientContext("https://devnetopenapi2.platon.network/rpc", walletManager.LoadPrivateKey())
+	ethContext := chainclient.NewEthClientContext("https://devnetopenapi2.platon.network/rpc", WalletManagerInstance())
 
-	tk20Manager = NewDatumPayManager(walletManager, ethContext)
+	payAgent = NewPayAgent(ethContext)
 
 	taskIdBytes, _ := hex.DecodeString("9977f8c9962d4eb67815022b7a079ba67382afd1bd3ed5d2df65d995d2ca6c41")
 
@@ -185,7 +197,7 @@ func TestToken20Pay_Prepay(t *testing.T) {
 
 	dataTokenTransferItemList := []*carrierapipb.TkItem{tkItem1, tkItem2}
 
-	txHash, err := tk20Manager.Prepay(taskID, taskSponsor, dataTokenTransferItemList)
+	txHash, err := payAgent.Prepay(taskID, taskSponsor, dataTokenTransferItemList)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -197,7 +209,7 @@ func TestToken20Pay_Prepay(t *testing.T) {
 	ctx, cancelFn := context.WithTimeout(context.Background(), timeout)
 	//ctx, cancelFn := context.WithCancel(context.Background())
 	defer cancelFn()
-	receipt := tk20Manager.GetReceipt(ctx, txHash, time.Duration(500)*time.Millisecond)
+	receipt := payAgent.GetReceipt(ctx, txHash, time.Duration(500)*time.Millisecond)
 	t.Logf("receipt.status: %d", receipt.Status)
 }
 

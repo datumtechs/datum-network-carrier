@@ -198,5 +198,6 @@ pprof-addr: 0.0.0.0
 #  region-id:
 #  access-key-id:
 #  access-key-secret:
-chain:
+blockchain:
   url: https://mainnet.infura.io
+  hrp: lat

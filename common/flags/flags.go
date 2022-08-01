@@ -328,6 +328,13 @@ var (
 		Value: "",
 	}
 
+	// add by v0.5.0
+	HRP = &cli.StringFlag{
+		Name:  "blockchain.hrp",
+		Usage: "blockchain address HRP.",
+		Value: "",
+	}
+
 	// ================================= KMS config Flags ===========================================
 
 	// add by v0.4.0
