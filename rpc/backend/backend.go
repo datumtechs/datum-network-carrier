@@ -100,4 +100,13 @@ type Backend interface {
 	EstimateTaskGas(taskSponsorAddress string, tkItemList []*carrierapipb.TkItem) (gasLimit uint64, gasPrice *big.Int, err error)
 	// v 0.5.0
 	GetQueryDataNodeClientByNodeId(nodeId string) (*grpclient.DataNodeClient, bool)
+
+	CreateDID() (string, error)
+	// CreateVC... if context is empty means default value
+	// CreateVC... if expirationDate is empty means default value
+	CreateVC(did string, context string, pctId uint64, claim string, expirationDate string) (string, error)
+	SubmitProposal(proposalType int, proposalUrl string, candidateAddress string, candidateServiceUrl string) (string, error)
+	WithdrawProposal(proposalId *big.Int) (bool, error)
+	VoteProposal(proposalId *big.Int) (bool, error)
+	EffectProposal(proposalId *big.Int) (bool, error)
 }

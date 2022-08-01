@@ -84,6 +84,12 @@ func (m *WalletManager) GetPrivateKey() *ecdsa.PrivateKey {
 	return m.priKey
 }
 
+func (m *WalletManager) SetPrivateKey(privateKey *ecdsa.PrivateKey) {
+	m.priKey = privateKey
+	m.pubKey = &privateKey.PublicKey
+	m.walletAddress = crypto.PubkeyToAddress(privateKey.PublicKey)
+}
+
 // GetPrivateKey returns the organization private key
 func (m *WalletManager) GetPublicKey() *ecdsa.PublicKey {
 	return m.pubKey
