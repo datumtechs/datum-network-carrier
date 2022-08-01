@@ -17,7 +17,7 @@ func toApiTxInfo(didTxInfo *did.TransactionInfo) *api.TxInfo {
 	if didTxInfo == nil {
 		return nil
 	}
-	return &api.TxInfo{BlockNumber: didTxInfo.BlockNumber, TxIndex: uint32(didTxInfo.TransactionIndex), TxHash: didTxInfo.TxHash.String()}
+	return &api.TxInfo{BlockNumber: didTxInfo.BlockNumber, TxIndex: uint32(didTxInfo.TransactionIndex), TxHash: didTxInfo.TxHash}
 }
 
 func (s *CarrierAPIBackend) CreateDID() (string, *api.TxInfo, error) {
