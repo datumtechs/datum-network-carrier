@@ -23,7 +23,7 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 type SimpleResponse struct {
-	// the code for response
+	// the code for response; 0: SUCCESS
 	Status int32 `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
 	// the message for response
 	Msg                  string   `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
