@@ -35,7 +35,11 @@ import (
 	"time"
 )
 
-const localTest = false
+const (
+	localTest           = false
+	plaintextAlgorithm  = "plaintext"
+	ciphertextAlgorithm = "ciphertext"
+)
 
 func (m *Manager) tryScheduleTask() error {
 
@@ -262,10 +266,10 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 							continue
 						}
 						metaAlgorithmId := strings.TrimSpace(localTask.GetTaskData().GetMetaAlgorithmId())
-						if metaAlgorithmId == "ciphertext" && balance < cryptoAlgoConsumeUnit {
+						if metaAlgorithmId == ciphertextAlgorithm && balance < cryptoAlgoConsumeUnit {
 							return errors.New(fmt.Sprintf("MetaAlgorithmId is ciphertext balance %d less than cryptoAlgoConsumeUnit %d,contract address %s", balance, cryptoAlgoConsumeUnit, contractAddress)), nil
 						}
-						if metaAlgorithmId == "plaintext" && balance < plainAlgoConsumeUnit {
+						if metaAlgorithmId == plaintextAlgorithm && balance < plainAlgoConsumeUnit {
 							return errors.New(fmt.Sprintf("MetaAlgorithmId is plaintext balance %d less than plainAlgoConsumeUnit %d,contract address %s", balance, plainAlgoConsumeUnit, contractAddress)), nil
 						}
 					}

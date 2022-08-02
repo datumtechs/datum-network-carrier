@@ -220,6 +220,9 @@ func (tk *Tk721Consume) GetTokenId() uint64 {
 func (tk *Tk20Consume) Address() string {
 	return tk.Contract
 }
+func (tk *Tk20Consume) GetBalance() uint64 {
+	return tk.Balance
+}
 func (tk MetadataAuthConsume) Address() string {
 	return string(tk)
 }
