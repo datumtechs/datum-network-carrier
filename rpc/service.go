@@ -6,11 +6,12 @@ import (
 	"github.com/datumtechs/datum-network-carrier/common"
 	statefeed "github.com/datumtechs/datum-network-carrier/common/feed/state"
 	"github.com/datumtechs/datum-network-carrier/common/traceutil"
+	"github.com/datumtechs/datum-network-carrier/p2p"
 	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	carrierrpcdebugpbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
-	"github.com/datumtechs/datum-network-carrier/p2p"
 	"github.com/datumtechs/datum-network-carrier/rpc/backend"
 	"github.com/datumtechs/datum-network-carrier/rpc/backend/auth"
+	"github.com/datumtechs/datum-network-carrier/rpc/backend/did"
 	"github.com/datumtechs/datum-network-carrier/rpc/backend/metadata"
 	"github.com/datumtechs/datum-network-carrier/rpc/backend/power"
 	"github.com/datumtechs/datum-network-carrier/rpc/backend/task"
@@ -124,11 +125,12 @@ func (s *Service) Start() error {
 	s.grpcServer = grpc.NewServer(opts...)
 
 	// init server instance and register server.
-	carrierapipb.RegisterYarnServiceServer(s.grpcServer, &yarn.Server{ B: s.cfg.BackendAPI, RpcSvrIp: s.cfg.Host, RpcSvrPort: s.cfg.Port})
-	carrierapipb.RegisterMetadataServiceServer(s.grpcServer, &metadata.Server{ B: s.cfg.BackendAPI })
-	carrierapipb.RegisterPowerServiceServer(s.grpcServer, &power.Server{ B: s.cfg.BackendAPI })
-	carrierapipb.RegisterAuthServiceServer(s.grpcServer, &auth.Server{ B: s.cfg.BackendAPI })
-	carrierapipb.RegisterTaskServiceServer(s.grpcServer, &task.Server{ B: s.cfg.BackendAPI })
+	carrierapipb.RegisterYarnServiceServer(s.grpcServer, &yarn.Server{B: s.cfg.BackendAPI, RpcSvrIp: s.cfg.Host, RpcSvrPort: s.cfg.Port})
+	carrierapipb.RegisterMetadataServiceServer(s.grpcServer, &metadata.Server{B: s.cfg.BackendAPI})
+	carrierapipb.RegisterPowerServiceServer(s.grpcServer, &power.Server{B: s.cfg.BackendAPI})
+	carrierapipb.RegisterAuthServiceServer(s.grpcServer, &auth.Server{B: s.cfg.BackendAPI})
+	carrierapipb.RegisterTaskServiceServer(s.grpcServer, &task.Server{B: s.cfg.BackendAPI})
+	carrierapipb.RegisterDIDServiceServer(s.grpcServer, &did.Server{B: s.cfg.BackendAPI})
 	service_discover_health.RegisterHealthServer(s.grpcServer, &health_check.HealthCheck{})
 
 	if s.cfg.EnableDebugRPCEndpoints {
@@ -136,7 +138,7 @@ func (s *Service) Start() error {
 		debugServer := &debug.Server{
 			PeerManager:  s.cfg.PeerManager,
 			PeersFetcher: s.cfg.PeersFetcher,
-			DebugAPI: s.cfg.DebugAPI,
+			DebugAPI:     s.cfg.DebugAPI,
 		}
 		carrierrpcdebugpbv1.RegisterDebugServer(s.grpcServer, debugServer)
 

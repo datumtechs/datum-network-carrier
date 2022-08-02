@@ -101,12 +101,12 @@ type Backend interface {
 	// v 0.5.0
 	GetQueryDataNodeClientByNodeId(nodeId string) (*grpclient.DataNodeClient, bool)
 
-	CreateDID() (string, error)
+	CreateDID() (string, *carrierapipb.TxInfo, error)
 	// CreateVC... if context is empty means default value
 	// CreateVC... if expirationDate is empty means default value
-	CreateVC(did string, context string, pctId uint64, claim string, expirationDate string) (string, error)
-	SubmitProposal(proposalType int, proposalUrl string, candidateAddress string, candidateServiceUrl string) (string, error)
-	WithdrawProposal(proposalId *big.Int) (bool, error)
-	VoteProposal(proposalId *big.Int) (bool, error)
-	EffectProposal(proposalId *big.Int) (bool, error)
+	CreateVC(did string, context string, pctId uint64, claim string, expirationDate string) (string, *carrierapipb.TxInfo, error)
+	SubmitProposal(proposalType int, proposalUrl string, candidateAddress string, candidateServiceUrl string) (string, *carrierapipb.TxInfo, error)
+	WithdrawProposal(proposalId *big.Int) (bool, *carrierapipb.TxInfo, error)
+	VoteProposal(proposalId *big.Int) (bool, *carrierapipb.TxInfo, error)
+	EffectProposal(proposalId *big.Int) (bool, *carrierapipb.TxInfo, error)
 }

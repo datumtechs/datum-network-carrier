@@ -9,21 +9,22 @@ import (
 )
 
 func (svr *Server) CreateDID(ctx context.Context, req *emptypb.Empty) (*carrierapipb.CreateDIDResponse, error) {
-	didString, err := svr.B.CreateDID()
+	didString, txInfo, err := svr.B.CreateDID()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:CreateDID failed")
 		return &carrierapipb.CreateDIDResponse{Status: backend.ErrCreateDID.ErrCode(), Msg: backend.ErrCreateDID.Error(), Did: ""}, nil
 	}
-	log.Debugf("RPC-API:CreateDID Succeed: didString {%S}", didString)
+	log.Debugf("RPC-API:CreateDID Succeed: didString {%s}", didString)
 	return &carrierapipb.CreateDIDResponse{
 		Status: 0,
 		Msg:    backend.OK,
 		Did:    didString,
+		TxInfo: txInfo,
 	}, nil
 }
 
 func (svr *Server) CreateVC(ctx context.Context, req *carrierapipb.CreateVCRequest) (*carrierapipb.CreateVCResponse, error) {
-	vcJsonString, err := svr.B.CreateVC(req.Did, req.Context, req.PctId, req.Claim, req.ExpirationDate)
+	vcJsonString, txInfo, err := svr.B.CreateVC(req.Did, req.Context, req.PctId, req.Claim, req.ExpirationDate)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:CreateVC failed")
 		return &carrierapipb.CreateVCResponse{Status: backend.ErrCreateVC.ErrCode(), Msg: backend.ErrCreateVC.Error(), Vc: ""}, nil
@@ -33,11 +34,12 @@ func (svr *Server) CreateVC(ctx context.Context, req *carrierapipb.CreateVCReque
 		Status: 0,
 		Msg:    backend.OK,
 		Vc:     vcJsonString,
+		TxInfo: txInfo,
 	}, nil
 }
 
 func (svr *Server) SubmitProposal(ctx context.Context, req *carrierapipb.SubmitProposalRequest) (*carrierapipb.SubmitProposalResponse, error) {
-	proposalId, err := svr.B.SubmitProposal(int(req.ProposalType), req.ProposalUrl, req.CandidateAddress, req.CandidateServiceUrl)
+	proposalId, txInfo, err := svr.B.SubmitProposal(int(req.ProposalType), req.ProposalUrl, req.CandidateAddress, req.CandidateServiceUrl)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:SubmitProposal failed")
 		return &carrierapipb.SubmitProposalResponse{Status: backend.ErrSubmitProposal.ErrCode(), Msg: backend.ErrSubmitProposal.Error(), ProposalId: ""}, nil
@@ -47,6 +49,7 @@ func (svr *Server) SubmitProposal(ctx context.Context, req *carrierapipb.SubmitP
 		Status:     0,
 		Msg:        backend.OK,
 		ProposalId: proposalId,
+		TxInfo:     txInfo,
 	}, nil
 }
 
@@ -55,7 +58,7 @@ func (svr *Server) WithdrawProposal(ctx context.Context, req *carrierapipb.Withd
 	if !ok {
 		log.Error("RPC-API:WithdrawProposal failed, proposalId is not a valid number")
 	}
-	result, err := svr.B.WithdrawProposal(id)
+	result, txInfo, err := svr.B.WithdrawProposal(id)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:SubmitProposal failed")
 		return &carrierapipb.WithdrawProposalResponse{Status: backend.ErrWithdrawProposal.ErrCode(), Msg: backend.ErrWithdrawProposal.Error(), Result: result}, nil
@@ -65,6 +68,7 @@ func (svr *Server) WithdrawProposal(ctx context.Context, req *carrierapipb.Withd
 		Status: 0,
 		Msg:    backend.OK,
 		Result: result,
+		TxInfo: txInfo,
 	}, nil
 }
 
@@ -73,7 +77,7 @@ func (svr *Server) VoteProposal(ctx context.Context, req *carrierapipb.VotePropo
 	if !ok {
 		log.Error("RPC-API:VoteProposal failed, proposalId is not a valid number")
 	}
-	result, err := svr.B.VoteProposal(id)
+	result, txInfo, err := svr.B.VoteProposal(id)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:VoteProposal failed")
 		return &carrierapipb.VoteProposalResponse{Status: backend.ErrVoteProposal.ErrCode(), Msg: backend.ErrVoteProposal.Error(), Result: result}, nil
@@ -83,6 +87,7 @@ func (svr *Server) VoteProposal(ctx context.Context, req *carrierapipb.VotePropo
 		Status: 0,
 		Msg:    backend.OK,
 		Result: result,
+		TxInfo: txInfo,
 	}, nil
 }
 
@@ -91,7 +96,7 @@ func (svr *Server) EffectProposal(ctx context.Context, req *carrierapipb.EffectP
 	if !ok {
 		log.Error("RPC-API:EffectProposal failed, proposalId is not a valid number")
 	}
-	result, err := svr.B.EffectProposal(id)
+	result, txInfo, err := svr.B.EffectProposal(id)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:EffectProposal failed")
 		return &carrierapipb.EffectProposalResponse{Status: backend.ErrEffectProposal.ErrCode(), Msg: backend.ErrEffectProposal.Error(), Result: result}, nil
@@ -101,5 +106,6 @@ func (svr *Server) EffectProposal(ctx context.Context, req *carrierapipb.EffectP
 		Status: 0,
 		Msg:    backend.OK,
 		Result: result,
+		TxInfo: txInfo,
 	}, nil
 }
