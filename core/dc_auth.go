@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/carrierdb/rawdb"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	"github.com/datumtechs/datum-network-carrier/core/evengine"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	datacenterapipb "github.com/datumtechs/datum-network-carrier/pb/datacenter/api"
 	"github.com/datumtechs/datum-network-carrier/rpc/backend"
@@ -178,6 +179,9 @@ func (dc *DataCenter) UpdateIdentityCredential(identityId, credential string) er
 	if err != nil {
 		log.WithError(err).Errorf("response status %d,msg %s", response.Status, response.Msg)
 		return err
+	}
+	if string(response.GetStatus()) == evengine.CannotSetRepeatedlyCredential.GetType() {
+		return fmt.Errorf("call dataCenter UpdateIdentityCredential %s", evengine.CannotSetRepeatedlyCredential.GetMsg())
 	}
 	return nil
 }
