@@ -8,7 +8,7 @@ require (
 	github.com/bglmmz/chainclient v0.0.0-20220731143903-9b327389888a
 	github.com/btcsuite/btcutil v1.0.2
 	github.com/d4l3k/messagediff v1.2.1
-	github.com/datumtechs/did-sdk-go v0.0.0-20220801094025-a1a7f93ef7ff
+	github.com/datumtechs/did-sdk-go v0.0.0-20220802025741-6c92ea7987d7
 	github.com/ethereum/go-ethereum v1.10.20
 	github.com/ferranbt/fastssz v0.0.0-20210526181520-7df50c8568f8
 	github.com/fjl/memsize v0.0.0-20190710130421-bcb5799ab5e5
