@@ -45,6 +45,12 @@ func Hash(data []byte) [32]byte {
 	return b
 }
 
+func HashSHA256(data []byte) []byte {
+	h := sha256.New()
+	h.Write(data)
+	return h.Sum(nil)
+}
+
 // CustomSHA256Hasher returns a hash function that uses
 // an enclosed hasher. This is not safe for concurrent
 // use as the same hasher is being called throughout.

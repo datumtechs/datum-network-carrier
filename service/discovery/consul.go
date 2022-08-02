@@ -2,6 +2,7 @@ package discovery
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/hashicorp/consul/api"
 	"github.com/sirupsen/logrus"
@@ -20,11 +21,13 @@ const (
 	JobNodeConsulServiceIdPrefix  = "jobService"
 	DataNodeConsulServiceIdPrefix = "dataService"
 
+	AdminConsulServiceIdPrefix = "adminService"
+
 	// config prefix
 	//ViaNodeConsulServiceExternalAddressKey = "datumnetwork/via_ip_port"  			// key: datumnetwork/via_ip_port; 			value: ${ip}_${port}
-	DataCenterConsulServiceAddressKey      = "datumnetwork/dataCenter_ip_port"		// key: datumnetwork/dataCenter_ip_port	value: ${ip}_${port}
+	DataCenterConsulServiceAddressKey = "datumnetwork/dataCenter_ip_port" // key: datumnetwork/dataCenter_ip_port	value: ${ip}_${port}
 
-	TaskGateWayConsulServiceAddressKey = "datumnetwork/glacier2_ip_port"			// key: datumnetwork/glacier2_ip_port		value: ${ip}_${port}
+	TaskGateWayConsulServiceAddressKey = "datumnetwork/glacier2_ip_port" // key: datumnetwork/glacier2_ip_port		value: ${ip}_${port}
 	// tag
 	JobNodeConsulServiceTag  = "job"
 	DataNodeConsulServiceTag = "data"
@@ -32,6 +35,9 @@ const (
 	// expression
 	ConsulServiceTagFuzzQueryExpression = "%s in Tags"
 	ConsulServiceIdEquelQueryExpression = `ID=="%s"`
+
+	AdminConsulServiceFilter = "admin in Tags"
+	AdminConsulServiceId     = "adminService"
 )
 
 var log = logrus.WithField("prefix", "discovery-consul")
@@ -189,4 +195,17 @@ func (ca *ConnectConsul) QueryDataNodeServices() (map[string]*api.AgentService, 
 
 func (ca *ConnectConsul) QueryJobNodeServices() (map[string]*api.AgentService, error) {
 	return ca.QueryServiceInfoByFilter(fmt.Sprintf(ConsulServiceTagFuzzQueryExpression, JobNodeConsulServiceTag))
+}
+
+func (ca *ConnectConsul) QueryAdminService() (*api.AgentService, error) {
+	services, err := ca.QueryServiceInfoByFilter(AdminConsulServiceFilter)
+	if err != nil {
+		return nil, err
+	}
+	for _, service := range services {
+		if service.ID == AdminConsulServiceId {
+			return service, nil
+		}
+	}
+	return nil, errors.New("adminService does not register in consul")
 }
