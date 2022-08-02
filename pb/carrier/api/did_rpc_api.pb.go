@@ -99,195 +99,35 @@ func (m *CreateDIDResponse) GetTxInfo() *TxInfo {
 	return nil
 }
 
-type CreateVCRequest struct {
-	Did                  string   `protobuf:"bytes,1,opt,name=did,proto3" json:"did,omitempty"`
-	Context              string   `protobuf:"bytes,2,opt,name=context,proto3" json:"context,omitempty"`
-	PctId                uint64   `protobuf:"varint,3,opt,name=pct_id,json=pctId,proto3" json:"pct_id,omitempty"`
-	Claim                string   `protobuf:"bytes,4,opt,name=claim,proto3" json:"claim,omitempty"`
-	ExpirationDate       string   `protobuf:"bytes,5,opt,name=expirationDate,proto3" json:"expirationDate,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *CreateVCRequest) Reset()         { *m = CreateVCRequest{} }
-func (m *CreateVCRequest) String() string { return proto.CompactTextString(m) }
-func (*CreateVCRequest) ProtoMessage()    {}
-func (*CreateVCRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1996f817b25d14b3, []int{1}
-}
-func (m *CreateVCRequest) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *CreateVCRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_CreateVCRequest.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *CreateVCRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CreateVCRequest.Merge(m, src)
-}
-func (m *CreateVCRequest) XXX_Size() int {
-	return m.Size()
-}
-func (m *CreateVCRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_CreateVCRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_CreateVCRequest proto.InternalMessageInfo
-
-func (m *CreateVCRequest) GetDid() string {
-	if m != nil {
-		return m.Did
-	}
-	return ""
-}
-
-func (m *CreateVCRequest) GetContext() string {
-	if m != nil {
-		return m.Context
-	}
-	return ""
-}
-
-func (m *CreateVCRequest) GetPctId() uint64 {
-	if m != nil {
-		return m.PctId
-	}
-	return 0
-}
-
-func (m *CreateVCRequest) GetClaim() string {
-	if m != nil {
-		return m.Claim
-	}
-	return ""
-}
-
-func (m *CreateVCRequest) GetExpirationDate() string {
-	if m != nil {
-		return m.ExpirationDate
-	}
-	return ""
-}
-
-type CreateVCResponse struct {
-	Status               int32    `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
-	Msg                  string   `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
-	Vc                   string   `protobuf:"bytes,3,opt,name=vc,proto3" json:"vc,omitempty"`
-	TxInfo               *TxInfo  `protobuf:"bytes,4,opt,name=tx_info,json=txInfo,proto3" json:"tx_info,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *CreateVCResponse) Reset()         { *m = CreateVCResponse{} }
-func (m *CreateVCResponse) String() string { return proto.CompactTextString(m) }
-func (*CreateVCResponse) ProtoMessage()    {}
-func (*CreateVCResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1996f817b25d14b3, []int{2}
-}
-func (m *CreateVCResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *CreateVCResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_CreateVCResponse.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *CreateVCResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CreateVCResponse.Merge(m, src)
-}
-func (m *CreateVCResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *CreateVCResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_CreateVCResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_CreateVCResponse proto.InternalMessageInfo
-
-func (m *CreateVCResponse) GetStatus() int32 {
-	if m != nil {
-		return m.Status
-	}
-	return 0
-}
-
-func (m *CreateVCResponse) GetMsg() string {
-	if m != nil {
-		return m.Msg
-	}
-	return ""
-}
-
-func (m *CreateVCResponse) GetVc() string {
-	if m != nil {
-		return m.Vc
-	}
-	return ""
-}
-
-func (m *CreateVCResponse) GetTxInfo() *TxInfo {
-	if m != nil {
-		return m.TxInfo
-	}
-	return nil
-}
-
 func init() {
 	proto.RegisterType((*CreateDIDResponse)(nil), "carrier.api.CreateDIDResponse")
-	proto.RegisterType((*CreateVCRequest)(nil), "carrier.api.CreateVCRequest")
-	proto.RegisterType((*CreateVCResponse)(nil), "carrier.api.CreateVCResponse")
 }
 
 func init() { proto.RegisterFile("carrier/api/did_rpc_api.proto", fileDescriptor_1996f817b25d14b3) }
 
 var fileDescriptor_1996f817b25d14b3 = []byte{
-	// 461 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x52, 0xc1, 0x6e, 0xd3, 0x40,
-	0x10, 0xd5, 0xa6, 0x4d, 0x4a, 0xb6, 0x52, 0x29, 0x0b, 0x54, 0x6e, 0x68, 0xac, 0xc8, 0x20, 0x14,
-	0x55, 0xd4, 0x16, 0xe5, 0x96, 0x23, 0x31, 0x12, 0xb9, 0x1a, 0xd4, 0x03, 0x97, 0x68, 0xb3, 0x9e,
-	0xa4, 0x2b, 0x62, 0xef, 0xb2, 0x1e, 0x87, 0x80, 0xc4, 0x85, 0x4f, 0x80, 0x9f, 0xe2, 0x88, 0xc4,
-	0x0f, 0xa0, 0x08, 0xfe, 0x03, 0x65, 0xbd, 0x6e, 0x03, 0xb4, 0x87, 0x9e, 0xec, 0x99, 0x37, 0x7a,
-	0x6f, 0xf6, 0xbd, 0xa1, 0x5d, 0xc1, 0x8d, 0x91, 0x60, 0x22, 0xae, 0x65, 0x94, 0xca, 0x74, 0x6c,
-	0xb4, 0x18, 0x73, 0x2d, 0x43, 0x6d, 0x14, 0x2a, 0xb6, 0xeb, 0xe0, 0x90, 0x6b, 0xd9, 0x39, 0x9a,
-	0x29, 0x35, 0x9b, 0x83, 0x1d, 0xe5, 0x79, 0xae, 0x90, 0xa3, 0x54, 0x79, 0x51, 0x8d, 0x76, 0x1e,
-	0x38, 0xd4, 0x56, 0x93, 0x72, 0x1a, 0x41, 0xa6, 0xf1, 0x83, 0x03, 0x0f, 0x37, 0x65, 0x70, 0x39,
-	0x96, 0xf9, 0x54, 0x55, 0x50, 0xf0, 0x89, 0xde, 0x19, 0x1a, 0xe0, 0x08, 0xf1, 0x28, 0x4e, 0xa0,
-	0xd0, 0x2a, 0x2f, 0x80, 0x1d, 0xd0, 0x56, 0x81, 0x1c, 0xcb, 0xc2, 0x23, 0x3d, 0xd2, 0x6f, 0x26,
-	0xae, 0x62, 0xfb, 0x74, 0x2b, 0x2b, 0x66, 0x5e, 0xa3, 0x47, 0xfa, 0xed, 0x64, 0xfd, 0xbb, 0xee,
-	0xa4, 0x32, 0xf5, 0xb6, 0xaa, 0x4e, 0x2a, 0x53, 0xf6, 0x84, 0xee, 0x38, 0x05, 0x6f, 0xbb, 0x47,
-	0xfa, 0xbb, 0xa7, 0x77, 0xc3, 0x8d, 0x57, 0x84, 0xaf, 0x97, 0xa3, 0x7c, 0xaa, 0x92, 0x16, 0xda,
-	0x6f, 0xf0, 0x85, 0xd0, 0xdb, 0x95, 0xfe, 0xd9, 0x30, 0x81, 0x77, 0x25, 0x14, 0x58, 0x73, 0x92,
-	0x4b, 0x4e, 0x8f, 0xee, 0x08, 0x95, 0x23, 0x2c, 0xd1, 0x69, 0xd7, 0x25, 0xbb, 0x4f, 0x5b, 0x5a,
-	0xe0, 0xd8, 0xad, 0xb0, 0x9d, 0x34, 0xb5, 0xc0, 0x51, 0xca, 0xee, 0xd1, 0xa6, 0x98, 0x73, 0x99,
-	0xd9, 0x15, 0xda, 0x49, 0x55, 0xb0, 0xc7, 0x74, 0x0f, 0x96, 0x5a, 0x1a, 0x6b, 0x5c, 0xcc, 0x11,
-	0xbc, 0xa6, 0x85, 0xff, 0xe9, 0x06, 0x1f, 0xe9, 0xfe, 0xe5, 0x4e, 0x37, 0xb6, 0x64, 0x8f, 0x36,
-	0x16, 0xc2, 0x39, 0xd2, 0x58, 0x88, 0x9b, 0x19, 0x72, 0xfa, 0x9b, 0x50, 0x1a, 0x8f, 0xe2, 0x57,
-	0x60, 0x16, 0x52, 0x00, 0x93, 0xb4, 0x7d, 0x11, 0x0f, 0x3b, 0x08, 0xab, 0x90, 0xc3, 0x3a, 0xe4,
-	0xf0, 0xc5, 0x3a, 0xe4, 0x8e, 0xff, 0x17, 0xe1, 0x7f, 0x71, 0x06, 0x8f, 0x3e, 0xff, 0xf8, 0xf5,
-	0xb5, 0xe1, 0x07, 0x87, 0x51, 0x7d, 0x07, 0x8b, 0xa7, 0xeb, 0x6b, 0x8b, 0x44, 0x3d, 0x3a, 0x20,
-	0xc7, 0x6c, 0x4e, 0x6f, 0xd5, 0xaf, 0x66, 0x47, 0x57, 0x30, 0x5e, 0x04, 0xd4, 0xe9, 0x5e, 0x83,
-	0x3a, 0xb9, 0x87, 0x56, 0xae, 0x1b, 0x78, 0x57, 0xcb, 0x9d, 0x0d, 0x07, 0xe4, 0xf8, 0xf9, 0xcb,
-	0x6f, 0x2b, 0x9f, 0x7c, 0x5f, 0xf9, 0xe4, 0xe7, 0xca, 0x27, 0x6f, 0x06, 0x33, 0x89, 0xe7, 0xe5,
-	0x24, 0x14, 0x2a, 0x8b, 0x52, 0x8e, 0x65, 0x86, 0x20, 0xce, 0x8b, 0xea, 0xf7, 0x24, 0x07, 0x7c,
-	0xaf, 0xcc, 0xdb, 0x93, 0x9a, 0x4d, 0x4f, 0xa2, 0x8d, 0x7b, 0x9e, 0xb4, 0xac, 0x1b, 0xcf, 0xfe,
-	0x04, 0x00, 0x00, 0xff, 0xff, 0x44, 0xeb, 0x44, 0x45, 0x4c, 0x03, 0x00, 0x00,
+	// 329 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x64, 0x90, 0xcf, 0x4a, 0x03, 0x31,
+	0x10, 0xc6, 0x49, 0xab, 0x95, 0xa6, 0x17, 0x5d, 0xa1, 0x6c, 0xab, 0x2e, 0xa5, 0x78, 0x28, 0x62,
+	0x13, 0xac, 0xb7, 0x1e, 0x75, 0x05, 0x7b, 0x5d, 0x3d, 0x79, 0x29, 0xd9, 0x4d, 0xba, 0x0d, 0xba,
+	0x49, 0x48, 0xb2, 0x6d, 0x3d, 0x78, 0xf1, 0x15, 0x7c, 0x29, 0x8f, 0x82, 0x2f, 0x20, 0xc5, 0x07,
+	0x91, 0xfd, 0x27, 0x2b, 0x9e, 0x92, 0x99, 0xef, 0x63, 0xe6, 0xfb, 0x0d, 0x3c, 0x89, 0x88, 0xd6,
+	0x9c, 0x69, 0x4c, 0x14, 0xc7, 0x94, 0xd3, 0xb9, 0x56, 0xd1, 0x9c, 0x28, 0x8e, 0x94, 0x96, 0x56,
+	0x3a, 0x9d, 0x52, 0x46, 0x44, 0xf1, 0xfe, 0x71, 0x2c, 0x65, 0xfc, 0xc4, 0x72, 0x2b, 0x11, 0x42,
+	0x5a, 0x62, 0xb9, 0x14, 0xa6, 0xb0, 0xf6, 0x8f, 0x4a, 0x35, 0xaf, 0xc2, 0x74, 0x81, 0x59, 0xa2,
+	0xec, 0x73, 0x29, 0xf6, 0xea, 0x6b, 0xec, 0x66, 0xce, 0xc5, 0x42, 0x16, 0xd2, 0xf0, 0x05, 0x1e,
+	0x5c, 0x6b, 0x46, 0x2c, 0xf3, 0x67, 0x7e, 0xc0, 0x8c, 0x92, 0xc2, 0x30, 0xa7, 0x0b, 0x5b, 0xc6,
+	0x12, 0x9b, 0x1a, 0x17, 0x0c, 0xc0, 0x68, 0x37, 0x28, 0x2b, 0x67, 0x1f, 0x36, 0x13, 0x13, 0xbb,
+	0x8d, 0x01, 0x18, 0xb5, 0x83, 0xec, 0x9b, 0x75, 0x28, 0xa7, 0x6e, 0xb3, 0xe8, 0x50, 0x4e, 0x9d,
+	0x73, 0xb8, 0x57, 0x6e, 0x70, 0x77, 0x06, 0x60, 0xd4, 0x99, 0x1c, 0xa2, 0x1a, 0x05, 0xba, 0xdf,
+	0xcc, 0xc4, 0x42, 0x06, 0x2d, 0x9b, 0xbf, 0x93, 0x35, 0x84, 0xfe, 0xcc, 0xbf, 0x63, 0x7a, 0xc5,
+	0x23, 0xe6, 0x70, 0xd8, 0xfe, 0x0d, 0xe3, 0x74, 0x51, 0x81, 0x84, 0x2a, 0x24, 0x74, 0x93, 0x21,
+	0xf5, 0xbd, 0x3f, 0xf3, 0xfe, 0x85, 0x1f, 0x9e, 0xbe, 0x7e, 0x7e, 0xbf, 0x35, 0xbc, 0x61, 0x0f,
+	0x57, 0xd4, 0xab, 0x8b, 0xec, 0xb6, 0x38, 0xaa, 0xac, 0x53, 0x70, 0x76, 0x75, 0xfb, 0xbe, 0xf5,
+	0xc0, 0xc7, 0xd6, 0x03, 0x5f, 0x5b, 0x0f, 0x3c, 0x4c, 0x63, 0x6e, 0x97, 0x69, 0x88, 0x22, 0x99,
+	0x60, 0x4a, 0x6c, 0x9a, 0x58, 0x16, 0x2d, 0x4d, 0xf1, 0x1d, 0x0b, 0x66, 0xd7, 0x52, 0x3f, 0x8e,
+	0xab, 0x71, 0x2a, 0xc4, 0xb5, 0x7b, 0x86, 0xad, 0x3c, 0xdf, 0xe5, 0x4f, 0x00, 0x00, 0x00, 0xff,
+	0xff, 0x3e, 0xf2, 0x3d, 0x3d, 0xcc, 0x01, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -303,7 +143,6 @@ const _ = grpc.SupportPackageIsVersion4
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type DIDServiceClient interface {
 	CreateDID(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*CreateDIDResponse, error)
-	CreateVC(ctx context.Context, in *CreateVCRequest, opts ...grpc.CallOption) (*CreateVCResponse, error)
 }
 
 type dIDServiceClient struct {
@@ -323,19 +162,9 @@ func (c *dIDServiceClient) CreateDID(ctx context.Context, in *emptypb.Empty, opt
 	return out, nil
 }
 
-func (c *dIDServiceClient) CreateVC(ctx context.Context, in *CreateVCRequest, opts ...grpc.CallOption) (*CreateVCResponse, error) {
-	out := new(CreateVCResponse)
-	err := c.cc.Invoke(ctx, "/carrier.api.DIDService/CreateVC", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // DIDServiceServer is the server API for DIDService service.
 type DIDServiceServer interface {
 	CreateDID(context.Context, *emptypb.Empty) (*CreateDIDResponse, error)
-	CreateVC(context.Context, *CreateVCRequest) (*CreateVCResponse, error)
 }
 
 // UnimplementedDIDServiceServer can be embedded to have forward compatible implementations.
@@ -344,9 +173,6 @@ type UnimplementedDIDServiceServer struct {
 
 func (*UnimplementedDIDServiceServer) CreateDID(ctx context.Context, req *emptypb.Empty) (*CreateDIDResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateDID not implemented")
-}
-func (*UnimplementedDIDServiceServer) CreateVC(ctx context.Context, req *CreateVCRequest) (*CreateVCResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateVC not implemented")
 }
 
 func RegisterDIDServiceServer(s *grpc.Server, srv DIDServiceServer) {
@@ -371,24 +197,6 @@ func _DIDService_CreateDID_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
-func _DIDService_CreateVC_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateVCRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DIDServiceServer).CreateVC(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/carrier.api.DIDService/CreateVC",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DIDServiceServer).CreateVC(ctx, req.(*CreateVCRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 var _DIDService_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "carrier.api.DIDService",
 	HandlerType: (*DIDServiceServer)(nil),
@@ -396,10 +204,6 @@ var _DIDService_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateDID",
 			Handler:    _DIDService_CreateDID_Handler,
-		},
-		{
-			MethodName: "CreateVC",
-			Handler:    _DIDService_CreateVC_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -464,124 +268,6 @@ func (m *CreateDIDResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *CreateVCRequest) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *CreateVCRequest) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *CreateVCRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.XXX_unrecognized != nil {
-		i -= len(m.XXX_unrecognized)
-		copy(dAtA[i:], m.XXX_unrecognized)
-	}
-	if len(m.ExpirationDate) > 0 {
-		i -= len(m.ExpirationDate)
-		copy(dAtA[i:], m.ExpirationDate)
-		i = encodeVarintDidRpcApi(dAtA, i, uint64(len(m.ExpirationDate)))
-		i--
-		dAtA[i] = 0x2a
-	}
-	if len(m.Claim) > 0 {
-		i -= len(m.Claim)
-		copy(dAtA[i:], m.Claim)
-		i = encodeVarintDidRpcApi(dAtA, i, uint64(len(m.Claim)))
-		i--
-		dAtA[i] = 0x22
-	}
-	if m.PctId != 0 {
-		i = encodeVarintDidRpcApi(dAtA, i, uint64(m.PctId))
-		i--
-		dAtA[i] = 0x18
-	}
-	if len(m.Context) > 0 {
-		i -= len(m.Context)
-		copy(dAtA[i:], m.Context)
-		i = encodeVarintDidRpcApi(dAtA, i, uint64(len(m.Context)))
-		i--
-		dAtA[i] = 0x12
-	}
-	if len(m.Did) > 0 {
-		i -= len(m.Did)
-		copy(dAtA[i:], m.Did)
-		i = encodeVarintDidRpcApi(dAtA, i, uint64(len(m.Did)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *CreateVCResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *CreateVCResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *CreateVCResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.XXX_unrecognized != nil {
-		i -= len(m.XXX_unrecognized)
-		copy(dAtA[i:], m.XXX_unrecognized)
-	}
-	if m.TxInfo != nil {
-		{
-			size, err := m.TxInfo.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintDidRpcApi(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x22
-	}
-	if len(m.Vc) > 0 {
-		i -= len(m.Vc)
-		copy(dAtA[i:], m.Vc)
-		i = encodeVarintDidRpcApi(dAtA, i, uint64(len(m.Vc)))
-		i--
-		dAtA[i] = 0x1a
-	}
-	if len(m.Msg) > 0 {
-		i -= len(m.Msg)
-		copy(dAtA[i:], m.Msg)
-		i = encodeVarintDidRpcApi(dAtA, i, uint64(len(m.Msg)))
-		i--
-		dAtA[i] = 0x12
-	}
-	if m.Status != 0 {
-		i = encodeVarintDidRpcApi(dAtA, i, uint64(m.Status))
-		i--
-		dAtA[i] = 0x8
-	}
-	return len(dAtA) - i, nil
-}
-
 func encodeVarintDidRpcApi(dAtA []byte, offset int, v uint64) int {
 	offset -= sovDidRpcApi(v)
 	base := offset
@@ -607,64 +293,6 @@ func (m *CreateDIDResponse) Size() (n int) {
 		n += 1 + l + sovDidRpcApi(uint64(l))
 	}
 	l = len(m.Did)
-	if l > 0 {
-		n += 1 + l + sovDidRpcApi(uint64(l))
-	}
-	if m.TxInfo != nil {
-		l = m.TxInfo.Size()
-		n += 1 + l + sovDidRpcApi(uint64(l))
-	}
-	if m.XXX_unrecognized != nil {
-		n += len(m.XXX_unrecognized)
-	}
-	return n
-}
-
-func (m *CreateVCRequest) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.Did)
-	if l > 0 {
-		n += 1 + l + sovDidRpcApi(uint64(l))
-	}
-	l = len(m.Context)
-	if l > 0 {
-		n += 1 + l + sovDidRpcApi(uint64(l))
-	}
-	if m.PctId != 0 {
-		n += 1 + sovDidRpcApi(uint64(m.PctId))
-	}
-	l = len(m.Claim)
-	if l > 0 {
-		n += 1 + l + sovDidRpcApi(uint64(l))
-	}
-	l = len(m.ExpirationDate)
-	if l > 0 {
-		n += 1 + l + sovDidRpcApi(uint64(l))
-	}
-	if m.XXX_unrecognized != nil {
-		n += len(m.XXX_unrecognized)
-	}
-	return n
-}
-
-func (m *CreateVCResponse) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.Status != 0 {
-		n += 1 + sovDidRpcApi(uint64(m.Status))
-	}
-	l = len(m.Msg)
-	if l > 0 {
-		n += 1 + l + sovDidRpcApi(uint64(l))
-	}
-	l = len(m.Vc)
 	if l > 0 {
 		n += 1 + l + sovDidRpcApi(uint64(l))
 	}
@@ -795,374 +423,6 @@ func (m *CreateDIDResponse) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			m.Did = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field TxInfo", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowDidRpcApi
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthDidRpcApi
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthDidRpcApi
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.TxInfo == nil {
-				m.TxInfo = &TxInfo{}
-			}
-			if err := m.TxInfo.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipDidRpcApi(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthDidRpcApi
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *CreateVCRequest) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowDidRpcApi
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: CreateVCRequest: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: CreateVCRequest: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Did", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowDidRpcApi
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthDidRpcApi
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthDidRpcApi
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Did = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Context", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowDidRpcApi
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthDidRpcApi
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthDidRpcApi
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Context = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 3:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PctId", wireType)
-			}
-			m.PctId = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowDidRpcApi
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.PctId |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Claim", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowDidRpcApi
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthDidRpcApi
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthDidRpcApi
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Claim = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 5:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ExpirationDate", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowDidRpcApi
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthDidRpcApi
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthDidRpcApi
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.ExpirationDate = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipDidRpcApi(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthDidRpcApi
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *CreateVCResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowDidRpcApi
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: CreateVCResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: CreateVCResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
-			}
-			m.Status = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowDidRpcApi
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Status |= int32(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Msg", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowDidRpcApi
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthDidRpcApi
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthDidRpcApi
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Msg = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Vc", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowDidRpcApi
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthDidRpcApi
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthDidRpcApi
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Vc = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 4:
 			if wireType != 2 {

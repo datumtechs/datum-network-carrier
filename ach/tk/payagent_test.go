@@ -52,7 +52,7 @@ func setup() {
 
 	WalletManagerInstance().GenerateWallet()
 
-	ethContext := chainclient.NewEthClientContext("https://devnetopenapi2.platon.network/rpc", WalletManagerInstance())
+	ethContext := chainclient.NewEthClientContext("https://devnetopenapi2.platon.network/rpc", "lat", WalletManagerInstance())
 
 	payAgent = NewPayAgent(ethContext)
 }
@@ -174,7 +174,7 @@ func TestToken20Pay_Prepay(t *testing.T) {
 	priKey := hex.EncodeToString(ethcrypto.FromECDSA(key))
 	carrierDB.SaveOrgPriKey(priKey)
 
-	ethContext := chainclient.NewEthClientContext("https://devnetopenapi2.platon.network/rpc", WalletManagerInstance())
+	ethContext := chainclient.NewEthClientContext("https://devnetopenapi2.platon.network/rpc", "lat", WalletManagerInstance())
 
 	payAgent = NewPayAgent(ethContext)
 

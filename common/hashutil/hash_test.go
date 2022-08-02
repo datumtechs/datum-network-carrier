@@ -50,6 +50,10 @@ func BenchmarkHashKeccak256(b *testing.B) {
 	}
 }
 
-
-
-
+func Test_Hash32(t *testing.T) {
+	data := []byte("this is a sample")
+	hash32 := hashutil.Hash(data)
+	t.Logf("hash_32:%s", hex.EncodeToString(hash32[:]))
+	t.Logf("hash256:%s", hex.EncodeToString((hashutil.HashSHA256(data))))
+	assert.Equal(t, hex.EncodeToString(hash32[:]), hex.EncodeToString(hashutil.HashSHA256(data)))
+}

@@ -618,7 +618,8 @@ type IdentityServiceClient interface {
 	ListMetadataAuthority(ctx context.Context, in *ListMetadataAuthorityRequest, opts ...grpc.CallOption) (*ListMetadataAuthorityResponse, error)
 	// FindMetadataAuthority retrieves data based on the specified ID.
 	FindMetadataAuthority(ctx context.Context, in *FindMetadataAuthorityRequest, opts ...grpc.CallOption) (*FindMetadataAuthorityResponse, error)
-	// 更新指定组织的credential
+	// 更新指定组织的credential, 已经设置过的不允许设置
+	// 返回码 0-成功  1000-VC不能重复设置
 	UpdateIdentityCredential(ctx context.Context, in *UpdateIdentityCredentialRequest, opts ...grpc.CallOption) (*types.SimpleResponse, error)
 }
 
@@ -721,7 +722,8 @@ type IdentityServiceServer interface {
 	ListMetadataAuthority(context.Context, *ListMetadataAuthorityRequest) (*ListMetadataAuthorityResponse, error)
 	// FindMetadataAuthority retrieves data based on the specified ID.
 	FindMetadataAuthority(context.Context, *FindMetadataAuthorityRequest) (*FindMetadataAuthorityResponse, error)
-	// 更新指定组织的credential
+	// 更新指定组织的credential, 已经设置过的不允许设置
+	// 返回码 0-成功  1000-VC不能重复设置
 	UpdateIdentityCredential(context.Context, *UpdateIdentityCredentialRequest) (*types.SimpleResponse, error)
 }
 
