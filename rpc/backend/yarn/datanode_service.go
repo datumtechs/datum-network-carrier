@@ -385,6 +385,12 @@ func (svr *Server) GetTaskResultFileSummaryList(ctx context.Context, empty *empt
 
 func (svr *Server) DownloadTaskResultData(req *carrierapipb.DownloadTaskResultDataRequest, server carrierapipb.YarnService_DownloadTaskResultDataServer) error {
 	taskId := req.GetTaskId()
+	options := req.GetOptions()
+	optionsBytes, err := json.Marshal(options)
+	if err != nil {
+		return fmt.Errorf("DownloadTaskResultData json.Marshal options fail")
+	}
+	log.Infof("DownloadTaskResultData req taskId %s,options %s", taskId, string(optionsBytes))
 	if taskId == "" {
 		return fmt.Errorf("RPC-API:DownloadTaskResultData req params taskId is empty")
 	}
@@ -416,7 +422,7 @@ func (svr *Server) DownloadTaskResultData(req *carrierapipb.DownloadTaskResultDa
 	}
 	dataNodeStream, err := dataNodeClient.DownloadData(&fighterapipb.DownloadRequest{
 		DataPath: dataPath,
-		Options:  req.GetOptions(),
+		Options:  options,
 	})
 	if err != nil {
 		log.WithError(err).Errorf("Falied to call DownloadData to `data-Fighter` node to terminating, taskId: {%s}, dataNodeId: {%s}",

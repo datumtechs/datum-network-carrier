@@ -136,3 +136,8 @@ var ComputerServiceEvent = map[string]string{
 	ReportComputeResult.Type:   ReportComputeResult.Msg,
 	ReportTaskUsage.Type:       ReportTaskUsage.Msg,
 }
+
+// 数据中心相关事件
+var (
+	CannotSetRepeatedlyCredential = NewEventType("1000", "Credential cannot be set repeatedly")
+)
