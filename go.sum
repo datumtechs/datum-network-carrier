@@ -193,14 +193,8 @@ github.com/creack/pty v1.1.7/go.mod h1:lj5s0c3V2DBrqTV7llrYr5NG6My20zk30Fl46Y7Do
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/d4l3k/messagediff v1.2.1 h1:ZcAIMYsUg0EAp9X+tt8/enBE/Q8Yd5kzPynLyKptt9U=
 github.com/d4l3k/messagediff v1.2.1/go.mod h1:Oozbb1TVXFac9FtSIxHBMnBCq2qeH/2KkEQxENCrlLo=
-github.com/datumtechs/did-sdk-go v0.0.0-20220801025357-d75d58361592 h1:u1YFMLnqvVteu3XuTBXzJQ0dTIlekbZ14Fh1llXjTQ8=
-github.com/datumtechs/did-sdk-go v0.0.0-20220801025357-d75d58361592/go.mod h1:wgJXHHibsgJTRGJMApnVUjOLwmZYLKLt/HjGVB8Z0hA=
-github.com/datumtechs/did-sdk-go v0.0.0-20220801075002-352d9dd94b4d h1:+jWf/5kROoHvwT06GMAfdRAHImfgq+ePoi+5v0+Toj4=
-github.com/datumtechs/did-sdk-go v0.0.0-20220801075002-352d9dd94b4d/go.mod h1:wgJXHHibsgJTRGJMApnVUjOLwmZYLKLt/HjGVB8Z0hA=
-github.com/datumtechs/did-sdk-go v0.0.0-20220801094025-a1a7f93ef7ff h1:0ldqmXoqUPv50QiFT87jWecA0Sb2Pzfb04XqzUrwSB8=
-github.com/datumtechs/did-sdk-go v0.0.0-20220801094025-a1a7f93ef7ff/go.mod h1:wgJXHHibsgJTRGJMApnVUjOLwmZYLKLt/HjGVB8Z0hA=
-github.com/datumtechs/did-sdk-go v0.0.0-20220802025741-6c92ea7987d7 h1:aD3raMScoNDtFRQQyypnDkW+oBA+g31/en8pO0m1YCg=
-github.com/datumtechs/did-sdk-go v0.0.0-20220802025741-6c92ea7987d7/go.mod h1:wgJXHHibsgJTRGJMApnVUjOLwmZYLKLt/HjGVB8Z0hA=
+github.com/datumtechs/did-sdk-go v0.0.0-20220802032637-ec9bb1880913 h1:aQDrwIPQAckGTRksRdLJWyopKSJwE9PDS2DsK4FRz7s=
+github.com/datumtechs/did-sdk-go v0.0.0-20220802032637-ec9bb1880913/go.mod h1:wgJXHHibsgJTRGJMApnVUjOLwmZYLKLt/HjGVB8Z0hA=
 github.com/davecgh/go-spew v0.0.0-20171005155431-ecdeabc65495/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
