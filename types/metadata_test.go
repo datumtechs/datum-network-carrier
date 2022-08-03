@@ -29,7 +29,7 @@ var metadata = NewMetadata(&carriertypespb.MetadataPB{
 	UpdateAt:       timeutils.UnixMsecUint64(),
 	Nonce:          1,
 	MetadataOption: "option",
-	TokenAddress:   "",
+	//TokenAddress:   "",
 })
 
 func TestMetadataEncode(t *testing.T) {
