@@ -1066,6 +1066,10 @@ func (s *CarrierAPIBackend) HasValidMetadataAuth(userType commonconstantpb.UserT
 	return s.carrier.authManager.HasValidMetadataAuth(userType, user, identityId, metadataId)
 }
 
+func (s *CarrierAPIBackend) VerifyMetadataAuthWithMetadataOption(metadataAuthId string, auth *carriertypespb.MetadataAuthority) (bool, error) {
+	return s.carrier.authManager.VerifyMetadataAuthWithMetadataOption(metadataAuthId, auth)
+}
+
 // task api
 func (s *CarrierAPIBackend) GetLocalTask(taskId string) (*carriertypespb.TaskDetail, error) {
 	// the task is executing.

@@ -88,7 +88,7 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 	policyEngine := policy.NewPolicyEngine(config.CarrierDB)
 	resourceClientSet := grpclient.NewInternalResourceNodeSet()
 	resourceMng := resource.NewResourceManager(config.CarrierDB, resourceClientSet, mockIdentityIdsFile)
-	authManager := auth.NewAuthorityManager(config.CarrierDB)
+	authManager := auth.NewAuthorityManager(config.CarrierDB, policyEngine)
 	scheduler := schedule.NewSchedulerStarveFIFO(election.NewVrfElector(config.P2P.PirKey(), resourceMng),
 		eventEngine, resourceMng, authManager, policyEngine, identityBlackListCache)
 

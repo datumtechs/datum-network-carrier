@@ -193,12 +193,6 @@ github.com/creack/pty v1.1.7/go.mod h1:lj5s0c3V2DBrqTV7llrYr5NG6My20zk30Fl46Y7Do
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/d4l3k/messagediff v1.2.1 h1:ZcAIMYsUg0EAp9X+tt8/enBE/Q8Yd5kzPynLyKptt9U=
 github.com/d4l3k/messagediff v1.2.1/go.mod h1:Oozbb1TVXFac9FtSIxHBMnBCq2qeH/2KkEQxENCrlLo=
-github.com/datumtechs/did-sdk-go v0.0.0-20220801025357-d75d58361592 h1:u1YFMLnqvVteu3XuTBXzJQ0dTIlekbZ14Fh1llXjTQ8=
-github.com/datumtechs/did-sdk-go v0.0.0-20220801025357-d75d58361592/go.mod h1:wgJXHHibsgJTRGJMApnVUjOLwmZYLKLt/HjGVB8Z0hA=
-github.com/datumtechs/did-sdk-go v0.0.0-20220801075002-352d9dd94b4d h1:+jWf/5kROoHvwT06GMAfdRAHImfgq+ePoi+5v0+Toj4=
-github.com/datumtechs/did-sdk-go v0.0.0-20220801075002-352d9dd94b4d/go.mod h1:wgJXHHibsgJTRGJMApnVUjOLwmZYLKLt/HjGVB8Z0hA=
-github.com/datumtechs/did-sdk-go v0.0.0-20220801094025-a1a7f93ef7ff h1:0ldqmXoqUPv50QiFT87jWecA0Sb2Pzfb04XqzUrwSB8=
-github.com/datumtechs/did-sdk-go v0.0.0-20220801094025-a1a7f93ef7ff/go.mod h1:wgJXHHibsgJTRGJMApnVUjOLwmZYLKLt/HjGVB8Z0hA=
 github.com/datumtechs/did-sdk-go v0.0.0-20220802025741-6c92ea7987d7 h1:aD3raMScoNDtFRQQyypnDkW+oBA+g31/en8pO0m1YCg=
 github.com/datumtechs/did-sdk-go v0.0.0-20220802025741-6c92ea7987d7/go.mod h1:wgJXHHibsgJTRGJMApnVUjOLwmZYLKLt/HjGVB8Z0hA=
 github.com/davecgh/go-spew v0.0.0-20171005155431-ecdeabc65495/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
@@ -343,7 +337,6 @@ github.com/gogo/protobuf v1.3.2/go.mod h1:P1XiOD3dCwIKUDQYPy72D8LYyHL2YPYrpS2s69
 github.com/goji/httpauth v0.0.0-20160601135302-2da839ab0f4d/go.mod h1:nnjvkQ9ptGaCkuDUx6wNykzzlUixGxvkme+H/lnzb+A=
 github.com/golang-jwt/jwt/v4 v4.3.0 h1:kHL1vqdqWNfATmA0FNMdmZNMyZI1U6O31X4rlIPoBog=
 github.com/golang/gddo v0.0.0-20200528160355-8d077c1d8f4c/go.mod h1:sam69Hju0uq+5uvLJUMDlsKlQ21Vrs1Kd/1YFPNYdOU=
-github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b h1:VKtxabqXZkF25pY9ekfRL6a582T4P37/31XEstQ5p58=
 github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b/go.mod h1:SBH7ygxi8pfUlaOkMMuAQtPIUF8ecWP5IEl/CR7VP2Q=
 github.com/golang/groupcache v0.0.0-20160516000752-02826c3e7903/go.mod h1:cIg4eruTrX1D+g88fzRXU5OdNfaM+9IcxsU14FzY7Hc=
 github.com/golang/groupcache v0.0.0-20190702054246-869f871628b6/go.mod h1:cIg4eruTrX1D+g88fzRXU5OdNfaM+9IcxsU14FzY7Hc=

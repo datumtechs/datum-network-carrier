@@ -5,6 +5,8 @@ import (
 	"github.com/datumtechs/datum-network-carrier/ach/auth/metadata"
 	"github.com/datumtechs/datum-network-carrier/carrierdb"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	"github.com/datumtechs/datum-network-carrier/core/policy"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"github.com/datumtechs/datum-network-carrier/rpc/backend"
 	"github.com/datumtechs/datum-network-carrier/types"
@@ -12,13 +14,15 @@ import (
 )
 
 type AuthorityManager struct {
-	metadataAuth     *metadata.MetadataAuthority
-	quit  chan struct{}
+	metadataAuth *metadata.MetadataAuthority
+	policyEngine *policy.PolicyEngine
+	quit         chan struct{}
 }
 
-func NewAuthorityManager(dataCenter carrierdb.CarrierDB) *AuthorityManager {
+func NewAuthorityManager(dataCenter carrierdb.CarrierDB, policyEngine *policy.PolicyEngine) *AuthorityManager {
 	return &AuthorityManager{
-		metadataAuth: metadata.NewMetadataAuthority(dataCenter),
+		metadataAuth: metadata.NewMetadataAuthority(dataCenter, policyEngine),
+		policyEngine: policyEngine,
 		quit:         make(chan struct{}),
 	}
 }
@@ -34,7 +38,7 @@ func (am *AuthorityManager) Stop() error {
 	return nil
 }
 
-func (am *AuthorityManager) loop () {
+func (am *AuthorityManager) loop() {
 	ticker := time.NewTicker(time.Second * 60)
 	for {
 		select {
@@ -48,7 +52,7 @@ func (am *AuthorityManager) loop () {
 	}
 }
 
-func (am *AuthorityManager) refreshMetadataAuthority () {
+func (am *AuthorityManager) refreshMetadataAuthority() {
 	list, err := am.metadataAuth.GetLocalMetadataAuthorityList(timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
 	if nil != err {
 		return
@@ -108,19 +112,19 @@ func (am *AuthorityManager) refreshMetadataAuthority () {
 	}
 }
 
-func (am *AuthorityManager) ApplyMetadataAuthority (metadataAuth *types.MetadataAuthority) error {
+func (am *AuthorityManager) ApplyMetadataAuthority(metadataAuth *types.MetadataAuthority) error {
 	return am.metadataAuth.ApplyMetadataAuthority(metadataAuth)
 }
 
-func (am *AuthorityManager) AuditMetadataAuthority (audit *types.MetadataAuthAudit) (commonconstantpb.AuditMetadataOption, error) {
+func (am *AuthorityManager) AuditMetadataAuthority(audit *types.MetadataAuthAudit) (commonconstantpb.AuditMetadataOption, error) {
 	return am.metadataAuth.AuditMetadataAuthority(audit)
 }
 
-func (am *AuthorityManager) ConsumeMetadataAuthority (metadataAuthId string) error {
+func (am *AuthorityManager) ConsumeMetadataAuthority(metadataAuthId string) error {
 	return am.metadataAuth.ConsumeMetadataAuthority(metadataAuthId)
 }
 
-func filterMetadataAuth (list types.MetadataAuthArray) (types.MetadataAuthArray, error) {
+func filterMetadataAuth(list types.MetadataAuthArray) (types.MetadataAuthArray, error) {
 	for i, metadataAuth := range list {
 		switch metadataAuth.GetData().GetAuth().GetUsageRule().GetUsageType() {
 		case commonconstantpb.MetadataUsageType_Usage_Period:
@@ -142,7 +146,7 @@ func filterMetadataAuth (list types.MetadataAuthArray) (types.MetadataAuthArray,
 	return list, nil
 }
 
-func (am *AuthorityManager) GetMetadataAuthority (metadataAuthId string) (*types.MetadataAuthority, error) {
+func (am *AuthorityManager) GetMetadataAuthority(metadataAuthId string) (*types.MetadataAuthority, error) {
 	//metadataAuth, err := am.metadataAuth.GetMetadataAuthority(metadataAuthId)
 	//if nil != err {
 	//	return nil, err
@@ -156,7 +160,7 @@ func (am *AuthorityManager) GetMetadataAuthority (metadataAuthId string) (*types
 	return am.metadataAuth.GetMetadataAuthority(metadataAuthId)
 }
 
-func (am *AuthorityManager) GetLocalMetadataAuthorityList (lastUpdate, pageSize uint64) (types.MetadataAuthArray, error) {
+func (am *AuthorityManager) GetLocalMetadataAuthorityList(lastUpdate, pageSize uint64) (types.MetadataAuthArray, error) {
 	//list, err := am.metadataAuth.GetLocalMetadataAuthorityList()
 	//if nil != err {
 	//	return nil, err
@@ -166,7 +170,7 @@ func (am *AuthorityManager) GetLocalMetadataAuthorityList (lastUpdate, pageSize 
 	return am.metadataAuth.GetLocalMetadataAuthorityList(lastUpdate, pageSize)
 }
 
-func (am *AuthorityManager) GetGlobalMetadataAuthorityList (lastUpdate uint64, pageSize uint64) (types.MetadataAuthArray, error) {
+func (am *AuthorityManager) GetGlobalMetadataAuthorityList(lastUpdate uint64, pageSize uint64) (types.MetadataAuthArray, error) {
 	//list, err := am.metadataAuth.GetGlobalMetadataAuthorityList()
 	//if nil != err {
 	//	return nil, err
@@ -175,19 +179,22 @@ func (am *AuthorityManager) GetGlobalMetadataAuthorityList (lastUpdate uint64, p
 	return am.metadataAuth.GetGlobalMetadataAuthorityList(lastUpdate, pageSize)
 }
 
-func (am *AuthorityManager) GetMetadataAuthorityListByIds (metadataAuthIds  []string) (types.MetadataAuthArray, error) {
+func (am *AuthorityManager) GetMetadataAuthorityListByIds(metadataAuthIds []string) (types.MetadataAuthArray, error) {
 	return am.metadataAuth.GetMetadataAuthorityListByIds(metadataAuthIds)
 }
 
-func (am *AuthorityManager)  HasValidMetadataAuth(userType commonconstantpb.UserType, user, identityId, metadataId string) (bool, error) {
+func (am *AuthorityManager) HasValidMetadataAuth(userType commonconstantpb.UserType, user, identityId, metadataId string) (bool, error) {
 	return am.metadataAuth.HasValidMetadataAuth(userType, user, identityId, metadataId)
 }
 
-func (am *AuthorityManager) VerifyMetadataAuth (userType commonconstantpb.UserType, user, metadataId string) error {
+func (am *AuthorityManager) VerifyMetadataAuthWithMetadataOption(metadataAuthId string, auth *carriertypespb.MetadataAuthority) (bool, error) {
+	return am.metadataAuth.VerifyMetadataAuthWithMetadataOption(metadataAuthId, auth)
+}
+
+func (am *AuthorityManager) VerifyMetadataAuth(userType commonconstantpb.UserType, user, metadataId string) error {
 	return am.metadataAuth.VerifyMetadataAuth(userType, user, metadataId)
 }
 
-func  (am *AuthorityManager) QueryMetadataAuthIdByMetadataId(userType commonconstantpb.UserType, user, metadataId string) (string, error) {
+func (am *AuthorityManager) QueryMetadataAuthIdByMetadataId(userType commonconstantpb.UserType, user, metadataId string) (string, error) {
 	return am.metadataAuth.QueryMetadataAuthIdByMetadataId(userType, user, metadataId)
 }
-
