@@ -11,6 +11,70 @@
     "application/json"
   ],
   "paths": {
+    "/carrier/v1/did/applyVCLocal": {
+      "post": {
+        "operationId": "VcService_ApplyVCLocal",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/typesSimpleResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiApplyVCReq"
+            }
+          }
+        ],
+        "tags": [
+          "VcService"
+        ]
+      }
+    },
+    "/carrier/v1/did/applyVCRemote": {
+      "post": {
+        "operationId": "VcService_ApplyVCRemote",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/typesSimpleResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiApplyVCReq"
+            }
+          }
+        ],
+        "tags": [
+          "VcService"
+        ]
+      }
+    },
     "/carrier/v1/did/createDID": {
       "post": {
         "operationId": "DIDService_CreateDID",
@@ -42,9 +106,269 @@
           "DIDService"
         ]
       }
+    },
+    "/carrier/v1/did/createVC": {
+      "post": {
+        "operationId": "VcService_CreateVC",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiCreateVCResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiCreateVCRequest"
+            }
+          }
+        ],
+        "tags": [
+          "VcService"
+        ]
+      }
+    },
+    "/carrier/v1/did/downloadVCLocal": {
+      "post": {
+        "operationId": "VcService_DownloadVCLocal",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiDownloadVCResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiDownloadVCReq"
+            }
+          }
+        ],
+        "tags": [
+          "VcService"
+        ]
+      }
+    },
+    "/carrier/v1/did/downloadVCRemote": {
+      "post": {
+        "operationId": "VcService_DownloadVCRemote",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiDownloadVCResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiDownloadVCReq"
+            }
+          }
+        ],
+        "tags": [
+          "VcService"
+        ]
+      }
+    },
+    "/carrier/v1/proposal/effectProposal": {
+      "post": {
+        "operationId": "ProposalService_EffectProposal",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiEffectProposalResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiEffectProposalRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ProposalService"
+        ]
+      }
+    },
+    "/carrier/v1/proposal/submitProposal": {
+      "post": {
+        "operationId": "ProposalService_SubmitProposal",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiSubmitProposalResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiSubmitProposalRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ProposalService"
+        ]
+      }
+    },
+    "/carrier/v1/proposal/voteProposal": {
+      "post": {
+        "operationId": "ProposalService_VoteProposal",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiVoteProposalResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiVoteProposalRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ProposalService"
+        ]
+      }
+    },
+    "/carrier/v1/proposal/withdrawProposal": {
+      "post": {
+        "operationId": "ProposalService_WithdrawProposal",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiWithdrawProposalResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiWithdrawProposalRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ProposalService"
+        ]
+      }
     }
   },
   "definitions": {
+    "apiApplyVCReq": {
+      "type": "object",
+      "properties": {
+        "issuer_did": {
+          "type": "string"
+        },
+        "issuer_url": {
+          "type": "string"
+        },
+        "applicant_did": {
+          "type": "string"
+        },
+        "context": {
+          "type": "string"
+        },
+        "pct_id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "claim": {
+          "type": "string"
+        },
+        "expiration_date": {
+          "type": "string"
+        },
+        "ext_info": {
+          "type": "string"
+        },
+        "req_digest": {
+          "type": "string"
+        },
+        "req_signature": {
+          "type": "string"
+        }
+      }
+    },
     "apiCreateDIDResponse": {
       "type": "object",
       "properties": {
@@ -56,6 +380,146 @@
           "type": "string"
         },
         "did": {
+          "type": "string"
+        },
+        "tx_info": {
+          "$ref": "#/definitions/apiTxInfo"
+        }
+      }
+    },
+    "apiCreateVCRequest": {
+      "type": "object",
+      "properties": {
+        "applicant_did": {
+          "type": "string"
+        },
+        "context": {
+          "type": "string"
+        },
+        "pct_id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "claim": {
+          "type": "string"
+        },
+        "expiration_date": {
+          "type": "string"
+        }
+      }
+    },
+    "apiCreateVCResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "vc": {
+          "type": "string"
+        },
+        "tx_info": {
+          "$ref": "#/definitions/apiTxInfo"
+        }
+      }
+    },
+    "apiDownloadVCReq": {
+      "type": "object",
+      "properties": {
+        "issuer_did": {
+          "type": "string"
+        },
+        "issuer_url": {
+          "type": "string"
+        },
+        "applicant_did": {
+          "type": "string"
+        },
+        "req_digest": {
+          "type": "string"
+        },
+        "req_signature": {
+          "type": "string"
+        }
+      }
+    },
+    "apiDownloadVCResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "vc": {
+          "type": "string"
+        },
+        "ext_info": {
+          "type": "string"
+        }
+      }
+    },
+    "apiEffectProposalRequest": {
+      "type": "object",
+      "properties": {
+        "proposal_id": {
+          "type": "string"
+        }
+      }
+    },
+    "apiEffectProposalResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "result": {
+          "type": "boolean"
+        },
+        "tx_info": {
+          "$ref": "#/definitions/apiTxInfo"
+        }
+      }
+    },
+    "apiSubmitProposalRequest": {
+      "type": "object",
+      "properties": {
+        "proposal_type": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "proposal_url": {
+          "type": "string"
+        },
+        "candidate_address": {
+          "type": "string"
+        },
+        "candidate_service_url": {
+          "type": "string"
+        }
+      },
+      "title": "-- proposal --"
+    },
+    "apiSubmitProposalResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "proposalId": {
           "type": "string"
         },
         "tx_info": {
@@ -76,6 +540,58 @@
         "tx_index": {
           "type": "integer",
           "format": "int64"
+        }
+      }
+    },
+    "apiVoteProposalRequest": {
+      "type": "object",
+      "properties": {
+        "proposal_id": {
+          "type": "string"
+        }
+      }
+    },
+    "apiVoteProposalResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "result": {
+          "type": "boolean"
+        },
+        "tx_info": {
+          "$ref": "#/definitions/apiTxInfo"
+        }
+      }
+    },
+    "apiWithdrawProposalRequest": {
+      "type": "object",
+      "properties": {
+        "proposal_id": {
+          "type": "string"
+        }
+      }
+    },
+    "apiWithdrawProposalResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "result": {
+          "type": "boolean"
+        },
+        "tx_info": {
+          "$ref": "#/definitions/apiTxInfo"
         }
       }
     },
@@ -109,6 +625,20 @@
           "items": {
             "$ref": "#/definitions/protobufAny"
           }
+        }
+      }
+    },
+    "typesSimpleResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32",
+          "title": "the code for response; 0: SUCCESS"
+        },
+        "msg": {
+          "type": "string",
+          "title": "the message for response"
         }
       }
     }

@@ -40,7 +40,7 @@ func (svr *Server) CreateVC(ctx context.Context, req *carrierapipb.CreateVCReque
 }
 
 func (svr *Server) ApplyVCLocal(ctx context.Context, req *carrierapipb.ApplyVCReq) (*types.SimpleResponse, error) {
-	err := svr.B.ApplyVCLocal(req.IssuerDid, req.ApplicantDid, req.PctId, req.Claim, req.ExpirationDate, req.Context, req.ExtInfo)
+	err := svr.B.ApplyVCLocal(req.IssuerDid, req.IssuerUrl, req.ApplicantDid, req.PctId, req.Claim, req.ExpirationDate, req.Context, req.ExtInfo)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:ApplyVCLocal failed")
 		return &types.SimpleResponse{Status: backend.ErrApplyVC.ErrCode(), Msg: backend.ErrApplyVC.Error()}, nil
@@ -65,30 +65,12 @@ func (svr *Server) ApplyVCRemote(ctx context.Context, req *carrierapipb.ApplyVCR
 	}, nil
 }
 
-func (svr *Server) DownloadVCLocal(ctx context.Context, req *carrierapipb.DownloadVCReq) (*types.SimpleResponse, error) {
-	err := svr.B.DownloadVCLocal(req.IssuerDid, req.ApplicantDid)
-	if nil != err {
-		log.WithError(err).Errorf("RPC-API:DownloadVCLocal failed")
-		return &types.SimpleResponse{Status: backend.ErrDownloadVC.ErrCode(), Msg: backend.ErrDownloadVC.Error()}, nil
-	}
-	log.Debug("RPC-API:DownloadVCLocal Succeed")
-	return &types.SimpleResponse{
-		Status: 0,
-		Msg:    backend.OK,
-	}, nil
+func (svr *Server) DownloadVCLocal(ctx context.Context, req *carrierapipb.DownloadVCReq) (*carrierapipb.DownloadVCResponse, error) {
+	return svr.B.DownloadVCLocal(req.IssuerDid, req.IssuerUrl, req.ApplicantDid), nil
 }
 
-func (svr *Server) DownloadVCRemote(ctx context.Context, req *carrierapipb.DownloadVCReq) (*types.SimpleResponse, error) {
-	err := svr.B.DownloadVCRemote(req.IssuerDid, req.ApplicantDid, req.ReqDigest, req.ReqSignature)
-	if nil != err {
-		log.WithError(err).Errorf("RPC-API:DownloadVCRemote failed")
-		return &types.SimpleResponse{Status: backend.ErrDownloadVC.ErrCode(), Msg: backend.ErrDownloadVC.Error()}, nil
-	}
-	log.Debug("RPC-API:DownloadVCRemote Succeed")
-	return &types.SimpleResponse{
-		Status: 0,
-		Msg:    backend.OK,
-	}, nil
+func (svr *Server) DownloadVCRemote(ctx context.Context, req *carrierapipb.DownloadVCReq) (*carrierapipb.DownloadVCResponse, error) {
+	return svr.B.DownloadVCRemote(req.IssuerDid, req.ApplicantDid, req.ReqDigest, req.ReqSignature), nil
 }
 
 func (svr *Server) SubmitProposal(ctx context.Context, req *carrierapipb.SubmitProposalRequest) (*carrierapipb.SubmitProposalResponse, error) {

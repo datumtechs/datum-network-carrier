@@ -105,10 +105,10 @@ type Backend interface {
 	// CreateVC... if context is empty means default value
 	// CreateVC... if expirationDate is empty means default value
 
-	ApplyVCLocal(issuerDid, applicantDid string, pctId uint64, claim, expirationDate, vccontext, extInfo string) error
+	ApplyVCLocal(issuerDid, issuerUrl, applicantDid string, pctId uint64, claim, expirationDate, vccontext, extInfo string) error
 	ApplyVCRemote(issuerDid, applicantDid string, pctId uint64, claim, expirationDate, vccontext, extInfo, reqDigest, reqSignature string) error
-	DownloadVCLocal(issuerDid, applicantDid string) error
-	DownloadVCRemote(issuerDid, applicantDid string, reqDigest, reqSignature string) error
+	DownloadVCLocal(issuerDid, issuerUrl, applicantDid string) *carrierapipb.DownloadVCResponse
+	DownloadVCRemote(issuerDid, applicantDid string, reqDigest, reqSignature string) *carrierapipb.DownloadVCResponse
 
 	CreateVC(did string, context string, pctId uint64, claim string, expirationDate string) (string, *carrierapipb.TxInfo, error)
 	SubmitProposal(proposalType int, proposalUrl string, candidateAddress string, candidateServiceUrl string) (string, *carrierapipb.TxInfo, error)
