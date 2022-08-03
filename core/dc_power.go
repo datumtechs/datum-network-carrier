@@ -99,6 +99,9 @@ func (dc *DataCenter) GetResourceListByIdentityId(identityId string) (types.Reso
 	powerTotalSummaryResponse, err := dc.client.GetPowerSummaryByIdentityId(dc.ctx, &datacenterapipb.GetPowerSummaryByIdentityRequest{
 		IdentityId: identityId,
 	})
+	if powerTotalSummaryResponse.GetStatus() != 0 {
+		return nil, fmt.Errorf("call datacenter GetPowerSummaryByIdentityId error, status %d,error msg %s", powerTotalSummaryResponse.GetStatus(), powerTotalSummaryResponse.GetMsg())
+	}
 	return types.NewResourceFromPowerSummaryResponse(powerTotalSummaryResponse), err
 }
 
@@ -106,6 +109,9 @@ func (dc *DataCenter) QueryGlobalResourceSummaryList() (types.ResourceArray, err
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
 	powerListResp, err := dc.client.GetPowerGlobalSummaryList(dc.ctx)
+	if powerListResp.GetStatus() != 0 {
+		return nil, fmt.Errorf("call datacenter GetPowerGlobalSummaryList error, status %d,error msg %s", powerListResp.GetStatus(), powerListResp.GetMsg())
+	}
 	return types.NewResourceArrayFromPowerTotalSummaryListResponse(powerListResp), err
 }
 
@@ -113,6 +119,9 @@ func (dc *DataCenter) QueryGlobalResourceDetailList(lastUpdate uint64, pageSize 
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
 	powerListResp, err := dc.client.GetPowerList(dc.ctx, &datacenterapipb.ListPowerRequest{LastUpdated: lastUpdate, PageSize: pageSize})
+	if powerListResp.GetStatus() != 0 {
+		return nil, fmt.Errorf("call datacenter GetPowerList error, status %d,error msg %s", powerListResp.GetStatus(), powerListResp.GetMsg())
+	}
 	return types.NewResourceArrayFromPowerDetailListResponse(powerListResp), err
 }
 

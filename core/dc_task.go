@@ -201,6 +201,9 @@ func (dc *DataCenter) QueryGlobalTaskList(lastUpdate, pageSize uint64) (types.Ta
 		LastUpdated: lastUpdate,
 		PageSize:    pageSize,
 	})
+	if taskListResponse.GetStatus() != 0 {
+		return nil, fmt.Errorf("call datacenter ListTask error, status %d,error msg %s", taskListResponse.GetStatus(), taskListResponse.GetMsg())
+	}
 	return types.NewTaskArrayFromResponse(taskListResponse), err
 }
 
@@ -212,6 +215,9 @@ func (dc *DataCenter) QueryTaskListByIdentityId(identityId string, lastUpdate, p
 		LastUpdated: lastUpdate,
 		PageSize:    pageSize,
 	})
+	if taskListResponse.GetStatus() != 0 {
+		return nil, fmt.Errorf("call datacenter ListTaskByIdentity error, status %d,error msg %s", taskListResponse.GetStatus(), taskListResponse.GetMsg())
+	}
 	return types.NewTaskArrayFromResponse(taskListResponse), err
 }
 
@@ -221,6 +227,9 @@ func (dc *DataCenter) QueryTaskListByTaskIds(taskIds []string) (types.TaskDataAr
 	taskListResponse, err := dc.client.ListTaskByTaskIds(dc.ctx, &datacenterapipb.ListTaskByTaskIdsRequest{
 		TaskIds: taskIds,
 	})
+	if taskListResponse.GetStatus() != 0 {
+		return nil, fmt.Errorf("call datacenter ListTaskByTaskIds error, status %d,error msg %s", taskListResponse.GetStatus(), taskListResponse.GetMsg())
+	}
 	return types.NewTaskArrayFromResponse(taskListResponse), err
 }
 
