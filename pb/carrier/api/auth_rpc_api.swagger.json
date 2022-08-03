@@ -315,6 +315,29 @@
           "AuthService"
         ]
       }
+    },
+    "/carrier/v1/auth/updateIdentityCredential": {
+      "post": {
+        "summary": "更新指定组织的credential",
+        "operationId": "AuthService_UpdateIdentityCredential",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/typesSimpleResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "AuthService"
+        ]
+      }
     }
   },
   "definitions": {
@@ -683,7 +706,7 @@
         "identity_id": {
           "type": "string"
         },
-        "ideneity_type": {
+        "identity_type": {
           "$ref": "#/definitions/constantIdentityType"
         },
         "data_status": {
@@ -702,6 +725,14 @@
         },
         "details": {
           "type": "string"
+        },
+        "credential": {
+          "type": "string",
+          "title": "add by v 0.5.0"
+        },
+        "nonce": {
+          "type": "string",
+          "format": "uint64"
         }
       },
       "description": "A represents the basic information of the organization."
@@ -712,7 +743,7 @@
         "status": {
           "type": "integer",
           "format": "int32",
-          "title": "the code for response"
+          "title": "the code for response; 0: SUCCESS"
         },
         "msg": {
           "type": "string",
