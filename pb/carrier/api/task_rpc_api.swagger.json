@@ -297,10 +297,10 @@
         "task_sponsor_address": {
           "type": "string"
         },
-        "token_items": {
+        "tk_items": {
           "type": "array",
           "items": {
-            "type": "string"
+            "$ref": "#/definitions/apiTkItem"
           }
         }
       },
@@ -525,6 +525,24 @@
       },
       "title": "终止任务 req"
     },
+    "apiTkItem": {
+      "type": "object",
+      "properties": {
+        "tk_type": {
+          "$ref": "#/definitions/constantTkType"
+        },
+        "tk_address": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
     "constantTaskState": {
       "type": "string",
       "enum": [
@@ -536,6 +554,15 @@
       ],
       "default": "TaskState_Unknown",
       "title": "task的状态"
+    },
+    "constantTkType": {
+      "type": "string",
+      "enum": [
+        "Tk20",
+        "Tk721",
+        "Tk1155"
+      ],
+      "default": "Tk20"
     },
     "constantUserType": {
       "type": "string",
@@ -624,7 +651,7 @@
         "status": {
           "type": "integer",
           "format": "int32",
-          "title": "the code for response"
+          "title": "the code for response; 0: SUCCESS"
         },
         "msg": {
           "type": "string",

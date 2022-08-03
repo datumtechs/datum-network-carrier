@@ -6,6 +6,7 @@ import (
 	"errors"
 	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	"github.com/datumtechs/datum-network-carrier/pb/common/constant"
+	"strconv"
 	"sync"
 	"time"
 
@@ -66,10 +67,15 @@ func groupingTkList(tkItemList []*carrierapipb.TkItem) ([]common.Address, []*big
 	for _, item := range tkItemList {
 		if item.TkType == constant.TkType_Tk20 {
 			tkErc20AddressList = append(tkErc20AddressList, common.HexToAddress(item.TkAddress))
-			if item.Value == 0 {
+			if len(item.Value) == 0 {
 				tkErc20AmountList = append(tkErc20AmountList, defaultDataTkPrepaymentAmount)
 			} else {
-				tkErc20AmountList = append(tkErc20AmountList, new(big.Int).SetUint64(item.Value))
+				vInt, err := strconv.ParseUint(item.Value, 10, 64)
+				if err != nil {
+					log.WithError(err).Errorf("token value is not a valid integer, it will be reset to the default value of 1. value:=%s", item.Value)
+					vInt = 1
+				}
+				tkErc20AmountList = append(tkErc20AmountList, new(big.Int).SetUint64(vInt))
 			}
 
 		} else if item.TkType == constant.TkType_Tk721 {
