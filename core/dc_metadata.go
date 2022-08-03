@@ -74,6 +74,9 @@ func (dc *DataCenter) QueryMetadataById(metadataId string) (*types.Metadata, err
 	metadataByIdResponse, err := dc.client.GetMetadataById(dc.ctx, &datacenterapipb.FindMetadataByIdRequest{
 		MetadataId: metadataId,
 	})
+	if metadataByIdResponse.GetStatus() != 0 {
+		return nil, fmt.Errorf("call datacenter GetMetadataById error, status %d,error msg %s", metadataByIdResponse.GetStatus(), metadataByIdResponse.GetMsg())
+	}
 	return types.NewMetadataFromResponse(metadataByIdResponse), err
 }
 
@@ -83,6 +86,9 @@ func (dc *DataCenter) QueryMetadataByIds(metadataIds []string) ([]*types.Metadat
 	metaDataListResponse, err := dc.client.GetMetadataByIds(dc.ctx, &datacenterapipb.FindMetadataByIdsRequest{
 		MetadataIds: metadataIds,
 	})
+	if metaDataListResponse.GetStatus() != 0 {
+		return nil, fmt.Errorf("call datacenter GetMetadataByIds error, status %d,error msg %s", metaDataListResponse.GetStatus(), metaDataListResponse.GetMsg())
+	}
 	return types.NewMetadataArrayFromDetailListResponse(metaDataListResponse), err
 }
 
@@ -93,6 +99,9 @@ func (dc *DataCenter) QueryMetadataList(lastUpdate, pageSize uint64) (types.Meta
 		LastUpdated: lastUpdate,
 		PageSize:    pageSize,
 	})
+	if metaDataListResponse.GetStatus() != 0 {
+		return nil, fmt.Errorf("call datacenter GetMetadataList error, status %d,error msg %s", metaDataListResponse.GetStatus(), metaDataListResponse.GetMsg())
+	}
 	return types.NewMetadataArrayFromDetailListResponse(metaDataListResponse), err
 }
 
@@ -104,6 +113,9 @@ func (dc *DataCenter) QueryMetadataListByIdentity(identityId string, lastUpdate,
 		PageSize:    pageSize,
 		IdentityId:  identityId,
 	})
+	if metaDataListResponse.GetStatus() != 0 {
+		return nil, fmt.Errorf("call datacenter GetMetadataListByIdentityId error, status %d,error msg %s", metaDataListResponse.GetStatus(), metaDataListResponse.GetMsg())
+	}
 	return types.NewMetadataArrayFromDetailListResponse(metaDataListResponse), err
 }
 
