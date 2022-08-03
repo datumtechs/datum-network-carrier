@@ -6,10 +6,12 @@ import (
 	"errors"
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/ach/tk"
+	"github.com/datumtechs/datum-network-carrier/common/hashutil"
 	"github.com/datumtechs/datum-network-carrier/common/hexutil"
 	"github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	didsdkgocrypto "github.com/datumtechs/did-sdk-go/crypto"
 	"github.com/datumtechs/did-sdk-go/did"
+	proofkeys "github.com/datumtechs/did-sdk-go/keys/proof"
 	"github.com/datumtechs/did-sdk-go/types"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -42,8 +44,8 @@ func (s *CarrierAPIBackend) CreateDID() (string, *api.TxInfo, error) {
 //接收本地组织admin的VC申请，用本地私钥签名，并调用远端carrier的ApplyVCRemote
 func (s *CarrierAPIBackend) ApplyVCLocal(issuerDid, applicantDid string, pctId uint64, claim, expirationDate, vccontext, extInfo string) error {
 	rawData := applicantDid + claim
-	//reqHash := hexutil.Encode(hashutil.HashSHA256([]byte(rawData)))
-	digestHash, sig := didsdkgocrypto.SignSecp256k1(rawData, tk.WalletManagerInstance().GetPrivateKey())
+	reqHash := hashutil.HashSHA256([]byte(rawData))
+	sig := didsdkgocrypto.SignSecp256k1(reqHash, tk.WalletManagerInstance().GetPrivateKey())
 
 	reqRemote := new(api.ApplyVCReq)
 	reqRemote.Claim = claim
@@ -53,8 +55,8 @@ func (s *CarrierAPIBackend) ApplyVCLocal(issuerDid, applicantDid string, pctId u
 	reqRemote.PctId = pctId
 	reqRemote.ExpirationDate = expirationDate
 	reqRemote.ExtInfo = extInfo
-	reqRemote.ReqDigest = hex.EncodeToString(digestHash)
-	reqRemote.ReqSignature = sig
+	reqRemote.ReqDigest = hex.EncodeToString(reqHash)
+	reqRemote.ReqSignature = hex.EncodeToString(sig)
 
 	issuerAddress, err := types.ParseToAddress(issuerDid)
 	if err != nil {
@@ -104,12 +106,14 @@ func (s *CarrierAPIBackend) ApplyVCRemote(issuerDid, applicantDid string, pctId 
 
 	//验证签名
 	rawData := applicantDid + claim
-	ok := didsdkgocrypto.VerifySecp256k1Signature(rawData, reqSignature, publicKey)
+	reqHash := hashutil.HashSHA256([]byte(rawData))
+
+	ok := didsdkgocrypto.VerifySecp256k1Signature(reqHash, reqSignature, publicKey)
 	if !ok {
 		return errors.New("cannot verify the apply VC signature")
 	}
 
-	digestHash, sig := didsdkgocrypto.SignSecp256k1(rawData, tk.WalletManagerInstance().GetPrivateKey())
+	sig := didsdkgocrypto.SignSecp256k1(reqHash, tk.WalletManagerInstance().GetPrivateKey())
 
 	// vc请求校验OK，转发到本地admin;
 	reqRemote := new(api.ApplyVCReq)
@@ -120,8 +124,8 @@ func (s *CarrierAPIBackend) ApplyVCRemote(issuerDid, applicantDid string, pctId 
 	reqRemote.PctId = pctId
 	reqRemote.ExpirationDate = expirationDate
 	reqRemote.ExtInfo = extInfo
-	reqRemote.ReqDigest = hex.EncodeToString(digestHash)
-	reqRemote.ReqSignature = sig
+	reqRemote.ReqDigest = hex.EncodeToString(reqHash)
+	reqRemote.ReqSignature = hex.EncodeToString(sig)
 
 	//查找本地admin服务端口
 	adminService, err := s.carrier.consulManager.QueryAdminService()
@@ -156,14 +160,14 @@ func (s *CarrierAPIBackend) ApplyVCRemote(issuerDid, applicantDid string, pctId 
 //接收本地组织admin的VC申请，用本地私钥签名，并调用远端carrier的ApplyVCRemote
 func (s *CarrierAPIBackend) DownloadVCLocal(issuerDid, applicantDid string) error {
 	rawData := applicantDid
-	//reqHash := hexutil.Encode(hashutil.HashSHA256([]byte(rawData)))
-	digestHash, sig := didsdkgocrypto.SignSecp256k1(rawData, tk.WalletManagerInstance().GetPrivateKey())
+	reqHash := hashutil.HashSHA256([]byte(rawData))
+	sig := didsdkgocrypto.SignSecp256k1(reqHash, tk.WalletManagerInstance().GetPrivateKey())
 
 	reqRemote := new(api.DownloadVCReq)
 	reqRemote.IssuerDid = issuerDid
 	reqRemote.ApplicantDid = applicantDid
-	reqRemote.ReqDigest = hex.EncodeToString(digestHash)
-	reqRemote.ReqSignature = sig
+	reqRemote.ReqDigest = hex.EncodeToString(reqHash)
+	reqRemote.ReqSignature = hex.EncodeToString(sig)
 
 	issuerAddress, err := types.ParseToAddress(issuerDid)
 	if err != nil {
@@ -212,19 +216,20 @@ func (s *CarrierAPIBackend) DownloadVCRemote(issuerDid, applicantDid string, req
 
 	//验证签名
 	rawData := applicantDid
-	ok := didsdkgocrypto.VerifySecp256k1Signature(rawData, reqSignature, publicKey)
+	reqHash := hashutil.HashSHA256([]byte(rawData))
+	ok := didsdkgocrypto.VerifySecp256k1Signature(reqHash, reqSignature, publicKey)
 	if !ok {
 		return errors.New("cannot verify the download VC signature")
 	}
 
-	digestHash, sig := didsdkgocrypto.SignSecp256k1(rawData, tk.WalletManagerInstance().GetPrivateKey())
+	sig := didsdkgocrypto.SignSecp256k1(reqHash, tk.WalletManagerInstance().GetPrivateKey())
 
 	// vc请求校验OK，转发到本地admin;
 	reqRemote := new(api.DownloadVCReq)
 	reqRemote.IssuerDid = issuerDid
 	reqRemote.ApplicantDid = applicantDid
-	reqRemote.ReqDigest = hex.EncodeToString(digestHash)
-	reqRemote.ReqSignature = sig
+	reqRemote.ReqDigest = hex.EncodeToString(reqHash)
+	reqRemote.ReqSignature = hex.EncodeToString(sig)
 
 	//查找本地admin服务端口
 	adminService, err := s.carrier.consulManager.QueryAdminService()
@@ -278,11 +283,19 @@ func (s *CarrierAPIBackend) CreateVC(didString string, context string, pctId uin
 		return "", nil, errors.New(response.Msg)
 	}
 
+	digest := response.Data.GetDigest(nil, response.Data.ClaimData.GetSeed())
+	//save proof
+	saveProofResp := s.carrier.didService.VcService.SaveVCProof(tk.WalletManagerInstance().GetPrivateKey(), digest, tk.WalletManagerInstance().GetAddress(), response.Data.Proof[proofkeys.SIGNATURE])
+
+	if saveProofResp.Status != did.Response_SUCCESS {
+		return "", nil, errors.New(response.Msg)
+	}
+
 	vcBytes, err := json.Marshal(response.Data)
 	if err != nil {
 		return "", nil, err
 	} else {
-		return string(vcBytes), toApiTxInfo(&response.TxInfo), nil
+		return string(vcBytes), toApiTxInfo(&saveProofResp.TxInfo), nil
 	}
 }
 
