@@ -36,7 +36,7 @@ import (
 )
 
 const (
-	localTest           = true
+	localTest           = false
 	plaintextAlgorithm  = "plaintext"
 	ciphertextAlgorithm = "ciphertext"
 )
