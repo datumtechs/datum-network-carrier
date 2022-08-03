@@ -13,6 +13,7 @@ func Sender(userType commonconstantpb.UserType, hash common.Hash, sig []byte) (s
 
 	switch userType {
 	case commonconstantpb.UserType_User_1: // PlatON
+		fmt.Println(1233)
 		return SignFunc(params.CarrierConfig().BlockChainIdCache[userType])(hash, sig)
 	case commonconstantpb.UserType_User_2: // Alaya
 		return "", nil

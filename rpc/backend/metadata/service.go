@@ -193,8 +193,6 @@ func (svr *Server) PublishMetadataByInteranlMetadata(ctx context.Context, req *c
 	if "" == strings.Trim(req.GetInformation().GetMetadataOption(), "") {
 		return &carrierapipb.PublishMetadataResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require metadataOption"}, nil
 	}
-	// AllowExpose
-	// TokenAddress
 
 	metadataId := strings.Trim(req.GetInformation().GetMetadataId(), "")
 
@@ -212,21 +210,23 @@ func (svr *Server) PublishMetadataByInteranlMetadata(ctx context.Context, req *c
 	metadataMsg := &types.MetadataMsg{
 		MetadataSummary: &carriertypespb.MetadataSummary{
 			/**
-			MetadataId           string
-			MetadataName         string
-			MetadataType         MetadataType
-			DataHash             string
-			Desc                 string
-			LocationType         DataLocationType
-			DataType             OrigindataType
-			Industry             string
-			State                MetadataState
-			PublishAt            uint64
-			UpdateAt             uint64
-			Nonce                uint64
-			MetadataOption       string
-			AllowExpose          bool
-			TokenAddress         string
+			MetadataId     string
+			MetadataName   string
+			MetadataType   constant.MetadataType
+			DataHash       string
+			Desc           string
+			LocationType   constant.DataLocationTy
+			DataType       constant.OrigindataType
+			Industry       string
+			State          constant.MetadataState
+			PublishAt      uint64
+			UpdateAt       uint64
+			Nonce          uint64
+			MetadataOption string
+			// add by v0.5.0
+			User                 string
+			UserType             constant.UserType
+			Sign                 []byte
 			*/
 			MetadataId:     req.GetInformation().GetMetadataId(),
 			MetadataName:   req.GetInformation().GetMetadataName(),
@@ -312,8 +312,6 @@ func (svr *Server) PublishMetadataByTaskResultFile(ctx context.Context, req *car
 	if "" == strings.Trim(req.GetInformation().GetMetadataOption(), "") {
 		return &carrierapipb.PublishMetadataResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require metadataOption"}, nil
 	}
-	// AllowExpose
-	// TokenAddress
 	taskResultDataSummary, err := svr.B.QueryTaskResultDataSummary(req.GetTaskId())
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:PublishMetadataByTaskResultFile-QueryTaskResultDataSummary failed, taskId: {%s}", req.GetTaskId())
@@ -338,21 +336,23 @@ func (svr *Server) PublishMetadataByTaskResultFile(ctx context.Context, req *car
 	metadataMsg := &types.MetadataMsg{
 		MetadataSummary: &carriertypespb.MetadataSummary{
 			/**
-			MetadataId           string
-			MetadataName         string
-			MetadataType         MetadataType
-			DataHash             string
-			Desc                 string
-			LocationType         DataLocationType
-			DataType             OrigindataType
-			Industry             string
-			State                MetadataState
-			PublishAt            uint64
-			UpdateAt             uint64
-			Nonce                uint64
-			MetadataOption       string
-			AllowExpose          bool
-			TokenAddress         string
+			MetadataId     string
+			MetadataName   string
+			MetadataType   constant.MetadataType
+			DataHash       string
+			Desc           string
+			LocationType   constant.DataLocationTy
+			DataType       constant.OrigindataType
+			Industry       string
+			State          constant.MetadataState
+			PublishAt      uint64
+			UpdateAt       uint64
+			Nonce          uint64
+			MetadataOption string
+			// add by v0.5.0
+			User                 string
+			UserType             constant.UserType
+			Sign                 []byte
 			*/
 			MetadataId:     req.GetInformation().GetMetadataId(),
 			MetadataName:   req.GetInformation().GetMetadataName(),
@@ -448,6 +448,25 @@ func (svr *Server) UpdateMetadata(ctx context.Context, req *carrierapipb.UpdateM
 	}
 
 	metadataUpdateMsg := &types.MetadataUpdateMsg{
+		/*
+			MetadataId     string
+			MetadataName   string
+			MetadataType   constant.MetadataType
+			DataHash       string
+			Desc           string
+			LocationType   constant.DataLocationTy
+			DataType       constant.OrigindataType
+			Industry       string
+			State          constant.MetadataState
+			PublishAt      uint64
+			UpdateAt       uint64
+			Nonce          uint64
+			MetadataOption string
+			// add by v0.5.0
+			User                 string
+			UserType             constant.UserType
+			Sign                 []byte
+		*/
 		MetadataSummary: &carriertypespb.MetadataSummary{
 			MetadataId:     req.GetInformation().GetMetadataId(),
 			MetadataName:   req.GetInformation().GetMetadataName(),

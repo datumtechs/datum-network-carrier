@@ -293,21 +293,23 @@ func NewMetadataMessageFromRequest(req *carrierapipb.PublishMetadataRequest) *Me
 	metadataMsg := &MetadataMsg{
 		MetadataSummary: &carriertypespb.MetadataSummary{
 			/**
-			MetadataId           string
-			MetadataName         string
-			MetadataType         MetadataType
-			DataHash             string
-			Desc                 string
-			LocationType         DataLocationType
-			DataType             OrigindataType
-			Industry             string
-			State                MetadataState
-			PublishAt            uint64
-			UpdateAt             uint64
-			Nonce                uint64
-			MetadataOption       string
-			AllowExpose          bool
-			TokenAddress         string
+			MetadataId     string
+			MetadataName   string
+			MetadataType   constant.MetadataType
+			DataHash       string
+			Desc           string
+			LocationType   constant.DataLocationTyp
+			DataType       constant.OrigindataType
+			Industry       string
+			State          constant.MetadataState
+			PublishAt      uint64
+			UpdateAt       uint64
+			Nonce          uint64
+			MetadataOption string
+			// add by v0.5.0
+			User                 string
+			UserType             constant.UserType
+			Sign                 []byte
 			*/
 			MetadataId:     req.GetInformation().GetMetadataId(),
 			MetadataName:   req.GetInformation().GetMetadataName(),
@@ -322,6 +324,9 @@ func NewMetadataMessageFromRequest(req *carrierapipb.PublishMetadataRequest) *Me
 			UpdateAt:       req.GetInformation().GetUpdateAt(),
 			Nonce:          req.GetInformation().GetNonce(),
 			MetadataOption: req.GetInformation().GetMetadataOption(),
+			UserType:       req.GetInformation().GetUserType(),
+			User:           req.GetInformation().GetUser(),
+			Sign:           req.GetInformation().GetSign(),
 		},
 		CreateAt: timeutils.UnixMsecUint64(),
 	}
@@ -332,24 +337,26 @@ func NewMetadataMessageFromRequest(req *carrierapipb.PublishMetadataRequest) *Me
 func (msg *MetadataMsg) ToDataCenter(identity *carriertypespb.Organization) *Metadata {
 	return NewMetadata(&carriertypespb.MetadataPB{
 		/**
-		MetadataId           string
-		Owner                *Organization
-		DataId               string
-		DataStatus           DataStatus
-		MetadataName         string
-		MetadataType         MetadataType
-		DataHash             string
-		Desc                 string
-		LocationType         DataLocationType
-		DataType             OrigindataType
-		Industry             string
-		State                MetadataState
-		PublishAt            uint64
-		UpdateAt             uint64
-		Nonce                uint64
-		MetadataOption       string
-		AllowExpose          bool
-		TokenAddress         string
+		MetadataId     string
+		Owner          *Organization
+		DataId         string
+		DataStatus     constant.DataStatus
+		MetadataName   string
+		MetadataType   constant.MetadataType
+		DataHash       string
+		Desc           string
+		LocationType   constant.DataLocationTy
+		DataType       constant.OrigindataType
+		Industry       string
+		State          constant.MetadataState
+		PublishAt      uint64
+		UpdateAt       uint64
+		Nonce          uint64
+		MetadataOption string
+		// add by v0.5.0
+		User                 string
+		UserType             constant.UserType
+		Sign                 []byte
 		*/
 		MetadataId:     msg.GetMetadataId(),
 		Owner:          identity,
@@ -367,6 +374,9 @@ func (msg *MetadataMsg) ToDataCenter(identity *carriertypespb.Organization) *Met
 		UpdateAt:       timeutils.UnixMsecUint64(),
 		Nonce:          msg.GetNonce(),
 		MetadataOption: msg.GetMetadataOption(),
+		UserType:       msg.GetUserType(),
+		User:           msg.GetUser(),
+		Sign:           msg.GetSign(),
 	})
 }
 func (msg *MetadataMsg) Marshal() ([]byte, error) { return nil, nil }
@@ -403,7 +413,11 @@ func (msg *MetadataMsg) GetIndustry() string       { return msg.GetMetadataSumma
 func (msg *MetadataMsg) GetMetadataOption() string { return msg.GetMetadataSummary().MetadataOption }
 func (msg *MetadataMsg) GetCreateAt() uint64       { return msg.CreateAt }
 func (msg *MetadataMsg) GetMetadataId() string     { return msg.GetMetadataSummary().MetadataId }
-
+func (msg *MetadataMsg) GetUser() string           { return msg.GetMetadataSummary().User }
+func (msg *MetadataMsg) GetUserType() commonconstantpb.UserType {
+	return msg.GetMetadataSummary().UserType
+}
+func (msg *MetadataMsg) GetSign() []byte { return msg.GetMetadataSummary().Sign }
 func (msg *MetadataMsg) GenMetadataId() string {
 	if "" != msg.GetMetadataId() {
 		return msg.GetMetadataId()
