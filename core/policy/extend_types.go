@@ -83,21 +83,22 @@ func NewGlobalMetadataInfoFromMetadata(input *types.Metadata) *carrierapipb.GetG
 		Information: &carriertypespb.MetadataDetail{
 			MetadataSummary: &carriertypespb.MetadataSummary{
 				/**
-				MetadataId           string
-				MetadataName         string
-				MetadataType         MetadataType
-				DataHash             string
-				Desc                 string
-				LocationType         DataLocationType
-				DataType             OrigindataType
-				Industry             string
-				State                MetadataState
-				PublishAt            uint64
-				UpdateAt             uint64
-				Nonce                uint64
-				MetadataOption       string
-				AllowExpose          bool
-				TokenAddress         string
+				MetadataId     string
+				MetadataName   string
+				MetadataType   constant.MetadataType
+				DataHash       string
+				Desc           string
+				LocationType   constant.DataLocationTy
+				DataType       constant.OrigindataType
+				Industry       string
+				State          constant.MetadataState
+				PublishAt      uint64
+				UpdateAt       uint64
+				Nonce          uint64
+				MetadataOption string
+				// add by v0.5.0
+				User                 string
+				UserType             constant.UserType
 				*/
 				MetadataId:     input.GetData().GetDataId(),
 				MetadataName:   input.GetData().GetMetadataName(),
@@ -112,8 +113,9 @@ func NewGlobalMetadataInfoFromMetadata(input *types.Metadata) *carrierapipb.GetG
 				UpdateAt:       input.GetData().GetUpdateAt(),
 				Nonce:          input.GetData().GetNonce(),
 				MetadataOption: input.GetData().GetMetadataOption(),
-				//AllowExpose:    input.GetData().GetAllowExpose(),
-				//TokenAddress:   input.GetData().GetTokenAddress(),
+				User:           input.GetData().GetUser(),
+				UserType:       input.GetData().GetUserType(),
+				Sign:           input.GetData().GetSign(),
 			},
 		},
 	}
@@ -126,21 +128,22 @@ func NewLocalMetadataInfoFromMetadata(isInternal bool, input *types.Metadata) *c
 		Information: &carriertypespb.MetadataDetail{
 			MetadataSummary: &carriertypespb.MetadataSummary{
 				/**
-				MetadataId           string
-				MetadataName         string
-				MetadataType         MetadataType
-				DataHash             string
-				Desc                 string
-				LocationType         DataLocationType
-				DataType             OrigindataType
-				Industry             string
-				State                MetadataState
-				PublishAt            uint64
-				UpdateAt             uint64
-				Nonce                uint64
-				MetadataOption       string
-				AllowExpose          bool
-				TokenAddress         string
+				MetadataId     string
+				MetadataName   string
+				MetadataType   constant.MetadataType
+				DataHash       string
+				Desc           string
+				LocationType   constant.DataLocationTy
+				DataType       constant.OrigindataType
+				Industry       string
+				State          constant.MetadataState
+				PublishAt      uint64
+				UpdateAt       uint64
+				Nonce          uint64
+				MetadataOption string
+				// add by v0.5.0
+				User                 string
+				UserType             constant.UserType
 				*/
 				MetadataId:     input.GetData().GetDataId(),
 				MetadataName:   input.GetData().GetMetadataName(),
@@ -155,8 +158,9 @@ func NewLocalMetadataInfoFromMetadata(isInternal bool, input *types.Metadata) *c
 				UpdateAt:       input.GetData().GetUpdateAt(),
 				Nonce:          input.GetData().GetNonce(),
 				MetadataOption: input.GetData().GetMetadataOption(),
-				//AllowExpose:    input.GetData().GetAllowExpose(),
-				//TokenAddress:   input.GetData().GetTokenAddress(),
+				User:           input.GetData().GetUser(),
+				UserType:       input.GetData().GetUserType(),
+				Sign:           input.GetData().GetSign(),
 			},
 			TotalTaskCount: 0,
 		},
