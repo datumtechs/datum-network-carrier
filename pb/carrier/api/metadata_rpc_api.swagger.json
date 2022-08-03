@@ -654,6 +654,10 @@
         },
         "user_type": {
           "$ref": "#/definitions/constantUserType"
+        },
+        "sign": {
+          "type": "string",
+          "format": "byte"
         }
       },
       "title": "=============================== For API =========================\n元数据的摘要内容 (不包含详细 列描述)"
@@ -670,7 +674,7 @@
         "identity_id": {
           "type": "string"
         },
-        "ideneity_type": {
+        "identity_type": {
           "$ref": "#/definitions/constantIdentityType"
         },
         "data_status": {
@@ -689,6 +693,14 @@
         },
         "details": {
           "type": "string"
+        },
+        "credential": {
+          "type": "string",
+          "title": "add by v 0.5.0"
+        },
+        "nonce": {
+          "type": "string",
+          "format": "uint64"
         }
       },
       "description": "A represents the basic information of the organization."
@@ -699,7 +711,7 @@
         "status": {
           "type": "integer",
           "format": "int32",
-          "title": "the code for response"
+          "title": "the code for response; 0: SUCCESS"
         },
         "msg": {
           "type": "string",

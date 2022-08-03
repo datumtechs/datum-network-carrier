@@ -557,18 +557,18 @@ func checkCanUpdateMetadataFieldIsLegal(oldMetadata *carriertypespb.MetadataPB, 
 		if consumeTypes[index] == types.ConsumeMetadataAuth {
 			continue
 		} else if consumeTypes[index] == types.ConsumeTk20 {
-			var info []map[string]interface{}
+			var info []*types.MetadataConsumeOptionTK20
 			if err := json.Unmarshal([]byte(consumeOption), &info); err != nil {
 				responseMsg = fmt.Sprintf("json Unmarshal consumeOption %s field", consumeOption)
 				return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: responseMsg}, errors.New(responseMsg)
 			} else {
 				set := make(map[string]struct{}, 0)
 				for _, consumeMap := range info {
-					if consumeMap["contract"] == nil {
+					contractAddress := consumeMap.GetContract()
+					if contractAddress == "" {
 						responseMsg = "tk20 consumeOption no contract field"
 						return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: responseMsg}, errors.New(responseMsg)
 					}
-					contractAddress := consumeMap["contract"].(string)
 					if _, ok := set[contractAddress]; !ok {
 						set[contractAddress] = struct{}{}
 					} else {
@@ -577,17 +577,18 @@ func checkCanUpdateMetadataFieldIsLegal(oldMetadata *carriertypespb.MetadataPB, 
 				}
 			}
 		} else if consumeTypes[index] == types.ConsumeTk721 {
-			var addressArr []string
+			var addressArr []types.MetadataConsumeOptionTK721
 			if err := json.Unmarshal([]byte(consumeOption), &addressArr); err != nil {
 				responseMsg = fmt.Sprintf("tk721 json Unmarshal consumeOption %s field", consumeOption)
 				return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: responseMsg}, errors.New(responseMsg)
 			} else {
 				set := make(map[string]struct{}, 0)
 				for _, address := range addressArr {
-					if _, ok := set[address]; !ok {
-						set[address] = struct{}{}
+					contractAddress := address.GetContract()
+					if _, ok := set[contractAddress]; !ok {
+						set[contractAddress] = struct{}{}
 					} else {
-						duplicateAddress = append(duplicateAddress, address)
+						duplicateAddress = append(duplicateAddress, contractAddress)
 					}
 				}
 			}

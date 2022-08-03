@@ -52,7 +52,7 @@ func setup() {
 
 	WalletManagerInstance().GenerateWallet()
 
-	ethContext := chainclient.NewEthClientContext("https://devnetopenapi2.platon.network/rpc", "", WalletManagerInstance())
+	ethContext := chainclient.NewEthClientContext("https://devnetopenapi2.platon.network/rpc", "lat", WalletManagerInstance())
 
 	payAgent = NewPayAgent(ethContext)
 }
@@ -153,7 +153,7 @@ func TestToken20Pay_EstimateTaskGas(t *testing.T) {
 	tkItem := new(carrierapipb.TkItem)
 	tkItem.TkAddress = tkAddress.Hex()
 	tkItem.TkType = constant.TkType_Tk20
-	tkItem.Value = 1
+	tkItem.Value = "1"
 
 	dataTokenTransferItemList := []*carrierapipb.TkItem{tkItem}
 	gasLimit, gasPrice, err := payAgent.EstimateTaskGas(walletAddress.Hex(), dataTokenTransferItemList)
@@ -174,7 +174,7 @@ func TestToken20Pay_Prepay(t *testing.T) {
 	priKey := hex.EncodeToString(ethcrypto.FromECDSA(key))
 	carrierDB.SaveOrgPriKey(priKey)
 
-	ethContext := chainclient.NewEthClientContext("https://devnetopenapi2.platon.network/rpc", "", WalletManagerInstance())
+	ethContext := chainclient.NewEthClientContext("https://devnetopenapi2.platon.network/rpc", "lat", WalletManagerInstance())
 
 	payAgent = NewPayAgent(ethContext)
 
@@ -188,12 +188,12 @@ func TestToken20Pay_Prepay(t *testing.T) {
 	tkItem1 := new(carrierapipb.TkItem)
 	tkItem1.TkAddress = "0xe19Cfd8F9173155C26149818abd5dEcAA6F705F3"
 	tkItem1.TkType = constant.TkType_Tk20
-	tkItem1.Value = 1
+	tkItem1.Value = "1"
 
 	tkItem2 := new(carrierapipb.TkItem)
 	tkItem2.TkAddress = "0xE88695D3a3BA03ee6bB2130Ffd7869a8E368a0b4"
 	tkItem2.TkType = constant.TkType_Tk20
-	tkItem2.Value = 1
+	tkItem2.Value = "1"
 
 	dataTokenTransferItemList := []*carrierapipb.TkItem{tkItem1, tkItem2}
 

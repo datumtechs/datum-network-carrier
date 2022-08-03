@@ -6,6 +6,7 @@ package api
 import (
 	context "context"
 	fmt "fmt"
+	types "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	proto "github.com/gogo/protobuf/proto"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"
@@ -28,6 +29,69 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+type TxInfo struct {
+	BlockNumber          uint64   `protobuf:"varint,1,opt,name=block_number,json=blockNumber,proto3" json:"block_number,omitempty"`
+	TxHash               string   `protobuf:"bytes,2,opt,name=tx_hash,json=txHash,proto3" json:"tx_hash,omitempty"`
+	TxIndex              uint32   `protobuf:"varint,3,opt,name=tx_index,json=txIndex,proto3" json:"tx_index,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *TxInfo) Reset()         { *m = TxInfo{} }
+func (m *TxInfo) String() string { return proto.CompactTextString(m) }
+func (*TxInfo) ProtoMessage()    {}
+func (*TxInfo) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1996f817b25d14b3, []int{0}
+}
+func (m *TxInfo) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *TxInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_TxInfo.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *TxInfo) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TxInfo.Merge(m, src)
+}
+func (m *TxInfo) XXX_Size() int {
+	return m.Size()
+}
+func (m *TxInfo) XXX_DiscardUnknown() {
+	xxx_messageInfo_TxInfo.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_TxInfo proto.InternalMessageInfo
+
+func (m *TxInfo) GetBlockNumber() uint64 {
+	if m != nil {
+		return m.BlockNumber
+	}
+	return 0
+}
+
+func (m *TxInfo) GetTxHash() string {
+	if m != nil {
+		return m.TxHash
+	}
+	return ""
+}
+
+func (m *TxInfo) GetTxIndex() uint32 {
+	if m != nil {
+		return m.TxIndex
+	}
+	return 0
+}
+
 type CreateDIDResponse struct {
 	Status               int32    `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
 	Msg                  string   `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
@@ -42,7 +106,7 @@ func (m *CreateDIDResponse) Reset()         { *m = CreateDIDResponse{} }
 func (m *CreateDIDResponse) String() string { return proto.CompactTextString(m) }
 func (*CreateDIDResponse) ProtoMessage()    {}
 func (*CreateDIDResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1996f817b25d14b3, []int{0}
+	return fileDescriptor_1996f817b25d14b3, []int{1}
 }
 func (m *CreateDIDResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -99,12 +163,131 @@ func (m *CreateDIDResponse) GetTxInfo() *TxInfo {
 	return nil
 }
 
+type ApplyVCReq struct {
+	IssuerDid            string   `protobuf:"bytes,1,opt,name=issuer_did,json=issuerDid,proto3" json:"issuer_did,omitempty"`
+	IssuerUrl            string   `protobuf:"bytes,2,opt,name=issuer_url,json=issuerUrl,proto3" json:"issuer_url,omitempty"`
+	ApplicantDid         string   `protobuf:"bytes,3,opt,name=applicant_did,json=applicantDid,proto3" json:"applicant_did,omitempty"`
+	Context              string   `protobuf:"bytes,4,opt,name=context,proto3" json:"context,omitempty"`
+	PctId                uint64   `protobuf:"varint,5,opt,name=pct_id,json=pctId,proto3" json:"pct_id,omitempty"`
+	Claim                string   `protobuf:"bytes,6,opt,name=claim,proto3" json:"claim,omitempty"`
+	ExpirationDate       string   `protobuf:"bytes,7,opt,name=expiration_date,json=expirationDate,proto3" json:"expiration_date,omitempty"`
+	ExtInfo              string   `protobuf:"bytes,8,opt,name=ext_info,json=extInfo,proto3" json:"ext_info,omitempty"`
+	ReqDigest            string   `protobuf:"bytes,9,opt,name=req_digest,json=reqDigest,proto3" json:"req_digest,omitempty"`
+	ReqSignature         string   `protobuf:"bytes,10,opt,name=req_signature,json=reqSignature,proto3" json:"req_signature,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ApplyVCReq) Reset()         { *m = ApplyVCReq{} }
+func (m *ApplyVCReq) String() string { return proto.CompactTextString(m) }
+func (*ApplyVCReq) ProtoMessage()    {}
+func (*ApplyVCReq) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1996f817b25d14b3, []int{2}
+}
+func (m *ApplyVCReq) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ApplyVCReq) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ApplyVCReq.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ApplyVCReq) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApplyVCReq.Merge(m, src)
+}
+func (m *ApplyVCReq) XXX_Size() int {
+	return m.Size()
+}
+func (m *ApplyVCReq) XXX_DiscardUnknown() {
+	xxx_messageInfo_ApplyVCReq.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ApplyVCReq proto.InternalMessageInfo
+
+func (m *ApplyVCReq) GetIssuerDid() string {
+	if m != nil {
+		return m.IssuerDid
+	}
+	return ""
+}
+
+func (m *ApplyVCReq) GetIssuerUrl() string {
+	if m != nil {
+		return m.IssuerUrl
+	}
+	return ""
+}
+
+func (m *ApplyVCReq) GetApplicantDid() string {
+	if m != nil {
+		return m.ApplicantDid
+	}
+	return ""
+}
+
+func (m *ApplyVCReq) GetContext() string {
+	if m != nil {
+		return m.Context
+	}
+	return ""
+}
+
+func (m *ApplyVCReq) GetPctId() uint64 {
+	if m != nil {
+		return m.PctId
+	}
+	return 0
+}
+
+func (m *ApplyVCReq) GetClaim() string {
+	if m != nil {
+		return m.Claim
+	}
+	return ""
+}
+
+func (m *ApplyVCReq) GetExpirationDate() string {
+	if m != nil {
+		return m.ExpirationDate
+	}
+	return ""
+}
+
+func (m *ApplyVCReq) GetExtInfo() string {
+	if m != nil {
+		return m.ExtInfo
+	}
+	return ""
+}
+
+func (m *ApplyVCReq) GetReqDigest() string {
+	if m != nil {
+		return m.ReqDigest
+	}
+	return ""
+}
+
+func (m *ApplyVCReq) GetReqSignature() string {
+	if m != nil {
+		return m.ReqSignature
+	}
+	return ""
+}
+
 type CreateVCRequest struct {
-	Did                  string   `protobuf:"bytes,1,opt,name=did,proto3" json:"did,omitempty"`
+	ApplicantDid         string   `protobuf:"bytes,1,opt,name=applicant_did,json=applicantDid,proto3" json:"applicant_did,omitempty"`
 	Context              string   `protobuf:"bytes,2,opt,name=context,proto3" json:"context,omitempty"`
 	PctId                uint64   `protobuf:"varint,3,opt,name=pct_id,json=pctId,proto3" json:"pct_id,omitempty"`
 	Claim                string   `protobuf:"bytes,4,opt,name=claim,proto3" json:"claim,omitempty"`
-	ExpirationDate       string   `protobuf:"bytes,5,opt,name=expirationDate,proto3" json:"expirationDate,omitempty"`
+	ExpirationDate       string   `protobuf:"bytes,5,opt,name=expiration_date,json=expirationDate,proto3" json:"expiration_date,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -114,7 +297,7 @@ func (m *CreateVCRequest) Reset()         { *m = CreateVCRequest{} }
 func (m *CreateVCRequest) String() string { return proto.CompactTextString(m) }
 func (*CreateVCRequest) ProtoMessage()    {}
 func (*CreateVCRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1996f817b25d14b3, []int{1}
+	return fileDescriptor_1996f817b25d14b3, []int{3}
 }
 func (m *CreateVCRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -143,9 +326,9 @@ func (m *CreateVCRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_CreateVCRequest proto.InternalMessageInfo
 
-func (m *CreateVCRequest) GetDid() string {
+func (m *CreateVCRequest) GetApplicantDid() string {
 	if m != nil {
-		return m.Did
+		return m.ApplicantDid
 	}
 	return ""
 }
@@ -192,7 +375,7 @@ func (m *CreateVCResponse) Reset()         { *m = CreateVCResponse{} }
 func (m *CreateVCResponse) String() string { return proto.CompactTextString(m) }
 func (*CreateVCResponse) ProtoMessage()    {}
 func (*CreateVCResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1996f817b25d14b3, []int{2}
+	return fileDescriptor_1996f817b25d14b3, []int{4}
 }
 func (m *CreateVCResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -249,45 +432,747 @@ func (m *CreateVCResponse) GetTxInfo() *TxInfo {
 	return nil
 }
 
+type DownloadVCReq struct {
+	IssuerDid            string   `protobuf:"bytes,1,opt,name=issuer_did,json=issuerDid,proto3" json:"issuer_did,omitempty"`
+	IssuerUrl            string   `protobuf:"bytes,2,opt,name=issuer_url,json=issuerUrl,proto3" json:"issuer_url,omitempty"`
+	ApplicantDid         string   `protobuf:"bytes,3,opt,name=applicant_did,json=applicantDid,proto3" json:"applicant_did,omitempty"`
+	ReqDigest            string   `protobuf:"bytes,4,opt,name=req_digest,json=reqDigest,proto3" json:"req_digest,omitempty"`
+	ReqSignature         string   `protobuf:"bytes,5,opt,name=req_signature,json=reqSignature,proto3" json:"req_signature,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DownloadVCReq) Reset()         { *m = DownloadVCReq{} }
+func (m *DownloadVCReq) String() string { return proto.CompactTextString(m) }
+func (*DownloadVCReq) ProtoMessage()    {}
+func (*DownloadVCReq) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1996f817b25d14b3, []int{5}
+}
+func (m *DownloadVCReq) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *DownloadVCReq) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_DownloadVCReq.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *DownloadVCReq) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DownloadVCReq.Merge(m, src)
+}
+func (m *DownloadVCReq) XXX_Size() int {
+	return m.Size()
+}
+func (m *DownloadVCReq) XXX_DiscardUnknown() {
+	xxx_messageInfo_DownloadVCReq.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DownloadVCReq proto.InternalMessageInfo
+
+func (m *DownloadVCReq) GetIssuerDid() string {
+	if m != nil {
+		return m.IssuerDid
+	}
+	return ""
+}
+
+func (m *DownloadVCReq) GetIssuerUrl() string {
+	if m != nil {
+		return m.IssuerUrl
+	}
+	return ""
+}
+
+func (m *DownloadVCReq) GetApplicantDid() string {
+	if m != nil {
+		return m.ApplicantDid
+	}
+	return ""
+}
+
+func (m *DownloadVCReq) GetReqDigest() string {
+	if m != nil {
+		return m.ReqDigest
+	}
+	return ""
+}
+
+func (m *DownloadVCReq) GetReqSignature() string {
+	if m != nil {
+		return m.ReqSignature
+	}
+	return ""
+}
+
+type DownloadVCResponse struct {
+	Status               int32    `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
+	Msg                  string   `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
+	Vc                   string   `protobuf:"bytes,3,opt,name=vc,proto3" json:"vc,omitempty"`
+	ExtInfo              string   `protobuf:"bytes,4,opt,name=ext_info,json=extInfo,proto3" json:"ext_info,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DownloadVCResponse) Reset()         { *m = DownloadVCResponse{} }
+func (m *DownloadVCResponse) String() string { return proto.CompactTextString(m) }
+func (*DownloadVCResponse) ProtoMessage()    {}
+func (*DownloadVCResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1996f817b25d14b3, []int{6}
+}
+func (m *DownloadVCResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *DownloadVCResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_DownloadVCResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *DownloadVCResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DownloadVCResponse.Merge(m, src)
+}
+func (m *DownloadVCResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *DownloadVCResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_DownloadVCResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DownloadVCResponse proto.InternalMessageInfo
+
+func (m *DownloadVCResponse) GetStatus() int32 {
+	if m != nil {
+		return m.Status
+	}
+	return 0
+}
+
+func (m *DownloadVCResponse) GetMsg() string {
+	if m != nil {
+		return m.Msg
+	}
+	return ""
+}
+
+func (m *DownloadVCResponse) GetVc() string {
+	if m != nil {
+		return m.Vc
+	}
+	return ""
+}
+
+func (m *DownloadVCResponse) GetExtInfo() string {
+	if m != nil {
+		return m.ExtInfo
+	}
+	return ""
+}
+
+// -- proposal --
+type SubmitProposalRequest struct {
+	ProposalType         int32    `protobuf:"varint,1,opt,name=proposal_type,json=proposalType,proto3" json:"proposal_type,omitempty"`
+	ProposalUrl          string   `protobuf:"bytes,2,opt,name=proposal_url,json=proposalUrl,proto3" json:"proposal_url,omitempty"`
+	CandidateAddress     string   `protobuf:"bytes,3,opt,name=candidate_address,json=candidateAddress,proto3" json:"candidate_address,omitempty"`
+	CandidateServiceUrl  string   `protobuf:"bytes,4,opt,name=candidate_service_url,json=candidateServiceUrl,proto3" json:"candidate_service_url,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SubmitProposalRequest) Reset()         { *m = SubmitProposalRequest{} }
+func (m *SubmitProposalRequest) String() string { return proto.CompactTextString(m) }
+func (*SubmitProposalRequest) ProtoMessage()    {}
+func (*SubmitProposalRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1996f817b25d14b3, []int{7}
+}
+func (m *SubmitProposalRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *SubmitProposalRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_SubmitProposalRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *SubmitProposalRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SubmitProposalRequest.Merge(m, src)
+}
+func (m *SubmitProposalRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *SubmitProposalRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SubmitProposalRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SubmitProposalRequest proto.InternalMessageInfo
+
+func (m *SubmitProposalRequest) GetProposalType() int32 {
+	if m != nil {
+		return m.ProposalType
+	}
+	return 0
+}
+
+func (m *SubmitProposalRequest) GetProposalUrl() string {
+	if m != nil {
+		return m.ProposalUrl
+	}
+	return ""
+}
+
+func (m *SubmitProposalRequest) GetCandidateAddress() string {
+	if m != nil {
+		return m.CandidateAddress
+	}
+	return ""
+}
+
+func (m *SubmitProposalRequest) GetCandidateServiceUrl() string {
+	if m != nil {
+		return m.CandidateServiceUrl
+	}
+	return ""
+}
+
+type SubmitProposalResponse struct {
+	Status               int32    `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
+	Msg                  string   `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
+	ProposalId           string   `protobuf:"bytes,3,opt,name=proposalId,proto3" json:"proposalId,omitempty"`
+	TxInfo               *TxInfo  `protobuf:"bytes,4,opt,name=tx_info,json=txInfo,proto3" json:"tx_info,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SubmitProposalResponse) Reset()         { *m = SubmitProposalResponse{} }
+func (m *SubmitProposalResponse) String() string { return proto.CompactTextString(m) }
+func (*SubmitProposalResponse) ProtoMessage()    {}
+func (*SubmitProposalResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1996f817b25d14b3, []int{8}
+}
+func (m *SubmitProposalResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *SubmitProposalResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_SubmitProposalResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *SubmitProposalResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SubmitProposalResponse.Merge(m, src)
+}
+func (m *SubmitProposalResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *SubmitProposalResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_SubmitProposalResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SubmitProposalResponse proto.InternalMessageInfo
+
+func (m *SubmitProposalResponse) GetStatus() int32 {
+	if m != nil {
+		return m.Status
+	}
+	return 0
+}
+
+func (m *SubmitProposalResponse) GetMsg() string {
+	if m != nil {
+		return m.Msg
+	}
+	return ""
+}
+
+func (m *SubmitProposalResponse) GetProposalId() string {
+	if m != nil {
+		return m.ProposalId
+	}
+	return ""
+}
+
+func (m *SubmitProposalResponse) GetTxInfo() *TxInfo {
+	if m != nil {
+		return m.TxInfo
+	}
+	return nil
+}
+
+type WithdrawProposalRequest struct {
+	ProposalId           string   `protobuf:"bytes,1,opt,name=proposal_id,json=proposalId,proto3" json:"proposal_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *WithdrawProposalRequest) Reset()         { *m = WithdrawProposalRequest{} }
+func (m *WithdrawProposalRequest) String() string { return proto.CompactTextString(m) }
+func (*WithdrawProposalRequest) ProtoMessage()    {}
+func (*WithdrawProposalRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1996f817b25d14b3, []int{9}
+}
+func (m *WithdrawProposalRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *WithdrawProposalRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_WithdrawProposalRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *WithdrawProposalRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_WithdrawProposalRequest.Merge(m, src)
+}
+func (m *WithdrawProposalRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *WithdrawProposalRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_WithdrawProposalRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_WithdrawProposalRequest proto.InternalMessageInfo
+
+func (m *WithdrawProposalRequest) GetProposalId() string {
+	if m != nil {
+		return m.ProposalId
+	}
+	return ""
+}
+
+type WithdrawProposalResponse struct {
+	Status               int32    `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
+	Msg                  string   `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
+	Result               bool     `protobuf:"varint,3,opt,name=result,proto3" json:"result,omitempty"`
+	TxInfo               *TxInfo  `protobuf:"bytes,4,opt,name=tx_info,json=txInfo,proto3" json:"tx_info,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *WithdrawProposalResponse) Reset()         { *m = WithdrawProposalResponse{} }
+func (m *WithdrawProposalResponse) String() string { return proto.CompactTextString(m) }
+func (*WithdrawProposalResponse) ProtoMessage()    {}
+func (*WithdrawProposalResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1996f817b25d14b3, []int{10}
+}
+func (m *WithdrawProposalResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *WithdrawProposalResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_WithdrawProposalResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *WithdrawProposalResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_WithdrawProposalResponse.Merge(m, src)
+}
+func (m *WithdrawProposalResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *WithdrawProposalResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_WithdrawProposalResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_WithdrawProposalResponse proto.InternalMessageInfo
+
+func (m *WithdrawProposalResponse) GetStatus() int32 {
+	if m != nil {
+		return m.Status
+	}
+	return 0
+}
+
+func (m *WithdrawProposalResponse) GetMsg() string {
+	if m != nil {
+		return m.Msg
+	}
+	return ""
+}
+
+func (m *WithdrawProposalResponse) GetResult() bool {
+	if m != nil {
+		return m.Result
+	}
+	return false
+}
+
+func (m *WithdrawProposalResponse) GetTxInfo() *TxInfo {
+	if m != nil {
+		return m.TxInfo
+	}
+	return nil
+}
+
+type VoteProposalRequest struct {
+	ProposalId           string   `protobuf:"bytes,1,opt,name=proposal_id,json=proposalId,proto3" json:"proposal_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *VoteProposalRequest) Reset()         { *m = VoteProposalRequest{} }
+func (m *VoteProposalRequest) String() string { return proto.CompactTextString(m) }
+func (*VoteProposalRequest) ProtoMessage()    {}
+func (*VoteProposalRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1996f817b25d14b3, []int{11}
+}
+func (m *VoteProposalRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *VoteProposalRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_VoteProposalRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *VoteProposalRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_VoteProposalRequest.Merge(m, src)
+}
+func (m *VoteProposalRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *VoteProposalRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_VoteProposalRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_VoteProposalRequest proto.InternalMessageInfo
+
+func (m *VoteProposalRequest) GetProposalId() string {
+	if m != nil {
+		return m.ProposalId
+	}
+	return ""
+}
+
+type VoteProposalResponse struct {
+	Status               int32    `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
+	Msg                  string   `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
+	Result               bool     `protobuf:"varint,3,opt,name=result,proto3" json:"result,omitempty"`
+	TxInfo               *TxInfo  `protobuf:"bytes,4,opt,name=tx_info,json=txInfo,proto3" json:"tx_info,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *VoteProposalResponse) Reset()         { *m = VoteProposalResponse{} }
+func (m *VoteProposalResponse) String() string { return proto.CompactTextString(m) }
+func (*VoteProposalResponse) ProtoMessage()    {}
+func (*VoteProposalResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1996f817b25d14b3, []int{12}
+}
+func (m *VoteProposalResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *VoteProposalResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_VoteProposalResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *VoteProposalResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_VoteProposalResponse.Merge(m, src)
+}
+func (m *VoteProposalResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *VoteProposalResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_VoteProposalResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_VoteProposalResponse proto.InternalMessageInfo
+
+func (m *VoteProposalResponse) GetStatus() int32 {
+	if m != nil {
+		return m.Status
+	}
+	return 0
+}
+
+func (m *VoteProposalResponse) GetMsg() string {
+	if m != nil {
+		return m.Msg
+	}
+	return ""
+}
+
+func (m *VoteProposalResponse) GetResult() bool {
+	if m != nil {
+		return m.Result
+	}
+	return false
+}
+
+func (m *VoteProposalResponse) GetTxInfo() *TxInfo {
+	if m != nil {
+		return m.TxInfo
+	}
+	return nil
+}
+
+type EffectProposalRequest struct {
+	ProposalId           string   `protobuf:"bytes,1,opt,name=proposal_id,json=proposalId,proto3" json:"proposal_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *EffectProposalRequest) Reset()         { *m = EffectProposalRequest{} }
+func (m *EffectProposalRequest) String() string { return proto.CompactTextString(m) }
+func (*EffectProposalRequest) ProtoMessage()    {}
+func (*EffectProposalRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1996f817b25d14b3, []int{13}
+}
+func (m *EffectProposalRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EffectProposalRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EffectProposalRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EffectProposalRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EffectProposalRequest.Merge(m, src)
+}
+func (m *EffectProposalRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *EffectProposalRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_EffectProposalRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EffectProposalRequest proto.InternalMessageInfo
+
+func (m *EffectProposalRequest) GetProposalId() string {
+	if m != nil {
+		return m.ProposalId
+	}
+	return ""
+}
+
+type EffectProposalResponse struct {
+	Status               int32    `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
+	Msg                  string   `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
+	Result               bool     `protobuf:"varint,3,opt,name=result,proto3" json:"result,omitempty"`
+	TxInfo               *TxInfo  `protobuf:"bytes,4,opt,name=tx_info,json=txInfo,proto3" json:"tx_info,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *EffectProposalResponse) Reset()         { *m = EffectProposalResponse{} }
+func (m *EffectProposalResponse) String() string { return proto.CompactTextString(m) }
+func (*EffectProposalResponse) ProtoMessage()    {}
+func (*EffectProposalResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1996f817b25d14b3, []int{14}
+}
+func (m *EffectProposalResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EffectProposalResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EffectProposalResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EffectProposalResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EffectProposalResponse.Merge(m, src)
+}
+func (m *EffectProposalResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *EffectProposalResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_EffectProposalResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EffectProposalResponse proto.InternalMessageInfo
+
+func (m *EffectProposalResponse) GetStatus() int32 {
+	if m != nil {
+		return m.Status
+	}
+	return 0
+}
+
+func (m *EffectProposalResponse) GetMsg() string {
+	if m != nil {
+		return m.Msg
+	}
+	return ""
+}
+
+func (m *EffectProposalResponse) GetResult() bool {
+	if m != nil {
+		return m.Result
+	}
+	return false
+}
+
+func (m *EffectProposalResponse) GetTxInfo() *TxInfo {
+	if m != nil {
+		return m.TxInfo
+	}
+	return nil
+}
+
 func init() {
+	proto.RegisterType((*TxInfo)(nil), "carrier.api.TxInfo")
 	proto.RegisterType((*CreateDIDResponse)(nil), "carrier.api.CreateDIDResponse")
+	proto.RegisterType((*ApplyVCReq)(nil), "carrier.api.ApplyVCReq")
 	proto.RegisterType((*CreateVCRequest)(nil), "carrier.api.CreateVCRequest")
 	proto.RegisterType((*CreateVCResponse)(nil), "carrier.api.CreateVCResponse")
+	proto.RegisterType((*DownloadVCReq)(nil), "carrier.api.DownloadVCReq")
+	proto.RegisterType((*DownloadVCResponse)(nil), "carrier.api.DownloadVCResponse")
+	proto.RegisterType((*SubmitProposalRequest)(nil), "carrier.api.SubmitProposalRequest")
+	proto.RegisterType((*SubmitProposalResponse)(nil), "carrier.api.SubmitProposalResponse")
+	proto.RegisterType((*WithdrawProposalRequest)(nil), "carrier.api.WithdrawProposalRequest")
+	proto.RegisterType((*WithdrawProposalResponse)(nil), "carrier.api.WithdrawProposalResponse")
+	proto.RegisterType((*VoteProposalRequest)(nil), "carrier.api.VoteProposalRequest")
+	proto.RegisterType((*VoteProposalResponse)(nil), "carrier.api.VoteProposalResponse")
+	proto.RegisterType((*EffectProposalRequest)(nil), "carrier.api.EffectProposalRequest")
+	proto.RegisterType((*EffectProposalResponse)(nil), "carrier.api.EffectProposalResponse")
 }
 
 func init() { proto.RegisterFile("carrier/api/did_rpc_api.proto", fileDescriptor_1996f817b25d14b3) }
 
 var fileDescriptor_1996f817b25d14b3 = []byte{
-	// 461 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x52, 0xc1, 0x6e, 0xd3, 0x40,
-	0x10, 0xd5, 0xa6, 0x4d, 0x4a, 0xb6, 0x52, 0x29, 0x0b, 0x54, 0x6e, 0x68, 0xac, 0xc8, 0x20, 0x14,
-	0x55, 0xd4, 0x16, 0xe5, 0x96, 0x23, 0x31, 0x12, 0xb9, 0x1a, 0xd4, 0x03, 0x97, 0x68, 0xb3, 0x9e,
-	0xa4, 0x2b, 0x62, 0xef, 0xb2, 0x1e, 0x87, 0x80, 0xc4, 0x85, 0x4f, 0x80, 0x9f, 0xe2, 0x88, 0xc4,
-	0x0f, 0xa0, 0x08, 0xfe, 0x03, 0x65, 0xbd, 0x6e, 0x03, 0xb4, 0x87, 0x9e, 0xec, 0x99, 0x37, 0x7a,
-	0x6f, 0xf6, 0xbd, 0xa1, 0x5d, 0xc1, 0x8d, 0x91, 0x60, 0x22, 0xae, 0x65, 0x94, 0xca, 0x74, 0x6c,
-	0xb4, 0x18, 0x73, 0x2d, 0x43, 0x6d, 0x14, 0x2a, 0xb6, 0xeb, 0xe0, 0x90, 0x6b, 0xd9, 0x39, 0x9a,
-	0x29, 0x35, 0x9b, 0x83, 0x1d, 0xe5, 0x79, 0xae, 0x90, 0xa3, 0x54, 0x79, 0x51, 0x8d, 0x76, 0x1e,
-	0x38, 0xd4, 0x56, 0x93, 0x72, 0x1a, 0x41, 0xa6, 0xf1, 0x83, 0x03, 0x0f, 0x37, 0x65, 0x70, 0x39,
-	0x96, 0xf9, 0x54, 0x55, 0x50, 0xf0, 0x89, 0xde, 0x19, 0x1a, 0xe0, 0x08, 0xf1, 0x28, 0x4e, 0xa0,
-	0xd0, 0x2a, 0x2f, 0x80, 0x1d, 0xd0, 0x56, 0x81, 0x1c, 0xcb, 0xc2, 0x23, 0x3d, 0xd2, 0x6f, 0x26,
-	0xae, 0x62, 0xfb, 0x74, 0x2b, 0x2b, 0x66, 0x5e, 0xa3, 0x47, 0xfa, 0xed, 0x64, 0xfd, 0xbb, 0xee,
-	0xa4, 0x32, 0xf5, 0xb6, 0xaa, 0x4e, 0x2a, 0x53, 0xf6, 0x84, 0xee, 0x38, 0x05, 0x6f, 0xbb, 0x47,
-	0xfa, 0xbb, 0xa7, 0x77, 0xc3, 0x8d, 0x57, 0x84, 0xaf, 0x97, 0xa3, 0x7c, 0xaa, 0x92, 0x16, 0xda,
-	0x6f, 0xf0, 0x85, 0xd0, 0xdb, 0x95, 0xfe, 0xd9, 0x30, 0x81, 0x77, 0x25, 0x14, 0x58, 0x73, 0x92,
-	0x4b, 0x4e, 0x8f, 0xee, 0x08, 0x95, 0x23, 0x2c, 0xd1, 0x69, 0xd7, 0x25, 0xbb, 0x4f, 0x5b, 0x5a,
-	0xe0, 0xd8, 0xad, 0xb0, 0x9d, 0x34, 0xb5, 0xc0, 0x51, 0xca, 0xee, 0xd1, 0xa6, 0x98, 0x73, 0x99,
-	0xd9, 0x15, 0xda, 0x49, 0x55, 0xb0, 0xc7, 0x74, 0x0f, 0x96, 0x5a, 0x1a, 0x6b, 0x5c, 0xcc, 0x11,
-	0xbc, 0xa6, 0x85, 0xff, 0xe9, 0x06, 0x1f, 0xe9, 0xfe, 0xe5, 0x4e, 0x37, 0xb6, 0x64, 0x8f, 0x36,
-	0x16, 0xc2, 0x39, 0xd2, 0x58, 0x88, 0x9b, 0x19, 0x72, 0xfa, 0x9b, 0x50, 0x1a, 0x8f, 0xe2, 0x57,
-	0x60, 0x16, 0x52, 0x00, 0x93, 0xb4, 0x7d, 0x11, 0x0f, 0x3b, 0x08, 0xab, 0x90, 0xc3, 0x3a, 0xe4,
-	0xf0, 0xc5, 0x3a, 0xe4, 0x8e, 0xff, 0x17, 0xe1, 0x7f, 0x71, 0x06, 0x8f, 0x3e, 0xff, 0xf8, 0xf5,
-	0xb5, 0xe1, 0x07, 0x87, 0x51, 0x7d, 0x07, 0x8b, 0xa7, 0xeb, 0x6b, 0x8b, 0x44, 0x3d, 0x3a, 0x20,
-	0xc7, 0x6c, 0x4e, 0x6f, 0xd5, 0xaf, 0x66, 0x47, 0x57, 0x30, 0x5e, 0x04, 0xd4, 0xe9, 0x5e, 0x83,
-	0x3a, 0xb9, 0x87, 0x56, 0xae, 0x1b, 0x78, 0x57, 0xcb, 0x9d, 0x0d, 0x07, 0xe4, 0xf8, 0xf9, 0xcb,
-	0x6f, 0x2b, 0x9f, 0x7c, 0x5f, 0xf9, 0xe4, 0xe7, 0xca, 0x27, 0x6f, 0x06, 0x33, 0x89, 0xe7, 0xe5,
-	0x24, 0x14, 0x2a, 0x8b, 0x52, 0x8e, 0x65, 0x86, 0x20, 0xce, 0x8b, 0xea, 0xf7, 0x24, 0x07, 0x7c,
-	0xaf, 0xcc, 0xdb, 0x93, 0x9a, 0x4d, 0x4f, 0xa2, 0x8d, 0x7b, 0x9e, 0xb4, 0xac, 0x1b, 0xcf, 0xfe,
-	0x04, 0x00, 0x00, 0xff, 0xff, 0x44, 0xeb, 0x44, 0x45, 0x4c, 0x03, 0x00, 0x00,
+	// 1148 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xc4, 0x57, 0x4f, 0x6f, 0x1b, 0x45,
+	0x14, 0xd7, 0x38, 0xb6, 0x13, 0xbf, 0xfc, 0xed, 0xa6, 0x49, 0xb6, 0x26, 0x76, 0x9c, 0x4d, 0x42,
+	0xad, 0xb4, 0xb5, 0x21, 0x48, 0x08, 0xe5, 0x56, 0xe2, 0x4a, 0xb5, 0x84, 0x10, 0x72, 0xda, 0x20,
+	0x71, 0x59, 0x8d, 0x77, 0x27, 0xf6, 0xa8, 0xeb, 0x9d, 0xcd, 0xec, 0x38, 0x71, 0x2a, 0x38, 0xc0,
+	0x01, 0x01, 0x27, 0x10, 0xdf, 0x81, 0x8f, 0xc0, 0x11, 0xc1, 0x8d, 0x23, 0x12, 0x07, 0xae, 0x28,
+	0xe2, 0x83, 0xa0, 0x99, 0xfd, 0xe3, 0x5d, 0x77, 0x93, 0xc8, 0x54, 0xa2, 0xa7, 0xec, 0xbc, 0x37,
+	0xf3, 0x7e, 0xbf, 0xf7, 0x7b, 0xcf, 0x6f, 0x26, 0x50, 0xb1, 0x30, 0xe7, 0x94, 0xf0, 0x26, 0xf6,
+	0x68, 0xd3, 0xa6, 0xb6, 0xc9, 0x3d, 0xcb, 0xc4, 0x1e, 0x6d, 0x78, 0x9c, 0x09, 0xa6, 0xcd, 0x87,
+	0xee, 0x06, 0xf6, 0x68, 0x79, 0xb3, 0xc7, 0x58, 0xcf, 0x21, 0x6a, 0x2b, 0x76, 0x5d, 0x26, 0xb0,
+	0xa0, 0xcc, 0xf5, 0x83, 0xad, 0xe5, 0xb7, 0x42, 0xaf, 0x5a, 0x75, 0x87, 0xa7, 0x4d, 0x32, 0xf0,
+	0xc4, 0x65, 0xe8, 0x2c, 0x47, 0x30, 0xe2, 0xd2, 0x23, 0x7e, 0xd3, 0x62, 0x83, 0x01, 0x73, 0x03,
+	0x9f, 0x61, 0x42, 0xf1, 0xd9, 0xa8, 0xed, 0x9e, 0x32, 0x6d, 0x1b, 0x16, 0xba, 0x0e, 0xb3, 0x5e,
+	0x98, 0xee, 0x70, 0xd0, 0x25, 0x5c, 0x47, 0x35, 0x54, 0xcf, 0x77, 0xe6, 0x95, 0xed, 0x63, 0x65,
+	0xd2, 0x36, 0x60, 0x56, 0x8c, 0xcc, 0x3e, 0xf6, 0xfb, 0x7a, 0xae, 0x86, 0xea, 0xa5, 0x4e, 0x51,
+	0x8c, 0x9e, 0x62, 0xbf, 0xaf, 0xdd, 0x83, 0x39, 0x31, 0x32, 0xa9, 0x6b, 0x93, 0x91, 0x3e, 0x53,
+	0x43, 0xf5, 0xc5, 0xce, 0xac, 0x18, 0xb5, 0xe5, 0xd2, 0xf8, 0x02, 0xee, 0x1c, 0x71, 0x82, 0x05,
+	0x69, 0xb5, 0x5b, 0x1d, 0xe2, 0x7b, 0xcc, 0xf5, 0x89, 0xb6, 0x0e, 0x45, 0x5f, 0x60, 0x31, 0xf4,
+	0x15, 0x4a, 0xa1, 0x13, 0xae, 0xb4, 0x15, 0x98, 0x19, 0xf8, 0xbd, 0x30, 0xb8, 0xfc, 0x94, 0x16,
+	0x9b, 0xda, 0x2a, 0x68, 0xa9, 0x23, 0x3f, 0xb5, 0x87, 0x8a, 0x04, 0x75, 0x4f, 0x99, 0x9e, 0xaf,
+	0xa1, 0xfa, 0xfc, 0xc1, 0x6a, 0x23, 0xa1, 0x53, 0x23, 0xc8, 0x46, 0x32, 0x93, 0x7f, 0x8d, 0x5f,
+	0x72, 0x00, 0x8f, 0x3d, 0xcf, 0xb9, 0x3c, 0x39, 0xea, 0x90, 0x33, 0xad, 0x02, 0x40, 0x7d, 0x7f,
+	0x48, 0xb8, 0x29, 0xa3, 0x22, 0x15, 0xb5, 0x14, 0x58, 0x5a, 0xd4, 0x4e, 0xb8, 0x87, 0xdc, 0x09,
+	0x69, 0x84, 0xee, 0xe7, 0xdc, 0xd1, 0x76, 0x60, 0x11, 0x7b, 0x9e, 0x43, 0x2d, 0xec, 0x0a, 0x73,
+	0x4c, 0x6b, 0x21, 0x36, 0xca, 0x18, 0x3a, 0xcc, 0x5a, 0xcc, 0x15, 0x64, 0x24, 0x14, 0xbf, 0x52,
+	0x27, 0x5a, 0x6a, 0x6b, 0x50, 0xf4, 0x2c, 0x61, 0x52, 0x5b, 0x2f, 0x28, 0x6d, 0x0b, 0x9e, 0x25,
+	0xda, 0xb6, 0x76, 0x17, 0x0a, 0x96, 0x83, 0xe9, 0x40, 0x2f, 0xaa, 0xed, 0xc1, 0x42, 0xbb, 0x0f,
+	0xcb, 0x64, 0xe4, 0x51, 0xae, 0xca, 0x6c, 0xda, 0x58, 0x10, 0x7d, 0x56, 0xf9, 0x97, 0xc6, 0xe6,
+	0x16, 0x16, 0x44, 0x6a, 0x4f, 0x46, 0x22, 0x10, 0x64, 0x2e, 0x00, 0x24, 0x23, 0xa1, 0x4a, 0x5a,
+	0x01, 0xe0, 0xe4, 0xcc, 0xb4, 0x69, 0x8f, 0xf8, 0x42, 0x2f, 0x05, 0xe9, 0x70, 0x72, 0xd6, 0x52,
+	0x06, 0x99, 0x8e, 0x74, 0xfb, 0xb4, 0xe7, 0x62, 0x31, 0xe4, 0x44, 0x87, 0x20, 0x1d, 0x4e, 0xce,
+	0x8e, 0x23, 0x9b, 0xf1, 0x13, 0x82, 0xe5, 0xa0, 0x80, 0x4a, 0xc1, 0x61, 0x78, 0x30, 0xad, 0x03,
+	0xba, 0x59, 0x87, 0xdc, 0x75, 0x3a, 0xcc, 0x64, 0xea, 0x90, 0xbf, 0x45, 0x87, 0x42, 0x96, 0x0e,
+	0xc6, 0x4b, 0x58, 0x19, 0xf3, 0x9c, 0xba, 0xcf, 0x96, 0x20, 0x77, 0x6e, 0x85, 0xf5, 0xcc, 0x9d,
+	0x5b, 0x53, 0x76, 0xd9, 0xcf, 0x08, 0x16, 0x5b, 0xec, 0xc2, 0x75, 0x18, 0xb6, 0xff, 0xb7, 0x46,
+	0x4b, 0x57, 0x37, 0x7f, 0x6b, 0x75, 0x0b, 0x19, 0xd5, 0xa5, 0xa0, 0x25, 0x79, 0xbf, 0xb6, 0x6c,
+	0xc9, 0x66, 0xcc, 0xa7, 0x9a, 0xd1, 0xf8, 0x15, 0xc1, 0xda, 0xf1, 0xb0, 0x3b, 0xa0, 0xe2, 0x13,
+	0xce, 0x3c, 0xe6, 0x63, 0x27, 0xd1, 0x4e, 0x5e, 0x68, 0x32, 0xe5, 0x88, 0x0a, 0x51, 0x17, 0x22,
+	0xe3, 0xb3, 0x4b, 0x8f, 0xc8, 0xf1, 0x14, 0x6f, 0x1a, 0x6b, 0x36, 0x1f, 0xd9, 0xa4, 0x6a, 0x0f,
+	0xe0, 0x8e, 0x85, 0x5d, 0x9b, 0xca, 0x26, 0x31, 0xb1, 0x6d, 0x73, 0xe2, 0xfb, 0x21, 0xb7, 0x95,
+	0xd8, 0xf1, 0x38, 0xb0, 0x6b, 0x07, 0xb0, 0x36, 0xde, 0xec, 0x13, 0x7e, 0x4e, 0x2d, 0xa2, 0x02,
+	0x07, 0xb4, 0x57, 0x63, 0xe7, 0x71, 0xe0, 0x7b, 0xce, 0x1d, 0xe3, 0x7b, 0x04, 0xeb, 0x93, 0x29,
+	0x4c, 0x2d, 0x59, 0x15, 0x20, 0x22, 0xdd, 0x8e, 0x0a, 0x9b, 0xb0, 0x4c, 0xd9, 0x79, 0x87, 0xb0,
+	0xf1, 0x29, 0x15, 0x7d, 0x9b, 0xe3, 0x8b, 0x49, 0x59, 0xb7, 0x20, 0x56, 0xc7, 0x8c, 0x7b, 0x30,
+	0x81, 0x64, 0x7c, 0x87, 0x40, 0x7f, 0xf5, 0xf0, 0xd4, 0x09, 0xad, 0x43, 0x91, 0x13, 0x7f, 0xe8,
+	0x08, 0x95, 0xcc, 0x5c, 0x27, 0x5c, 0x4d, 0x99, 0xc8, 0xfb, 0xb0, 0x7a, 0xc2, 0x04, 0x99, 0x3a,
+	0x89, 0xaf, 0x11, 0xdc, 0x4d, 0x1f, 0x7c, 0x43, 0x09, 0x7c, 0x00, 0x6b, 0x4f, 0x4e, 0x4f, 0x89,
+	0x25, 0xa6, 0x4e, 0xe1, 0x1b, 0x04, 0xeb, 0x93, 0x47, 0xdf, 0x4c, 0x12, 0x07, 0x17, 0x00, 0xad,
+	0x76, 0x2b, 0x6c, 0x79, 0x8d, 0x42, 0x29, 0xbe, 0xbb, 0xb5, 0xf5, 0x46, 0xf0, 0xc6, 0x68, 0x44,
+	0x6f, 0x8c, 0xc6, 0x13, 0xf9, 0xc6, 0x28, 0x57, 0x53, 0xf1, 0x5e, 0xb9, 0xeb, 0x8d, 0xdd, 0xaf,
+	0xfe, 0xfc, 0xe7, 0xc7, 0x5c, 0xd5, 0xb8, 0xd7, 0x8c, 0x9e, 0x21, 0xe7, 0xef, 0xca, 0xc7, 0x4e,
+	0xd3, 0x8a, 0xb6, 0x1e, 0xa2, 0xfd, 0x83, 0xbf, 0xf2, 0x50, 0x3a, 0xb1, 0x22, 0x60, 0x06, 0x0b,
+	0xe1, 0xa5, 0xfd, 0x11, 0xb3, 0xb0, 0xa3, 0x6d, 0xa4, 0x30, 0xc6, 0xf7, 0x79, 0xb9, 0x12, 0x3b,
+	0xd4, 0xdb, 0xa6, 0x71, 0x4c, 0x07, 0x9e, 0x43, 0x62, 0xec, 0xfb, 0x0a, 0x7b, 0xdb, 0xd8, 0x9c,
+	0xc4, 0xc6, 0x89, 0xe8, 0x87, 0x68, 0x5f, 0x3b, 0x83, 0xc5, 0x38, 0xea, 0x80, 0x09, 0xf2, 0x9f,
+	0x11, 0xeb, 0x0a, 0xd1, 0x30, 0x2a, 0xd7, 0x20, 0x06, 0xe1, 0x25, 0xa4, 0x03, 0x73, 0xd1, 0x7d,
+	0xa5, 0x6d, 0x66, 0x68, 0x18, 0x5f, 0xb7, 0x09, 0xc8, 0xb4, 0x37, 0x84, 0xdc, 0x51, 0x90, 0x15,
+	0x43, 0xcf, 0x16, 0xf8, 0xe4, 0x48, 0xa2, 0xbd, 0x84, 0xe5, 0xf1, 0xa0, 0x0f, 0x44, 0x2d, 0xa7,
+	0xc2, 0xa6, 0xae, 0xaf, 0xf2, 0xd6, 0xb5, 0xbe, 0x10, 0x74, 0x5f, 0x81, 0xee, 0x1a, 0x5b, 0x93,
+	0xa0, 0x76, 0x1a, 0x45, 0x62, 0x7f, 0x0e, 0x2b, 0xc9, 0x08, 0x4a, 0xdf, 0xd7, 0x02, 0x7f, 0xa0,
+	0xc0, 0xf7, 0x8c, 0xda, 0xf5, 0xe0, 0xb1, 0xce, 0x07, 0xbf, 0xe5, 0x61, 0x39, 0xfa, 0x5d, 0x45,
+	0xfd, 0xf5, 0x2d, 0x82, 0xa5, 0xf4, 0x20, 0xd7, 0x8c, 0x14, 0x68, 0xe6, 0x45, 0x55, 0xde, 0xb9,
+	0x71, 0x4f, 0x48, 0xae, 0xa1, 0xc8, 0xd5, 0x8d, 0x9d, 0x24, 0xb9, 0xe8, 0xd7, 0xde, 0xf4, 0x53,
+	0x87, 0xa4, 0x3a, 0x3f, 0x20, 0x58, 0x99, 0x9c, 0xc2, 0xda, 0x6e, 0x0a, 0xe9, 0x9a, 0x09, 0x5f,
+	0xde, 0xbb, 0x65, 0x57, 0xc8, 0xe8, 0x1d, 0xc5, 0x68, 0xdf, 0xd8, 0xcb, 0x64, 0x74, 0x31, 0x71,
+	0x4c, 0x72, 0xfa, 0x12, 0xc1, 0x42, 0x72, 0xa8, 0x6a, 0xb5, 0x14, 0x52, 0xc6, 0xa0, 0x2e, 0x6f,
+	0xdf, 0xb0, 0x23, 0xe4, 0xf1, 0x50, 0xf1, 0x78, 0xdb, 0xd8, 0xce, 0xe4, 0x71, 0x9e, 0x38, 0x22,
+	0x39, 0xc8, 0x1a, 0xa5, 0xa7, 0xe2, 0x44, 0x8d, 0x32, 0xa7, 0xed, 0x44, 0x8d, 0xb2, 0xc7, 0xea,
+	0x2d, 0x35, 0x22, 0xa9, 0x43, 0x87, 0x68, 0xff, 0xc3, 0xa7, 0xbf, 0x5f, 0x55, 0xd1, 0x1f, 0x57,
+	0x55, 0xf4, 0xf7, 0x55, 0x15, 0x7d, 0x76, 0xd8, 0xa3, 0xa2, 0x3f, 0xec, 0x36, 0x2c, 0x36, 0x68,
+	0xda, 0x58, 0x0c, 0x07, 0x82, 0x58, 0x7d, 0x3f, 0xf8, 0x7c, 0xe4, 0x12, 0x71, 0xc1, 0xf8, 0x8b,
+	0x47, 0x51, 0x60, 0xaf, 0xdb, 0x4c, 0xfc, 0x97, 0xd7, 0x2d, 0xaa, 0xe9, 0xf9, 0xde, 0xbf, 0x01,
+	0x00, 0x00, 0xff, 0xff, 0xe0, 0x1a, 0xce, 0x16, 0xfb, 0x0d, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -303,7 +1188,6 @@ const _ = grpc.SupportPackageIsVersion4
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type DIDServiceClient interface {
 	CreateDID(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*CreateDIDResponse, error)
-	CreateVC(ctx context.Context, in *CreateVCRequest, opts ...grpc.CallOption) (*CreateVCResponse, error)
 }
 
 type dIDServiceClient struct {
@@ -323,19 +1207,9 @@ func (c *dIDServiceClient) CreateDID(ctx context.Context, in *emptypb.Empty, opt
 	return out, nil
 }
 
-func (c *dIDServiceClient) CreateVC(ctx context.Context, in *CreateVCRequest, opts ...grpc.CallOption) (*CreateVCResponse, error) {
-	out := new(CreateVCResponse)
-	err := c.cc.Invoke(ctx, "/carrier.api.DIDService/CreateVC", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // DIDServiceServer is the server API for DIDService service.
 type DIDServiceServer interface {
 	CreateDID(context.Context, *emptypb.Empty) (*CreateDIDResponse, error)
-	CreateVC(context.Context, *CreateVCRequest) (*CreateVCResponse, error)
 }
 
 // UnimplementedDIDServiceServer can be embedded to have forward compatible implementations.
@@ -344,9 +1218,6 @@ type UnimplementedDIDServiceServer struct {
 
 func (*UnimplementedDIDServiceServer) CreateDID(ctx context.Context, req *emptypb.Empty) (*CreateDIDResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateDID not implemented")
-}
-func (*UnimplementedDIDServiceServer) CreateVC(ctx context.Context, req *CreateVCRequest) (*CreateVCResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateVC not implemented")
 }
 
 func RegisterDIDServiceServer(s *grpc.Server, srv DIDServiceServer) {
@@ -371,24 +1242,6 @@ func _DIDService_CreateDID_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
-func _DIDService_CreateVC_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateVCRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DIDServiceServer).CreateVC(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/carrier.api.DIDService/CreateVC",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DIDServiceServer).CreateVC(ctx, req.(*CreateVCRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 var _DIDService_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "carrier.api.DIDService",
 	HandlerType: (*DIDServiceServer)(nil),
@@ -397,13 +1250,449 @@ var _DIDService_serviceDesc = grpc.ServiceDesc{
 			MethodName: "CreateDID",
 			Handler:    _DIDService_CreateDID_Handler,
 		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "carrier/api/did_rpc_api.proto",
+}
+
+// VcServiceClient is the client API for VcService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+type VcServiceClient interface {
+	ApplyVCLocal(ctx context.Context, in *ApplyVCReq, opts ...grpc.CallOption) (*types.SimpleResponse, error)
+	ApplyVCRemote(ctx context.Context, in *ApplyVCReq, opts ...grpc.CallOption) (*types.SimpleResponse, error)
+	CreateVC(ctx context.Context, in *CreateVCRequest, opts ...grpc.CallOption) (*CreateVCResponse, error)
+	DownloadVCLocal(ctx context.Context, in *DownloadVCReq, opts ...grpc.CallOption) (*DownloadVCResponse, error)
+	DownloadVCRemote(ctx context.Context, in *DownloadVCReq, opts ...grpc.CallOption) (*DownloadVCResponse, error)
+}
+
+type vcServiceClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewVcServiceClient(cc *grpc.ClientConn) VcServiceClient {
+	return &vcServiceClient{cc}
+}
+
+func (c *vcServiceClient) ApplyVCLocal(ctx context.Context, in *ApplyVCReq, opts ...grpc.CallOption) (*types.SimpleResponse, error) {
+	out := new(types.SimpleResponse)
+	err := c.cc.Invoke(ctx, "/carrier.api.VcService/ApplyVCLocal", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *vcServiceClient) ApplyVCRemote(ctx context.Context, in *ApplyVCReq, opts ...grpc.CallOption) (*types.SimpleResponse, error) {
+	out := new(types.SimpleResponse)
+	err := c.cc.Invoke(ctx, "/carrier.api.VcService/ApplyVCRemote", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *vcServiceClient) CreateVC(ctx context.Context, in *CreateVCRequest, opts ...grpc.CallOption) (*CreateVCResponse, error) {
+	out := new(CreateVCResponse)
+	err := c.cc.Invoke(ctx, "/carrier.api.VcService/CreateVC", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *vcServiceClient) DownloadVCLocal(ctx context.Context, in *DownloadVCReq, opts ...grpc.CallOption) (*DownloadVCResponse, error) {
+	out := new(DownloadVCResponse)
+	err := c.cc.Invoke(ctx, "/carrier.api.VcService/DownloadVCLocal", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *vcServiceClient) DownloadVCRemote(ctx context.Context, in *DownloadVCReq, opts ...grpc.CallOption) (*DownloadVCResponse, error) {
+	out := new(DownloadVCResponse)
+	err := c.cc.Invoke(ctx, "/carrier.api.VcService/DownloadVCRemote", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// VcServiceServer is the server API for VcService service.
+type VcServiceServer interface {
+	ApplyVCLocal(context.Context, *ApplyVCReq) (*types.SimpleResponse, error)
+	ApplyVCRemote(context.Context, *ApplyVCReq) (*types.SimpleResponse, error)
+	CreateVC(context.Context, *CreateVCRequest) (*CreateVCResponse, error)
+	DownloadVCLocal(context.Context, *DownloadVCReq) (*DownloadVCResponse, error)
+	DownloadVCRemote(context.Context, *DownloadVCReq) (*DownloadVCResponse, error)
+}
+
+// UnimplementedVcServiceServer can be embedded to have forward compatible implementations.
+type UnimplementedVcServiceServer struct {
+}
+
+func (*UnimplementedVcServiceServer) ApplyVCLocal(ctx context.Context, req *ApplyVCReq) (*types.SimpleResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ApplyVCLocal not implemented")
+}
+func (*UnimplementedVcServiceServer) ApplyVCRemote(ctx context.Context, req *ApplyVCReq) (*types.SimpleResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ApplyVCRemote not implemented")
+}
+func (*UnimplementedVcServiceServer) CreateVC(ctx context.Context, req *CreateVCRequest) (*CreateVCResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateVC not implemented")
+}
+func (*UnimplementedVcServiceServer) DownloadVCLocal(ctx context.Context, req *DownloadVCReq) (*DownloadVCResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DownloadVCLocal not implemented")
+}
+func (*UnimplementedVcServiceServer) DownloadVCRemote(ctx context.Context, req *DownloadVCReq) (*DownloadVCResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DownloadVCRemote not implemented")
+}
+
+func RegisterVcServiceServer(s *grpc.Server, srv VcServiceServer) {
+	s.RegisterService(&_VcService_serviceDesc, srv)
+}
+
+func _VcService_ApplyVCLocal_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ApplyVCReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VcServiceServer).ApplyVCLocal(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/carrier.api.VcService/ApplyVCLocal",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VcServiceServer).ApplyVCLocal(ctx, req.(*ApplyVCReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _VcService_ApplyVCRemote_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ApplyVCReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VcServiceServer).ApplyVCRemote(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/carrier.api.VcService/ApplyVCRemote",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VcServiceServer).ApplyVCRemote(ctx, req.(*ApplyVCReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _VcService_CreateVC_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateVCRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VcServiceServer).CreateVC(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/carrier.api.VcService/CreateVC",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VcServiceServer).CreateVC(ctx, req.(*CreateVCRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _VcService_DownloadVCLocal_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DownloadVCReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VcServiceServer).DownloadVCLocal(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/carrier.api.VcService/DownloadVCLocal",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VcServiceServer).DownloadVCLocal(ctx, req.(*DownloadVCReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _VcService_DownloadVCRemote_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DownloadVCReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VcServiceServer).DownloadVCRemote(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/carrier.api.VcService/DownloadVCRemote",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VcServiceServer).DownloadVCRemote(ctx, req.(*DownloadVCReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+var _VcService_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "carrier.api.VcService",
+	HandlerType: (*VcServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ApplyVCLocal",
+			Handler:    _VcService_ApplyVCLocal_Handler,
+		},
+		{
+			MethodName: "ApplyVCRemote",
+			Handler:    _VcService_ApplyVCRemote_Handler,
+		},
 		{
 			MethodName: "CreateVC",
-			Handler:    _DIDService_CreateVC_Handler,
+			Handler:    _VcService_CreateVC_Handler,
+		},
+		{
+			MethodName: "DownloadVCLocal",
+			Handler:    _VcService_DownloadVCLocal_Handler,
+		},
+		{
+			MethodName: "DownloadVCRemote",
+			Handler:    _VcService_DownloadVCRemote_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "carrier/api/did_rpc_api.proto",
+}
+
+// ProposalServiceClient is the client API for ProposalService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+type ProposalServiceClient interface {
+	SubmitProposal(ctx context.Context, in *SubmitProposalRequest, opts ...grpc.CallOption) (*SubmitProposalResponse, error)
+	WithdrawProposal(ctx context.Context, in *WithdrawProposalRequest, opts ...grpc.CallOption) (*WithdrawProposalResponse, error)
+	VoteProposal(ctx context.Context, in *VoteProposalRequest, opts ...grpc.CallOption) (*VoteProposalResponse, error)
+	EffectProposal(ctx context.Context, in *EffectProposalRequest, opts ...grpc.CallOption) (*EffectProposalResponse, error)
+}
+
+type proposalServiceClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewProposalServiceClient(cc *grpc.ClientConn) ProposalServiceClient {
+	return &proposalServiceClient{cc}
+}
+
+func (c *proposalServiceClient) SubmitProposal(ctx context.Context, in *SubmitProposalRequest, opts ...grpc.CallOption) (*SubmitProposalResponse, error) {
+	out := new(SubmitProposalResponse)
+	err := c.cc.Invoke(ctx, "/carrier.api.ProposalService/SubmitProposal", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *proposalServiceClient) WithdrawProposal(ctx context.Context, in *WithdrawProposalRequest, opts ...grpc.CallOption) (*WithdrawProposalResponse, error) {
+	out := new(WithdrawProposalResponse)
+	err := c.cc.Invoke(ctx, "/carrier.api.ProposalService/WithdrawProposal", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *proposalServiceClient) VoteProposal(ctx context.Context, in *VoteProposalRequest, opts ...grpc.CallOption) (*VoteProposalResponse, error) {
+	out := new(VoteProposalResponse)
+	err := c.cc.Invoke(ctx, "/carrier.api.ProposalService/VoteProposal", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *proposalServiceClient) EffectProposal(ctx context.Context, in *EffectProposalRequest, opts ...grpc.CallOption) (*EffectProposalResponse, error) {
+	out := new(EffectProposalResponse)
+	err := c.cc.Invoke(ctx, "/carrier.api.ProposalService/EffectProposal", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// ProposalServiceServer is the server API for ProposalService service.
+type ProposalServiceServer interface {
+	SubmitProposal(context.Context, *SubmitProposalRequest) (*SubmitProposalResponse, error)
+	WithdrawProposal(context.Context, *WithdrawProposalRequest) (*WithdrawProposalResponse, error)
+	VoteProposal(context.Context, *VoteProposalRequest) (*VoteProposalResponse, error)
+	EffectProposal(context.Context, *EffectProposalRequest) (*EffectProposalResponse, error)
+}
+
+// UnimplementedProposalServiceServer can be embedded to have forward compatible implementations.
+type UnimplementedProposalServiceServer struct {
+}
+
+func (*UnimplementedProposalServiceServer) SubmitProposal(ctx context.Context, req *SubmitProposalRequest) (*SubmitProposalResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SubmitProposal not implemented")
+}
+func (*UnimplementedProposalServiceServer) WithdrawProposal(ctx context.Context, req *WithdrawProposalRequest) (*WithdrawProposalResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method WithdrawProposal not implemented")
+}
+func (*UnimplementedProposalServiceServer) VoteProposal(ctx context.Context, req *VoteProposalRequest) (*VoteProposalResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method VoteProposal not implemented")
+}
+func (*UnimplementedProposalServiceServer) EffectProposal(ctx context.Context, req *EffectProposalRequest) (*EffectProposalResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EffectProposal not implemented")
+}
+
+func RegisterProposalServiceServer(s *grpc.Server, srv ProposalServiceServer) {
+	s.RegisterService(&_ProposalService_serviceDesc, srv)
+}
+
+func _ProposalService_SubmitProposal_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SubmitProposalRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProposalServiceServer).SubmitProposal(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/carrier.api.ProposalService/SubmitProposal",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProposalServiceServer).SubmitProposal(ctx, req.(*SubmitProposalRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProposalService_WithdrawProposal_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WithdrawProposalRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProposalServiceServer).WithdrawProposal(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/carrier.api.ProposalService/WithdrawProposal",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProposalServiceServer).WithdrawProposal(ctx, req.(*WithdrawProposalRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProposalService_VoteProposal_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(VoteProposalRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProposalServiceServer).VoteProposal(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/carrier.api.ProposalService/VoteProposal",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProposalServiceServer).VoteProposal(ctx, req.(*VoteProposalRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProposalService_EffectProposal_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EffectProposalRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProposalServiceServer).EffectProposal(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/carrier.api.ProposalService/EffectProposal",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProposalServiceServer).EffectProposal(ctx, req.(*EffectProposalRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+var _ProposalService_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "carrier.api.ProposalService",
+	HandlerType: (*ProposalServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "SubmitProposal",
+			Handler:    _ProposalService_SubmitProposal_Handler,
+		},
+		{
+			MethodName: "WithdrawProposal",
+			Handler:    _ProposalService_WithdrawProposal_Handler,
+		},
+		{
+			MethodName: "VoteProposal",
+			Handler:    _ProposalService_VoteProposal_Handler,
+		},
+		{
+			MethodName: "EffectProposal",
+			Handler:    _ProposalService_EffectProposal_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "carrier/api/did_rpc_api.proto",
+}
+
+func (m *TxInfo) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *TxInfo) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *TxInfo) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.TxIndex != 0 {
+		i = encodeVarintDidRpcApi(dAtA, i, uint64(m.TxIndex))
+		i--
+		dAtA[i] = 0x18
+	}
+	if len(m.TxHash) > 0 {
+		i -= len(m.TxHash)
+		copy(dAtA[i:], m.TxHash)
+		i = encodeVarintDidRpcApi(dAtA, i, uint64(len(m.TxHash)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.BlockNumber != 0 {
+		i = encodeVarintDidRpcApi(dAtA, i, uint64(m.BlockNumber))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
 }
 
 func (m *CreateDIDResponse) Marshal() (dAtA []byte, err error) {
@@ -464,6 +1753,101 @@ func (m *CreateDIDResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *ApplyVCReq) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ApplyVCReq) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *ApplyVCReq) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.ReqSignature) > 0 {
+		i -= len(m.ReqSignature)
+		copy(dAtA[i:], m.ReqSignature)
+		i = encodeVarintDidRpcApi(dAtA, i, uint64(len(m.ReqSignature)))
+		i--
+		dAtA[i] = 0x52
+	}
+	if len(m.ReqDigest) > 0 {
+		i -= len(m.ReqDigest)
+		copy(dAtA[i:], m.ReqDigest)
+		i = encodeVarintDidRpcApi(dAtA, i, uint64(len(m.ReqDigest)))
+		i--
+		dAtA[i] = 0x4a
+	}
+	if len(m.ExtInfo) > 0 {
+		i -= len(m.ExtInfo)
+		copy(dAtA[i:], m.ExtInfo)
+		i = encodeVarintDidRpcApi(dAtA, i, uint64(len(m.ExtInfo)))
+		i--
+		dAtA[i] = 0x42
+	}
+	if len(m.ExpirationDate) > 0 {
+		i -= len(m.ExpirationDate)
+		copy(dAtA[i:], m.ExpirationDate)
+		i = encodeVarintDidRpcApi(dAtA, i, uint64(len(m.ExpirationDate)))
+		i--
+		dAtA[i] = 0x3a
+	}
+	if len(m.Claim) > 0 {
+		i -= len(m.Claim)
+		copy(dAtA[i:], m.Claim)
+		i = encodeVarintDidRpcApi(dAtA, i, uint64(len(m.Claim)))
+		i--
+		dAtA[i] = 0x32
+	}
+	if m.PctId != 0 {
+		i = encodeVarintDidRpcApi(dAtA, i, uint64(m.PctId))
+		i--
+		dAtA[i] = 0x28
+	}
+	if len(m.Context) > 0 {
+		i -= len(m.Context)
+		copy(dAtA[i:], m.Context)
+		i = encodeVarintDidRpcApi(dAtA, i, uint64(len(m.Context)))
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.ApplicantDid) > 0 {
+		i -= len(m.ApplicantDid)
+		copy(dAtA[i:], m.ApplicantDid)
+		i = encodeVarintDidRpcApi(dAtA, i, uint64(len(m.ApplicantDid)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.IssuerUrl) > 0 {
+		i -= len(m.IssuerUrl)
+		copy(dAtA[i:], m.IssuerUrl)
+		i = encodeVarintDidRpcApi(dAtA, i, uint64(len(m.IssuerUrl)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.IssuerDid) > 0 {
+		i -= len(m.IssuerDid)
+		copy(dAtA[i:], m.IssuerDid)
+		i = encodeVarintDidRpcApi(dAtA, i, uint64(len(m.IssuerDid)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *CreateVCRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -514,10 +1898,10 @@ func (m *CreateVCRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.Did) > 0 {
-		i -= len(m.Did)
-		copy(dAtA[i:], m.Did)
-		i = encodeVarintDidRpcApi(dAtA, i, uint64(len(m.Did)))
+	if len(m.ApplicantDid) > 0 {
+		i -= len(m.ApplicantDid)
+		copy(dAtA[i:], m.ApplicantDid)
+		i = encodeVarintDidRpcApi(dAtA, i, uint64(len(m.ApplicantDid)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -582,6 +1966,517 @@ func (m *CreateVCResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *DownloadVCReq) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *DownloadVCReq) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *DownloadVCReq) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.ReqSignature) > 0 {
+		i -= len(m.ReqSignature)
+		copy(dAtA[i:], m.ReqSignature)
+		i = encodeVarintDidRpcApi(dAtA, i, uint64(len(m.ReqSignature)))
+		i--
+		dAtA[i] = 0x2a
+	}
+	if len(m.ReqDigest) > 0 {
+		i -= len(m.ReqDigest)
+		copy(dAtA[i:], m.ReqDigest)
+		i = encodeVarintDidRpcApi(dAtA, i, uint64(len(m.ReqDigest)))
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.ApplicantDid) > 0 {
+		i -= len(m.ApplicantDid)
+		copy(dAtA[i:], m.ApplicantDid)
+		i = encodeVarintDidRpcApi(dAtA, i, uint64(len(m.ApplicantDid)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.IssuerUrl) > 0 {
+		i -= len(m.IssuerUrl)
+		copy(dAtA[i:], m.IssuerUrl)
+		i = encodeVarintDidRpcApi(dAtA, i, uint64(len(m.IssuerUrl)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.IssuerDid) > 0 {
+		i -= len(m.IssuerDid)
+		copy(dAtA[i:], m.IssuerDid)
+		i = encodeVarintDidRpcApi(dAtA, i, uint64(len(m.IssuerDid)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *DownloadVCResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *DownloadVCResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *DownloadVCResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.ExtInfo) > 0 {
+		i -= len(m.ExtInfo)
+		copy(dAtA[i:], m.ExtInfo)
+		i = encodeVarintDidRpcApi(dAtA, i, uint64(len(m.ExtInfo)))
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.Vc) > 0 {
+		i -= len(m.Vc)
+		copy(dAtA[i:], m.Vc)
+		i = encodeVarintDidRpcApi(dAtA, i, uint64(len(m.Vc)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Msg) > 0 {
+		i -= len(m.Msg)
+		copy(dAtA[i:], m.Msg)
+		i = encodeVarintDidRpcApi(dAtA, i, uint64(len(m.Msg)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Status != 0 {
+		i = encodeVarintDidRpcApi(dAtA, i, uint64(m.Status))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *SubmitProposalRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SubmitProposalRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *SubmitProposalRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.CandidateServiceUrl) > 0 {
+		i -= len(m.CandidateServiceUrl)
+		copy(dAtA[i:], m.CandidateServiceUrl)
+		i = encodeVarintDidRpcApi(dAtA, i, uint64(len(m.CandidateServiceUrl)))
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.CandidateAddress) > 0 {
+		i -= len(m.CandidateAddress)
+		copy(dAtA[i:], m.CandidateAddress)
+		i = encodeVarintDidRpcApi(dAtA, i, uint64(len(m.CandidateAddress)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.ProposalUrl) > 0 {
+		i -= len(m.ProposalUrl)
+		copy(dAtA[i:], m.ProposalUrl)
+		i = encodeVarintDidRpcApi(dAtA, i, uint64(len(m.ProposalUrl)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.ProposalType != 0 {
+		i = encodeVarintDidRpcApi(dAtA, i, uint64(m.ProposalType))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *SubmitProposalResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SubmitProposalResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *SubmitProposalResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.TxInfo != nil {
+		{
+			size, err := m.TxInfo.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintDidRpcApi(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.ProposalId) > 0 {
+		i -= len(m.ProposalId)
+		copy(dAtA[i:], m.ProposalId)
+		i = encodeVarintDidRpcApi(dAtA, i, uint64(len(m.ProposalId)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Msg) > 0 {
+		i -= len(m.Msg)
+		copy(dAtA[i:], m.Msg)
+		i = encodeVarintDidRpcApi(dAtA, i, uint64(len(m.Msg)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Status != 0 {
+		i = encodeVarintDidRpcApi(dAtA, i, uint64(m.Status))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *WithdrawProposalRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *WithdrawProposalRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *WithdrawProposalRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.ProposalId) > 0 {
+		i -= len(m.ProposalId)
+		copy(dAtA[i:], m.ProposalId)
+		i = encodeVarintDidRpcApi(dAtA, i, uint64(len(m.ProposalId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *WithdrawProposalResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *WithdrawProposalResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *WithdrawProposalResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.TxInfo != nil {
+		{
+			size, err := m.TxInfo.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintDidRpcApi(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x22
+	}
+	if m.Result {
+		i--
+		if m.Result {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x18
+	}
+	if len(m.Msg) > 0 {
+		i -= len(m.Msg)
+		copy(dAtA[i:], m.Msg)
+		i = encodeVarintDidRpcApi(dAtA, i, uint64(len(m.Msg)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Status != 0 {
+		i = encodeVarintDidRpcApi(dAtA, i, uint64(m.Status))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *VoteProposalRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *VoteProposalRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *VoteProposalRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.ProposalId) > 0 {
+		i -= len(m.ProposalId)
+		copy(dAtA[i:], m.ProposalId)
+		i = encodeVarintDidRpcApi(dAtA, i, uint64(len(m.ProposalId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *VoteProposalResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *VoteProposalResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *VoteProposalResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.TxInfo != nil {
+		{
+			size, err := m.TxInfo.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintDidRpcApi(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x22
+	}
+	if m.Result {
+		i--
+		if m.Result {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x18
+	}
+	if len(m.Msg) > 0 {
+		i -= len(m.Msg)
+		copy(dAtA[i:], m.Msg)
+		i = encodeVarintDidRpcApi(dAtA, i, uint64(len(m.Msg)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Status != 0 {
+		i = encodeVarintDidRpcApi(dAtA, i, uint64(m.Status))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *EffectProposalRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EffectProposalRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EffectProposalRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.ProposalId) > 0 {
+		i -= len(m.ProposalId)
+		copy(dAtA[i:], m.ProposalId)
+		i = encodeVarintDidRpcApi(dAtA, i, uint64(len(m.ProposalId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *EffectProposalResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EffectProposalResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EffectProposalResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.TxInfo != nil {
+		{
+			size, err := m.TxInfo.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintDidRpcApi(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x22
+	}
+	if m.Result {
+		i--
+		if m.Result {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x18
+	}
+	if len(m.Msg) > 0 {
+		i -= len(m.Msg)
+		copy(dAtA[i:], m.Msg)
+		i = encodeVarintDidRpcApi(dAtA, i, uint64(len(m.Msg)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Status != 0 {
+		i = encodeVarintDidRpcApi(dAtA, i, uint64(m.Status))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintDidRpcApi(dAtA []byte, offset int, v uint64) int {
 	offset -= sovDidRpcApi(v)
 	base := offset
@@ -593,6 +2488,28 @@ func encodeVarintDidRpcApi(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
+func (m *TxInfo) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.BlockNumber != 0 {
+		n += 1 + sovDidRpcApi(uint64(m.BlockNumber))
+	}
+	l = len(m.TxHash)
+	if l > 0 {
+		n += 1 + l + sovDidRpcApi(uint64(l))
+	}
+	if m.TxIndex != 0 {
+		n += 1 + sovDidRpcApi(uint64(m.TxIndex))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
 func (m *CreateDIDResponse) Size() (n int) {
 	if m == nil {
 		return 0
@@ -620,13 +2537,64 @@ func (m *CreateDIDResponse) Size() (n int) {
 	return n
 }
 
+func (m *ApplyVCReq) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.IssuerDid)
+	if l > 0 {
+		n += 1 + l + sovDidRpcApi(uint64(l))
+	}
+	l = len(m.IssuerUrl)
+	if l > 0 {
+		n += 1 + l + sovDidRpcApi(uint64(l))
+	}
+	l = len(m.ApplicantDid)
+	if l > 0 {
+		n += 1 + l + sovDidRpcApi(uint64(l))
+	}
+	l = len(m.Context)
+	if l > 0 {
+		n += 1 + l + sovDidRpcApi(uint64(l))
+	}
+	if m.PctId != 0 {
+		n += 1 + sovDidRpcApi(uint64(m.PctId))
+	}
+	l = len(m.Claim)
+	if l > 0 {
+		n += 1 + l + sovDidRpcApi(uint64(l))
+	}
+	l = len(m.ExpirationDate)
+	if l > 0 {
+		n += 1 + l + sovDidRpcApi(uint64(l))
+	}
+	l = len(m.ExtInfo)
+	if l > 0 {
+		n += 1 + l + sovDidRpcApi(uint64(l))
+	}
+	l = len(m.ReqDigest)
+	if l > 0 {
+		n += 1 + l + sovDidRpcApi(uint64(l))
+	}
+	l = len(m.ReqSignature)
+	if l > 0 {
+		n += 1 + l + sovDidRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
 func (m *CreateVCRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = len(m.Did)
+	l = len(m.ApplicantDid)
 	if l > 0 {
 		n += 1 + l + sovDidRpcApi(uint64(l))
 	}
@@ -678,11 +2646,371 @@ func (m *CreateVCResponse) Size() (n int) {
 	return n
 }
 
+func (m *DownloadVCReq) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.IssuerDid)
+	if l > 0 {
+		n += 1 + l + sovDidRpcApi(uint64(l))
+	}
+	l = len(m.IssuerUrl)
+	if l > 0 {
+		n += 1 + l + sovDidRpcApi(uint64(l))
+	}
+	l = len(m.ApplicantDid)
+	if l > 0 {
+		n += 1 + l + sovDidRpcApi(uint64(l))
+	}
+	l = len(m.ReqDigest)
+	if l > 0 {
+		n += 1 + l + sovDidRpcApi(uint64(l))
+	}
+	l = len(m.ReqSignature)
+	if l > 0 {
+		n += 1 + l + sovDidRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *DownloadVCResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Status != 0 {
+		n += 1 + sovDidRpcApi(uint64(m.Status))
+	}
+	l = len(m.Msg)
+	if l > 0 {
+		n += 1 + l + sovDidRpcApi(uint64(l))
+	}
+	l = len(m.Vc)
+	if l > 0 {
+		n += 1 + l + sovDidRpcApi(uint64(l))
+	}
+	l = len(m.ExtInfo)
+	if l > 0 {
+		n += 1 + l + sovDidRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *SubmitProposalRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.ProposalType != 0 {
+		n += 1 + sovDidRpcApi(uint64(m.ProposalType))
+	}
+	l = len(m.ProposalUrl)
+	if l > 0 {
+		n += 1 + l + sovDidRpcApi(uint64(l))
+	}
+	l = len(m.CandidateAddress)
+	if l > 0 {
+		n += 1 + l + sovDidRpcApi(uint64(l))
+	}
+	l = len(m.CandidateServiceUrl)
+	if l > 0 {
+		n += 1 + l + sovDidRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *SubmitProposalResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Status != 0 {
+		n += 1 + sovDidRpcApi(uint64(m.Status))
+	}
+	l = len(m.Msg)
+	if l > 0 {
+		n += 1 + l + sovDidRpcApi(uint64(l))
+	}
+	l = len(m.ProposalId)
+	if l > 0 {
+		n += 1 + l + sovDidRpcApi(uint64(l))
+	}
+	if m.TxInfo != nil {
+		l = m.TxInfo.Size()
+		n += 1 + l + sovDidRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *WithdrawProposalRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.ProposalId)
+	if l > 0 {
+		n += 1 + l + sovDidRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *WithdrawProposalResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Status != 0 {
+		n += 1 + sovDidRpcApi(uint64(m.Status))
+	}
+	l = len(m.Msg)
+	if l > 0 {
+		n += 1 + l + sovDidRpcApi(uint64(l))
+	}
+	if m.Result {
+		n += 2
+	}
+	if m.TxInfo != nil {
+		l = m.TxInfo.Size()
+		n += 1 + l + sovDidRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *VoteProposalRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.ProposalId)
+	if l > 0 {
+		n += 1 + l + sovDidRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *VoteProposalResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Status != 0 {
+		n += 1 + sovDidRpcApi(uint64(m.Status))
+	}
+	l = len(m.Msg)
+	if l > 0 {
+		n += 1 + l + sovDidRpcApi(uint64(l))
+	}
+	if m.Result {
+		n += 2
+	}
+	if m.TxInfo != nil {
+		l = m.TxInfo.Size()
+		n += 1 + l + sovDidRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *EffectProposalRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.ProposalId)
+	if l > 0 {
+		n += 1 + l + sovDidRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *EffectProposalResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Status != 0 {
+		n += 1 + sovDidRpcApi(uint64(m.Status))
+	}
+	l = len(m.Msg)
+	if l > 0 {
+		n += 1 + l + sovDidRpcApi(uint64(l))
+	}
+	if m.Result {
+		n += 2
+	}
+	if m.TxInfo != nil {
+		l = m.TxInfo.Size()
+		n += 1 + l + sovDidRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
 func sovDidRpcApi(x uint64) (n int) {
 	return (math_bits.Len64(x|1) + 6) / 7
 }
 func sozDidRpcApi(x uint64) (n int) {
 	return sovDidRpcApi(uint64((x << 1) ^ uint64((int64(x) >> 63))))
+}
+func (m *TxInfo) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowDidRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: TxInfo: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: TxInfo: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BlockNumber", wireType)
+			}
+			m.BlockNumber = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.BlockNumber |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TxHash", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.TxHash = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TxIndex", wireType)
+			}
+			m.TxIndex = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.TxIndex |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipDidRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
 }
 func (m *CreateDIDResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
@@ -854,6 +3182,364 @@ func (m *CreateDIDResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+func (m *ApplyVCReq) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowDidRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ApplyVCReq: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ApplyVCReq: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field IssuerDid", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.IssuerDid = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field IssuerUrl", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.IssuerUrl = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ApplicantDid", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ApplicantDid = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Context", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Context = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 5:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PctId", wireType)
+			}
+			m.PctId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.PctId |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Claim", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Claim = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ExpirationDate", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ExpirationDate = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 8:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ExtInfo", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ExtInfo = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 9:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ReqDigest", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ReqDigest = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 10:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ReqSignature", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ReqSignature = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipDidRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
 func (m *CreateVCRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -885,7 +3571,7 @@ func (m *CreateVCRequest) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Did", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ApplicantDid", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -913,7 +3599,7 @@ func (m *CreateVCRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Did = string(dAtA[iNdEx:postIndex])
+			m.ApplicantDid = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -1164,6 +3850,1442 @@ func (m *CreateVCResponse) Unmarshal(dAtA []byte) error {
 			}
 			m.Vc = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TxInfo", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.TxInfo == nil {
+				m.TxInfo = &TxInfo{}
+			}
+			if err := m.TxInfo.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipDidRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *DownloadVCReq) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowDidRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: DownloadVCReq: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: DownloadVCReq: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field IssuerDid", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.IssuerDid = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field IssuerUrl", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.IssuerUrl = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ApplicantDid", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ApplicantDid = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ReqDigest", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ReqDigest = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ReqSignature", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ReqSignature = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipDidRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *DownloadVCResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowDidRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: DownloadVCResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: DownloadVCResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
+			}
+			m.Status = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Status |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Msg", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Msg = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Vc", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Vc = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ExtInfo", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ExtInfo = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipDidRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *SubmitProposalRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowDidRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SubmitProposalRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SubmitProposalRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ProposalType", wireType)
+			}
+			m.ProposalType = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.ProposalType |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ProposalUrl", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ProposalUrl = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CandidateAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.CandidateAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CandidateServiceUrl", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.CandidateServiceUrl = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipDidRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *SubmitProposalResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowDidRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SubmitProposalResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SubmitProposalResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
+			}
+			m.Status = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Status |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Msg", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Msg = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ProposalId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ProposalId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TxInfo", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.TxInfo == nil {
+				m.TxInfo = &TxInfo{}
+			}
+			if err := m.TxInfo.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipDidRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *WithdrawProposalRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowDidRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: WithdrawProposalRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: WithdrawProposalRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ProposalId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ProposalId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipDidRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *WithdrawProposalResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowDidRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: WithdrawProposalResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: WithdrawProposalResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
+			}
+			m.Status = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Status |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Msg", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Msg = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Result", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.Result = bool(v != 0)
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TxInfo", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.TxInfo == nil {
+				m.TxInfo = &TxInfo{}
+			}
+			if err := m.TxInfo.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipDidRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *VoteProposalRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowDidRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: VoteProposalRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: VoteProposalRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ProposalId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ProposalId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipDidRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *VoteProposalResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowDidRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: VoteProposalResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: VoteProposalResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
+			}
+			m.Status = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Status |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Msg", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Msg = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Result", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.Result = bool(v != 0)
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TxInfo", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.TxInfo == nil {
+				m.TxInfo = &TxInfo{}
+			}
+			if err := m.TxInfo.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipDidRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EffectProposalRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowDidRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EffectProposalRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EffectProposalRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ProposalId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ProposalId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipDidRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EffectProposalResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowDidRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EffectProposalResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EffectProposalResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
+			}
+			m.Status = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Status |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Msg", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthDidRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Msg = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Result", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDidRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.Result = bool(v != 0)
 		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field TxInfo", wireType)
