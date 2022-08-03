@@ -35,7 +35,11 @@ import (
 	"time"
 )
 
-const localTest = false
+const (
+	localTest           = true
+	plaintextAlgorithm  = "plaintext"
+	ciphertextAlgorithm = "ciphertext"
+)
 
 func (m *Manager) tryScheduleTask() error {
 
@@ -130,7 +134,7 @@ func (m *Manager) tryScheduleTask() error {
 func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsume bool) (error, map[uint8][]types.DataConsumePolicy, map[string]string) {
 	dataPolicyTypes, dataPolicyOptions := localTask.GetTaskData().GetDataPolicyTypes(), localTask.GetTaskData().GetDataPolicyOptions()
 	if len(dataPolicyTypes) != len(dataPolicyOptions) {
-		return errors.New("dataPolicyTypes len not equal dataPolicyOptions len"), nil, nil
+		return fmt.Errorf("dataPolicyTypes len not equal dataPolicyOptions len"), nil, nil
 	}
 	var (
 		consumeTypeDataConsumePolicy map[uint8][]types.DataConsumePolicy
@@ -138,7 +142,7 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 	)
 	checkTaskMetadataConsumeOptionsFn := func(metadataId string, consumeTypes []uint8, consumeOptions []string) (error, map[uint8][]types.DataConsumePolicy) {
 		if len(consumeTypes) != len(consumeOptions) {
-			return errors.New("consumeTypes len not equal consumeOptions len,please check"), nil
+			return fmt.Errorf("consumeTypes len not equal consumeOptions len,please check"), nil
 		}
 		/*
 			consumeMap:
@@ -154,11 +158,11 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 		// localTaskConsumeOptionsAddressMap => {2:{"0x111":{},"0x222":{}},3:{"0x444":{},"0x555":{}}}
 		localTaskConsumeOptionsAddressMap := make(map[uint8]map[string]struct{}, 0)
 		// save tk20 consume count
-		tk20ConsumeCount := make(map[string]uint64, 0)
+		tk20ConsumeCount := make(map[string]*big.Int, 0)
 		for idx, consumeType := range consumeTypes {
 			// check consume type
 			if consumeType != types.ConsumeMetadataAuth && consumeType != types.ConsumeTk20 && consumeType != types.ConsumeTk721 {
-				return errors.New(fmt.Sprintf("taskId %s task params have unknown consume type %d", localTask.GetTaskId(), consumeType)), nil
+				return fmt.Errorf("taskId %s task params have unknown consume type %d", localTask.GetTaskId(), consumeType), nil
 			}
 			result, ok := localTaskConsumeOptionsAddressMap[consumeType]
 			result1, ok1 := consumeMap[consumeType]
@@ -172,25 +176,25 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 			if consumeType == types.ConsumeTk20 {
 				var option *types.Tk20Consume
 				if err := json.Unmarshal([]byte(consumeOptions[idx]), &option); err != nil {
-					return errors.New(fmt.Sprintf("json Unmarshal fail,the json string is %s", consumeOptions[idx])), nil
+					return fmt.Errorf("json Unmarshal fail,the json string is %s", consumeOptions[idx]), nil
 				}
 				// check duplicate contract address
 				if _, ok := result[option.Address()]; ok {
-					return errors.New(fmt.Sprintf("There is a duplicate tk20 contract address %s", option.Address())), nil
+					return fmt.Errorf("there is a duplicate tk20 contract address %s", option.Address()), nil
 				}
 				result[option.Address()] = struct{}{}
 				localTaskConsumeOptionsAddressMap[consumeType] = result
 				consumeMap[consumeType] = append(result1, option)
-				tk20ConsumeCount[option.Address()] = option.Balance
+				tk20ConsumeCount[option.Address()] = option.GetBalance()
 			}
 			if consumeType == types.ConsumeTk721 {
 				var option *types.Tk721Consume
 				if err := json.Unmarshal([]byte(consumeOptions[idx]), &option); err != nil {
-					return errors.New(fmt.Sprintf("json Unmarshal fail,the json string is %s", consumeOptions[idx])), nil
+					return fmt.Errorf("json Unmarshal fail,the json string is %s", consumeOptions[idx]), nil
 				}
 				// check duplicate contract address
 				if _, ok := result[option.Address()]; ok {
-					return errors.New(fmt.Sprintf("There is a duplicate tk721 contract address %s", option.Address())), nil
+					return fmt.Errorf("there is a duplicate tk721 contract address %s", option.Address()), nil
 				}
 				result[option.Address()] = struct{}{}
 				localTaskConsumeOptionsAddressMap[consumeType] = result
@@ -206,27 +210,27 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 			return nil, consumeMap
 		}
 		var (
-			metadataFromDataCenter *types.Metadata
+			metadataFromDataSource *types.Metadata
 		)
 		if localTest {
-			metadataFromDataCenter, err = generateTestMetadata(metadataId)
+			metadataFromDataSource, err = generateTestMetadata(metadataId)
 		} else {
-			metadataFromDataCenter, err = m.resourceMng.GetDB().QueryMetadataById(metadataId)
+			metadataFromDataSource, err = m.resourceMng.GetDB().QueryMetadataById(metadataId)
 		}
 		if err != nil {
 			return errors.New(fmt.Sprintf("Failed to query %s from data center", metadataId)), nil
 		}
 
 		var option *types.MetadataOptionCSV
-		metadataOption := metadataFromDataCenter.GetData().GetMetadataOption()
+		metadataOption := metadataFromDataSource.GetData().GetMetadataOption()
 		log.Debugf(fmt.Sprintf("QueryMetadataById metadataId is %s,it's metadataOption is %s", metadataId, metadataOption))
 		err = json.Unmarshal([]byte(metadataOption), &option)
 		if err != nil {
 			return err, nil
 		}
 		metadataConsumeOptionsAddressMap := make(map[uint8]map[string]struct{}, 0)
-		consumeOptionsDataCenter, consumeTypesDataCenter := option.GetConsumeOptions(), option.GetConsumeTypes()
-		for idx, consumeType := range consumeTypesDataCenter {
+		consumeOptionsDataSource, consumeTypesDataSource := option.GetConsumeOptions(), option.GetConsumeTypes()
+		for idx, consumeType := range consumeTypesDataSource {
 			if consumeType == types.ConsumeMetadataAuth {
 				continue
 			}
@@ -238,8 +242,8 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 			switch consumeType {
 			case types.ConsumeTk721:
 				var addressArr []string
-				if err := json.Unmarshal([]byte(consumeOptionsDataCenter[idx]), &addressArr); err != nil {
-					return errors.New(fmt.Sprintf("json %s Unmarshal fail.", consumeOptionsDataCenter[idx])), nil
+				if err := json.Unmarshal([]byte(consumeOptionsDataSource[idx]), &addressArr); err != nil {
+					return errors.New(fmt.Sprintf("json %s Unmarshal fail.", consumeOptionsDataSource[idx])), nil
 				} else {
 					for _, address := range addressArr {
 						result[address] = struct{}{}
@@ -247,14 +251,14 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 					}
 				}
 			case types.ConsumeTk20:
-				var infos []map[string]interface{}
-				if err := json.Unmarshal([]byte(consumeOptionsDataCenter[idx]), &infos); err != nil {
-					return errors.New(fmt.Sprintf("json %s Unmarshal fail.", consumeOptionsDataCenter[idx])), nil
+				var infos []*types.MetadataConsumeOptionTK20
+				if err := json.Unmarshal([]byte(consumeOptionsDataSource[idx]), &infos); err != nil {
+					return errors.New(fmt.Sprintf("json %s Unmarshal fail.", consumeOptionsDataSource[idx])), nil
 				} else {
 					for _, info := range infos {
-						contractAddress := info["contract"].(string)
-						cryptoAlgoConsumeUnit := uint64(info["cryptoAlgoConsumeUnit"].(float64))
-						plainAlgoConsumeUnit := uint64(info["plainAlgoConsumeUnit"].(float64))
+						contractAddress := info.GetContract()
+						cryptoAlgoConsumeUnit := info.GetCryptoAlgoConsumeUnit()
+						plainAlgoConsumeUnit := info.GetPlainAlgoConsumeUnit()
 						result[contractAddress] = struct{}{}
 						metadataConsumeOptionsAddressMap[consumeType] = result
 						balance, ok := tk20ConsumeCount[contractAddress]
@@ -262,11 +266,11 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 							continue
 						}
 						metaAlgorithmId := strings.TrimSpace(localTask.GetTaskData().GetMetaAlgorithmId())
-						if metaAlgorithmId == "ciphertext" && balance < cryptoAlgoConsumeUnit {
-							return errors.New(fmt.Sprintf("MetaAlgorithmId is ciphertext balance %d less than cryptoAlgoConsumeUnit %d,contract address %s", balance, cryptoAlgoConsumeUnit, contractAddress)), nil
+						if metaAlgorithmId == ciphertextAlgorithm && balance.Cmp(cryptoAlgoConsumeUnit) == -1 {
+							return fmt.Errorf("MetaAlgorithmId is ciphertext balance %s less than cryptoAlgoConsumeUnit %s,contract address %s", balance.String(), cryptoAlgoConsumeUnit.String(), contractAddress), nil
 						}
-						if metaAlgorithmId == "plaintext" && balance < plainAlgoConsumeUnit {
-							return errors.New(fmt.Sprintf("MetaAlgorithmId is plaintext balance %d less than plainAlgoConsumeUnit %d,contract address %s", balance, plainAlgoConsumeUnit, contractAddress)), nil
+						if metaAlgorithmId == plaintextAlgorithm && balance.Cmp(plainAlgoConsumeUnit) == -1 {
+							return fmt.Errorf("MetaAlgorithmId is plaintext balance %s less than plainAlgoConsumeUnit %s,contract address %s", balance.String(), plainAlgoConsumeUnit.String(), contractAddress), nil
 						}
 					}
 				}
@@ -280,7 +284,7 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 			}
 			for address, _ := range addressSet {
 				if _, ok := metadataConsumeOptionsAddressMap[consumeType][address]; !ok {
-					return errors.New(fmt.Sprintf("task params tk20 contract address %s not in dataCenter metadata", address)), nil
+					return fmt.Errorf("task params tk20 contract address %s not in dataCenter metadata", address), nil
 				}
 			}
 		}
@@ -296,7 +300,7 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 			log.Debugf(fmt.Sprintf(`"checkConsumeOptionsParams type is csv,policyOption %s"`, policyOption))
 			var consumePolicy *types.TaskMetadataPolicyCsvConsume
 			if err := json.Unmarshal([]byte(policyOption), &consumePolicy); nil != err {
-				return errors.New(fmt.Sprintf("json Unmarshal fail,the json string is %s", policyOption)), nil, nil
+				return fmt.Errorf("json Unmarshal fail,the json string is %s", policyOption), nil, nil
 			}
 			/*
 				"consumeTypes": [1,3,2], 0: unknown, 1: metadataAuth, 2: ERC20, 3: ERC721, ...
@@ -362,7 +366,7 @@ func (m *Manager) beginConsumeByTk(task *types.NeedExecuteTask, localTask *types
 				tkTtems = append(tkTtems, &carrierapipb.TkItem{
 					TkType:    commonconstantpb.TkType_Tk20,
 					TkAddress: (consumePolicy.(*types.Tk20Consume)).Address(),
-					Value:     (consumePolicy.(*types.Tk20Consume)).Balance,
+					Value:     (consumePolicy.(*types.Tk20Consume)).GetBalance().String(),
 				})
 			case *types.Tk721Consume:
 				tkTtems = append(tkTtems, &carrierapipb.TkItem{
