@@ -218,7 +218,7 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 			metadataFromDataSource, err = m.resourceMng.GetDB().QueryMetadataById(metadataId)
 		}
 		if err != nil {
-			return errors.New(fmt.Sprintf("Failed to query %s from data center", metadataId)), nil
+			return fmt.Errorf("failed to query %s from data center", metadataId), nil
 		}
 
 		var option *types.MetadataOptionCSV
@@ -243,7 +243,7 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 			case types.ConsumeTk721:
 				var addressArr []string
 				if err := json.Unmarshal([]byte(consumeOptionsDataSource[idx]), &addressArr); err != nil {
-					return errors.New(fmt.Sprintf("json %s Unmarshal fail.", consumeOptionsDataSource[idx])), nil
+					return fmt.Errorf("json %s unmarshal fail", consumeOptionsDataSource[idx]), nil
 				} else {
 					for _, address := range addressArr {
 						result[address] = struct{}{}
@@ -253,7 +253,7 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 			case types.ConsumeTk20:
 				var infos []*types.MetadataConsumeOptionTK20
 				if err := json.Unmarshal([]byte(consumeOptionsDataSource[idx]), &infos); err != nil {
-					return errors.New(fmt.Sprintf("json %s Unmarshal fail.", consumeOptionsDataSource[idx])), nil
+					return fmt.Errorf("json %s Unmarshal fail", consumeOptionsDataSource[idx]), nil
 				} else {
 					for _, info := range infos {
 						contractAddress := info.GetContract()

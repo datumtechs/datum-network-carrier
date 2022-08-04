@@ -86,7 +86,7 @@ func (svr *Server) PublishMetadata(ctx context.Context, req *carrierapipb.Publis
 	metadataMsg.GenMetadataId()
 
 	// check from
-	from, err := signsuite.Sender(metadataMsg.GetMetadataSummary().GetUserType(), metadataMsg.Hash(), metadataMsg.GetMetadataSummary().GetSign())
+	from, _, err := signsuite.Sender(metadataMsg.GetMetadataSummary().GetUserType(), metadataMsg.Hash(), metadataMsg.GetMetadataSummary().GetSign())
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:PublishMetadata failed, cannot fetch sender from sign, userType: {%s}, user: {%s}",
 			req.GetInformation().GetUserType().String(), req.GetInformation().GetUser())
@@ -248,7 +248,7 @@ func (svr *Server) PublishMetadataByInteranlMetadata(ctx context.Context, req *c
 		CreateAt: timeutils.UnixMsecUint64(),
 	}
 	// check from
-	from, err := signsuite.Sender(metadataMsg.GetMetadataSummary().GetUserType(), metadataMsg.Hash(), metadataMsg.GetMetadataSummary().GetSign())
+	from, _, err := signsuite.Sender(metadataMsg.GetMetadataSummary().GetUserType(), metadataMsg.Hash(), metadataMsg.GetMetadataSummary().GetSign())
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:PublishMetadataByInteranlMetadata failed, cannot fetch sender from sign, userType: {%s}, user: {%s}",
 			req.GetInformation().GetUserType().String(), req.GetInformation().GetUser())
@@ -374,7 +374,7 @@ func (svr *Server) PublishMetadataByTaskResultFile(ctx context.Context, req *car
 		CreateAt: timeutils.UnixMsecUint64(),
 	}
 	// check from
-	from, err := signsuite.Sender(metadataMsg.GetMetadataSummary().GetUserType(), metadataMsg.Hash(), metadataMsg.GetMetadataSummary().GetSign())
+	from, _, err := signsuite.Sender(metadataMsg.GetMetadataSummary().GetUserType(), metadataMsg.Hash(), metadataMsg.GetMetadataSummary().GetSign())
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:PublishMetadataByTaskResultFile failed, cannot fetch sender from sign, userType: {%s}, user: {%s}",
 			req.GetInformation().GetUserType().String(), req.GetInformation().GetUser())
@@ -488,7 +488,7 @@ func (svr *Server) UpdateMetadata(ctx context.Context, req *carrierapipb.UpdateM
 		CreateAt: timeutils.UnixMsecUint64(),
 	}
 	// check from
-	from, err := signsuite.Sender(metadataUpdateMsg.GetMetadataSummary().GetUserType(), metadataUpdateMsg.Hash(), metadataUpdateMsg.GetMetadataSummary().GetSign())
+	from, _, err := signsuite.Sender(metadataUpdateMsg.GetMetadataSummary().GetUserType(), metadataUpdateMsg.Hash(), metadataUpdateMsg.GetMetadataSummary().GetSign())
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:UpdateMetadata failed, cannot fetch sender from sign, userType: {%s}, user: {%s}",
 			req.GetInformation().GetUserType().String(), req.GetInformation().GetUser())
