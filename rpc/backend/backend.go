@@ -51,8 +51,10 @@ type Backend interface {
 
 	// metadataAuthority api
 	AuditMetadataAuthority(audit *types.MetadataAuthAudit) (commonconstantpb.AuditMetadataOption, error)
+	GetMetadataAuthority(metadataAuthId string) (*types.MetadataAuthority, error)
 	GetLocalMetadataAuthorityList(lastUpdate, pageSize uint64) (types.MetadataAuthArray, error)
 	GetGlobalMetadataAuthorityList(lastUpdate, pageSize uint64) (types.MetadataAuthArray, error)
+	VerifyMetadataAuthInfo(auth *types.MetadataAuthority) (bool, error) // add by v0.5.0
 	VerifyMetadataAuthWithMetadataOption(metadataAuthId string, auth *carriertypespb.MetadataAuthority) (bool, error)
 
 	// power api

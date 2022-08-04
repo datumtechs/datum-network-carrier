@@ -43,6 +43,18 @@ func (ma *MetadataAuthority) AuditMetadataAuthority(audit *types.MetadataAuthAud
 		return commonconstantpb.AuditMetadataOption_Audit_Pending, fmt.Errorf("query metadataAuth failed, %s", err)
 	}
 
+	pass, err := ma.VerifyMetadataAuthInfo(metadataAuth)
+	if nil != err {
+		log.WithError(err).Errorf("Failed to verify old metadataAuth on MetadataAuthority.AuditMetadataAuthority(), metadataAuthId: {%s}",
+			audit.GetMetadataAuthId())
+		return commonconstantpb.AuditMetadataOption_Audit_Pending, fmt.Errorf("verify metadataAuth failed, %s", err)
+	}
+	if !pass {
+		log.Errorf("Invalid metadataAuth on MetadataAuthority.AuditMetadataAuthority(), metadataAuthId: {%s}",
+			audit.GetMetadataAuthId())
+		return commonconstantpb.AuditMetadataOption_Audit_Pending, fmt.Errorf("invalid metadataAuth")
+	}
+
 	identity, err := ma.dataCenter.QueryIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("Failed to query local identity on MetadataAuthority.AuditMetadataAuthority(), metadataAuthId: {%s}",
@@ -326,18 +338,11 @@ func (ma *MetadataAuthority) HasNotValidMetadataAuth(userType commonconstantpb.U
 
 func (ma *MetadataAuthority) VerifyMetadataAuthWithMetadataOption(metadataAuthId string, auth *carriertypespb.MetadataAuthority) (bool, error) {
 
-	identityList, err := ma.dataCenter.QueryIdentityList(timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
+	identity, err := ma.dataCenter.QueryIdentityById(auth.GetOwner().GetIdentityId())
 	if nil != err {
 		return false, fmt.Errorf("can not query global identity list, %s", err)
 	}
-	var valid bool // false
-	for _, identity := range identityList {
-		if identity.GetIdentityId() == auth.GetOwner().GetIdentityId() {
-			valid = true
-			break
-		}
-	}
-	if !valid {
+	if nil == identity {
 		return false, fmt.Errorf("not found identity with identityId of auth, %s, identityId: {%s}",
 			err, auth.GetOwner().GetIdentityId())
 	}
@@ -417,6 +422,32 @@ func (ma *MetadataAuthority) VerifyMetadataAuthWithMetadataOption(metadataAuthId
 	// check only one valid metadataAuth related one metadata? or multi metadataAuths related one metadata?
 	if option.GetStatus()&types.McomaStatusAuthMulti != types.McomaStatusTimesConsumeKind {
 		// TODO 还未实现， 需要查所有的 授权 对比 方式
+	}
+
+	return true, nil
+}
+
+func (ma *MetadataAuthority) VerifyMetadataAuthInfo(auth *types.MetadataAuthority) (bool, error) {
+
+	if auth.GetData().GetAuditOption() != commonconstantpb.AuditMetadataOption_Audit_Pending {
+		return false, fmt.Errorf("the metadataAuth state was audited")
+	}
+
+	if auth.GetData().GetState() != commonconstantpb.MetadataAuthorityState_MAState_Released {
+		return false, fmt.Errorf("the metadataAuth state was not released")
+	}
+
+	switch auth.GetData().GetAuth().GetUsageRule().GetUsageType() {
+	case commonconstantpb.MetadataUsageType_Usage_Period:
+		if timeutils.UnixMsecUint64() >= auth.GetData().GetAuth().GetUsageRule().GetEndAt() {
+			return false, fmt.Errorf("the metadataAuth had been expire")
+		}
+	case commonconstantpb.MetadataUsageType_Usage_Times:
+		if auth.GetData().GetUsedQuo().GetUsedTimes() >= auth.GetData().GetAuth().GetUsageRule().GetTimes() {
+			return false, fmt.Errorf("the metadataAuth had been not enough times")
+		}
+	default:
+		return false, fmt.Errorf("unknown usageType of the old metadataAuth")
 	}
 
 	return true, nil

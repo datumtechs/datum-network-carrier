@@ -191,6 +191,10 @@ func (am *AuthorityManager) VerifyMetadataAuthWithMetadataOption(metadataAuthId 
 	return am.metadataAuth.VerifyMetadataAuthWithMetadataOption(metadataAuthId, auth)
 }
 
+func (am *AuthorityManager) VerifyMetadataAuthInfo(auth *types.MetadataAuthority) (bool, error) {
+	return am.metadataAuth.VerifyMetadataAuthInfo(auth)
+}
+
 func (am *AuthorityManager) VerifyMetadataAuth(userType commonconstantpb.UserType, user, metadataId string) error {
 	return am.metadataAuth.VerifyMetadataAuth(userType, user, metadataId)
 }

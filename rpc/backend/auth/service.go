@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/carrierdb/rawdb"
-	"github.com/datumtechs/datum-network-carrier/common/timeutils"
 	"github.com/datumtechs/datum-network-carrier/p2p"
 	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
@@ -277,53 +276,34 @@ func (svr *Server) RevokeMetadataAuthority(ctx context.Context, req *carrierapip
 		return &carriertypespb.SimpleResponse{Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "the user sign is invalid"}, nil
 	}
 
-	authorityList, err := svr.B.GetLocalMetadataAuthorityList(timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
-	if nil != err {
-		log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, query local metadataAuth list failed, %s", err)
-		return &carriertypespb.SimpleResponse{Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "query local metadataAuth list failed"}, nil
-	}
-
-	for _, auth := range authorityList {
-
-		if auth.GetUserType() == req.GetUserType() &&
-			auth.GetUser() == req.GetUser() &&
-			auth.GetData().GetMetadataAuthId() == req.GetMetadataAuthId() {
-
-			// The data authorization application information that has been audited and cannot be revoked
-			if auth.GetData().GetAuditOption() != commonconstantpb.AuditMetadataOption_Audit_Pending {
-				log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, the metadataAuth was audited")
-				return &carriertypespb.SimpleResponse{Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "the metadataAuth state was audited"}, nil
-			}
-
-			if auth.GetData().GetState() != commonconstantpb.MetadataAuthorityState_MAState_Released {
-				log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, the metadataAuth state was not released")
-				return &carriertypespb.SimpleResponse{Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "the metadataAuth state was not released"}, nil
-			}
-
-			switch auth.GetData().GetAuth().GetUsageRule().GetUsageType() {
-			case commonconstantpb.MetadataUsageType_Usage_Period:
-				if timeutils.UnixMsecUint64() >= auth.GetData().GetAuth().GetUsageRule().GetEndAt() {
-					log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, the metadataAuth had been expire")
-					return &carriertypespb.SimpleResponse{Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "the metadataAuth had been expire"}, nil
-				}
-			case commonconstantpb.MetadataUsageType_Usage_Times:
-				if auth.GetData().GetUsedQuo().GetUsedTimes() >= auth.GetData().GetAuth().GetUsageRule().GetTimes() {
-					log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, the metadataAuth had been not enough times")
-					return &carriertypespb.SimpleResponse{Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "the metadataAuth had been not enough times"}, nil
-				}
-			default:
-				log.Errorf("unknown usageType of the old metadataAuth on AuthorityManager.filterMetadataAuth(), metadataAuthId: {%s}", auth.GetData().GetMetadataAuthId())
-				return &carriertypespb.SimpleResponse{Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "unknown usageType of the old metadataAuth"}, nil
-			}
-		}
-	}
-
 	metadataAuthId := metadataAuthorityRevokeMsg.GetMetadataAuthId()
 
-	if err := svr.B.SendMsg(metadataAuthorityRevokeMsg); nil != err {
-		log.WithError(err).Error("RPC-API:RevokeMetadataAuthority failed")
+	auth, err := svr.B.GetMetadataAuthority(metadataAuthId)
+	if nil != err {
+		log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, query local metadataAuth failed, metadataAuthId: {%s}", metadataAuthId)
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "query local metadataAuth failed"}, nil
+	}
 
-		errMsg := fmt.Sprintf("%s, userType: {%s}, user: {%s}, MetadataAuthId: {%s}", backend.ErrRevokeMetadataAuthority.Error(),
+	if auth.GetUserType() != req.GetUserType() || auth.GetUser() != req.GetUser() {
+		log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, user or userType of local metadataAuth and req's is not same, metadataAuthId: {%s}", metadataAuthId)
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "user or userType of local metadataAuth and req's is not same"}, nil
+	}
+
+	// The data authorization application information that has been audited and cannot be revoked
+	pass, err := svr.B.VerifyMetadataAuthInfo(auth)
+	if nil != err {
+		log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, can not verify metadataAuth, metadataAuthId: {%s}", metadataAuthId)
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "can not verify metadataAuth"}, nil
+	}
+	if !pass {
+		log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, invalid metadataAuth, metadataAuthId: {%s}", metadataAuthId)
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "invalid metadataAuth"}, nil
+	}
+
+	if err := svr.B.SendMsg(metadataAuthorityRevokeMsg); nil != err {
+		log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, metadataAuthId: {%s}", metadataAuthId)
+
+		errMsg := fmt.Sprintf("%s, userType: {%s}, user: {%s}, metadataAuthId: {%s}", backend.ErrRevokeMetadataAuthority.Error(),
 			req.GetUserType().String(), req.GetUser(), req.GetMetadataAuthId())
 		return &carriertypespb.SimpleResponse{Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: errMsg}, nil
 	}

@@ -26,3 +26,4 @@ p2p/network-keys
 github.com/
 blacklist/tests/
 consensus/twopc/tests/
+proto/armada-common

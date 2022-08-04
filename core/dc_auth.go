@@ -93,6 +93,16 @@ func (dc *DataCenter) RevokeIdentity(identity *types.Identity) error {
 	return nil
 }
 
+func (dc *DataCenter) QueryIdentityById(identityId string) (*types.Identity, error) {
+	dc.serviceMu.RLock()
+	defer dc.serviceMu.RUnlock()
+	identityResponse, err := dc.client.GetIdentityById(dc.ctx, &datacenterapipb.FindIdentityRequest{IdentityId: identityId})
+	if identityResponse.GetStatus() != 0 {
+		return nil, fmt.Errorf("call datacenter GetIdentityById error, status %d,error msg %s", identityResponse.GetStatus(), identityResponse.GetMsg())
+	}
+	return types.NewIdentityFromIdentityResponse(identityResponse), err
+}
+
 func (dc *DataCenter) QueryIdentityList(lastUpdate uint64, pageSize uint64) (types.IdentityArray, error) {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()

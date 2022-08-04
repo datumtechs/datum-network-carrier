@@ -183,6 +183,39 @@ func NewMetadataFromResponse(response *datacenterapipb.FindMetadataByIdResponse)
 	return NewMetadata(response.GetMetadata())
 }
 
+func NewIdentityFromIdentityResponse(response *datacenterapipb.FindIdentityResponse) *Identity {
+	if response == nil {
+		return nil
+	}
+	return NewIdentity(&carriertypespb.IdentityPB{
+
+		/**
+		IdentityId           string
+		NodeId               string
+		NodeName             string
+		DataId               string
+		DataStatus           DataStatus
+		Status               CommonStatus
+		Credential           string
+		UpdateAt             uint64
+		ImageUrl             string
+		Details              string
+		Nonce                uint64
+		*/
+		IdentityId: response.GetIdentity().GetIdentityId(),
+		NodeId:     response.GetIdentity().GetNodeId(),
+		NodeName:   response.GetIdentity().GetNodeName(),
+		DataId:     response.GetIdentity().GetIdentityId(),
+		DataStatus: response.GetIdentity().GetDataStatus(),
+		Status:     response.GetIdentity().GetStatus(),
+		Credential: response.GetIdentity().GetCredential(),
+		UpdateAt:   response.GetIdentity().GetUpdateAt(),
+		ImageUrl:   response.GetIdentity().GetImageUrl(),
+		Details:    response.GetIdentity().GetDetails(),
+		Nonce:      response.GetIdentity().GetNonce(),
+	})
+}
+
 func NewIdentityArrayFromIdentityListResponse(response *datacenterapipb.ListIdentityResponse) IdentityArray {
 	if response == nil {
 		return nil
@@ -211,7 +244,7 @@ func NewIdentityArrayFromIdentityListResponse(response *datacenterapipb.ListIden
 			DataStatus: organization.GetDataStatus(),
 			Status:     organization.GetStatus(),
 			Credential: organization.GetCredential(),
-			UpdateAt: organization.GetUpdateAt(),
+			UpdateAt:   organization.GetUpdateAt(),
 			ImageUrl:   organization.GetImageUrl(),
 			Details:    organization.GetDetails(),
 			Nonce:      organization.GetNonce(),

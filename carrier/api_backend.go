@@ -1054,6 +1054,10 @@ func (s *CarrierAPIBackend) AuditMetadataAuthority(audit *types.MetadataAuthAudi
 	return s.carrier.authManager.AuditMetadataAuthority(audit)
 }
 
+func (s *CarrierAPIBackend) GetMetadataAuthority(metadataAuthId string) (*types.MetadataAuthority, error) {
+	return s.carrier.authManager.GetMetadataAuthority(metadataAuthId)
+}
+
 func (s *CarrierAPIBackend) GetLocalMetadataAuthorityList(lastUpdate, pageSize uint64) (types.MetadataAuthArray, error) {
 	return s.carrier.authManager.GetLocalMetadataAuthorityList(lastUpdate, pageSize)
 }
@@ -1068,6 +1072,10 @@ func (s *CarrierAPIBackend) HasValidMetadataAuth(userType commonconstantpb.UserT
 
 func (s *CarrierAPIBackend) VerifyMetadataAuthWithMetadataOption(metadataAuthId string, auth *carriertypespb.MetadataAuthority) (bool, error) {
 	return s.carrier.authManager.VerifyMetadataAuthWithMetadataOption(metadataAuthId, auth)
+}
+
+func (s *CarrierAPIBackend) VerifyMetadataAuthInfo(auth *types.MetadataAuthority) (bool, error) {
+	return s.carrier.authManager.VerifyMetadataAuthInfo(auth)
 }
 
 // task api

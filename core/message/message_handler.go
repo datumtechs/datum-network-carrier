@@ -806,12 +806,12 @@ func (m *MessageHandler) BroadcastMetadataAuthMsgArr(metadataAuthMsgArr types.Me
 		// ############################################
 		pass, err := m.authManager.VerifyMetadataAuthWithMetadataOption(msg.GetMetadataAuthority().GetMetadataId(), msg.GetMetadataAuthority())
 		if nil != err {
-			log.WithError(err).Errorf("Failed toverify metadataAuth with metadataOption on MessageHandler with broadcast metadataAuth, metadataId: {%s}, auth: %s",
+			log.WithError(err).Errorf("Failed to verify metadataAuth with metadataOption on MessageHandler with broadcast metadataAuth, metadataId: {%s}, auth: %s",
 				msg.GetMetadataAuthority().GetMetadataId(), msg.GetMetadataAuthority().String())
 			continue
 		}
 		if !pass {
-			log.WithError(err).Errorf("invalid metadataAuth on MessageHandler with broadcast metadataAuth, metadataId: {%s}, auth: %s",
+			log.Errorf("invalid metadataAuth on MessageHandler with broadcast metadataAuth, metadataId: {%s}, auth: %s",
 				msg.GetMetadataAuthority().GetMetadataId(), msg.GetMetadataAuthority().String())
 			continue
 		}
@@ -865,16 +865,15 @@ func (m *MessageHandler) BroadcastMetadataAuthRevokeMsgArr(metadataAuthRevokeMsg
 		}
 
 		// The data authorization application information that has been audited and cannot be revoked
-		if metadataAuth.GetData().GetAuditOption() != commonconstantpb.AuditMetadataOption_Audit_Pending {
-			log.Errorf("the metadataAuth has audit on MessageHandler with revoke metadataAuth, metadataAuthId: {%s}, user:{%s}, state: {%s}",
+		pass, err := m.authManager.VerifyMetadataAuthInfo(metadataAuth)
+		if nil != err {
+			log.WithError(err).Errorf("Failed to verify metadataAuth on MessageHandler with revoke metadataAuth, metadataAuthId: {%s}, user:{%s}, state: {%s}",
 				revoke.GetMetadataAuthId(), revoke.GetUser(), metadataAuth.GetData().GetAuditOption().String())
 			continue
 		}
-
-		// The data authorization application information that has been `invalidated` or has been `revoked` is not allowed to be revoked
-		if metadataAuth.GetData().GetState() != commonconstantpb.MetadataAuthorityState_MAState_Released {
-			log.Errorf("state of metadataAuth is wrong on MessageHandler with revoke metadataAuth, metadataAuthId: {%s}, user:{%s}, state: {%s}",
-				revoke.GetMetadataAuthId(), revoke.GetUser(), metadataAuth.GetData().GetState().String())
+		if !pass {
+			log.Errorf("invalid metadataAuth on MessageHandler with revoke metadataAuth, metadataAuthId: {%s}, user:{%s}, state: {%s}",
+				revoke.GetMetadataAuthId(), revoke.GetUser(), metadataAuth.GetData().GetAuditOption().String())
 			continue
 		}
 
