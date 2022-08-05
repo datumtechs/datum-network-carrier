@@ -12,7 +12,6 @@ import (
 	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
-	"github.com/datumtechs/datum-network-carrier/rpc/backend"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"sync"
 	"time"
@@ -790,85 +789,34 @@ func (m *MessageHandler) BroadcastMetadataRevokeMsgArr(metadataRevokeMsgArr type
 
 func (m *MessageHandler) BroadcastMetadataAuthMsgArr(metadataAuthMsgArr types.MetadataAuthorityMsgArr) {
 
-	// ############################################
-	// ############################################
-	// NOTE:
-	// 		check metadataId and identity of authority whether is valid ?
-	//
-	//		Because the message is asynchronous,
-	//		the corresponding identity and metadata may have been deleted long ago,
-	//		so the data legitimacy is verified again
-	// ############################################
-	// ############################################
-	ideneityList, err := m.resourceMng.GetDB().QueryIdentityList(timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
-	if nil != err {
-		log.WithError(err).Errorf("Failed to query global identity list on MessageHandler with broadcast metadataAuth")
-		return
-	}
-
 	for _, msg := range metadataAuthMsgArr {
 
-		m.resourceMng.GetDB().RemoveMetadataAuthMsg(msg.GetMetadataAuthId()) // remove from disk if msg been handle
+		// remove from disk if msg been handle
+		m.resourceMng.GetDB().RemoveMetadataAuthMsg(msg.GetMetadataAuthId())
 
 		// ############################################
 		// ############################################
 		// NOTE:
-		// 		check metadataId and identity of authority whether is valid ?
+		// 		check whether is valid with metadata?
 		//
 		//		Because the message is asynchronous,
 		//		the corresponding identity and metadata may have been deleted long ago,
 		//		so the data legitimacy is verified again
 		// ############################################
 		// ############################################
-		var valid bool // false
-		for _, identity := range ideneityList {
-			if identity.GetIdentityId() == msg.GetMetadataAuthority().GetOwner().GetIdentityId() {
-				valid = true
-				break
-			}
-		}
-		if !valid {
-			log.WithError(err).Errorf("not found identity with identityId of auth on MessageHandler with broadcast metadataAuth, userType: {%s}, user: {%s}, metadataId: {%s}",
-				msg.GetUserType(), msg.GetUser(), msg.GetMetadataAuthority().GetMetadataId())
-			continue
-		}
-
-		//todo: need checking...
-		metadataList, err := m.resourceMng.GetDB().QueryMetadataListByIdentity(msg.GetMetadataAuthority().GetOwner().GetIdentityId(), timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
+		pass, err := m.authManager.VerifyMetadataAuthWithMetadataOption(msg.GetMetadataAuthority().GetMetadataId(), msg.GetMetadataAuthority())
 		if nil != err {
-			log.WithError(err).Errorf("Failed to query global metadata list by identityId on MessageHandler with broadcast metadataAuth, identityId: {%s}",
-				msg.GetMetadataAuthority().GetOwner().GetIdentityId())
-			return
+			log.WithError(err).Errorf("Failed to verify metadataAuth with metadataOption on MessageHandler with broadcast metadataAuth, metadataId: {%s}, auth: %s",
+				msg.GetMetadataAuthority().GetMetadataId(), msg.GetMetadataAuthority().String())
+			continue
 		}
-
-		// reset val
-		valid = false
-		for _, metadata := range metadataList {
-			if metadata.GetData().GetMetadataId() == msg.GetMetadataAuthority().GetMetadataId() {
-				valid = true
-				break
-			}
-		}
-		if !valid {
-			log.WithError(err).Errorf("not found metadata with metadataId of auth on MessageHandler with broadcast metadataAuth, userType: {%s}, user: {%s}, metadataId: {%s}",
-				msg.GetUserType(), msg.GetUser(), msg.GetMetadataAuthority().GetMetadataId())
+		if !pass {
+			log.Errorf("invalid metadataAuth on MessageHandler with broadcast metadataAuth, metadataId: {%s}, auth: %s",
+				msg.GetMetadataAuthority().GetMetadataId(), msg.GetMetadataAuthority().String())
 			continue
 		}
 
-		// check the metadataId whether has valid metadataAuth with current userType and user.
-		has, err := m.authManager.HasValidMetadataAuth(msg.GetUserType(), msg.GetUser(), msg.GetMetadataAuthorityOwnerIdentityId(), msg.GetMetadataAuthorityMetadataId())
-		if nil != err {
-			log.WithError(err).Errorf("Failed to call HasValidLocalMetadataAuth on MessageHandler with broadcast metadataAuth, metadataAuthId: {%s}, metadataId: {%s}, userType: {%s}, user:{%s}",
-				msg.GetMetadataAuthId(), msg.GetMetadataAuthority().GetMetadataId(), msg.GetUserType(), msg.GetUser())
-			continue
-		}
-
-		if has {
-			log.Errorf("Failed to broadcast metadataAuth, cause alreay has valid last metadataAuth on MessageHandler with broadcast metadataAuth, userType: {%s}, user: {%s}, metadataId: {%s}",
-				msg.GetUserType(), msg.GetUser(), msg.GetMetadataAuthority().GetMetadataId())
-			continue
-		}
-		// TODO 填充 nonce
+		//TODO 填充 nonce
 		// Store metadataAuthority
 		if err := m.authManager.ApplyMetadataAuthority(types.NewMetadataAuthority(&carriertypespb.MetadataAuthorityPB{
 			MetadataAuthId:  msg.GetMetadataAuthId(),
@@ -917,16 +865,15 @@ func (m *MessageHandler) BroadcastMetadataAuthRevokeMsgArr(metadataAuthRevokeMsg
 		}
 
 		// The data authorization application information that has been audited and cannot be revoked
-		if metadataAuth.GetData().GetAuditOption() != commonconstantpb.AuditMetadataOption_Audit_Pending {
-			log.Errorf("the metadataAuth has audit on MessageHandler with revoke metadataAuth, metadataAuthId: {%s}, user:{%s}, state: {%s}",
+		pass, err := m.authManager.VerifyMetadataAuthInfo(metadataAuth)
+		if nil != err {
+			log.WithError(err).Errorf("Failed to verify metadataAuth on MessageHandler with revoke metadataAuth, metadataAuthId: {%s}, user:{%s}, state: {%s}",
 				revoke.GetMetadataAuthId(), revoke.GetUser(), metadataAuth.GetData().GetAuditOption().String())
 			continue
 		}
-
-		// The data authorization application information that has been `invalidated` or has been `revoked` is not allowed to be revoked
-		if metadataAuth.GetData().GetState() != commonconstantpb.MetadataAuthorityState_MAState_Released {
-			log.Errorf("state of metadataAuth is wrong on MessageHandler with revoke metadataAuth, metadataAuthId: {%s}, user:{%s}, state: {%s}",
-				revoke.GetMetadataAuthId(), revoke.GetUser(), metadataAuth.GetData().GetState().String())
+		if !pass {
+			log.Errorf("invalid metadataAuth on MessageHandler with revoke metadataAuth, metadataAuthId: {%s}, user:{%s}, state: {%s}",
+				revoke.GetMetadataAuthId(), revoke.GetUser(), metadataAuth.GetData().GetAuditOption().String())
 			continue
 		}
 

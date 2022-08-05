@@ -354,7 +354,7 @@ func (svr *Server) TerminateTask(ctx context.Context, req *carrierapipb.Terminat
 	}
 
 	taskTerminateMsg := types.NewTaskTerminateMsg(req.GetUserType(), req.GetUser(), req.GetTaskId(), req.GetSign())
-	from, err := signsuite.Sender(req.GetUserType(), taskTerminateMsg.Hash(), req.GetSign())
+	from, _, err := signsuite.Sender(req.GetUserType(), taskTerminateMsg.Hash(), req.GetSign())
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:TerminateTask failed, cannot fetch sender from sign, userType: {%s}, user: {%s}",
 			req.GetUserType().String(), req.GetUser())

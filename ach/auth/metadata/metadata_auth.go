@@ -1,22 +1,27 @@
 package metadata
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/carrierdb"
 	"github.com/datumtechs/datum-network-carrier/carrierdb/rawdb"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	"github.com/datumtechs/datum-network-carrier/core/policy"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"github.com/datumtechs/datum-network-carrier/rpc/backend"
 	"github.com/datumtechs/datum-network-carrier/types"
 )
 
 type MetadataAuthority struct {
-	dataCenter carrierdb.CarrierDB
+	dataCenter   carrierdb.CarrierDB
+	policyEngine *policy.PolicyEngine
 }
 
-func NewMetadataAuthority(dataCenter carrierdb.CarrierDB) *MetadataAuthority {
+func NewMetadataAuthority(dataCenter carrierdb.CarrierDB, policyEngine *policy.PolicyEngine) *MetadataAuthority {
 	return &MetadataAuthority{
-		dataCenter: dataCenter,
+		dataCenter:   dataCenter,
+		policyEngine: policyEngine,
 	}
 }
 
@@ -36,6 +41,18 @@ func (ma *MetadataAuthority) AuditMetadataAuthority(audit *types.MetadataAuthAud
 		log.WithError(err).Errorf("Failed to query old metadataAuth on MetadataAuthority.AuditMetadataAuthority(), metadataAuthId: {%s}",
 			audit.GetMetadataAuthId())
 		return commonconstantpb.AuditMetadataOption_Audit_Pending, fmt.Errorf("query metadataAuth failed, %s", err)
+	}
+
+	pass, err := ma.VerifyMetadataAuthInfo(metadataAuth)
+	if nil != err {
+		log.WithError(err).Errorf("Failed to verify old metadataAuth on MetadataAuthority.AuditMetadataAuthority(), metadataAuthId: {%s}",
+			audit.GetMetadataAuthId())
+		return commonconstantpb.AuditMetadataOption_Audit_Pending, fmt.Errorf("verify metadataAuth failed, %s", err)
+	}
+	if !pass {
+		log.Errorf("Invalid metadataAuth on MetadataAuthority.AuditMetadataAuthority(), metadataAuthId: {%s}",
+			audit.GetMetadataAuthId())
+		return commonconstantpb.AuditMetadataOption_Audit_Pending, fmt.Errorf("invalid metadataAuth")
 	}
 
 	identity, err := ma.dataCenter.QueryIdentity()
@@ -94,7 +111,7 @@ func (ma *MetadataAuthority) AuditMetadataAuthority(audit *types.MetadataAuthAud
 			invalid = true
 		}
 	case commonconstantpb.MetadataUsageType_Usage_Times:
-		if  metadataAuth.GetData().GetUsedQuo().GetUsedTimes() >= metadataAuth.GetData().GetAuth().GetUsageRule().GetTimes() {
+		if metadataAuth.GetData().GetUsedQuo().GetUsedTimes() >= metadataAuth.GetData().GetAuth().GetUsageRule().GetTimes() {
 			metadataAuth.GetData().State = commonconstantpb.MetadataAuthorityState_MAState_Invalid
 			//
 			auditOption = commonconstantpb.AuditMetadataOption_Audit_Refused
@@ -227,7 +244,7 @@ func (ma *MetadataAuthority) ConsumeMetadataAuthority(metadataAuthId string) err
 	return nil
 }
 
-func (ma *MetadataAuthority) GetMetadataAuthority (metadataAuthId string) (*types.MetadataAuthority, error) {
+func (ma *MetadataAuthority) GetMetadataAuthority(metadataAuthId string) (*types.MetadataAuthority, error) {
 	return ma.dataCenter.QueryMetadataAuthority(metadataAuthId)
 }
 
@@ -240,21 +257,21 @@ func (ma *MetadataAuthority) GetLocalMetadataAuthorityList(lastUpdate, pageSize 
 }
 
 func (ma *MetadataAuthority) GetGlobalMetadataAuthorityList(lastUpdate uint64, pageSize uint64) (types.MetadataAuthArray, error) {
-	return  ma.dataCenter.QueryMetadataAuthorityList(lastUpdate, pageSize)
+	return ma.dataCenter.QueryMetadataAuthorityList(lastUpdate, pageSize)
 }
 
 func (ma *MetadataAuthority) GetMetadataAuthorityListByIds(metadataAuthIds []string) (types.MetadataAuthArray, error) {
 	return ma.dataCenter.QueryMetadataAuthorityListByIds(metadataAuthIds)
 }
 
+// check metadataAuth whether exists from datacenter ...
 func (ma *MetadataAuthority) HasValidMetadataAuth(userType commonconstantpb.UserType, user, identityId, metadataId string) (bool, error) {
-
 
 	// query metadataAuthList with target identityId (metadataId of target org)
 	metadataAuthList, err := ma.dataCenter.QueryMetadataAuthorityListByIdentityId(identityId, timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
 	if nil != err {
 		log.WithError(err).Errorf("Failed to QueryMetadataAuthorityListByIdentityId() on MetadataAuthority.HasValidMetadataAuth(), userType: {%s}, user:{%s}, identityId: {%s}, metadataId: {%s}",
-			userType.String(), user, identityId,  metadataId)
+			userType.String(), user, identityId, metadataId)
 		return false, fmt.Errorf("query all valid metadataAuth list failed, %s", err)
 	}
 
@@ -281,18 +298,17 @@ func (ma *MetadataAuthority) HasValidMetadataAuth(userType commonconstantpb.User
 			usageRule := auth.GetData().GetAuth().GetUsageRule()
 			usedQuo := auth.GetData().GetUsedQuo()
 
-
 			switch usageRule.GetUsageType() {
 			case commonconstantpb.MetadataUsageType_Usage_Period:
 				if timeutils.UnixMsecUint64() >= usageRule.GetEndAt() {
 					log.Warnf("the metadataAuth was expired on MetadataAuthority.HasValidMetadataAuth(), userType: {%s}, user:{%s}, identityId: {%s}, metadataId: {%s}",
-						userType.String(), user,identityId,  metadataId)
+						userType.String(), user, identityId, metadataId)
 					continue
 				}
 			case commonconstantpb.MetadataUsageType_Usage_Times:
 				if usedQuo.GetUsedTimes() >= usageRule.GetTimes() {
 					log.Warnf("the metadataAuth was used times exceed the limit on MetadataAuthority.HasValidMetadataAuth(), userType: {%s}, user:{%s}, identityId: {%s}, metadataId: {%s}",
-						userType.String(), user,identityId,  metadataId)
+						userType.String(), user, identityId, metadataId)
 					continue
 				}
 			default:
@@ -317,6 +333,123 @@ func (ma *MetadataAuthority) HasNotValidMetadataAuth(userType commonconstantpb.U
 	if has {
 		return false, nil
 	}
+	return true, nil
+}
+
+func (ma *MetadataAuthority) VerifyMetadataAuthWithMetadataOption(metadataAuthId string, auth *carriertypespb.MetadataAuthority) (bool, error) {
+
+	identity, err := ma.dataCenter.QueryIdentityById(auth.GetOwner().GetIdentityId())
+	if nil != err {
+		return false, fmt.Errorf("can not query global identity list, %s", err)
+	}
+	if nil == identity {
+		return false, fmt.Errorf("not found identity with identityId of auth, %s, identityId: {%s}",
+			err, auth.GetOwner().GetIdentityId())
+	}
+
+	metadata, err := ma.dataCenter.QueryMetadataById(auth.GetMetadataId())
+	if rawdb.IsNoDBNotFoundErr(err) {
+		return false, fmt.Errorf("found global metadata arr by metadataId failed, %s, metadataId: {%s}", err, auth.GetMetadataId())
+	}
+	if nil == metadata {
+		return false, fmt.Errorf("not found metadata with metadataId from metadataAuth, %s, metadataId: {%s}, metadataAuthId: {%s}", err, auth.GetMetadataId(), metadataAuthId)
+	}
+	if metadata.GetData().GetOwner().GetIdentityId() != auth.GetOwner().GetIdentityId() {
+		return false, fmt.Errorf("the owner identityId of metadataAuth and the owner identityId metadata is not same, %s, metadataId: {%s}, metadataAuthId: {%s}, identityId of metadata: {%s}, identityId of metadataAuth: {%s}",
+			err, auth.GetMetadataId(), metadataAuthId, metadata.GetData().GetOwner().GetIdentityId(), auth.GetOwner().GetIdentityId())
+	}
+
+	consumeTypes, err := ma.policyEngine.FetchConsumeTypes(metadata.GetData().GetDataType(), metadata.GetData().GetMetadataOption())
+	if nil != err {
+		return false, fmt.Errorf("not fetch consumeTypes from metadataOption, %s, metadataId: {%s}", err, auth.GetMetadataId())
+	}
+
+	var index int = -1
+	for i, typ := range consumeTypes {
+		if typ == types.ConsumeMetadataAuth {
+			index = i
+			break
+		}
+	}
+	if -1 == index {
+		return false, fmt.Errorf("not found metadataAuthConsumeType from metadataOption, %s, metadataId: {%s}, consumeTypes: %v", err, auth.GetMetadataId(), consumeTypes)
+	}
+	consumeOptions, err := ma.policyEngine.FetchConsumeOptions(metadata.GetData().GetDataType(), metadata.GetData().GetMetadataOption())
+	if nil != err {
+		return false, fmt.Errorf("not fetch consumeOptions from metadataOption, %s, metadataId: {%s}", err, auth.GetMetadataId())
+	}
+	if len(consumeTypes) != len(consumeOptions) {
+		return false, fmt.Errorf("consumeTypesLen and consumeOptionsLen is not same fron metadataOption, %s, metadataId: {%s}", err, auth.GetMetadataId())
+	}
+	var option *types.MetadataConsumeOptionMetadataAuth
+	if err := json.Unmarshal([]byte(consumeOptions[index]), &option); nil != err {
+		return false, fmt.Errorf("can not unmashal consumeOptions to metadataConsumeOptionMetadataAuth, %s, metadataId: {%s}", err, auth.GetMetadataId())
+	}
+
+	now := timeutils.UnixMsecUint64()
+	switch auth.GetUsageRule().GetUsageType() {
+	case commonconstantpb.MetadataUsageType_Usage_Period:
+		// 1、check type
+		if option.GetStatus()&types.McomaStatusPeriodConsumeKind != types.McomaStatusPeriodConsumeKind {
+			return false, fmt.Errorf("metadataAuth consume kind not support period kind, metadataId: {%s}, usageType: {%s}, usageEndTime: {%d}, consume kind status: {%d}",
+				auth.GetMetadataId(), auth.GetUsageRule().GetUsageType().String(), auth.GetUsageRule().GetEndAt(), option.GetStatus())
+		}
+
+		// 2、check time
+		if now >= auth.GetUsageRule().GetEndAt() {
+			return false, fmt.Errorf("usaageRule endTime of metadataAuth has expire, metadataId: {%s}, usageType: {%s}, usageEndTime: {%d}, now: {%d}",
+				auth.GetMetadataId(), auth.GetUsageRule().GetUsageType().String(), auth.GetUsageRule().GetEndAt(), now)
+		}
+
+	case commonconstantpb.MetadataUsageType_Usage_Times:
+
+		// 1、check type
+		if option.GetStatus()&types.McomaStatusTimesConsumeKind != types.McomaStatusTimesConsumeKind {
+			return false, fmt.Errorf("metadataAuth consume kind not support times kind, metadataId: {%s}, usageType: {%s}, usageEndTime: {%d}, consume kind status: {%d}",
+				auth.GetMetadataId(), auth.GetUsageRule().GetUsageType().String(), auth.GetUsageRule().GetEndAt(), option.GetStatus())
+		}
+
+		// 2、check count
+		if auth.GetUsageRule().GetTimes() == 0 {
+			return false, fmt.Errorf("usaageRule times of metadataAuth must be greater than zero, metadataId: {%s}, usageType: {%s}, usageEndTime: {%d}, now: {%d}",
+				auth.GetMetadataId(), auth.GetUsageRule().GetUsageType().String(), auth.GetUsageRule().GetEndAt(), now)
+		}
+	default:
+		return false, fmt.Errorf("unknown usageType of the metadataAuth, metadataId: {%s}, usageType: {%s}",
+			auth.GetMetadataId(), auth.GetUsageRule().GetUsageType().String())
+	}
+
+	// check only one valid metadataAuth related one metadata? or multi metadataAuths related one metadata?
+	if option.GetStatus()&types.McomaStatusAuthMulti != types.McomaStatusTimesConsumeKind {
+		// TODO 还未实现， 需要查所有的 授权 对比 方式
+	}
+
+	return true, nil
+}
+
+func (ma *MetadataAuthority) VerifyMetadataAuthInfo(auth *types.MetadataAuthority) (bool, error) {
+
+	if auth.GetData().GetAuditOption() != commonconstantpb.AuditMetadataOption_Audit_Pending {
+		return false, fmt.Errorf("the metadataAuth state was audited")
+	}
+
+	if auth.GetData().GetState() != commonconstantpb.MetadataAuthorityState_MAState_Released {
+		return false, fmt.Errorf("the metadataAuth state was not released")
+	}
+
+	switch auth.GetData().GetAuth().GetUsageRule().GetUsageType() {
+	case commonconstantpb.MetadataUsageType_Usage_Period:
+		if timeutils.UnixMsecUint64() >= auth.GetData().GetAuth().GetUsageRule().GetEndAt() {
+			return false, fmt.Errorf("the metadataAuth had been expire")
+		}
+	case commonconstantpb.MetadataUsageType_Usage_Times:
+		if auth.GetData().GetUsedQuo().GetUsedTimes() >= auth.GetData().GetAuth().GetUsageRule().GetTimes() {
+			return false, fmt.Errorf("the metadataAuth had been not enough times")
+		}
+	default:
+		return false, fmt.Errorf("unknown usageType of the old metadataAuth")
+	}
+
 	return true, nil
 }
 
@@ -432,7 +565,7 @@ func (ma *MetadataAuthority) QueryMetadataAuthIdByMetadataId(userType commoncons
 	return ma.dataCenter.QueryUserMetadataAuthIdByMetadataId(userType, user, metadataId)
 }
 
-func (ma *MetadataAuthority) UpdateMetadataAuthority (metadataAuth *types.MetadataAuthority) error {
+func (ma *MetadataAuthority) UpdateMetadataAuthority(metadataAuth *types.MetadataAuthority) error {
 	return ma.dataCenter.UpdateMetadataAuthority(metadataAuth)
 }
 

@@ -22,10 +22,11 @@ type GrpcClient struct {
 	c *grpc.ClientConn
 
 	// grpc service
-	metadataService datacenterapipb.MetadataServiceClient
-	resourceService datacenterapipb.ResourceServiceClient
-	identityService datacenterapipb.IdentityServiceClient
-	taskService     datacenterapipb.TaskServiceClient
+	metadataService     datacenterapipb.MetadataServiceClient
+	resourceService     datacenterapipb.ResourceServiceClient
+	identityService     datacenterapipb.IdentityServiceClient
+	metadataAuthService datacenterapipb.MetadataAuthServiceClient
+	taskService         datacenterapipb.TaskServiceClient
 }
 
 // NewClient creates a client that uses the given GRPC client.
@@ -37,11 +38,12 @@ func NewGrpcClient(ctx context.Context, addr string) (*GrpcClient, error) {
 		return nil, err
 	}
 	return &GrpcClient{
-		c:               conn,
-		metadataService: datacenterapipb.NewMetadataServiceClient(conn),
-		resourceService: datacenterapipb.NewResourceServiceClient(conn),
-		identityService: datacenterapipb.NewIdentityServiceClient(conn),
-		taskService:     datacenterapipb.NewTaskServiceClient(conn),
+		c:                   conn,
+		metadataService:     datacenterapipb.NewMetadataServiceClient(conn),
+		resourceService:     datacenterapipb.NewResourceServiceClient(conn),
+		identityService:     datacenterapipb.NewIdentityServiceClient(conn),
+		metadataAuthService: datacenterapipb.NewMetadataAuthServiceClient(conn),
+		taskService:         datacenterapipb.NewTaskServiceClient(conn),
 	}, nil
 }
 
@@ -57,6 +59,8 @@ func (gc *GrpcClient) GetClientConn() *grpc.ClientConn {
 	}
 	return gc.c
 }
+
+// ************************************** Metadata module *******************************************************
 
 // MetadataSave saves new metadata to database.
 func (gc *GrpcClient) SaveMetadata(ctx context.Context, request *datacenterapipb.SaveMetadataRequest) (*carriertypespb.SimpleResponse, error) {
@@ -135,7 +139,7 @@ func (gc *GrpcClient) UpdateMetadata(ctx context.Context, request *datacenterapi
 	return gc.metadataService.UpdateMetadata(ctx, request)
 }
 
-// ************************************** Resource module *******************************************************
+// ************************************** Resource (power) module *******************************************************
 
 func (gc *GrpcClient) SaveResource(ctx context.Context, request *datacenterapipb.PublishPowerRequest) (*carriertypespb.SimpleResponse, error) {
 	if nil == gc {
@@ -213,6 +217,15 @@ func (gc *GrpcClient) RevokeIdentityJoin(ctx context.Context, request *datacente
 	return gc.identityService.RevokeIdentity(ctx, request)
 }
 
+func (gc *GrpcClient) GetIdentityById(ctx context.Context, request *datacenterapipb.FindIdentityRequest) (*datacenterapipb.FindIdentityResponse, error) {
+	if nil == gc {
+		return nil, fmt.Errorf("datacenter rpc client is nil")
+	}
+	ctx, cancel := context.WithTimeout(ctx, TweentySecondGrpcRequestTimeout)
+	defer cancel()
+	return gc.identityService.FindIdentity(ctx, request)
+}
+
 func (gc *GrpcClient) GetIdentityList(ctx context.Context, request *datacenterapipb.ListIdentityRequest) (*datacenterapipb.ListIdentityResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
@@ -222,6 +235,18 @@ func (gc *GrpcClient) GetIdentityList(ctx context.Context, request *datacenterap
 	return gc.identityService.ListIdentity(ctx, request)
 }
 
+func (gc *GrpcClient) UpdateIdentityCredential(ctx context.Context, request *datacenterapipb.UpdateIdentityCredentialRequest) (*carriertypespb.SimpleResponse, error) {
+	if nil == gc {
+		return nil, fmt.Errorf("datacenter rpc client is nil")
+	}
+	// TODO: Requests take too long, consider stream processing
+	ctx, cancel := context.WithTimeout(ctx, TweentySecondGrpcRequestTimeout)
+	defer cancel()
+	return gc.identityService.UpdateIdentityCredential(ctx, request)
+}
+
+// ************************************** MetadataAuth module *******************************************************
+
 // Store metadata authentication application records
 func (gc *GrpcClient) SaveMetadataAuthority(ctx context.Context, request *datacenterapipb.MetadataAuthorityRequest) (*carriertypespb.SimpleResponse, error) {
 	if nil == gc {
@@ -229,7 +254,7 @@ func (gc *GrpcClient) SaveMetadataAuthority(ctx context.Context, request *datace
 	}
 	ctx, cancel := context.WithTimeout(ctx, DefaultGrpcRequestTimeout)
 	defer cancel()
-	return gc.identityService.SaveMetadataAuthority(ctx, request)
+	return gc.metadataAuthService.SaveMetadataAuthority(ctx, request)
 }
 
 // Data authorization audit, rules:
@@ -240,7 +265,7 @@ func (gc *GrpcClient) UpdateMetadataAuthority(ctx context.Context, request *data
 	}
 	ctx, cancel := context.WithTimeout(ctx, DefaultGrpcRequestTimeout)
 	defer cancel()
-	return gc.identityService.UpdateMetadataAuthority(ctx, request)
+	return gc.metadataAuthService.UpdateMetadataAuthority(ctx, request)
 }
 
 // Obtain data authorization application list
@@ -252,7 +277,7 @@ func (gc *GrpcClient) GetMetadataAuthorityList(ctx context.Context, request *dat
 	// TODO: Requests take too long, consider stream processing
 	ctx, cancel := context.WithTimeout(ctx, TweentySecondGrpcRequestTimeout)
 	defer cancel()
-	return gc.identityService.ListMetadataAuthority(ctx, request, RPCMaxCallRecvMsgSize)
+	return gc.metadataAuthService.ListMetadataAuthority(ctx, request, RPCMaxCallRecvMsgSize)
 }
 
 func (gc *GrpcClient) FindMetadataAuthority(ctx context.Context, request *datacenterapipb.FindMetadataAuthorityRequest) (*datacenterapipb.FindMetadataAuthorityResponse, error) {
@@ -262,10 +287,10 @@ func (gc *GrpcClient) FindMetadataAuthority(ctx context.Context, request *datace
 	// TODO: Requests take too long, consider stream processing
 	ctx, cancel := context.WithTimeout(ctx, TweentySecondGrpcRequestTimeout)
 	defer cancel()
-	return gc.identityService.FindMetadataAuthority(ctx, request)
+	return gc.metadataAuthService.FindMetadataAuthority(ctx, request)
 }
 
-// ************************************** GetTask module *******************************************************
+// ************************************** Task module *******************************************************
 
 func (gc *GrpcClient) SaveTask(ctx context.Context, request *datacenterapipb.SaveTaskRequest) (*carriertypespb.SimpleResponse, error) {
 	if nil == gc {
@@ -324,14 +349,4 @@ func (gc *GrpcClient) ListTaskEvent(ctx context.Context, request *datacenterapip
 	ctx, cancel := context.WithTimeout(ctx, TweentySecondGrpcRequestTimeout)
 	defer cancel()
 	return gc.taskService.ListTaskEvent(ctx, request, RPCMaxCallRecvMsgSize)
-}
-
-func (gc *GrpcClient) UpdateIdentityCredential(ctx context.Context, request *datacenterapipb.UpdateIdentityCredentialRequest) (*carriertypespb.SimpleResponse, error) {
-	if nil == gc {
-		return nil, fmt.Errorf("datacenter rpc client is nil")
-	}
-	// TODO: Requests take too long, consider stream processing
-	ctx, cancel := context.WithTimeout(ctx, TweentySecondGrpcRequestTimeout)
-	defer cancel()
-	return gc.identityService.UpdateIdentityCredential(ctx, request)
 }

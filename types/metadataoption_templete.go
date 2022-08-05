@@ -241,10 +241,10 @@ const (
 	// 0000...0010   (has count consume kind)
 	// 0000...0100   (has time expire consume kind)
 
-	McomaStatusAuthOnlyOne           uint64 = 0
-	McomaStatusAuthMulti                    = iota
-	McomaStatusCountConsumeKind             = McomaStatusAuthMulti << 1
-	McomaStatusTimeExpireConsumeKind        = McomaStatusAuthMulti << 2
+	McomaStatusAuthOnlyOne       uint64 = 0
+	McomaStatusAuthMulti                = iota
+	McomaStatusTimesConsumeKind         = McomaStatusAuthMulti << 1
+	McomaStatusPeriodConsumeKind        = McomaStatusAuthMulti << 2
 )
 
 func (o *MetadataConsumeOptionMetadataAuth) GetStatus() uint64 { return o.Status }

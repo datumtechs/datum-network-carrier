@@ -111,6 +111,7 @@ type IdentityCarrierDB interface {
 	// about global identity
 	InsertIdentity(identity *types.Identity) error
 	RevokeIdentity(identity *types.Identity) error
+	QueryIdentityById(identityId string) (*types.Identity, error) // add by v0.5.0
 	QueryIdentityList(lastUpdate, pageSize uint64) (types.IdentityArray, error)
 	//QueryIdentityListByIds(identityIds []string) (types.IdentityArray, error)
 	// about local identity

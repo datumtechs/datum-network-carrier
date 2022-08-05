@@ -5,61 +5,67 @@ import (
 )
 
 var (
+
+	// --------------- for resource ---------------
+	//
 	// prefix + jobNodeId -> LocalResourceTable
 	nodeResourceKeyPrefix = []byte("NodeResourceKeyPrefix:")
-
 	// key -> SlotUnit
 	//nodeResourceSlotUnitKey = []byte("nodeResourceSlotUnitKey")
-
 	// prefix + taskId + partyId -> LocalTaskPowerUsed
 	localTaskPowerUsedKeyPrefix = []byte("localTaskPowerUsedKeyPrefix:")
 	// prefix + jobNodeId + taskId -> [partyId, ..., partyId]
 	jobNodeTaskPartyIdsKeyPrefix = []byte("jobNodeTaskPartyIdsKeyPrefix:")
-
 	// prefix + jobNodeId -> history task count
 	jobNodeHistoryTaskCountKeyPrefix = []byte("jobNodeHistoryTaskCountKeyPrefix:")
 	// prefix + jobNodeId + taskId -> index
 	jobNodeHistoryTaskKeyPrefix = []byte("jobNodeHistoryTaskKeyPrefix:")
-
 	// prefix + dataNodeId -> DataResourceTable{dataNodeId, totalDisk, usedDisk}
 	dataResourceTableKeyPrefix = []byte("dataResourceTableKeyPrefix:")
-
 	// prefix + originId -> DataResourceDataUpload{originId, dataNodeId, metaDataId, filePath}
 	dataResourceDataUploadKeyPrefix = []byte("dataResourceDataUsedKeyPrefix:")
-
 	// prefix + powerId -> jobNodeId
 	powerIdJobNodeIdMapingKeyPrefix = []byte("powerIdJobNodeIdMapingKeyPrefix:")
 	// prefix + metaDataId -> DataResourceDiskUsed{metaDataId, dataNodeId, diskUsed}
 	dataResourceDiskUsedKeyPrefix = []byte("DataResourceDiskUsedKeyPrefix:")
-	// prefix + taskId + partyId -> executeStatus (uint64)
-	localTaskExecuteStatusKeyPrefix = []byte("localTaskExecuteStatusKeyPrefix:")
 
+	// --------------- for metadataAuth ---------------
+	//
+	// prefix + userType + user + metadataId -> metadataAuth totalCount
+	userMetadataAuthByMetadataIdTotalCountPrefix = []byte("userMetadataAuthByMetadataIdTotalCountPrefix:")
+	// prefix + userType + user + metadataId -> metadataAuth validCount
+	userMetadataAuthByMetadataIdValidCountPrefix = []byte("userMetadataAuthByMetadataIdValidCountPrefix:")
+	// prefix + uesrType + user + metadataId + metadataAuthId -> status <0: invalid, 1: valid>
+	userMetadataAuthByMetadataIdStatusPrefix = []byte("userMetadataAuthByMetadataIdStatusPrefix")
 	// prefix + userType + user + metadataId -> metadataAuthId (only one)
 	userMetadataAuthByMetadataIdKeyPrefix = []byte("userMetadataAuthByMetadataIdKeyPrefix:")
 
+	// --------------- for task ---------------
+	//
+	// prefix + taskId + partyId -> executeStatus (uint64)
+	localTaskExecuteStatusKeyPrefix = []byte("localTaskExecuteStatusKeyPrefix:")
 	// prefix + metadataId -> history task count
 	metadataHistoryTaskCountKeyPrefix = []byte("metadataHistoryTaskCountKeyPrefix:")
 	// prefix + metadataId + taskId -> index
 	metadataHistoryTaskKeyPrefix = []byte("metadataHistoryTaskKeyPrefix:")
-
 	// prefix + taskId -> resultData summary (auto build metadataId)
 	taskResultDataMetadataIdKeyPrefix = []byte("taskResultDataMetadataIdKeyPrefix:")
 	// prefix + taskId -> [partyId, ..., partyId]  for task sender
 	taskPartnerPartyIdsKeyPrefix = []byte("taskPartnerPartyIdsKeyPrefix:")
-
+	// prefix + taskId -> needExecuteTask
 	needExecuteTaskKeyPrefix = []byte("needExecuteTaskKeyPrefix:")
 
-	// ---------  for message_handler  ---------
+	// ---------------  for message_handler  ---------------
 	powerMsgKeyPrefix        = []byte("powerMsgKeyPrefix:")
 	metadataMsgKeyPrefix     = []byte("metadataMsgKeyPrefix:")
 	metadataUpdateMsgPrefix  = []byte("metadataUpdateMsgPrefix:")
 	metadataAuthMsgKeyPrefix = []byte("metadataAuthMsgKeyPrefix:")
 	taskMsgKeyPrefix         = []byte("taskMsgKeyPrefix:")
 
-	// ---------- for scheduler (task bullet) ----------
+	// --------------- for scheduler (task bullet) ---------------
 	taskBulletKeyPrefix = []byte("taskBulletKeyPrefix:")
 
-	// ---------- for organization built-in private key ----------
+	// --------------- for organization built-in private key ---------------
 	orgPriKeyPrefix = []byte("orgPriKeyPrefix:")
 )
 
@@ -180,6 +186,84 @@ func GetUserMetadataAuthByMetadataIdKey(userType commonconstantpb.UserType, user
 	copy(key[prefixIndex:userTypeIndex], userTypeBytes)
 	copy(key[userTypeIndex:userIndex], userBytes)
 	copy(key[userIndex:], metadataIdBytes)
+
+	return key
+}
+
+// prefix + userType + user + metadataId ->  metadataAuth totalCount
+func GetUserMetadataAuthByMetadataIdTotalCountKey(userType commonconstantpb.UserType, user, metadataId string) []byte {
+
+	// key: prefix + userType + user + metadataId ->  value: metadataAuth totalCount
+
+	userTypeBytes := []byte(userType.String())
+	userBytes := []byte(user)
+	metadataIdBytes := []byte(metadataId)
+
+	// some index of pivots
+	prefixIndex := len(userMetadataAuthByMetadataIdTotalCountPrefix)
+	userTypeIndex := prefixIndex + len(userTypeBytes)
+	userIndex := userTypeIndex + len(userBytes)
+	size := userIndex + len(metadataIdBytes)
+
+	// construct key
+	key := make([]byte, size)
+	copy(key[:prefixIndex], userMetadataAuthByMetadataIdTotalCountPrefix)
+	copy(key[prefixIndex:userTypeIndex], userTypeBytes)
+	copy(key[userTypeIndex:userIndex], userBytes)
+	copy(key[userIndex:], metadataIdBytes)
+
+	return key
+}
+
+// prefix + userType + user + metadataId -> metadataAuth validCount
+func GetUserMetadataAuthByMetadataIdValidCountKey(userType commonconstantpb.UserType, user, metadataId string) []byte {
+
+	// key: prefix + userType + user + metadataId ->  value: metadataAuth validCount
+
+	userTypeBytes := []byte(userType.String())
+	userBytes := []byte(user)
+	metadataIdBytes := []byte(metadataId)
+
+	// some index of pivots
+	prefixIndex := len(userMetadataAuthByMetadataIdValidCountPrefix)
+	userTypeIndex := prefixIndex + len(userTypeBytes)
+	userIndex := userTypeIndex + len(userBytes)
+	size := userIndex + len(metadataIdBytes)
+
+	// construct key
+	key := make([]byte, size)
+	copy(key[:prefixIndex], userMetadataAuthByMetadataIdValidCountPrefix)
+	copy(key[prefixIndex:userTypeIndex], userTypeBytes)
+	copy(key[userTypeIndex:userIndex], userBytes)
+	copy(key[userIndex:], metadataIdBytes)
+
+	return key
+}
+
+// prefix + uesrType + user + metadataId + metadataAuthId -> status <0: invalid, 1: valid>
+func GetUserMetadataAuthByMetadataIdStatusKey(userType commonconstantpb.UserType, user, metadataId, metadataAuthId string) []byte {
+
+	// key: prefix + uesrType + user + metadataId + metadataAuthId -> value status <0: invalid, 1: valid>
+
+	userTypeBytes := []byte(userType.String())
+	userBytes := []byte(user)
+	metadataIdBytes := []byte(metadataId)
+	metadataAuthIdBytes := []byte(metadataAuthId)
+
+	// some index of pivots
+	prefixIndex := len(userMetadataAuthByMetadataIdStatusPrefix)
+	userTypeIndex := prefixIndex + len(userTypeBytes)
+	userIndex := userTypeIndex + len(userBytes)
+	metadataIdIndex := userIndex + len(metadataIdBytes)
+	size := metadataIdIndex + len(metadataAuthIdBytes)
+
+	// construct key
+	key := make([]byte, size)
+	copy(key[:prefixIndex], userMetadataAuthByMetadataIdStatusPrefix)
+	copy(key[prefixIndex:userTypeIndex], userTypeBytes)
+	copy(key[userTypeIndex:userIndex], userBytes)
+	copy(key[userIndex:metadataIdIndex], metadataIdBytes)
+	copy(key[metadataIdIndex:], metadataAuthIdBytes)
 
 	return key
 }

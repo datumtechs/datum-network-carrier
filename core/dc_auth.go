@@ -53,6 +53,9 @@ func (dc *DataCenter) HasIdentity(identity *carriertypespb.Organization) (bool, 
 	if err != nil {
 		return false, err
 	}
+	if responses.GetStatus() != 0 {
+		return false, fmt.Errorf("call datacenter GetIdentityList error, status %d,error msg %s", responses.GetStatus(), responses.GetMsg())
+	}
 	for _, organization := range responses.GetIdentities() {
 		if strings.EqualFold(organization.IdentityId, identity.IdentityId) {
 			return true, nil
@@ -90,10 +93,23 @@ func (dc *DataCenter) RevokeIdentity(identity *types.Identity) error {
 	return nil
 }
 
+func (dc *DataCenter) QueryIdentityById(identityId string) (*types.Identity, error) {
+	dc.serviceMu.RLock()
+	defer dc.serviceMu.RUnlock()
+	identityResponse, err := dc.client.GetIdentityById(dc.ctx, &datacenterapipb.FindIdentityRequest{IdentityId: identityId})
+	if identityResponse.GetStatus() != 0 {
+		return nil, fmt.Errorf("call datacenter GetIdentityById error, status %d,error msg %s", identityResponse.GetStatus(), identityResponse.GetMsg())
+	}
+	return types.NewIdentityFromIdentityResponse(identityResponse), err
+}
+
 func (dc *DataCenter) QueryIdentityList(lastUpdate uint64, pageSize uint64) (types.IdentityArray, error) {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
 	identityListResponse, err := dc.client.GetIdentityList(dc.ctx, &datacenterapipb.ListIdentityRequest{LastUpdated: lastUpdate, PageSize: pageSize})
+	if identityListResponse.GetStatus() != 0 {
+		return nil, fmt.Errorf("call datacenter GetIdentityList error, status %d,error msg %s", identityListResponse.GetStatus(), identityListResponse.GetMsg())
+	}
 	return types.NewIdentityArrayFromIdentityListResponse(identityListResponse), err
 }
 
@@ -132,6 +148,9 @@ func (dc *DataCenter) QueryMetadataAuthority(metadataAuthId string) (*types.Meta
 	if err != nil {
 		return nil, err
 	}
+	if response.GetStatus() != 0 {
+		return nil, fmt.Errorf("call datacenter FindMetadataAuthority error, status %d,error msg %s", response.GetStatus(), response.GetMsg())
+	}
 	return types.NewMetadataAuthority(response.MetadataAuthority), nil
 }
 
@@ -152,6 +171,9 @@ func (dc *DataCenter) QueryMetadataAuthorityListByIdentityId(identityId string, 
 	if err != nil {
 		return nil, err
 	}
+	if response.GetStatus() != 0 {
+		return nil, fmt.Errorf("call datacenter GetMetadataAuthorityList error, status %d,error msg %s", response.GetStatus(), response.GetMsg())
+	}
 	return types.NewMetadataAuthArrayFromResponse(response.GetMetadataAuthorities()), nil
 }
 
@@ -164,6 +186,9 @@ func (dc *DataCenter) QueryMetadataAuthorityList(lastUpdate uint64, pageSize uin
 	})
 	if err != nil {
 		return nil, err
+	}
+	if response.GetStatus() != 0 {
+		return nil, fmt.Errorf("call datacenter GetMetadataAuthorityList error, status %d,error msg %s", response.GetStatus(), response.GetMsg())
 	}
 	return types.NewMetadataAuthArrayFromResponse(response.GetMetadataAuthorities()), nil
 }

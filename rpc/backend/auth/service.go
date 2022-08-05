@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/carrierdb/rawdb"
-	"github.com/datumtechs/datum-network-carrier/common/timeutils"
 	"github.com/datumtechs/datum-network-carrier/p2p"
 	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
@@ -193,7 +192,7 @@ func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *carrierapipb
 
 	metadataAuthorityMsg := types.NewMetadataAuthorityMessageFromRequest(req)
 
-	from, err := signsuite.Sender(req.GetUserType(), metadataAuthorityMsg.Hash(), req.GetSign())
+	from, _, err := signsuite.Sender(req.GetUserType(), metadataAuthorityMsg.Hash(), req.GetSign())
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:ApplyMetadataAuthority failed, cannot fetch sender from sign, userType: {%s}, user: {%s}",
 			req.GetUserType().String(), req.GetUser())
@@ -205,87 +204,24 @@ func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *carrierapipb
 		return &carrierapipb.ApplyMetadataAuthorityResponse{Status: backend.ErrApplyMetadataAuthority.ErrCode(), Msg: "the user sign is invalid"}, nil
 	}
 
-	now := timeutils.UnixMsecUint64()
-	switch req.GetAuth().GetUsageRule().GetUsageType() {
-	case commonconstantpb.MetadataUsageType_Usage_Period:
-		if now >= req.GetAuth().GetUsageRule().GetEndAt() {
-			log.Errorf("RPC-API:ApplyMetadataAuthority failed, usaageRule endTime of metadataAuth has expire, userType: {%s}, user: {%s}, metadataId: {%s}, usageType: {%s}, usageEndTime: {%d}, now: {%d}",
-				req.GetUserType().String(), req.GetUser(), req.GetAuth().GetMetadataId(), req.GetAuth().GetUsageRule().GetUsageType().String(), req.GetAuth().GetUsageRule().GetEndAt(), now)
-			return &carrierapipb.ApplyMetadataAuthorityResponse{Status: backend.ErrApplyMetadataAuthority.ErrCode(), Msg: "usaageRule endTime of metadataAuth has expire"}, nil
-		}
-	case commonconstantpb.MetadataUsageType_Usage_Times:
-		if req.GetAuth().GetUsageRule().GetTimes() == 0 {
-			log.Errorf("RPC-API:ApplyMetadataAuthority failed, usaageRule times of metadataAuth must be greater than zero, userType: {%s}, user: {%s}, metadataId: {%s}, usageType: {%s}, usageEndTime: {%d}, now: {%d}",
-				req.GetUserType().String(), req.GetUser(), req.GetAuth().GetMetadataId(), req.GetAuth().GetUsageRule().GetUsageType().String(), req.GetAuth().GetUsageRule().GetEndAt(), now)
-			return &carrierapipb.ApplyMetadataAuthorityResponse{Status: backend.ErrApplyMetadataAuthority.ErrCode(), Msg: "usaageRule times of metadataAuth must be greater than zero"}, nil
-		}
-	default:
-		log.Errorf("RPC-API:ApplyMetadataAuthority failed, unknown usageType of the metadataAuth, userType: {%s}, user: {%s}, metadataId: {%s}, usageType: {%s}",
-			req.GetUserType().String(), req.GetUser(), req.GetAuth().GetMetadataId(), req.GetAuth().GetUsageRule().GetUsageType().String())
-		return &carrierapipb.ApplyMetadataAuthorityResponse{Status: backend.ErrApplyMetadataAuthority.ErrCode(), Msg: "unknown usageType of the metadataAuth"}, nil
-	}
+	// verify special options of metadataAuth...
 
 	// ############################################
 	// ############################################
 	// NOTE:
-	// 		check metadataId and identity of authority
+	// 		check metadataAuth with metadata
 	// ############################################
 	// ############################################
-	ideneityList, err := svr.B.GetIdentityList(timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
+	pass, err := svr.B.VerifyMetadataAuthWithMetadataOption(req.GetAuth().GetMetadataId(), req.GetAuth())
 	if nil != err {
-		log.WithError(err).Error("RPC-API:ApplyMetadataAuthority failed, query global identity list failed")
-		return &carrierapipb.ApplyMetadataAuthorityResponse{Status: backend.ErrApplyMetadataAuthority.ErrCode(), Msg: "query global identity list failed"}, nil
+		log.WithError(err).Errorf("RPC-API:ApplyMetadataAuthority failed, can not verify metadataAuth with metadataOption, metadataId: {%s}, auth: %s",
+			req.GetAuth().GetMetadataId(), req.GetAuth().String())
+		return &carrierapipb.ApplyMetadataAuthorityResponse{Status: backend.ErrApplyMetadataAuthority.ErrCode(), Msg: "can not verify metadataAuth with metadataOption"}, nil
 	}
-	var valid bool // false
-	for _, identity := range ideneityList {
-		if identity.GetIdentityId() == req.GetAuth().GetOwner().GetIdentityId() {
-			valid = true
-			break
-		}
-	}
-	if !valid {
-		log.WithError(err).Errorf("RPC-API:ApplyMetadataAuthority failed, not found identity with identityId of auth, identityId: {%s}",
-			req.GetAuth().GetOwner().GetIdentityId())
-		return &carrierapipb.ApplyMetadataAuthorityResponse{Status: backend.ErrApplyMetadataAuthority.ErrCode(), Msg: "not found identity with identityId of auth"}, nil
-	}
-	// reset val
-	valid = false
-
-	metadataList, err := svr.B.GetGlobalMetadataDetailListByIdentityId(req.GetAuth().GetOwner().GetIdentityId(), timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
-	if nil != err {
-		log.WithError(err).Errorf("RPC-API:ApplyMetadataAuthority failed, query global metadata list by identityId failed, identityId: {%s}", req.GetAuth().GetOwner().GetIdentityId())
-		return &carrierapipb.ApplyMetadataAuthorityResponse{Status: backend.ErrApplyMetadataAuthority.ErrCode(), Msg: "query global metadata list failed"}, nil
-	}
-	for _, metadata := range metadataList {
-		if metadata.GetInformation().GetMetadataSummary().GetMetadataId() == req.GetAuth().GetMetadataId() {
-			valid = true
-			break
-		}
-	}
-	if !valid {
-		log.WithError(err).Errorf("RPC-API:ApplyMetadataAuthority failed, not found metadata with metadataId of auth, metadataId: {%s}",
-			req.GetAuth().GetMetadataId())
-		return &carrierapipb.ApplyMetadataAuthorityResponse{Status: backend.ErrApplyMetadataAuthority.ErrCode(), Msg: "not found metadata with metadataId of auth"}, nil
-	}
-
-	// check the metadataId whether has valid metadataAuth with current userType and user.
-	has, err := svr.B.HasValidMetadataAuth(req.GetUserType(), req.GetUser(), req.GetAuth().GetOwner().GetIdentityId(), req.GetAuth().GetMetadataId())
-	if nil != err {
-		log.WithError(err).Errorf("RPC-API:ApplyMetadataAuthority failed, query valid user metadataAuth failed, userType: {%s}, user: {%s}, metadataId: {%s}",
-			req.GetUserType().String(), req.GetUser(), req.GetAuth().GetMetadataId())
-
-		errMsg := fmt.Sprintf(backend.ErrApplyMetadataAuthority.Error(), "query valid user metadataAuth failed",
-			req.GetUserType().String(), req.GetUser(), req.GetAuth().GetMetadataId())
-		return &carrierapipb.ApplyMetadataAuthorityResponse{Status: backend.ErrApplyMetadataAuthority.ErrCode(), Msg: errMsg}, nil
-	}
-
-	if has {
-		log.Errorf("RPC-API:ApplyMetadataAuthority failed, has valid metadataAuth exists, userType: {%s}, user: {%s}, metadataId: {%s}",
-			req.GetUserType().String(), req.GetUser(), req.GetAuth().GetMetadataId())
-
-		errMsg := fmt.Sprintf("%s, userType: {%s}, user: {%s}, metadataId: {%s}", backend.ErrApplyMetadataAuthority.Error(),
-			req.GetUserType().String(), req.GetUser(), req.GetAuth().GetMetadataId())
-		return &carrierapipb.ApplyMetadataAuthorityResponse{Status: backend.ErrApplyMetadataAuthority.ErrCode(), Msg: errMsg}, nil
+	if !pass {
+		log.WithError(err).Errorf("RPC-API:ApplyMetadataAuthority failed, invalid metadataAuth, metadataId: {%s}, auth: %s",
+			req.GetAuth().GetMetadataId(), req.GetAuth().String())
+		return &carrierapipb.ApplyMetadataAuthorityResponse{Status: backend.ErrApplyMetadataAuthority.ErrCode(), Msg: "invalid metadataAuth"}, nil
 	}
 
 	metadataAuthId := metadataAuthorityMsg.GenMetadataAuthId()
@@ -328,7 +264,7 @@ func (svr *Server) RevokeMetadataAuthority(ctx context.Context, req *carrierapip
 	}
 
 	metadataAuthorityRevokeMsg := types.NewMetadataAuthorityRevokeMessageFromRequest(req)
-	from, err := signsuite.Sender(req.GetUserType(), metadataAuthorityRevokeMsg.Hash(), req.GetSign())
+	from, _, err := signsuite.Sender(req.GetUserType(), metadataAuthorityRevokeMsg.Hash(), req.GetSign())
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, cannot fetch sender from sign, userType: {%s}, user: {%s}",
 			req.GetUserType().String(), req.GetUser())
@@ -340,53 +276,34 @@ func (svr *Server) RevokeMetadataAuthority(ctx context.Context, req *carrierapip
 		return &carriertypespb.SimpleResponse{Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "the user sign is invalid"}, nil
 	}
 
-	authorityList, err := svr.B.GetLocalMetadataAuthorityList(timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
-	if nil != err {
-		log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, query local metadataAuth list failed, %s", err)
-		return &carriertypespb.SimpleResponse{Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "query local metadataAuth list failed"}, nil
-	}
-
-	for _, auth := range authorityList {
-
-		if auth.GetUserType() == req.GetUserType() &&
-			auth.GetUser() == req.GetUser() &&
-			auth.GetData().GetMetadataAuthId() == req.GetMetadataAuthId() {
-
-			// The data authorization application information that has been audited and cannot be revoked
-			if auth.GetData().GetAuditOption() != commonconstantpb.AuditMetadataOption_Audit_Pending {
-				log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, the metadataAuth was audited")
-				return &carriertypespb.SimpleResponse{Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "the metadataAuth state was audited"}, nil
-			}
-
-			if auth.GetData().GetState() != commonconstantpb.MetadataAuthorityState_MAState_Released {
-				log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, the metadataAuth state was not released")
-				return &carriertypespb.SimpleResponse{Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "the metadataAuth state was not released"}, nil
-			}
-
-			switch auth.GetData().GetAuth().GetUsageRule().GetUsageType() {
-			case commonconstantpb.MetadataUsageType_Usage_Period:
-				if timeutils.UnixMsecUint64() >= auth.GetData().GetAuth().GetUsageRule().GetEndAt() {
-					log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, the metadataAuth had been expire")
-					return &carriertypespb.SimpleResponse{Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "the metadataAuth had been expire"}, nil
-				}
-			case commonconstantpb.MetadataUsageType_Usage_Times:
-				if auth.GetData().GetUsedQuo().GetUsedTimes() >= auth.GetData().GetAuth().GetUsageRule().GetTimes() {
-					log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, the metadataAuth had been not enough times")
-					return &carriertypespb.SimpleResponse{Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "the metadataAuth had been not enough times"}, nil
-				}
-			default:
-				log.Errorf("unknown usageType of the old metadataAuth on AuthorityManager.filterMetadataAuth(), metadataAuthId: {%s}", auth.GetData().GetMetadataAuthId())
-				return &carriertypespb.SimpleResponse{Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "unknown usageType of the old metadataAuth"}, nil
-			}
-		}
-	}
-
 	metadataAuthId := metadataAuthorityRevokeMsg.GetMetadataAuthId()
 
-	if err := svr.B.SendMsg(metadataAuthorityRevokeMsg); nil != err {
-		log.WithError(err).Error("RPC-API:RevokeMetadataAuthority failed")
+	auth, err := svr.B.GetMetadataAuthority(metadataAuthId)
+	if nil != err {
+		log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, query local metadataAuth failed, metadataAuthId: {%s}", metadataAuthId)
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "query local metadataAuth failed"}, nil
+	}
 
-		errMsg := fmt.Sprintf("%s, userType: {%s}, user: {%s}, MetadataAuthId: {%s}", backend.ErrRevokeMetadataAuthority.Error(),
+	if auth.GetUserType() != req.GetUserType() || auth.GetUser() != req.GetUser() {
+		log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, user or userType of local metadataAuth and req's is not same, metadataAuthId: {%s}", metadataAuthId)
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "user or userType of local metadataAuth and req's is not same"}, nil
+	}
+
+	// The data authorization application information that has been audited and cannot be revoked
+	pass, err := svr.B.VerifyMetadataAuthInfo(auth)
+	if nil != err {
+		log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, can not verify metadataAuth, metadataAuthId: {%s}", metadataAuthId)
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "can not verify metadataAuth"}, nil
+	}
+	if !pass {
+		log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, invalid metadataAuth, metadataAuthId: {%s}", metadataAuthId)
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "invalid metadataAuth"}, nil
+	}
+
+	if err := svr.B.SendMsg(metadataAuthorityRevokeMsg); nil != err {
+		log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, metadataAuthId: {%s}", metadataAuthId)
+
+		errMsg := fmt.Sprintf("%s, userType: {%s}, user: {%s}, metadataAuthId: {%s}", backend.ErrRevokeMetadataAuthority.Error(),
 			req.GetUserType().String(), req.GetUser(), req.GetMetadataAuthId())
 		return &carriertypespb.SimpleResponse{Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: errMsg}, nil
 	}

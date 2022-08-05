@@ -1054,6 +1054,10 @@ func (s *CarrierAPIBackend) AuditMetadataAuthority(audit *types.MetadataAuthAudi
 	return s.carrier.authManager.AuditMetadataAuthority(audit)
 }
 
+func (s *CarrierAPIBackend) GetMetadataAuthority(metadataAuthId string) (*types.MetadataAuthority, error) {
+	return s.carrier.authManager.GetMetadataAuthority(metadataAuthId)
+}
+
 func (s *CarrierAPIBackend) GetLocalMetadataAuthorityList(lastUpdate, pageSize uint64) (types.MetadataAuthArray, error) {
 	return s.carrier.authManager.GetLocalMetadataAuthorityList(lastUpdate, pageSize)
 }
@@ -1064,6 +1068,14 @@ func (s *CarrierAPIBackend) GetGlobalMetadataAuthorityList(lastUpdate, pageSize 
 
 func (s *CarrierAPIBackend) HasValidMetadataAuth(userType commonconstantpb.UserType, user, identityId, metadataId string) (bool, error) {
 	return s.carrier.authManager.HasValidMetadataAuth(userType, user, identityId, metadataId)
+}
+
+func (s *CarrierAPIBackend) VerifyMetadataAuthWithMetadataOption(metadataAuthId string, auth *carriertypespb.MetadataAuthority) (bool, error) {
+	return s.carrier.authManager.VerifyMetadataAuthWithMetadataOption(metadataAuthId, auth)
+}
+
+func (s *CarrierAPIBackend) VerifyMetadataAuthInfo(auth *types.MetadataAuthority) (bool, error) {
+	return s.carrier.authManager.VerifyMetadataAuthInfo(auth)
 }
 
 // task api
@@ -1409,24 +1421,26 @@ func (s *CarrierAPIBackend) StoreTaskResultDataSummary(taskId, originId, dataHas
 	// store local metadata (about task result file)
 	metadata := types.NewMetadata(&carriertypespb.MetadataPB{
 		/**
-		MetadataId           string
-		Owner                *Organization
-		DataId               string
-		DataStatus           DataStatus
-		MetadataName         string
-		MetadataType         MetadataType
-		DataHash             string
-		Desc                 string
-		LocationType         DataLocationType
-		DataType             OrigindataType
-		Industry             string
-		State                MetadataState
-		PublishAt            uint64
-		UpdateAt             uint64
-		Nonce                uint64
-		MetadataOption       string
-		AllowExpose          bool
-		TokenAddress         string
+		MetadataId     string
+		Owner          *Organization
+		DataId         string
+		DataStatus     constant.DataStatus
+		MetadataName   string
+		MetadataType   constant.MetadataType
+		DataHash       string
+		Desc           string
+		LocationType   constant.DataLocationTy
+		DataType       constant.OrigindataType
+		Industry       string
+		State          constant.MetadataState
+		PublishAt      uint64
+		UpdateAt       uint64
+		Nonce          uint64
+		MetadataOption string
+		// add by v0.5.0
+		User                 string
+		UserType             constant.UserType
+		Sign                 []byte
 		*/
 		MetadataId:     metadataId,
 		Owner:          identity,
@@ -1444,6 +1458,9 @@ func (s *CarrierAPIBackend) StoreTaskResultDataSummary(taskId, originId, dataHas
 		UpdateAt:       timeutils.UnixMsecUint64(),
 		Nonce:          0,
 		MetadataOption: metadataOption,
+		User:           "",
+		UserType:       commonconstantpb.UserType_User_Unknown,
+		Sign:           nil,
 	})
 	s.carrier.carrierDB.StoreInternalMetadata(metadata)
 
