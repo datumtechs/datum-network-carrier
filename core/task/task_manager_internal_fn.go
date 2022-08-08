@@ -336,14 +336,14 @@ func (m *Manager) beginConsumeMetadataOrPower(task *types.NeedExecuteTask, local
 	for consumeType, ConsumePolicyArray := range consumeTypeDataConsumePolicy {
 		switch consumeType {
 		case types.ConsumeMetadataAuth:
-			//todo 等待实现
+			return m.beginConsumeByMetadataAuth()
 		case types.ConsumeTk20, types.ConsumeTk721:
 			return m.beginConsumeByTk(task, localTask, ConsumePolicyArray, partyIdToMetadataId)
 		}
 	}
 	return nil
 }
-func (m *Manager) beginConsumeByTk(task *types.NeedExecuteTask, localTask *types.Task, ConsumePolicyArray []types.DataConsumePolicy, partyIdToMetadataId map[string]string) error {
+func (m *Manager) beginConsumeByTk(task *types.NeedExecuteTask, localTask *types.Task, ConsumePolicyArray []types.DataConsumePolicy, partyIdAndMetadataId map[string]string) error {
 	partyId := task.GetLocalTaskOrganization().GetPartyId()
 	switch task.GetLocalTaskRole() {
 	case commonconstantpb.TaskRole_TaskRole_Sender:
@@ -441,7 +441,7 @@ func (m *Manager) beginConsumeByTk(task *types.NeedExecuteTask, localTask *types
 	case commonconstantpb.TaskRole_TaskRole_DataSupplier, commonconstantpb.TaskRole_TaskRole_PowerSupplier, commonconstantpb.TaskRole_TaskRole_Receiver:
 		// check metadataId of myself (only by dataSupplier)
 		if task.GetLocalTaskRole() == commonconstantpb.TaskRole_TaskRole_DataSupplier {
-			metadataId, ok := partyIdToMetadataId[task.GetLocalTaskOrganization().GetPartyId()]
+			metadataId, ok := partyIdAndMetadataId[task.GetLocalTaskOrganization().GetPartyId()]
 			if !ok {
 				return fmt.Errorf("can not fetch metadataId from dataPolicy of task on on beginConsumeByTk(), %s", task.GetLocalTaskOrganization().GetPartyId())
 			}
@@ -529,6 +529,10 @@ func (m *Manager) beginConsumeByTk(task *types.NeedExecuteTask, localTask *types
 	default:
 		return fmt.Errorf("unknown task role on beginConsumeByTk()")
 	}
+}
+
+func (m *Manager) beginConsumeByMetadataAuth(task *types.NeedExecuteTask, localTask *types.Task, ConsumePolicyArray []types.DataConsumePolicy, partyIdAndMetadataId map[string]string) error {
+
 }
 
 //func (m *Manager) beginConsumeByMetadataAuth(task *types.NeedExecuteTask, localTask *types.Task) error {
@@ -910,7 +914,7 @@ func (m *Manager) endConsumeMetadataOrPower(task *types.NeedExecuteTask, localTa
 func (m *Manager) endConsumeByMetadataAuth(task *types.NeedExecuteTask, localTask *types.Task) error {
 	return nil // do nothing.
 }
-func (m *Manager) endConsumeTk20(task *types.NeedExecuteTask, localTask *types.Task, partyIdToMetadataId map[string]string) error {
+func (m *Manager) endConsumeTk20(task *types.NeedExecuteTask, localTask *types.Task, partyIdAndMetadataId map[string]string) error {
 
 	checkMetadataIdsFn := func() (bool, []string, error) {
 		// filter ignoreMetadataId (internalMetadata of other organizations) AND internalMetadata of current organization from metadataIds
@@ -922,7 +926,129 @@ func (m *Manager) endConsumeTk20(task *types.NeedExecuteTask, localTask *types.T
 		// `Internal metadata` will not be consumed datatoken.
 		//
 		filterMetadataIds := make([]string, 0)
-		for _, metadataId := range partyIdToMetadataId {
+		for _, metadataId := range partyIdAndMetadataId {
+			// If it is not the `internal metadata` of other organizations,
+			// and it is not the `internal metadata` of the current organization.
+			if metadataId == policy.IgnoreMetadataId {
+				continue
+			}
+			is, err := m.resourceMng.GetDB().IsInternalMetadataById(metadataId)
+			if nil != err {
+				return false, nil, fmt.Errorf("can not verify metadata is `internal metadata` whether or not on endConsumeTk20(), %s", err)
+			}
+			if is {
+				continue
+			}
+
+			// collect `non-internal metadataId`.
+			filterMetadataIds = append(filterMetadataIds, metadataId)
+		}
+		if len(filterMetadataIds) == 0 {
+			log.Warnf("Has not found anyone non-ignoreMetadataId then we do not need to consume tk of metadata on endConsumeTk20(), taskId: {%s}, partyId: {%s}",
+				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
+			return true, nil, nil
+		}
+		return false, filterMetadataIds, nil
+	}
+
+	switch task.GetLocalTaskRole() {
+	case commonconstantpb.TaskRole_TaskRole_Sender:
+
+		// check metadataIds of dataPolicy of local task
+		done, _, err := checkMetadataIdsFn()
+		if nil != err {
+			return err
+		}
+		if done {
+			return nil
+		}
+
+		// query consumeSpec of task
+		var consumeSpec *types.DatatokenPaySpec
+
+		if "" == strings.Trim(task.GetConsumeSpec(), "") {
+			return fmt.Errorf("consumeSpec about task is empty on endConsumeTk20(), consumeSpec: %s", task.GetConsumeSpec())
+		}
+
+		if err := json.Unmarshal([]byte(task.GetConsumeSpec()), &consumeSpec); nil != err {
+			return fmt.Errorf("cannot json unmarshal consumeSpec on endConsumeTk20(), consumeSpec: %s, %s", task.GetConsumeSpec(), err)
+		}
+
+		if task.GetLocalTaskOrganization().GetPartyId() != localTask.GetTaskSender().GetPartyId() {
+			return fmt.Errorf("this partyId is not task sender on endConsumeTk20(), partyId: %s, sender partyId: %s",
+				task.GetLocalTaskOrganization().GetPartyId(), localTask.GetTaskSender().GetPartyId())
+		}
+
+		// check task state in contract
+		//
+		// If the state of the contract is not "prepay",
+		// the settlement action will not be performed
+		if consumeSpec.GetConsumed() != 1 {
+			log.Warnf("Warning the task state value of contract is not `prepay`, the settlement action will not be performed on endConsumeTk20(), taskId: {%s}, partyId: {%s}, state: {%d}",
+				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), consumeSpec.GetConsumed())
+			return nil
+		}
+
+		taskIdBigInt, err := hexutil.DecodeBig("0x" + strings.TrimLeft(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID+"0x"), "\x00"))
+		if nil != err {
+			return fmt.Errorf("cannot decode taskId to big.Int on endConsumeTk20(), %s", err)
+		}
+
+		log.Debugf("Start call token20Pay.settle() on endConsumeTk20(), taskId: {%s}, partyId: {%s}, call params{taskIdBigInt: %d, gasUsedPrepay: %d}",
+			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt, consumeSpec.GetGasUsed())
+
+		// start prepay dataToken
+		txHash, err := m.payAgent.Settle(taskIdBigInt, consumeSpec.GetGasUsed())
+		if nil != err {
+			return fmt.Errorf("cannot call token20Pay to settle datatoken on endConsumeTk20(), %s", err)
+		}
+
+		log.Debugf("Succeed send `contract settle()` tx to blockchain on endConsumeTk20(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}, txHash: {%s}",
+			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt, txHash.String())
+
+		// make sure the `prepay` tx into blockchain
+		timeout := time.Duration(localTask.GetTaskData().GetOperationCost().GetDuration()) * time.Millisecond
+		ctx, cancelFn := context.WithTimeout(context.Background(), timeout)
+		//ctx, cancelFn := context.WithCancel(context.Background())
+		defer cancelFn()
+
+		receipt := m.payAgent.GetReceipt(ctx, txHash, time.Duration(500)*time.Millisecond) // period 500 ms
+		if nil == receipt {
+			return fmt.Errorf("settle dataToken failed, the transaction had not receipt on endConsumeTk20(), txHash: {%s}", txHash.String())
+		}
+
+		// contract tx execute failed.
+		if receipt.Status == 0 {
+			return fmt.Errorf("settle dataToken failed, the transaction receipt status is %d on endConsumeTk20(), txHash: {%s}", receipt.Status, txHash.String())
+		}
+
+		log.Debugf("Succeed execute `contract settle()` tx on blockchain on endConsumeTk20(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}, txHash: {%s}",
+			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt, txHash.String())
+
+		return nil
+	case commonconstantpb.TaskRole_TaskRole_DataSupplier:
+		return nil // do nothing ...
+	case commonconstantpb.TaskRole_TaskRole_PowerSupplier:
+		return nil // do nothing ...
+	case commonconstantpb.TaskRole_TaskRole_Receiver:
+		return nil // do nothing ...
+	default:
+		return fmt.Errorf("unknown task role on endConsumeTk20()")
+	}
+}
+func (m *Manager) endConsumeMetadataAuth(task *types.NeedExecuteTask, localTask *types.Task, partyIdAndMetadataId map[string]string) error {
+
+	checkMetadataIdsFn := func() (bool, []string, error) {
+		// filter ignoreMetadataId (internalMetadata of other organizations) AND internalMetadata of current organization from metadataIds
+		//
+		// #### NOTE ####
+		// If the `powerSupplier` or the `receiver` and the `dataSupplier` belong to the same organization,
+		// the `internal metadataId` can be obtained, so we must ignore it.
+		//
+		// `Internal metadata` will not be consumed datatoken.
+		//
+		filterMetadataIds := make([]string, 0)
+		for _, metadataId := range partyIdAndMetadataId {
 			// If it is not the `internal metadata` of other organizations,
 			// and it is not the `internal metadata` of the current organization.
 			if metadataId == policy.IgnoreMetadataId {
@@ -1038,9 +1164,9 @@ func (m *Manager) driveTaskForExecute(task *types.NeedExecuteTask, localTask *ty
 
 	// 1、 consume the resource of task
 	// TODO 打开这里 ...
-	//if err := m.beginConsumeMetadataOrPower(task, localTask); nil != err {
-	//	return err
-	//}
+	if err := m.beginConsumeMetadataOrPower(task, localTask); nil != err {
+		return err
+	}
 
 	// 2、 update needExecuteTask to disk
 	if err := m.resourceMng.GetDB().StoreNeedExecuteTask(task); nil != err {
@@ -1351,10 +1477,10 @@ func (m *Manager) publishFinishedTaskToDataCenter(task *types.NeedExecuteTask, l
 
 		// 1、settle metadata or power usage.
 		// TODO 打开这里 ...
-		//if err := m.endConsumeMetadataOrPower(task, localTask); nil != err {
-		//	log.WithError(err).Errorf("Failed to settle consume metadata or power on publishFinishedTaskToDataCenter, taskId: {%s}, partyId: {%s}, taskState: {%s}",
-		//		task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskState.String())
-		//}
+		if err := m.endConsumeMetadataOrPower(task, localTask); nil != err {
+			log.WithError(err).Errorf("Failed to settle consume metadata or power on publishFinishedTaskToDataCenter, taskId: {%s}, partyId: {%s}, taskState: {%s}",
+				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskState.String())
+		}
 
 		log.Debugf("Start publishFinishedTaskToDataCenter, taskId: {%s}, partyId: {%s}, taskState: {%s}",
 			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskState.String())
@@ -1389,10 +1515,10 @@ func (m *Manager) sendTaskResultMsgToTaskSender(task *types.NeedExecuteTask, loc
 
 	// 1、settle metadata or power usage.
 	// TODO 打开这里 ...
-	//if err := m.endConsumeMetadataOrPower(task, localTask); nil != err {
-	//	log.WithError(err).Errorf("Failed to settle consume metadata or power on sendTaskResultMsgToTaskSender, taskId: {%s},  partyId: {%s}",
-	//		task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
-	//}
+	if err := m.endConsumeMetadataOrPower(task, localTask); nil != err {
+		log.WithError(err).Errorf("Failed to settle consume metadata or power on sendTaskResultMsgToTaskSender, taskId: {%s},  partyId: {%s}",
+			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
+	}
 
 	// 2、push all events of task to task sender.
 	log.Debugf("Start sendTaskResultMsgToTaskSender, taskId: {%s}, partyId: {%s}, remote pid: {%s}",
