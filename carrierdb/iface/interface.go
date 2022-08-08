@@ -45,11 +45,15 @@ type LocalStoreCarrierDB interface {
 	StoreDataResourceDiskUsed(dataResourceDiskUsed *types.DataResourceDiskUsed) error
 	RemoveDataResourceDiskUsed(metaDataId string) error
 	QueryDataResourceDiskUsed(metaDataId string) (*types.DataResourceDiskUsed, error)
-	// v 0.2.0  about user metadataAuthUsed by metadataId (userType + user + metadataId -> metadataAuthId)
-	StoreUserMetadataAuthIdByMetadataId(userType commonconstantpb.UserType, user, metadataId, metadataAuthId string) error
-	QueryUserMetadataAuthIdByMetadataId(userType commonconstantpb.UserType, user, metadataId string) (string, error)
-	HasUserMetadataAuthIdByMetadataId(userType commonconstantpb.UserType, user, metadataId string) (bool, error)
-	RemoveUserMetadataAuthIdByMetadataId(userType commonconstantpb.UserType, user, metadataId string) error
+	// v 0.5.0  about user metadataAuthStatus by metadataId
+	//(userType + user + metadataId -> metadataAuthTotalCount
+	// | userType + user + metadataId -> metadataAuthValidCount
+	// | userType + user + metadataId + metadataAuthId -> status)
+	StoreValidUserMetadataAuthStatusByMetadataId(userType commonconstantpb.UserType, user, metadataId, metadataAuthId string, status uint16) error
+	QueryValidUserMetadataAuthIdsByMetadataId(userType commonconstantpb.UserType, user, metadataId string) ([]string, error)
+	HasValidUserMetadataAuthStatusByMetadataId(userType commonconstantpb.UserType, user, metadataId string) (bool, error)
+	HasUserMetadataAuthIdByMetadataId(userType commonconstantpb.UserType, user, metadataId, metadataAuthId string) (bool, error)
+	RemoveUserMetadataAuthStatusByMetadataId(userType commonconstantpb.UserType, user, metadataId, metadataAuthId string) error
 	// v 0.2.0 about metadata used taskId    (metadataId -> [taskId, taskId, ..., taskId])
 	StoreMetadataHistoryTaskId(metadataId, taskId string) error
 	HasMetadataHistoryTaskId(metadataId, taskId string) (bool, error)

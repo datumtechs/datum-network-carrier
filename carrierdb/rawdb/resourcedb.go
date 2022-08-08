@@ -984,65 +984,324 @@ func HasLocalTaskExecuteStatusTerminateByPartyId(db DatabaseReader, taskId, part
 	return true, nil
 }
 
-func StoreUserMetadataAuthIdByMetadataId(db DatabaseWriter, userType commonconstantpb.UserType, user, metadataId, metadataAuthId string) error {
+// for metadataAuth
+func StoreValidUserMetadataAuthStatusByMetadataId(db KeyValueStore, userType commonconstantpb.UserType, user, metadataId, metadataAuthId string, status uint16) error {
 
-	key := GetUserMetadataAuthByMetadataIdKey(userType, user, metadataId)
-	val, err := rlp.EncodeToBytes(metadataAuthId)
-	if nil != err {
+	// key: prefix + uesrType + user + metadataId + metadataAuthId -> value status <0: invalid, 1: valid>
+	item_key := GetUserMetadataAuthStatusByMetadataIdKey(userType, user, metadataId, metadataAuthId)
+	item_val, err := db.Get(item_key)
+
+	var oldStatus uint16
+	if IsNoDBNotFoundErr(err) {
 		return err
+	} else {
+		oldStatus = bytesutil.BytesToUint16(item_val)
 	}
 
-	log.Debugf("Store metadataAuth, userType: {%s}, user: {%s}, metadataId: {%s}, metadataAauthId: {%s}", userType.String(), user, metadataId, metadataAuthId)
-	return db.Put(key, val)
+	if status == oldStatus {
+		return nil // It have been exists, don't store status.
+	}
+
+	statusVal := oldStatus
+
+	// metadataAuth state, the low-order uint8.
+	oldMetadataStatus := oldStatus &^ (0xFF << 8)
+	metadataStatus := status &^ (0xFF << 8)
+	// audit option, the high-order uint8.
+	oldAuditOption := (oldStatus &^ 0xFF) >> 8
+	auditOption := (status &^ 0xFF) >> 8
+
+	// increase OR decrease valid count value.
+	// 0: do nothing, -1: decrease, 1: increase
+	var increaseORdecrease int
+
+	switch {
+	// has `unknown` old status for metadataAuth OR
+	// has `invalid` old status for metadataAuth OR
+	// has `revoke` old status for metadataAuth
+	case oldMetadataStatus == uint16(commonconstantpb.MetadataAuthorityState_MAState_Unknown),
+		oldMetadataStatus == uint16(commonconstantpb.MetadataAuthorityState_MAState_Invalid),
+		oldMetadataStatus == uint16(commonconstantpb.MetadataAuthorityState_MAState_Revoked):
+		return fmt.Errorf("old metadataAuth status has not `created` or `released`")
+	case oldMetadataStatus == uint16(commonconstantpb.MetadataAuthorityState_MAState_Released) &&
+		metadataStatus == uint16(commonconstantpb.MetadataAuthorityState_MAState_Created):
+		return fmt.Errorf("can not change metadataStatus to `created` status from `released` status")
+	// will change to `unknown` status for metadataAuth
+	case metadataStatus == uint16(commonconstantpb.MetadataAuthorityState_MAState_Unknown):
+		return fmt.Errorf("can not change metadataStatus to `unknown` status")
+	// has not `pending` audit option.
+	case oldAuditOption != uint16(commonconstantpb.AuditMetadataOption_Audit_Pending):
+		return fmt.Errorf("old audit option has not `pending`")
+	// will change to `invalid` status or`revoke` status for metadataAuth
+	case metadataStatus == uint16(commonconstantpb.MetadataAuthorityState_MAState_Invalid),
+		metadataStatus == uint16(commonconstantpb.MetadataAuthorityState_MAState_Revoked):
+		increaseORdecrease = -1
+	case oldMetadataStatus == uint16(commonconstantpb.MetadataAuthorityState_MAState_Created) &&
+		metadataStatus == uint16(commonconstantpb.MetadataAuthorityState_MAState_Released):
+		// do nothing...
+	default: // first set `created` OR `released` status into.
+		increaseORdecrease = 1
+	}
+
+	// new value: high-order uint8 + low-order uint8
+	statusVal = auditOption + metadataStatus
+
+	if increaseORdecrease != 0 {
+
+		var valid_count uint32
+		// key: prefix + userType + user + metadataId ->  value: metadataAuth validCount
+		valid_count_key := GetValidUserMetadataAuthCountByMetadataIdKey(userType, user, metadataId)
+		valid_count_val, verr := db.Get(valid_count_key)
+		switch {
+		case IsNoDBNotFoundErr(verr):
+			return verr
+		case IsDBNotFoundErr(verr):
+			// do nothing
+		case nil == verr && len(valid_count_val) != 0:
+			valid_count = bytesutil.BytesToUint32(valid_count_val)
+		}
+
+		if increaseORdecrease == 1 {
+			// When metadataAuthId have not by metadataId, inscrease total count of metadataAuth and valid count of metadataAuth
+			// and put metadataAuth status `valid`.
+			//
+			// key: prefix + userType + user + metadataId ->  value: metadataAuth totalCount
+			total_count_key := GetTotalUserMetadataAuthCountByMetadataIdKey(userType, user, metadataId)
+			total_count_val, terr := db.Get(total_count_key)
+
+			var total_count uint32
+			switch {
+			case IsNoDBNotFoundErr(terr):
+				return terr
+			case IsDBNotFoundErr(terr):
+				// do nothing
+			case nil == terr && len(total_count_val) != 0:
+				total_count = bytesutil.BytesToUint32(total_count_val)
+			}
+			total_count++
+			total_count_val = bytesutil.Uint32ToBytes(total_count)
+
+			// inscease total count of metadataAuth and valid count of metadataAuth.
+			if err := db.Put(total_count_key, total_count_val); nil != err {
+				return fmt.Errorf("update metadataAuth totalCount %s", err)
+			}
+
+			valid_count++
+			valid_count_val = bytesutil.Uint32ToBytes(valid_count)
+
+			if err := db.Put(valid_count_key, valid_count_val); nil != err {
+				return fmt.Errorf("update metadataAuth validCount %s", err)
+			}
+
+		} else {
+			if valid_count > 0 {
+				valid_count--
+			}
+			// Second: descease or delete valid count of metadataAuth.
+			if valid_count == 0 {
+				if err := db.Delete(valid_count_key); nil != err {
+					return fmt.Errorf("delete metadataAuth validCount %s", err)
+				}
+			} else {
+				valid_count_val = bytesutil.Uint32ToBytes(valid_count)
+				if err := db.Put(valid_count_key, valid_count_val); nil != err {
+					return fmt.Errorf("update metadataAuth validCount %s", err)
+				}
+			}
+		}
+	}
+
+	// update metadataStatus into metadataAauth mapping.
+	if err := db.Put(item_key, bytesutil.Uint16ToBytes(statusVal)); nil != err {
+		return fmt.Errorf("update metadataAuth status %s", err)
+	}
+
+	return nil
 }
 
-func QueryUserMetadataAuthIdByMetadataId(db DatabaseReader, userType commonconstantpb.UserType, user, metadataId string) (string, error) {
-	key := GetUserMetadataAuthByMetadataIdKey(userType, user, metadataId)
+func HasValidUserMetadataAuthStatusByMetadataId(db DatabaseReader, userType commonconstantpb.UserType, user, metadataId string) (bool, error) {
 
+	key := GetValidUserMetadataAuthCountByMetadataIdKey(userType, user, metadataId)
 	val, err := db.Get(key)
-	if nil != err {
-		return "", err
-	}
 
-	var metadataAuthId string
-	if err = rlp.DecodeBytes(val, &metadataAuthId); nil != err {
-		return "", err
-	}
+	var count uint32
 
-	log.Debugf("Query metadataAuthId, userType: {%s}, user: {%s}, metadataId: {%s}, return metadataAauthId: {%s}", userType.String(), user, metadataId, metadataAuthId)
-
-	if "" == metadataAuthId {
-		return "", ErrNotFound
-	}
-	return metadataAuthId, nil
-}
-
-func HasUserMetadataAuthIdByMetadataId(db DatabaseReader, userType commonconstantpb.UserType, user, metadataId string) (bool, error) {
-	key := GetUserMetadataAuthByMetadataIdKey(userType, user, metadataId)
-
-	has, err := db.Has(key)
 	switch {
 	case IsNoDBNotFoundErr(err):
 		return false, err
-	case IsDBNotFoundErr(err), nil == err && !has:
+	case IsDBNotFoundErr(err):
+		return false, nil
+	case nil == err && len(val) != 0:
+		count = bytesutil.BytesToUint32(val)
+	}
+	return count > 0, nil
+}
+
+func HasUserMetadataAuthStatusByMetadataId(db DatabaseReader, userType commonconstantpb.UserType, user, metadataId string) (bool, error) {
+
+	key := GetTotalUserMetadataAuthCountByMetadataIdKey(userType, user, metadataId)
+	val, err := db.Get(key)
+
+	var count uint32
+
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return false, err
+	case IsDBNotFoundErr(err):
+		return false, nil
+	case nil == err && len(val) != 0:
+		count = bytesutil.BytesToUint32(val)
+	}
+	return count > 0, nil
+}
+
+func HasUserMetadataAuthIdByMetadataId(db DatabaseReader, userType commonconstantpb.UserType, user, metadataId, metadataAuthId string) (bool, error) {
+	// key: prefix + uesrType + user + metadataId + metadataAuthId -> value status <0: invalid, 1: valid>
+	item_key := GetUserMetadataAuthStatusByMetadataIdKey(userType, user, metadataId, metadataAuthId)
+	has, err := db.Has(item_key)
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return false, err
+	case IsDBNotFoundErr(err):
+		return false, nil
+	case nil == err && !has:
 		return false, nil
 	}
-	log.Debugf("Has metadataAuthId, userType: {%s}, user: {%s}, metadataId: {%s}", userType.String(), user, metadataId)
 	return true, nil
 }
 
-func RemoveUserMetadataAuthIdByMetadataId(db KeyValueStore, userType commonconstantpb.UserType, user, metadataId string) error {
-	key := GetUserMetadataAuthByMetadataIdKey(userType, user, metadataId)
+func QueryTotalUserMetadataAuthCountByMetadataId(db DatabaseReader, userType commonconstantpb.UserType, user, metadataId string) (uint32, error) {
 
-	has, err := db.Has(key)
+	key := GetTotalUserMetadataAuthCountByMetadataIdKey(userType, user, metadataId)
+	val, err := db.Get(key)
+
+	var count uint32
+
 	switch {
 	case IsNoDBNotFoundErr(err):
-		return err
-	case IsDBNotFoundErr(err), nil == err && !has:
-		return nil
+		return 0, err
+	case IsDBNotFoundErr(err):
+		return 0, nil
+	case nil == err && len(val) != 0:
+		count = bytesutil.BytesToUint32(val)
 	}
-	log.Debugf("Remove metadataAuthId, userType: {%s}, user: {%s}, metadataId: {%s}", userType.String(), user, metadataId)
-	return db.Delete(key)
+	return count, nil
+}
+
+func QueryValidUserMetadataAuthCountByMetadataId(db DatabaseReader, userType commonconstantpb.UserType, user, metadataId string) (uint32, error) {
+
+	key := GetValidUserMetadataAuthCountByMetadataIdKey(userType, user, metadataId)
+	val, err := db.Get(key)
+
+	var count uint32
+
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return 0, err
+	case IsDBNotFoundErr(err):
+		return 0, nil
+	case nil == err && len(val) != 0:
+		count = bytesutil.BytesToUint32(val)
+	}
+	return count, nil
+}
+
+func QueryValidUserMetadataAuthIdsByMetadataId(db KeyValueStore, userType commonconstantpb.UserType, user, metadataId string) ([]string, error) {
+
+	// prefix + uesrType + user + metadataId + metadataAuthId -> status <0: invalid, 1: valid>
+	prefixAndMetadataId := GetUserMetadataAuthStatusKeyPrefixByMetadataId(userType, user, metadataId)
+	it := db.NewIteratorWithPrefixAndStart(prefixAndMetadataId, nil)
+	defer it.Release()
+
+	arr := make([]string, 0)
+	tmp := make(map[string]struct{}, 0)
+	for it.Next() {
+		if len(it.Key()) != 0 && len(it.Value()) != 0 {
+			// key len == len(prefix) + len([]byte(uesrType)) + len([]byte(user)) + len([]byte(metadataId)) + len([]byte(metadataAuthId))
+			metadataAuthId := string(it.Key()[len(prefixAndMetadataId):])
+			if _, ok := tmp[metadataAuthId]; !ok {
+				tmp[metadataAuthId] = struct{}{}
+				arr = append(arr, metadataAuthId)
+			}
+		}
+	}
+	if len(arr) == 0 {
+		return nil, ErrNotFound
+	}
+
+	return arr, nil
+}
+
+func RemoveUserMetadataAuthStatusByMetadataId(db KeyValueStore, userType commonconstantpb.UserType, user, metadataId, metadataAuthId string) error {
+
+	// key: prefix + uesrType + user + metadataId + metadataAuthId -> value status <0: invalid, 1: valid>
+	item_key := GetUserMetadataAuthStatusByMetadataIdKey(userType, user, metadataId, metadataAuthId)
+
+	// When metadataAuthId have not by metadataId, descrease total count of metadataAuth and valid count of metadataAuth
+	// and put metadataAuth status `valid`.
+	//
+	// key: prefix + userType + user + metadataId ->  value: metadataAuth totalCount
+	total_count_key := GetTotalUserMetadataAuthCountByMetadataIdKey(userType, user, metadataId)
+	total_count_val, terr := db.Get(total_count_key)
+	// key: prefix + userType + user + metadataId ->  value: metadataAuth validCount
+	valid_count_key := GetValidUserMetadataAuthCountByMetadataIdKey(userType, user, metadataId)
+	valid_count_val, verr := db.Get(valid_count_key)
+
+	var (
+		total_count uint32
+		valid_count uint32
+	)
+	switch {
+	case IsNoDBNotFoundErr(terr):
+		return terr
+	case IsDBNotFoundErr(terr):
+		// do nothing
+	case nil == terr && len(total_count_val) != 0:
+		total_count = bytesutil.BytesToUint32(total_count_val)
+	}
+	switch {
+	case IsNoDBNotFoundErr(verr):
+		return verr
+	case IsDBNotFoundErr(verr):
+		// do nothing
+	case nil == verr && len(valid_count_val) != 0:
+		valid_count = bytesutil.BytesToUint32(valid_count_val)
+	}
+
+	if total_count > 0 {
+		total_count--
+	}
+	if valid_count > 0 {
+		valid_count--
+	}
+
+	// First: delete metadataStatus `invalid` on metadataAauth mapping.
+	if err := db.Delete(item_key); nil != err {
+		return err
+	}
+
+	// Second: decscease or delete total count of metadataAuth and valid count of metadataAuth.
+	if total_count == 0 {
+		if err := db.Delete(total_count_key); nil != err {
+			return fmt.Errorf("delete metadataAuth totalCount %s", err)
+		}
+	} else {
+		total_count_val = bytesutil.Uint32ToBytes(total_count)
+		if err := db.Put(total_count_key, total_count_val); nil != err {
+			return fmt.Errorf("update metadataAuth totalCount %s", err)
+		}
+	}
+	if valid_count == 0 {
+		if err := db.Delete(valid_count_key); nil != err {
+			return fmt.Errorf("delete metadataAuth validCount %s", err)
+		}
+	} else {
+		valid_count_val = bytesutil.Uint32ToBytes(valid_count)
+		if err := db.Put(valid_count_key, valid_count_val); nil != err {
+			return fmt.Errorf("update metadataAuth validCount %s", err)
+		}
+	}
+	return nil
 }
 
 // about metadata history used task.
@@ -1082,7 +1341,7 @@ func StoreMetadataHistoryTaskId(db KeyValueStore, metadataId, taskId string) err
 	if err := db.Put(item_key, count_val); nil != err {
 		return err
 	}
-	log.Debugf("InscreaseMetadataHistoryTaskCount, metadataId: {%s}, taskId: {%s}, count: {%d}", metadataId, taskId, count)
+	//log.Debugf("InscreaseMetadataHistoryTaskCount, metadataId: {%s}, taskId: {%s}, count: {%d}", metadataId, taskId, count)
 	// Second: inscease taskId count by metadata.
 	return db.Put(count_key, count_val)
 }

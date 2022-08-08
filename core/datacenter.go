@@ -33,8 +33,8 @@ type DataCenter struct {
 // NewDataCenter returns a fully initialised data center using information available in the database.
 func NewDataCenter(ctx context.Context, db db.Database) *DataCenter {
 	return &DataCenter{
-		ctx:    ctx,
-		db:     db,
+		ctx: ctx,
+		db:  db,
 	}
 }
 
@@ -52,7 +52,7 @@ func (dc *DataCenter) GrpcClient() *grpclient.GrpcClient {
 	return dc.client
 }
 
-func (dc *DataCenter) SetConfig (config *types.CarrierChainConfig) error {
+func (dc *DataCenter) SetConfig(config *types.CarrierChainConfig) error {
 	log.Infof("Start build datacenter rpcClient, %s", fmt.Sprintf("%v:%v", config.GrpcUrl, config.Port))
 	if config.GrpcUrl == "" || config.Port == 0 {
 		panic("Invalid Grpc Config.")
@@ -245,33 +245,39 @@ func (dc *DataCenter) QueryDataResourceDiskUsed(metadataId string) (*types.DataR
 	return rawdb.QueryDataResourceDiskUsed(dc.db, metadataId)
 }
 
-func (dc *DataCenter) StoreUserMetadataAuthIdByMetadataId (userType commonconstantpb.UserType, user, metadataId, metadataAuthId string) error {
+// about metadataAuth status by metadataId
+func (dc *DataCenter) StoreValidUserMetadataAuthStatusByMetadataId(userType commonconstantpb.UserType, user, metadataId, metadataAuthId string, status uint16) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	return rawdb.StoreUserMetadataAuthIdByMetadataId(dc.db, userType, user, metadataId, metadataAuthId)
+	return rawdb.StoreValidUserMetadataAuthStatusByMetadataId(dc.db, userType, user, metadataId, metadataAuthId, status)
 }
 
-func (dc *DataCenter) QueryUserMetadataAuthIdByMetadataId (userType commonconstantpb.UserType, user, metadataId string) (string, error) {
+func (dc *DataCenter) QueryValidUserMetadataAuthIdsByMetadataId(userType commonconstantpb.UserType, user, metadataId string) ([]string, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.QueryUserMetadataAuthIdByMetadataId(dc.db, userType, user, metadataId)
+	return rawdb.QueryValidUserMetadataAuthIdsByMetadataId(dc.db, userType, user, metadataId)
 }
 
-func (dc *DataCenter) HasUserMetadataAuthIdByMetadataId (userType commonconstantpb.UserType, user, metadataId string) (bool, error) {
+func (dc *DataCenter) HasValidUserMetadataAuthStatusByMetadataId(userType commonconstantpb.UserType, user, metadataId string) (bool, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.HasUserMetadataAuthIdByMetadataId(dc.db, userType, user, metadataId)
+	return rawdb.HasValidUserMetadataAuthStatusByMetadataId(dc.db, userType, user, metadataId)
 }
 
-func (dc *DataCenter) RemoveUserMetadataAuthIdByMetadataId (userType commonconstantpb.UserType, user, metadataId string) error {
+func (dc *DataCenter) HasUserMetadataAuthIdByMetadataId(userType commonconstantpb.UserType, user, metadataId, metadataAuthId string) (bool, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.HasUserMetadataAuthIdByMetadataId(dc.db, userType, user, metadataId, metadataAuthId)
+}
+
+func (dc *DataCenter) RemoveUserMetadataAuthStatusByMetadataId(userType commonconstantpb.UserType, user, metadataId, metadataAuthId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	return rawdb.RemoveUserMetadataAuthIdByMetadataId(dc.db, userType, user, metadataId)
+	return rawdb.RemoveUserMetadataAuthStatusByMetadataId(dc.db, userType, user, metadataId, metadataAuthId)
 }
-
 
 // about metadata used taskId
-func (dc *DataCenter) StoreMetadataHistoryTaskId(metadataId, taskId string)  error {
+func (dc *DataCenter) StoreMetadataHistoryTaskId(metadataId, taskId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.StoreMetadataHistoryTaskId(dc.db, metadataId, taskId)
@@ -283,7 +289,7 @@ func (dc *DataCenter) HasMetadataHistoryTaskId(metadataId, taskId string) (bool,
 	return rawdb.HasMetadataHistoryTaskId(dc.db, metadataId, taskId)
 }
 
-func (dc *DataCenter) QueryMetadataHistoryTaskIdCount (metadataId string) (uint32, error) {
+func (dc *DataCenter) QueryMetadataHistoryTaskIdCount(metadataId string) (uint32, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.QueryMetadataHistoryTaskIdCount(dc.db, metadataId)
@@ -356,36 +362,35 @@ func (dc *DataCenter) RemoveAllTaskMsg() error {
 	return rawdb.RemoveAllTaskMsg(dc.db)
 }
 
-func (dc *DataCenter) QueryPowerMsgArr() (types.PowerMsgArr,error) {
+func (dc *DataCenter) QueryPowerMsgArr() (types.PowerMsgArr, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.QueryPowerMsgArr(dc.db)
 }
 
-func (dc *DataCenter) QueryMetadataMsgArr() (types.MetadataMsgArr,error) {
+func (dc *DataCenter) QueryMetadataMsgArr() (types.MetadataMsgArr, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.QueryMetadataMsgArr(dc.db)
 }
 
-func (dc *DataCenter) QueryMetadataUpdateMsgArr() (types.MetadataUpdateMsgArr,error) {
+func (dc *DataCenter) QueryMetadataUpdateMsgArr() (types.MetadataUpdateMsgArr, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.QueryMetadataUpdateMsgArr(dc.db)
 }
 
-func (dc *DataCenter) QueryMetadataAuthorityMsgArr() (types.MetadataAuthorityMsgArr,error) {
+func (dc *DataCenter) QueryMetadataAuthorityMsgArr() (types.MetadataAuthorityMsgArr, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.QueryMetadataAuthorityMsgArr(dc.db)
 }
 
-func (dc *DataCenter) QueryTaskMsgArr()(types.TaskMsgArr,error)  {
+func (dc *DataCenter) QueryTaskMsgArr() (types.TaskMsgArr, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.QueryTaskMsgArr(dc.db)
 }
-
 
 // ****************************************************************************************************************
 func (dc *DataCenter) Stop() {

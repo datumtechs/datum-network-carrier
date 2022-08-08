@@ -49,9 +49,22 @@ func (m *MetadataAuthority) Hash() common.Hash {
 	return v
 }
 
-func (m *MetadataAuthority) GetUser() string                        { return m.data.GetUser() }
-func (m *MetadataAuthority) GetUserType() commonconstantpb.UserType      { return m.data.GetUserType() }
+func (m *MetadataAuthority) GetUser() string                              { return m.data.GetUser() }
+func (m *MetadataAuthority) GetUserType() commonconstantpb.UserType       { return m.data.GetUserType() }
 func (m *MetadataAuthority) GetData() *carriertypespb.MetadataAuthorityPB { return m.data }
+
+// add by v0.5.0
+// uint16 value: high-order uint8 (audit option) and low-order uint8 (metadataAuth status)
+func (m *MetadataAuthority) GetMergeStatus() uint16 {
+
+	// metadataAuth state, the low-order uint8.
+	metadataStatus := uint16(m.GetData().GetState()) &^ (0xFF << 8)
+	// audit option, the high-order uint8.
+	auditOption := (uint16(m.GetData().GetAuditOption()) &^ 0xFF) >> 8
+
+	// new value: high-order uint8 + low-order uint8
+	return auditOption + metadataStatus
+}
 
 type MetadataAuthArray []*MetadataAuthority
 
@@ -83,7 +96,6 @@ func (s MetadataAuthArray) ToArray() []*carriertypespb.MetadataAuthorityPB {
 	return arr
 }
 
-
 type MetadataAuthAudit struct {
 	MetadataAuthId  string
 	AuditOption     commonconstantpb.AuditMetadataOption
@@ -98,9 +110,11 @@ func NewMetadataAuthAudit(metadataAuthId, suggestion string, option commonconsta
 	}
 }
 
-func (maa *MetadataAuthAudit) GetMetadataAuthId() string                       { return maa.MetadataAuthId }
-func (maa *MetadataAuthAudit) GetAuditOption() commonconstantpb.AuditMetadataOption { return maa.AuditOption }
-func (maa *MetadataAuthAudit) GetAuditSuggestion() string                      { return maa.AuditSuggestion }
+func (maa *MetadataAuthAudit) GetMetadataAuthId() string  { return maa.MetadataAuthId }
+func (maa *MetadataAuthAudit) GetAuditOption() commonconstantpb.AuditMetadataOption {
+	return maa.AuditOption
+}
+func (maa *MetadataAuthAudit) GetAuditSuggestion() string { return maa.AuditSuggestion }
 
 func (maa *MetadataAuthAudit) String() string {
 	return fmt.Sprintf(`{"metadataAuthId": %s, "option": %s, "suggestion": %s}`,

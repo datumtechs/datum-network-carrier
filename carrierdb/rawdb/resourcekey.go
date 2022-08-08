@@ -32,13 +32,18 @@ var (
 	// --------------- for metadataAuth ---------------
 	//
 	// prefix + userType + user + metadataId -> metadataAuth totalCount
-	userMetadataAuthByMetadataIdTotalCountPrefix = []byte("userMetadataAuthByMetadataIdTotalCountPrefix:")
+	userMetadataAuthTotalCountByMetadataIdPrefix = []byte("userMetadataAuthTotalCountByMetadataIdPrefix:")
 	// prefix + userType + user + metadataId -> metadataAuth validCount
-	userMetadataAuthByMetadataIdValidCountPrefix = []byte("userMetadataAuthByMetadataIdValidCountPrefix:")
-	// prefix + uesrType + user + metadataId + metadataAuthId -> status <0: invalid, 1: valid>
-	userMetadataAuthByMetadataIdStatusPrefix = []byte("userMetadataAuthByMetadataIdStatusPrefix")
-	// prefix + userType + user + metadataId -> metadataAuthId (only one)
-	userMetadataAuthByMetadataIdKeyPrefix = []byte("userMetadataAuthByMetadataIdKeyPrefix:")
+	userMetadataAuthValidCountByMetadataIdPrefix = []byte("userMetadataAuthValidCountByMetadataIdPrefix:")
+	// prefix + uesrType + user + metadataId + metadataAuthId -> status
+	// 数据授权信息的状态 (0: 未知; 1: 还未发布的数据授权; 2: 已发布的数据授权; 3: 已撤销的数据授权 <失效前主动撤回的>; 4: 已经失效的数据授权 <过期or达到使用上限的or被拒绝的>;)
+	//
+	// Use a value of uint16 to divide it into high-order uint8 and low-order uint8,
+	// where the low-order uint8 represents the state of meadataAuth
+	// and the high-order uint8 represents the audit option of metadataAauth,
+	// the low-order uint8 => 0: unknown, 1: created, 2: released, 3: revoked, 4: invalid,
+	// the high-order uint8 => 0: pending, 1: passed, 2: refused.
+	userMetadataAuthStatusByMetadataIdPrefix = []byte("userMetadataAuthStatusByMetadataIdPrefix")
 
 	// --------------- for task ---------------
 	//
@@ -166,32 +171,8 @@ func GetLocalTaskExecuteStatus(taskId, partyId string) []byte {
 	return append(append(localTaskExecuteStatusKeyPrefix, []byte(taskId)...), []byte(partyId)...)
 }
 
-func GetUserMetadataAuthByMetadataIdKey(userType commonconstantpb.UserType, user, metadataId string) []byte {
-
-	// key: prefix + userType + user + metadataId
-
-	userTypeBytes := []byte(userType.String())
-	userBytes := []byte(user)
-	metadataIdBytes := []byte(metadataId)
-
-	// some index of pivots
-	prefixIndex := len(userMetadataAuthByMetadataIdKeyPrefix)
-	userTypeIndex := prefixIndex + len(userTypeBytes)
-	userIndex := userTypeIndex + len(userBytes)
-	size := userIndex + len(metadataIdBytes)
-
-	// construct key
-	key := make([]byte, size)
-	copy(key[:prefixIndex], userMetadataAuthByMetadataIdKeyPrefix)
-	copy(key[prefixIndex:userTypeIndex], userTypeBytes)
-	copy(key[userTypeIndex:userIndex], userBytes)
-	copy(key[userIndex:], metadataIdBytes)
-
-	return key
-}
-
 // prefix + userType + user + metadataId ->  metadataAuth totalCount
-func GetUserMetadataAuthByMetadataIdTotalCountKey(userType commonconstantpb.UserType, user, metadataId string) []byte {
+func GetTotalUserMetadataAuthCountByMetadataIdKey(userType commonconstantpb.UserType, user, metadataId string) []byte {
 
 	// key: prefix + userType + user + metadataId ->  value: metadataAuth totalCount
 
@@ -200,14 +181,14 @@ func GetUserMetadataAuthByMetadataIdTotalCountKey(userType commonconstantpb.User
 	metadataIdBytes := []byte(metadataId)
 
 	// some index of pivots
-	prefixIndex := len(userMetadataAuthByMetadataIdTotalCountPrefix)
+	prefixIndex := len(userMetadataAuthTotalCountByMetadataIdPrefix)
 	userTypeIndex := prefixIndex + len(userTypeBytes)
 	userIndex := userTypeIndex + len(userBytes)
 	size := userIndex + len(metadataIdBytes)
 
 	// construct key
 	key := make([]byte, size)
-	copy(key[:prefixIndex], userMetadataAuthByMetadataIdTotalCountPrefix)
+	copy(key[:prefixIndex], userMetadataAuthTotalCountByMetadataIdPrefix)
 	copy(key[prefixIndex:userTypeIndex], userTypeBytes)
 	copy(key[userTypeIndex:userIndex], userBytes)
 	copy(key[userIndex:], metadataIdBytes)
@@ -216,7 +197,7 @@ func GetUserMetadataAuthByMetadataIdTotalCountKey(userType commonconstantpb.User
 }
 
 // prefix + userType + user + metadataId -> metadataAuth validCount
-func GetUserMetadataAuthByMetadataIdValidCountKey(userType commonconstantpb.UserType, user, metadataId string) []byte {
+func GetValidUserMetadataAuthCountByMetadataIdKey(userType commonconstantpb.UserType, user, metadataId string) []byte {
 
 	// key: prefix + userType + user + metadataId ->  value: metadataAuth validCount
 
@@ -225,14 +206,14 @@ func GetUserMetadataAuthByMetadataIdValidCountKey(userType commonconstantpb.User
 	metadataIdBytes := []byte(metadataId)
 
 	// some index of pivots
-	prefixIndex := len(userMetadataAuthByMetadataIdValidCountPrefix)
+	prefixIndex := len(userMetadataAuthValidCountByMetadataIdPrefix)
 	userTypeIndex := prefixIndex + len(userTypeBytes)
 	userIndex := userTypeIndex + len(userBytes)
 	size := userIndex + len(metadataIdBytes)
 
 	// construct key
 	key := make([]byte, size)
-	copy(key[:prefixIndex], userMetadataAuthByMetadataIdValidCountPrefix)
+	copy(key[:prefixIndex], userMetadataAuthValidCountByMetadataIdPrefix)
 	copy(key[prefixIndex:userTypeIndex], userTypeBytes)
 	copy(key[userTypeIndex:userIndex], userBytes)
 	copy(key[userIndex:], metadataIdBytes)
@@ -241,7 +222,7 @@ func GetUserMetadataAuthByMetadataIdValidCountKey(userType commonconstantpb.User
 }
 
 // prefix + uesrType + user + metadataId + metadataAuthId -> status <0: invalid, 1: valid>
-func GetUserMetadataAuthByMetadataIdStatusKey(userType commonconstantpb.UserType, user, metadataId, metadataAuthId string) []byte {
+func GetUserMetadataAuthStatusByMetadataIdKey(userType commonconstantpb.UserType, user, metadataId, metadataAuthId string) []byte {
 
 	// key: prefix + uesrType + user + metadataId + metadataAuthId -> value status <0: invalid, 1: valid>
 
@@ -251,7 +232,7 @@ func GetUserMetadataAuthByMetadataIdStatusKey(userType commonconstantpb.UserType
 	metadataAuthIdBytes := []byte(metadataAuthId)
 
 	// some index of pivots
-	prefixIndex := len(userMetadataAuthByMetadataIdStatusPrefix)
+	prefixIndex := len(userMetadataAuthStatusByMetadataIdPrefix)
 	userTypeIndex := prefixIndex + len(userTypeBytes)
 	userIndex := userTypeIndex + len(userBytes)
 	metadataIdIndex := userIndex + len(metadataIdBytes)
@@ -259,11 +240,35 @@ func GetUserMetadataAuthByMetadataIdStatusKey(userType commonconstantpb.UserType
 
 	// construct key
 	key := make([]byte, size)
-	copy(key[:prefixIndex], userMetadataAuthByMetadataIdStatusPrefix)
+	copy(key[:prefixIndex], userMetadataAuthStatusByMetadataIdPrefix)
 	copy(key[prefixIndex:userTypeIndex], userTypeBytes)
 	copy(key[userTypeIndex:userIndex], userBytes)
 	copy(key[userIndex:metadataIdIndex], metadataIdBytes)
 	copy(key[metadataIdIndex:], metadataAuthIdBytes)
+
+	return key
+}
+
+// prefix + uesrType + user + metadataId + metadataAuthId -> status <0: invalid, 1: valid>
+func GetUserMetadataAuthStatusKeyPrefixByMetadataId(userType commonconstantpb.UserType, user, metadataId string) []byte {
+	// key: prefix + uesrType + user + metadataId + metadataAuthId -> value status <0: invalid, 1: valid>
+
+	userTypeBytes := []byte(userType.String())
+	userBytes := []byte(user)
+	metadataIdBytes := []byte(metadataId)
+
+	// some index of pivots
+	prefixIndex := len(userMetadataAuthStatusByMetadataIdPrefix)
+	userTypeIndex := prefixIndex + len(userTypeBytes)
+	userIndex := userTypeIndex + len(userBytes)
+	size := userIndex + len(metadataIdBytes)
+
+	// construct key
+	key := make([]byte, size)
+	copy(key[:prefixIndex], userMetadataAuthStatusByMetadataIdPrefix)
+	copy(key[prefixIndex:userTypeIndex], userTypeBytes)
+	copy(key[userTypeIndex:userIndex], userBytes)
+	copy(key[userIndex:], metadataIdBytes)
 
 	return key
 }
