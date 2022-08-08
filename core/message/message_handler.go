@@ -726,6 +726,8 @@ func (m *MessageHandler) BroadcastMetadataUpdateMsgArr(metadataUpdateMsgArr type
 				UpdateAt:       timeutils.UnixMsecUint64(),
 				Nonce:          msg.GetNonce(),
 				MetadataOption: msg.GetMetadataOption(),
+				User:           msg.GetUser(),
+				UserType:       msg.GetUserType(),
 			})
 			if err := m.resourceMng.GetDB().UpdateGlobalMetadata(newMetadata); nil != err {
 				log.WithError(err).Errorf("Failed to store msg to dataCenter on MessageHandler with broadcast msg, metadataId: {%s}",
