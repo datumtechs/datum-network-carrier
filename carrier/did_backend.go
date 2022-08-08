@@ -308,7 +308,7 @@ func (s *CarrierAPIBackend) CreateVC(didString string, context string, pctId uin
 	req.ExpirationDate = expirationDate
 	req.Claim = claimMap
 	req.Type = types.CREDENTIAL_TYPE_VC
-	req.Context = ""
+	req.Context = types.DEFAULT_CREDENTIAL_CONTEXT
 
 	response := s.carrier.didService.VcService.CreateCredential(req)
 	if response.Status != did.Response_SUCCESS {
@@ -317,7 +317,8 @@ func (s *CarrierAPIBackend) CreateVC(didString string, context string, pctId uin
 
 	digest := response.Data.GetDigest(nil, response.Data.ClaimData.GetSeed())
 	//save proof
-	saveProofResp := s.carrier.didService.VcService.SaveVCProof(tk.WalletManagerInstance().GetPrivateKey(), digest, tk.WalletManagerInstance().GetAddress(), response.Data.Proof[proofkeys.SIGNATURE])
+	pubkeyHex := hex.EncodeToString(crypto.FromECDSAPub(tk.WalletManagerInstance().GetPublicKey()))
+	saveProofResp := s.carrier.didService.VcService.SaveVCProof(tk.WalletManagerInstance().GetPrivateKey(), digest, pubkeyHex, response.Data.Proof[proofkeys.SIGNATURE])
 
 	if saveProofResp.Status != did.Response_SUCCESS {
 		return "", nil, errors.New(response.Msg)
