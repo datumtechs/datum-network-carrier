@@ -160,13 +160,13 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 		// save tk20 consume count
 		tk20ConsumeCount := make(map[string]*big.Int, 0)
 		for idx, consumeType := range consumeTypes {
-			localTaskConsumeOptionsAddressArray, ok := localTaskConsumeOptionsAddressMap[consumeType]
-			dataConsumePolicyArray, ok1 := consumeMap[consumeType]
-			if !ok {
+			localTaskConsumeOptionsAddressArray, has := localTaskConsumeOptionsAddressMap[consumeType]
+			dataConsumePolicyArray, ok := consumeMap[consumeType]
+			if !has {
 				localTaskConsumeOptionsAddressArray = make(map[string]struct{}, 0)
 				localTaskConsumeOptionsAddressMap[consumeType] = localTaskConsumeOptionsAddressArray
 			}
-			if !ok1 {
+			if !ok {
 				consumeMap[consumeType] = make([]types.DataConsumePolicy, 0)
 			}
 			// check consume type
@@ -407,10 +407,10 @@ func (m *Manager) beginConsumeByTk(task *types.NeedExecuteTask, localTask *types
 		state, err := m.payAgent.GetTaskState(taskIdBigInt)
 		if nil != err {
 			//including NotFound
-			return fmt.Errorf("query task state of token20Pay failed, %s on beginConsumeByTk()", err)
+			return fmt.Errorf("query task state of payAgent failed, %s on beginConsumeByTk()", err)
 		}
 		if state == -1 { //  We need to know if the task status value is 1.
-			return fmt.Errorf("task state is not existing in token20Pay contract on beginConsumeByTk()")
+			return fmt.Errorf("task state is not existing in payAgent contract on beginConsumeByTk()")
 		}
 
 		log.Debugf("Succeed execute `contract prepay()` tx on blockchain on beginConsumeByTk(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}, txHash: {%s}, task.state: {%d}",
@@ -480,15 +480,15 @@ func (m *Manager) beginConsumeByTk(task *types.NeedExecuteTask, localTask *types
 
 					end := timeutils.UnixMsec()
 					// time.Unix(end/1000, 0)
-					log.Warnf("Warning query task state of token20Pay time out on blockchain on beginConsumeByTk(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}, startTime: {%d <==> %s}, endTime: {%d <==> %s}, duration: %d ms",
+					log.Warnf("Warning query task state of payAgent time out on blockchain on beginConsumeByTk(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}, startTime: {%d <==> %s}, endTime: {%d <==> %s}, duration: %d ms",
 						task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt, start, time.Unix(start/1000, 0).Format("2006-01-02 15:04:05"), end, time.Unix(end/1000, 0).Format("2006-01-02 15:04:05"), end-start)
 
-					return 0, fmt.Errorf("query task state of token20Pay time out on beginConsumeByTk()")
+					return 0, fmt.Errorf("query task state of payAgent time out on beginConsumeByTk()")
 				case <-ticker.C:
 					state, err := m.payAgent.GetTaskState(taskIdBigInt)
 					if nil != err {
 						//including NotFound
-						log.WithError(err).Warnf("Warning cannot query task state of token20Pay on beginConsumeByTk(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}",
+						log.WithError(err).Warnf("Warning cannot query task state of payAgent on beginConsumeByTk(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}",
 							task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt)
 						continue
 					}
@@ -712,7 +712,7 @@ func (m *Manager) beginConsumeByMetadataAuth(task *types.NeedExecuteTask, localT
 //		// start prepay dataToken
 //		txHash, err := m.payAgent.Prepay(taskIdBigInt, user, dataTokenAaddresses)
 //		if nil != err {
-//			return fmt.Errorf("cannot call token20Pay to prepay datatoken on beginConsumeByDataToken(), %s", err)
+//			return fmt.Errorf("cannot call payAgent to prepay datatoken on beginConsumeByDataToken(), %s", err)
 //		}
 //
 //		log.Debugf("Succeed send `contract prepay()` tx to blockchain on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}, txHash: {%s}",
@@ -737,7 +737,7 @@ func (m *Manager) beginConsumeByMetadataAuth(task *types.NeedExecuteTask, localT
 //		state, err := m.payAgent.GetTaskState(taskIdBigInt)
 //		if nil != err {
 //			//including NotFound
-//			return fmt.Errorf("query task state of token20Pay failed, %s on beginConsumeByDataToken()", err)
+//			return fmt.Errorf("query task state of payAgent failed, %s on beginConsumeByDataToken()", err)
 //		}
 //		// task state in contract
 //		// constant int8 private NOTEXIST = -1;
@@ -746,7 +746,7 @@ func (m *Manager) beginConsumeByMetadataAuth(task *types.NeedExecuteTask, localT
 //		// constant int8 private SETTLE = 2;
 //		// constant int8 private END = 3;
 //		if state == -1 { //  We need to know if the task status value is 1.
-//			return fmt.Errorf("task state is not existing in token20Pay contract on beginConsumeByDataToken()")
+//			return fmt.Errorf("task state is not existing in payAgent contract on beginConsumeByDataToken()")
 //		}
 //
 //		log.Debugf("Succeed execute `contract prepay()` tx on blockchain on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}, txHash: {%s}, task.state: {%d}",
@@ -839,15 +839,15 @@ func (m *Manager) beginConsumeByMetadataAuth(task *types.NeedExecuteTask, localT
 //
 //					end := timeutils.UnixMsec()
 //					// time.Unix(end/1000, 0)
-//					log.Warnf("Warning query task state of token20Pay time out on blockchain on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}, startTime: {%d <==> %s}, endTime: {%d <==> %s}, duration: %d ms",
+//					log.Warnf("Warning query task state of payAgent time out on blockchain on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}, startTime: {%d <==> %s}, endTime: {%d <==> %s}, duration: %d ms",
 //						task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt, start, time.Unix(start/1000, 0).Format("2006-01-02 15:04:05"), end, time.Unix(end/1000, 0).Format("2006-01-02 15:04:05"), end-start)
 //
-//					return 0, fmt.Errorf("query task state of token20Pay time out on beginConsumeByDataToken()")
+//					return 0, fmt.Errorf("query task state of payAgent time out on beginConsumeByDataToken()")
 //				case <-ticker.C:
 //					state, err := m.payAgent.GetTaskState(taskIdBigInt)
 //					if nil != err {
 //						//including NotFound
-//						log.WithError(err).Warnf("Warning cannot query task state of token20Pay on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}",
+//						log.WithError(err).Warnf("Warning cannot query task state of payAgent on beginConsumeByDataToken(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}",
 //							task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt)
 //						continue
 //					}
@@ -995,13 +995,13 @@ func (m *Manager) endConsumeTk20(task *types.NeedExecuteTask, localTask *types.T
 			return fmt.Errorf("cannot decode taskId to big.Int on endConsumeTk20(), %s", err)
 		}
 
-		log.Debugf("Start call token20Pay.settle() on endConsumeTk20(), taskId: {%s}, partyId: {%s}, call params{taskIdBigInt: %d, gasUsedPrepay: %d}",
+		log.Debugf("Start call payAgent.settle() on endConsumeTk20(), taskId: {%s}, partyId: {%s}, call params{taskIdBigInt: %d, gasUsedPrepay: %d}",
 			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt, consumeSpec.GetGasUsed())
 
 		// start prepay dataToken
 		txHash, err := m.payAgent.Settle(taskIdBigInt, consumeSpec.GetGasUsed())
 		if nil != err {
-			return fmt.Errorf("cannot call token20Pay to settle datatoken on endConsumeTk20(), %s", err)
+			return fmt.Errorf("cannot call payAgent to settle datatoken on endConsumeTk20(), %s", err)
 		}
 
 		log.Debugf("Succeed send `contract settle()` tx to blockchain on endConsumeTk20(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}, txHash: {%s}",
@@ -1117,13 +1117,13 @@ func (m *Manager) endConsumeMetadataAuth(task *types.NeedExecuteTask, localTask 
 			return fmt.Errorf("cannot decode taskId to big.Int on endConsumeTk20(), %s", err)
 		}
 
-		log.Debugf("Start call token20Pay.settle() on endConsumeTk20(), taskId: {%s}, partyId: {%s}, call params{taskIdBigInt: %d, gasUsedPrepay: %d}",
+		log.Debugf("Start call payAgent.settle() on endConsumeTk20(), taskId: {%s}, partyId: {%s}, call params{taskIdBigInt: %d, gasUsedPrepay: %d}",
 			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt, consumeSpec.GetGasUsed())
 
 		// start prepay dataToken
 		txHash, err := m.payAgent.Settle(taskIdBigInt, consumeSpec.GetGasUsed())
 		if nil != err {
-			return fmt.Errorf("cannot call token20Pay to settle datatoken on endConsumeTk20(), %s", err)
+			return fmt.Errorf("cannot call payAgent to settle datatoken on endConsumeTk20(), %s", err)
 		}
 
 		log.Debugf("Succeed send `contract settle()` tx to blockchain on endConsumeTk20(), taskId: {%s}, partyId: {%s}, taskIdBigInt: {%d}, txHash: {%s}",

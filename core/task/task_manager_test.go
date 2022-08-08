@@ -96,7 +96,7 @@ func TestCheckConsumeOptionsParams(t *testing.T) {
 				},
 			},
 		)
-		err, dataConsumePolicy, _ := tm.checkConsumeOptionsParams(task, true)
+		dataConsumePolicy, _, err := tm.checkConsumeOptionsParams(task, true)
 		teassert.Nil(t, err)
 		teassert.Equal(t, len(dataConsumePolicy), 2)
 		//for consumeType, ConsumePolicyArray := range dataConsumePolicy {
@@ -128,7 +128,7 @@ func TestCheckConsumeOptionsParams(t *testing.T) {
 				},
 			},
 		)
-		err, _, _ := tm.checkConsumeOptionsParams(task, true)
+		_, _, err := tm.checkConsumeOptionsParams(task, true)
 		teassert.NotNil(t, err)
 	}
 	{
@@ -144,7 +144,7 @@ func TestCheckConsumeOptionsParams(t *testing.T) {
 				},
 			},
 		)
-		err, _, _ := tm.checkConsumeOptionsParams(task, true)
+		_, _, err := tm.checkConsumeOptionsParams(task, true)
 		teassert.NotNil(t, err)
 	}
 	{
@@ -161,7 +161,7 @@ func TestCheckConsumeOptionsParams(t *testing.T) {
 				},
 			},
 		)
-		err, _, _ := tm.checkConsumeOptionsParams(task, true)
+		_, _, err := tm.checkConsumeOptionsParams(task, true)
 		teassert.NotNil(t, err)
 	}
 	{
@@ -177,7 +177,7 @@ func TestCheckConsumeOptionsParams(t *testing.T) {
 				},
 			},
 		)
-		err, _, _ := tm.checkConsumeOptionsParams(task, true)
+		_, _, err := tm.checkConsumeOptionsParams(task, true)
 		teassert.NotNil(t, err)
 	}
 	{
@@ -193,7 +193,7 @@ func TestCheckConsumeOptionsParams(t *testing.T) {
 				},
 			},
 		)
-		err, _, _ := tm.checkConsumeOptionsParams(task, true)
+		_, _, err := tm.checkConsumeOptionsParams(task, true)
 		teassert.NotNil(t, err)
 	}
 	{
@@ -209,7 +209,7 @@ func TestCheckConsumeOptionsParams(t *testing.T) {
 				},
 			},
 		)
-		err, _, _ := tm.checkConsumeOptionsParams(task, false)
+		_, _, err := tm.checkConsumeOptionsParams(task, false)
 		teassert.Nil(t, err)
 	}
 }
