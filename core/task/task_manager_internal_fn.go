@@ -131,18 +131,18 @@ func (m *Manager) tryScheduleTask() error {
 	return nil
 }
 
-func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsume bool) (error, map[uint8][]types.DataConsumePolicy, map[string]string) {
-	dataPolicyTypes, dataPolicyOptions := localTask.GetTaskData().GetDataPolicyTypes(), localTask.GetTaskData().GetDataPolicyOptions()
-	if len(dataPolicyTypes) != len(dataPolicyOptions) {
-		return fmt.Errorf("dataPolicyTypes len not equal dataPolicyOptions len"), nil, nil
+func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsume bool) (map[uint8][]types.DataConsumePolicy, map[string]string, error) {
+
+	if len(localTask.GetTaskData().GetDataPolicyTypes()) != len(localTask.GetTaskData().GetDataPolicyOptions()) {
+		return nil, nil, fmt.Errorf("dataPolicyTypes len not equal dataPolicyOptions len")
 	}
 	var (
-		consumeTypeDataConsumePolicyArray map[uint8][]types.DataConsumePolicy
-		err                               = errors.New("")
+		dataConsumePolicysCache map[uint8][]types.DataConsumePolicy
+		err                     error
 	)
-	checkTaskMetadataConsumeOptionsFn := func(metadataId string, consumeTypes []uint8, consumeOptions []string) (error, map[uint8][]types.DataConsumePolicy) {
+	checkTaskMetadataConsumeOptionsFn := func(metadataId string, consumeTypes []uint8, consumeOptions []string) (map[uint8][]types.DataConsumePolicy, error) {
 		if len(consumeTypes) != len(consumeOptions) {
-			return fmt.Errorf("consumeTypes len not equal consumeOptions len,please check"), nil
+			return nil, fmt.Errorf("consumeTypes len not equal consumeOptions len,please check")
 		}
 		/*
 			consumeMap:
@@ -174,11 +174,11 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 			case types.ConsumeTk20:
 				var option *types.Tk20Consume
 				if err := json.Unmarshal([]byte(consumeOptions[idx]), &option); err != nil {
-					return fmt.Errorf("json Unmarshal fail,the json string is %s", consumeOptions[idx]), nil
+					return nil, fmt.Errorf("json Unmarshal fail,the json string is %s", consumeOptions[idx])
 				}
 				// check duplicate contract address
 				if _, ok := localTaskConsumeOptionsAddressArray[option.Address()]; ok {
-					return fmt.Errorf("there is a duplicate tk20 contract address %s", option.Address()), nil
+					return nil, fmt.Errorf("there is a duplicate tk20 contract address %s", option.Address())
 				}
 				localTaskConsumeOptionsAddressArray[option.Address()] = struct{}{}
 				localTaskConsumeOptionsAddressMap[consumeType] = localTaskConsumeOptionsAddressArray
@@ -187,11 +187,11 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 			case types.ConsumeTk721:
 				var option *types.Tk721Consume
 				if err := json.Unmarshal([]byte(consumeOptions[idx]), &option); err != nil {
-					return fmt.Errorf("json Unmarshal fail,the json string is %s", consumeOptions[idx]), nil
+					return nil, fmt.Errorf("json Unmarshal fail,the json string is %s", consumeOptions[idx])
 				}
 				// check duplicate contract address
 				if _, ok := localTaskConsumeOptionsAddressArray[option.Address()]; ok {
-					return fmt.Errorf("there is a duplicate tk721 contract address %s", option.Address()), nil
+					return nil, fmt.Errorf("there is a duplicate tk721 contract address %s", option.Address())
 				}
 				localTaskConsumeOptionsAddressArray[option.Address()] = struct{}{}
 				localTaskConsumeOptionsAddressMap[consumeType] = localTaskConsumeOptionsAddressArray
@@ -199,13 +199,13 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 			case types.ConsumeMetadataAuth:
 				consumeMap[consumeType] = append(dataConsumePolicyArray, types.MetadataAuthConsume(consumeOptions[idx]))
 			default:
-				return fmt.Errorf("taskId %s task params have unknown consume type %d", localTask.GetTaskId(), consumeType), nil
+				return nil, fmt.Errorf("taskId %s task params have unknown consume type %d", localTask.GetTaskId(), consumeType)
 			}
 		}
 
 		// if isBeginConsume is false,return immediately, no follow-up checks are required
 		if !isBeginConsume {
-			return nil, consumeMap
+			return consumeMap, nil
 		}
 		var (
 			metadataFromDataSource *types.Metadata
@@ -216,7 +216,7 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 			metadataFromDataSource, err = m.resourceMng.GetDB().QueryMetadataById(metadataId)
 		}
 		if err != nil {
-			return fmt.Errorf("failed to query %s from data center", metadataId), nil
+			return nil, fmt.Errorf("failed to query %s from data center", metadataId)
 		}
 
 		var option *types.MetadataOptionCSV
@@ -224,7 +224,7 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 		log.Debugf(fmt.Sprintf("QueryMetadataById metadataId is %s,it's metadataOption is %s", metadataId, metadataOption))
 		err = json.Unmarshal([]byte(metadataOption), &option)
 		if err != nil {
-			return err, nil
+			return nil, err
 		}
 		metadataConsumeOptionsAddressMap := make(map[uint8]map[string]struct{}, 0)
 		consumeOptionsDataSource, consumeTypesDataSource := option.GetConsumeOptions(), option.GetConsumeTypes()
@@ -241,7 +241,7 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 			case types.ConsumeTk721:
 				var addressArr []string
 				if err := json.Unmarshal([]byte(consumeOptionsDataSource[idx]), &addressArr); err != nil {
-					return fmt.Errorf("json %s unmarshal fail", consumeOptionsDataSource[idx]), nil
+					return nil, fmt.Errorf("json %s unmarshal fail", consumeOptionsDataSource[idx])
 				} else {
 					for _, address := range addressArr {
 						result[address] = struct{}{}
@@ -251,7 +251,7 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 			case types.ConsumeTk20:
 				var infos []*types.MetadataConsumeOptionTK20
 				if err := json.Unmarshal([]byte(consumeOptionsDataSource[idx]), &infos); err != nil {
-					return fmt.Errorf("json %s Unmarshal fail", consumeOptionsDataSource[idx]), nil
+					return nil, fmt.Errorf("json %s Unmarshal fail", consumeOptionsDataSource[idx])
 				} else {
 					for _, info := range infos {
 						contractAddress := info.GetContract()
@@ -265,10 +265,10 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 						}
 						metaAlgorithmId := strings.TrimSpace(localTask.GetTaskData().GetMetaAlgorithmId())
 						if metaAlgorithmId == ciphertextAlgorithm && balance.Cmp(cryptoAlgoConsumeUnit) == -1 {
-							return fmt.Errorf("MetaAlgorithmId is ciphertext balance %s less than cryptoAlgoConsumeUnit %s,contract address %s", balance.String(), cryptoAlgoConsumeUnit.String(), contractAddress), nil
+							return nil, fmt.Errorf("MetaAlgorithmId is ciphertext balance %s less than cryptoAlgoConsumeUnit %s,contract address %s", balance.String(), cryptoAlgoConsumeUnit.String(), contractAddress)
 						}
 						if metaAlgorithmId == plaintextAlgorithm && balance.Cmp(plainAlgoConsumeUnit) == -1 {
-							return fmt.Errorf("MetaAlgorithmId is plaintext balance %s less than plainAlgoConsumeUnit %s,contract address %s", balance.String(), plainAlgoConsumeUnit.String(), contractAddress), nil
+							return nil, fmt.Errorf("MetaAlgorithmId is plaintext balance %s less than plainAlgoConsumeUnit %s,contract address %s", balance.String(), plainAlgoConsumeUnit.String(), contractAddress)
 						}
 					}
 				}
@@ -282,23 +282,23 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 			}
 			for address, _ := range addressSet {
 				if _, ok := metadataConsumeOptionsAddressMap[consumeType][address]; !ok {
-					return fmt.Errorf("task params tk20 contract address %s not in dataCenter metadata", address), nil
+					return nil, fmt.Errorf("task params tk20 contract address %s not in dataCenter metadata", address)
 				}
 			}
 		}
-		return nil, consumeMap
+		return consumeMap, nil
 	}
 	partyIdToMetadataId := make(map[string]string, 0)
 	// dataPolicyTypes -> [40001,40002,40001]
-	for index, policyType := range dataPolicyTypes {
+	for index, policyType := range localTask.GetTaskData().GetDataPolicyTypes() {
 		// if policyType is 40001
 		switch policyType {
 		case types.TASK_DATA_POLICY_IS_CSV_HAVE_CONSUME:
-			policyOption := dataPolicyOptions[index]
+			policyOption := localTask.GetTaskData().GetDataPolicyOptions()[index]
 			log.Debugf(fmt.Sprintf(`"checkConsumeOptionsParams type is csv,policyOption %s"`, policyOption))
 			var consumePolicy *types.TaskMetadataPolicyCsvConsume
 			if err := json.Unmarshal([]byte(policyOption), &consumePolicy); nil != err {
-				return fmt.Errorf("json Unmarshal fail,the json string is %s", policyOption), nil, nil
+				return nil, nil, fmt.Errorf("json Unmarshal fail,the json string is %s", policyOption)
 			}
 			/*
 				"consumeTypes": [1,3,2], 0: unknown, 1: metadataAuth, 2: ERC20, 3: ERC721, ...
@@ -317,33 +317,33 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 			consumeOptions := consumePolicy.GetConsumeOptions()
 			metadataId := consumePolicy.GetMetadataId()
 			partyIdToMetadataId[consumePolicy.GetPartyId()] = metadataId
-			err, consumeTypeDataConsumePolicyArray = checkTaskMetadataConsumeOptionsFn(metadataId, consumePolicy.GetConsumeTypes(), consumeOptions)
+			dataConsumePolicysCache, err = checkTaskMetadataConsumeOptionsFn(metadataId, consumePolicy.GetConsumeTypes(), consumeOptions)
 			if err != nil {
-				return err, nil, nil
+				return nil, nil, err
 			}
 		default:
 			log.Info(fmt.Sprintf("checkConsumeOptionsParams other dataPolicyType %d not consume", policyType))
 		}
 	}
-	return nil, consumeTypeDataConsumePolicyArray, partyIdToMetadataId
+	return dataConsumePolicysCache, partyIdToMetadataId, nil
 }
 
 func (m *Manager) beginConsumeMetadataOrPower(task *types.NeedExecuteTask, localTask *types.Task) error {
-	err, consumeTypeDataConsumePolicy, partyIdToMetadataId := m.checkConsumeOptionsParams(localTask, true)
+	dataConsumePolicysCache, partyIdAndMetadataIdCache, err := m.checkConsumeOptionsParams(localTask, true)
 	if err != nil {
 		return err
 	}
-	for consumeType, ConsumePolicyArray := range consumeTypeDataConsumePolicy {
+	for consumeType, ConsumePolicyArray := range dataConsumePolicysCache {
 		switch consumeType {
 		case types.ConsumeMetadataAuth:
-			return m.beginConsumeByMetadataAuth()
+			//return m.beginConsumeByMetadataAuth()
 		case types.ConsumeTk20, types.ConsumeTk721:
-			return m.beginConsumeByTk(task, localTask, ConsumePolicyArray, partyIdToMetadataId)
+			return m.beginConsumeByTk(task, localTask, ConsumePolicyArray, partyIdAndMetadataIdCache)
 		}
 	}
 	return nil
 }
-func (m *Manager) beginConsumeByTk(task *types.NeedExecuteTask, localTask *types.Task, ConsumePolicyArray []types.DataConsumePolicy, partyIdAndMetadataId map[string]string) error {
+func (m *Manager) beginConsumeByTk(task *types.NeedExecuteTask, localTask *types.Task, consumePolicyArray []types.DataConsumePolicy, partyIdAndMetadataIdCache map[string]string) error {
 	partyId := task.GetLocalTaskOrganization().GetPartyId()
 	switch task.GetLocalTaskRole() {
 	case commonconstantpb.TaskRole_TaskRole_Sender:
@@ -357,8 +357,8 @@ func (m *Manager) beginConsumeByTk(task *types.NeedExecuteTask, localTask *types
 		}
 		tkTtems := make([]*carrierapipb.TkItem, 0)
 		// for debug log...
-		addrs := make([]string, len(ConsumePolicyArray))
-		for _, consumePolicy := range ConsumePolicyArray {
+		addrs := make([]string, len(consumePolicyArray))
+		for _, consumePolicy := range consumePolicyArray {
 			switch consumePolicy.(type) {
 			case *types.Tk20Consume:
 				tkTtems = append(tkTtems, &carrierapipb.TkItem{
@@ -441,7 +441,7 @@ func (m *Manager) beginConsumeByTk(task *types.NeedExecuteTask, localTask *types
 	case commonconstantpb.TaskRole_TaskRole_DataSupplier, commonconstantpb.TaskRole_TaskRole_PowerSupplier, commonconstantpb.TaskRole_TaskRole_Receiver:
 		// check metadataId of myself (only by dataSupplier)
 		if task.GetLocalTaskRole() == commonconstantpb.TaskRole_TaskRole_DataSupplier {
-			metadataId, ok := partyIdAndMetadataId[task.GetLocalTaskOrganization().GetPartyId()]
+			metadataId, ok := partyIdAndMetadataIdCache[task.GetLocalTaskOrganization().GetPartyId()]
 			if !ok {
 				return fmt.Errorf("can not fetch metadataId from dataPolicy of task on on beginConsumeByTk(), %s", task.GetLocalTaskOrganization().GetPartyId())
 			}
@@ -531,8 +531,9 @@ func (m *Manager) beginConsumeByTk(task *types.NeedExecuteTask, localTask *types
 	}
 }
 
-func (m *Manager) beginConsumeByMetadataAuth(task *types.NeedExecuteTask, localTask *types.Task, ConsumePolicyArray []types.DataConsumePolicy, partyIdAndMetadataId map[string]string) error {
+func (m *Manager) beginConsumeByMetadataAuth(task *types.NeedExecuteTask, localTask *types.Task, ConsumePolicyArray []types.DataConsumePolicy, partyIdAndMetadataIdCache map[string]string) error {
 
+	return nil
 }
 
 //func (m *Manager) beginConsumeByMetadataAuth(task *types.NeedExecuteTask, localTask *types.Task) error {
@@ -887,16 +888,16 @@ func (m *Manager) beginConsumeByMetadataAuth(task *types.NeedExecuteTask, localT
 //}
 
 func (m *Manager) endConsumeMetadataOrPower(task *types.NeedExecuteTask, localTask *types.Task) error {
-	err, consumeTypeDataConsumePolicy, partyIdToMetadataId := m.checkConsumeOptionsParams(localTask, false)
+	dataConsumePolicysCache, partyIdAndMetadataIdCache, err := m.checkConsumeOptionsParams(localTask, false)
 	if err != nil {
 		return err
 	}
-	for consumeType, _ := range consumeTypeDataConsumePolicy {
+	for consumeType, _ := range dataConsumePolicysCache {
 		switch consumeType {
 		case types.ConsumeMetadataAuth:
 			//todo 等待实现
 		case types.ConsumeTk20:
-			return m.endConsumeTk20(task, localTask, partyIdToMetadataId)
+			return m.endConsumeTk20(task, localTask, partyIdAndMetadataIdCache)
 		case types.ConsumeTk721:
 			// todo 等待实现
 		}
@@ -914,7 +915,7 @@ func (m *Manager) endConsumeMetadataOrPower(task *types.NeedExecuteTask, localTa
 func (m *Manager) endConsumeByMetadataAuth(task *types.NeedExecuteTask, localTask *types.Task) error {
 	return nil // do nothing.
 }
-func (m *Manager) endConsumeTk20(task *types.NeedExecuteTask, localTask *types.Task, partyIdAndMetadataId map[string]string) error {
+func (m *Manager) endConsumeTk20(task *types.NeedExecuteTask, localTask *types.Task, partyIdAndMetadataIdCache map[string]string) error {
 
 	checkMetadataIdsFn := func() (bool, []string, error) {
 		// filter ignoreMetadataId (internalMetadata of other organizations) AND internalMetadata of current organization from metadataIds
@@ -926,7 +927,7 @@ func (m *Manager) endConsumeTk20(task *types.NeedExecuteTask, localTask *types.T
 		// `Internal metadata` will not be consumed datatoken.
 		//
 		filterMetadataIds := make([]string, 0)
-		for _, metadataId := range partyIdAndMetadataId {
+		for _, metadataId := range partyIdAndMetadataIdCache {
 			// If it is not the `internal metadata` of other organizations,
 			// and it is not the `internal metadata` of the current organization.
 			if metadataId == policy.IgnoreMetadataId {
