@@ -24,7 +24,7 @@ type Manager struct {
 	mockIdentityIdsCache map[string]struct{}
 	resourceClientSet    *grpclient.InternalResourceClientSet // internal resource node set (Fighter node grpc client set)
 
-	workflowLock  sync.Mutex
+	workflowLock sync.Mutex
 }
 
 func NewResourceManager(dataCenter carrierdb.CarrierDB, resourceClientSet *grpclient.InternalResourceClientSet, mockIdentityIdsFile string) *Manager {
@@ -86,31 +86,6 @@ func (m *Manager) freeSlot(taskId, partId, nodeId string, mem, bandwidth, disk u
 	return m.dataCenter.StoreLocalResourceTable(table)
 }
 
-//func (m *Manager) StoreLocalResourceTable(table *types.LocalResourceTable) error {
-//	return m.dataCenter.StoreLocalResourceTable(table)
-//}
-//func (m *Manager) QueryLocalResourceTable(nodeId string) (*types.LocalResourceTable, error) {
-//	return m.dataCenter.QueryLocalResourceTable(nodeId)
-//}
-//func (m *Manager) QueryLocalResourceTables() ([]*types.LocalResourceTable, error) {
-//	return m.dataCenter.QueryLocalResourceTables()
-//}
-//func (m *Manager) RemoveLocalResourceTable(nodeId string) error {
-//	return m.dataCenter.RemoveLocalResourceTable(nodeId)
-//}
-//func (m *Manager) RemoveLocalResourceTables() error {
-//	localResourceTableArr, err := m.dataCenter.QueryLocalResourceTables()
-//	if nil != err {
-//		return err
-//	}
-//	for _, table := range localResourceTableArr {
-//		if err := m.dataCenter.RemoveLocalResourceTable(table.GetNodeId()); nil != err {
-//			return err
-//		}
-//	}
-//	return nil
-//}
-
 func (m *Manager) LockLocalResourceWithTask(partyId, jobNodeId string, mem, bandwidth, disk uint64, processor uint32, task *types.Task) error {
 
 	m.workflowLock.Lock()
@@ -145,7 +120,6 @@ func (m *Manager) LockLocalResourceWithTask(partyId, jobNodeId string, mem, band
 			task.GetTaskId(), partyId, jobNodeId, mem, bandwidth, disk, processor)
 	}
 
-
 	// Query old local resource information [before increase resource usage]
 	jobNodeResource, err := m.dataCenter.QueryLocalResource(jobNodeId)
 	if nil != err {
@@ -177,48 +151,48 @@ func (m *Manager) LockLocalResourceWithTask(partyId, jobNodeId string, mem, band
 
 	// Increase the resource usage information of the local jobNode resource
 	oldMem := jobNodeResource.GetData().GetUsedMem()
-	if oldMem + mem > jobNodeResource.GetData().GetTotalMem() {
+	if oldMem+mem > jobNodeResource.GetData().GetTotalMem() {
 		log.Errorf("Failed to increase localResource, the increased mem used value exceeds the total value on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, needMem: {%d}, needBandwidth: {%d}, needDisk: {%d}, needProcessor: {%d}",
 			task.GetTaskId(), partyId, jobNodeId, mem, bandwidth, disk, processor)
 		return fmt.Errorf("the increased mem used value exceeds the total value")
 	}
-	if !atomic.CompareAndSwapUint64(&(jobNodeResource.GetData().UsedMem), oldMem, oldMem + mem) {
+	if !atomic.CompareAndSwapUint64(&(jobNodeResource.GetData().UsedMem), oldMem, oldMem+mem) {
 		log.Errorf("Failed to increase localResource, compareAndSwap mem used value failed on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, needMem: {%d}, needBandwidth: {%d}, needDisk: {%d}, needProcessor: {%d}",
 			task.GetTaskId(), partyId, jobNodeId, mem, bandwidth, disk, processor)
 		return fmt.Errorf("increase: compareAndSwap mem used value failed")
 	}
 
 	oldProcessor := jobNodeResource.GetData().GetUsedProcessor()
-	if oldProcessor + processor > jobNodeResource.GetData().GetTotalProcessor() {
+	if oldProcessor+processor > jobNodeResource.GetData().GetTotalProcessor() {
 		log.Errorf("Failed to increase localResource, the increased processor used value exceeds the total value on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, needMem: {%d}, needBandwidth: {%d}, needDisk: {%d}, needProcessor: {%d}",
 			task.GetTaskId(), partyId, jobNodeId, mem, bandwidth, disk, processor)
 		return fmt.Errorf("the increased processor used value exceeds the total value")
 	}
-	if !atomic.CompareAndSwapUint32(&(jobNodeResource.GetData().UsedProcessor), oldProcessor, oldProcessor + processor) {
+	if !atomic.CompareAndSwapUint32(&(jobNodeResource.GetData().UsedProcessor), oldProcessor, oldProcessor+processor) {
 		log.Errorf("Failed to increase localResource, compareAndSwap processor used value failed on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, needMem: {%d}, needBandwidth: {%d}, needDisk: {%d}, needProcessor: {%d}",
 			task.GetTaskId(), partyId, jobNodeId, mem, bandwidth, disk, processor)
 		return fmt.Errorf("increase: compareAndSwap processor used value failed")
 	}
 
 	oldBandwidth := jobNodeResource.GetData().GetUsedBandwidth()
-	if oldBandwidth + bandwidth > jobNodeResource.GetData().GetTotalBandwidth() {
+	if oldBandwidth+bandwidth > jobNodeResource.GetData().GetTotalBandwidth() {
 		log.Errorf("Failed to increase localResource, the increased bandwidth used value exceeds the total value on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, needMem: {%d}, needBandwidth: {%d}, needDisk: {%d}, needProcessor: {%d}",
 			task.GetTaskId(), partyId, jobNodeId, mem, bandwidth, disk, processor)
 		return fmt.Errorf("the increased bandwidth used value exceeds the total value")
 	}
-	if !atomic.CompareAndSwapUint64(&(jobNodeResource.GetData().UsedBandwidth), oldBandwidth, oldBandwidth + bandwidth){
+	if !atomic.CompareAndSwapUint64(&(jobNodeResource.GetData().UsedBandwidth), oldBandwidth, oldBandwidth+bandwidth) {
 		log.Errorf("Failed to increase localResource, compareAndSwap bandwidth used value failed on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, needMem: {%d}, needBandwidth: {%d}, needDisk: {%d}, needProcessor: {%d}",
 			task.GetTaskId(), partyId, jobNodeId, mem, bandwidth, disk, processor)
 		return fmt.Errorf("increase: compareAndSwap bandwidth used value failed")
 	}
 
 	oldDisk := jobNodeResource.GetData().GetUsedDisk()
-	if oldDisk + disk > jobNodeResource.GetData().GetTotalDisk() {
+	if oldDisk+disk > jobNodeResource.GetData().GetTotalDisk() {
 		log.Errorf("Failed to increase localResource, the increased disk used value exceeds the total value on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, needMem: {%d}, needBandwidth: {%d}, needDisk: {%d}, needProcessor: {%d}",
 			task.GetTaskId(), partyId, jobNodeId, mem, bandwidth, disk, processor)
 		return fmt.Errorf("the increased disk used value exceeds the total value")
 	}
-	if !atomic.CompareAndSwapUint64(&(jobNodeResource.GetData().UsedDisk), oldDisk, oldDisk + disk) {
+	if !atomic.CompareAndSwapUint64(&(jobNodeResource.GetData().UsedDisk), oldDisk, oldDisk+disk) {
 		log.Errorf("Failed to increase localResource, compareAndSwap disk used value failed on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, needMem: {%d}, needBandwidth: {%d}, needDisk: {%d}, needProcessor: {%d}",
 			task.GetTaskId(), partyId, jobNodeId, mem, bandwidth, disk, processor)
 		return fmt.Errorf("increase: compareAndSwap disk used value failed")
@@ -330,7 +304,7 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId, partyId string) error {
 			taskId, partyId, jobNodeId, freeMemCount, freeBandwidthCount, freeDiskCount, freeProcessorCount)
 		return fmt.Errorf("the mem value to be decreased exceeds the used value")
 	}
-	if !atomic.CompareAndSwapUint64(&(jobNodeResource.GetData().UsedMem), oldMem, oldMem - freeMemCount) {
+	if !atomic.CompareAndSwapUint64(&(jobNodeResource.GetData().UsedMem), oldMem, oldMem-freeMemCount) {
 		log.Errorf("Failed to decrease localResource, compareAndSwap mem used value failed on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeMemCount: {%d}, freeBandwidthCount: {%d}, freeDiskCount: {%d}, freeProcessorCount: {%d}",
 			taskId, partyId, jobNodeId, freeMemCount, freeBandwidthCount, freeDiskCount, freeProcessorCount)
 		return fmt.Errorf("decrease: compareAndSwap mem used value failed")
@@ -342,7 +316,7 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId, partyId string) error {
 			taskId, partyId, jobNodeId, freeMemCount, freeBandwidthCount, freeDiskCount, freeProcessorCount)
 		return fmt.Errorf("the processor value to be decreased exceeds the used value")
 	}
-	if !atomic.CompareAndSwapUint32(&(jobNodeResource.GetData().UsedProcessor), oldProcessor, oldProcessor - freeProcessorCount) {
+	if !atomic.CompareAndSwapUint32(&(jobNodeResource.GetData().UsedProcessor), oldProcessor, oldProcessor-freeProcessorCount) {
 		log.Errorf("Failed to decrease localResource, compareAndSwap processor used value failed on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeMemCount: {%d}, freeBandwidthCount: {%d}, freeDiskCount: {%d}, freeProcessorCount: {%d}",
 			taskId, partyId, jobNodeId, freeMemCount, freeBandwidthCount, freeDiskCount, freeProcessorCount)
 		return fmt.Errorf("decrease: compareAndSwap processor used value failed")
@@ -354,7 +328,7 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId, partyId string) error {
 			taskId, partyId, jobNodeId, freeMemCount, freeBandwidthCount, freeDiskCount, freeProcessorCount)
 		return fmt.Errorf("the bandwidth value to be decreased exceeds the used value")
 	}
-	if !atomic.CompareAndSwapUint64(&(jobNodeResource.GetData().UsedBandwidth), oldBandwidth, oldBandwidth - freeBandwidthCount) {
+	if !atomic.CompareAndSwapUint64(&(jobNodeResource.GetData().UsedBandwidth), oldBandwidth, oldBandwidth-freeBandwidthCount) {
 		log.Errorf("Failed to decrease localResource, compareAndSwap bandwidth used value failed on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeMemCount: {%d}, freeBandwidthCount: {%d}, freeDiskCount: {%d}, freeProcessorCount: {%d}",
 			taskId, partyId, jobNodeId, freeMemCount, freeBandwidthCount, freeDiskCount, freeProcessorCount)
 		return fmt.Errorf("decrease: compareAndSwap bandwidth used value failed")
@@ -366,7 +340,7 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId, partyId string) error {
 			taskId, partyId, jobNodeId, freeMemCount, freeBandwidthCount, freeDiskCount, freeProcessorCount)
 		return fmt.Errorf("the disk value to be decreased exceeds the used value")
 	}
-	if !atomic.CompareAndSwapUint64(&(jobNodeResource.GetData().UsedDisk), oldDisk, oldDisk - freeDiskCount) {
+	if !atomic.CompareAndSwapUint64(&(jobNodeResource.GetData().UsedDisk), oldDisk, oldDisk-freeDiskCount) {
 		log.Errorf("Failed to decrease localResource, compareAndSwap disk used value failed on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeMemCount: {%d}, freeBandwidthCount: {%d}, freeDiskCount: {%d}, freeProcessorCount: {%d}",
 			taskId, partyId, jobNodeId, freeMemCount, freeBandwidthCount, freeDiskCount, freeProcessorCount)
 		return fmt.Errorf("decrease: compareAndSwap disk used value failed")
@@ -374,7 +348,6 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId, partyId string) error {
 
 	log.Infof("After decrease localResource on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeMemCount: {%d}, freeBandwidthCount: {%d}, freeDiskCount: {%d}, freeProcessorCount: {%d}, LocalResource: %s",
 		taskId, partyId, jobNodeId, freeMemCount, freeBandwidthCount, freeDiskCount, freeProcessorCount, jobNodeResource.GetData().String())
-
 
 	// check the jobNode running task count
 	if jobNodeRunningTaskCount == 0 {
@@ -682,9 +655,9 @@ func (m *Manager) AddDiscoveryJobNodeResource(identity *carriertypespb.Organizat
 	// add resource usage first, but not own power now (mem, proccessor, bandwidth)
 	// store into local db
 	if err := m.dataCenter.StoreLocalResource(types.NewLocalResource(&carriertypespb.LocalResourcePB{
-		Owner: identity,
-		JobNodeId:  jobNodeId,
-		DataId:     "", // can not own powerId now, because power have not publish
+		Owner:     identity,
+		JobNodeId: jobNodeId,
+		DataId:    "", // can not own powerId now, because power have not publish
 		// the status of data, N means normal, D means deleted.
 		DataStatus: commonconstantpb.DataStatus_DataStatus_Valid,
 		// resource status, eg: create/release/revoke
@@ -775,7 +748,6 @@ func (m *Manager) UpdateDiscoveryJobNodeResource(identity *carriertypespb.Organi
 			}
 		}
 	}
-
 
 	// check alive status of jobNode local resource table
 	resourceTable, err := m.dataCenter.QueryLocalResourceTable(jobNodeId)
@@ -1025,7 +997,7 @@ func (m *Manager) UpdateDiscoveryDataNodeResource(identity *carriertypespb.Organ
 		}
 	}
 
-	resourceTable, err := m.dataCenter.QueryDataResourceTable (dataNodeId)
+	resourceTable, err := m.dataCenter.QueryDataResourceTable(dataNodeId)
 	if rawdb.IsNoDBNotFoundErr(err) {
 		log.WithError(err).Errorf("Failed to query disk summary of old dataNode on resourceManager.UpdateDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%s}",
 			dataNodeId, dataNodeIP, dataNodePort)
@@ -1041,7 +1013,7 @@ func (m *Manager) UpdateDiscoveryDataNodeResource(identity *carriertypespb.Organ
 		}
 
 		var update bool
-		if  !resourceTable.GetAlive() {
+		if !resourceTable.GetAlive() {
 			resourceTable.SetAlive(true)
 			update = true
 		}
