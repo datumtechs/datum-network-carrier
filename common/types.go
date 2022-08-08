@@ -21,6 +21,8 @@ const (
 	HashLength = 32
 	// AddressLength is the expected length of the address
 	AddressLength = 20
+	// OpenMessageSignCheck Disable disable or enable message check sign
+	OpenMessageSignCheck = false
 )
 
 var (

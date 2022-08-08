@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/datumtechs/datum-network-carrier/common"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
 	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
@@ -86,16 +87,18 @@ func (svr *Server) PublishMetadata(ctx context.Context, req *carrierapipb.Publis
 	metadataMsg.GenMetadataId()
 
 	// check from
-	from, _, err := signsuite.Sender(metadataMsg.GetMetadataSummary().GetUserType(), metadataMsg.Hash(), metadataMsg.GetMetadataSummary().GetSign())
-	if nil != err {
-		log.WithError(err).Errorf("RPC-API:PublishMetadata failed, cannot fetch sender from sign, userType: {%s}, user: {%s}",
-			req.GetInformation().GetUserType().String(), req.GetInformation().GetUser())
-		return &carrierapipb.PublishMetadataResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "cannot fetch sender from sign"}, nil
-	}
-	if from != req.GetInformation().GetUser() {
-		log.WithError(err).Errorf("RPC-API:PublishMetadata failed, sender from sign and user is not sameone, userType: {%s}, user: {%s}, sender of sign: {%s}",
-			req.GetInformation().GetUserType().String(), req.GetInformation().GetUser(), from)
-		return &carrierapipb.PublishMetadataResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "the user sign is invalid"}, nil
+	if common.OpenMessageSignCheck {
+		from, _, err := signsuite.Sender(metadataMsg.GetMetadataSummary().GetUserType(), metadataMsg.Hash(), metadataMsg.GetMetadataSummary().GetSign())
+		if nil != err {
+			log.WithError(err).Errorf("RPC-API:PublishMetadata failed, cannot fetch sender from sign, userType: {%s}, user: {%s}",
+				req.GetInformation().GetUserType().String(), req.GetInformation().GetUser())
+			return &carrierapipb.PublishMetadataResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "cannot fetch sender from sign"}, nil
+		}
+		if from != req.GetInformation().GetUser() {
+			log.WithError(err).Errorf("RPC-API:PublishMetadata failed, sender from sign and user is not sameone, userType: {%s}, user: {%s}, sender of sign: {%s}",
+				req.GetInformation().GetUserType().String(), req.GetInformation().GetUser(), from)
+			return &carrierapipb.PublishMetadataResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "the user sign is invalid"}, nil
+		}
 	}
 
 	if err := svr.B.SendMsg(metadataMsg); nil != err {
@@ -248,16 +251,18 @@ func (svr *Server) PublishMetadataByInteranlMetadata(ctx context.Context, req *c
 		CreateAt: timeutils.UnixMsecUint64(),
 	}
 	// check from
-	from, _, err := signsuite.Sender(metadataMsg.GetMetadataSummary().GetUserType(), metadataMsg.Hash(), metadataMsg.GetMetadataSummary().GetSign())
-	if nil != err {
-		log.WithError(err).Errorf("RPC-API:PublishMetadataByInteranlMetadata failed, cannot fetch sender from sign, userType: {%s}, user: {%s}",
-			req.GetInformation().GetUserType().String(), req.GetInformation().GetUser())
-		return &carrierapipb.PublishMetadataResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "cannot fetch sender from sign"}, nil
-	}
-	if from != req.GetInformation().GetUser() {
-		log.WithError(err).Errorf("RPC-API:PublishMetadataByInteranlMetadata failed, sender from sign and user is not sameone, userType: {%s}, user: {%s}, sender of sign: {%s}",
-			req.GetInformation().GetUserType().String(), req.GetInformation().GetUser(), from)
-		return &carrierapipb.PublishMetadataResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "the user sign is invalid"}, nil
+	if common.OpenMessageSignCheck {
+		from, _, err := signsuite.Sender(metadataMsg.GetMetadataSummary().GetUserType(), metadataMsg.Hash(), metadataMsg.GetMetadataSummary().GetSign())
+		if nil != err {
+			log.WithError(err).Errorf("RPC-API:PublishMetadataByInteranlMetadata failed, cannot fetch sender from sign, userType: {%s}, user: {%s}",
+				req.GetInformation().GetUserType().String(), req.GetInformation().GetUser())
+			return &carrierapipb.PublishMetadataResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "cannot fetch sender from sign"}, nil
+		}
+		if from != req.GetInformation().GetUser() {
+			log.WithError(err).Errorf("RPC-API:PublishMetadataByInteranlMetadata failed, sender from sign and user is not sameone, userType: {%s}, user: {%s}, sender of sign: {%s}",
+				req.GetInformation().GetUserType().String(), req.GetInformation().GetUser(), from)
+			return &carrierapipb.PublishMetadataResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "the user sign is invalid"}, nil
+		}
 	}
 	if err := svr.B.SendMsg(metadataMsg); nil != err {
 		log.WithError(err).Error("RPC-API:PublishMetadataByInteranlMetadata failed")
@@ -374,16 +379,18 @@ func (svr *Server) PublishMetadataByTaskResultFile(ctx context.Context, req *car
 		CreateAt: timeutils.UnixMsecUint64(),
 	}
 	// check from
-	from, _, err := signsuite.Sender(metadataMsg.GetMetadataSummary().GetUserType(), metadataMsg.Hash(), metadataMsg.GetMetadataSummary().GetSign())
-	if nil != err {
-		log.WithError(err).Errorf("RPC-API:PublishMetadataByTaskResultFile failed, cannot fetch sender from sign, userType: {%s}, user: {%s}",
-			req.GetInformation().GetUserType().String(), req.GetInformation().GetUser())
-		return &carrierapipb.PublishMetadataResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "cannot fetch sender from sign"}, nil
-	}
-	if from != req.GetInformation().GetUser() {
-		log.WithError(err).Errorf("RPC-API:PublishMetadataByTaskResultFile failed, sender from sign and user is not sameone, userType: {%s}, user: {%s}, sender of sign: {%s}",
-			req.GetInformation().GetUserType().String(), req.GetInformation().GetUser(), from)
-		return &carrierapipb.PublishMetadataResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "the user sign is invalid"}, nil
+	if common.OpenMessageSignCheck {
+		from, _, err := signsuite.Sender(metadataMsg.GetMetadataSummary().GetUserType(), metadataMsg.Hash(), metadataMsg.GetMetadataSummary().GetSign())
+		if nil != err {
+			log.WithError(err).Errorf("RPC-API:PublishMetadataByTaskResultFile failed, cannot fetch sender from sign, userType: {%s}, user: {%s}",
+				req.GetInformation().GetUserType().String(), req.GetInformation().GetUser())
+			return &carrierapipb.PublishMetadataResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "cannot fetch sender from sign"}, nil
+		}
+		if from != req.GetInformation().GetUser() {
+			log.WithError(err).Errorf("RPC-API:PublishMetadataByTaskResultFile failed, sender from sign and user is not sameone, userType: {%s}, user: {%s}, sender of sign: {%s}",
+				req.GetInformation().GetUserType().String(), req.GetInformation().GetUser(), from)
+			return &carrierapipb.PublishMetadataResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "the user sign is invalid"}, nil
+		}
 	}
 	if err := svr.B.SendMsg(metadataMsg); nil != err {
 		log.WithError(err).Error("RPC-API:PublishMetadataByTaskResultFile failed")
@@ -488,16 +495,18 @@ func (svr *Server) UpdateMetadata(ctx context.Context, req *carrierapipb.UpdateM
 		CreateAt: timeutils.UnixMsecUint64(),
 	}
 	// check from
-	from, _, err := signsuite.Sender(metadataUpdateMsg.GetMetadataSummary().GetUserType(), metadataUpdateMsg.Hash(), metadataUpdateMsg.GetMetadataSummary().GetSign())
-	if nil != err {
-		log.WithError(err).Errorf("RPC-API:UpdateMetadata failed, cannot fetch sender from sign, userType: {%s}, user: {%s}",
-			req.GetInformation().GetUserType().String(), req.GetInformation().GetUser())
-		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "cannot fetch sender from sign"}, nil
-	}
-	if from != req.GetInformation().GetUser() {
-		log.WithError(err).Errorf("RPC-API:UpdateMetadata failed, sender from sign and user is not sameone, userType: {%s}, user: {%s}, sender of sign: {%s}",
-			req.GetInformation().GetUserType().String(), req.GetInformation().GetUser(), from)
-		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "the user sign is invalid"}, nil
+	if common.OpenMessageSignCheck {
+		from, _, err := signsuite.Sender(metadataUpdateMsg.GetMetadataSummary().GetUserType(), metadataUpdateMsg.Hash(), metadataUpdateMsg.GetMetadataSummary().GetSign())
+		if nil != err {
+			log.WithError(err).Errorf("RPC-API:UpdateMetadata failed, cannot fetch sender from sign, userType: {%s}, user: {%s}",
+				req.GetInformation().GetUserType().String(), req.GetInformation().GetUser())
+			return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "cannot fetch sender from sign"}, nil
+		}
+		if from != req.GetInformation().GetUser() {
+			log.WithError(err).Errorf("RPC-API:UpdateMetadata failed, sender from sign and user is not sameone, userType: {%s}, user: {%s}, sender of sign: {%s}",
+				req.GetInformation().GetUserType().String(), req.GetInformation().GetUser(), from)
+			return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "the user sign is invalid"}, nil
+		}
 	}
 	if err := svr.B.SendMsg(metadataUpdateMsg); nil != err {
 		log.WithError(err).Error("RPC-API:UpdateMetadata failed")
@@ -514,32 +523,39 @@ func (svr *Server) UpdateMetadata(ctx context.Context, req *carrierapipb.UpdateM
 
 func checkCanUpdateMetadataFieldIsLegal(oldMetadata *carriertypespb.MetadataPB, req *carrierapipb.UpdateMetadataRequest) (*carriertypespb.SimpleResponse, error) {
 	responseMsg := ""
-	if oldMetadata.MetadataType != req.GetInformation().MetadataType {
+	if oldMetadata.GetMetadataType() != req.GetInformation().GetMetadataType() {
 		responseMsg = "update MetadataType not equal to old MetadataType"
+		log.Debugf("oldMetadata MetadataType %s , new MetadataType %s", oldMetadata.GetMetadataType().String(), req.GetInformation().GetMetadataType().String())
 		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: responseMsg}, errors.New(responseMsg)
 	}
-	if oldMetadata.DataType != req.GetInformation().DataType {
+	if oldMetadata.GetDataType() != req.GetInformation().GetDataType() {
 		responseMsg = "update DataType not equal to old DataType"
+		log.Debugf("oldMetadata DataType %s , new DataType %s", oldMetadata.GetDataType().String(), req.GetInformation().GetDataType().String())
 		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: responseMsg}, errors.New(responseMsg)
 	}
-	if oldMetadata.DataHash != req.GetInformation().DataHash {
+	if oldMetadata.GetDataHash() != req.GetInformation().GetDataHash() {
 		responseMsg = "update DataHash not equal to old DataHash"
+		log.Debugf("oldMetadata DataHash %s , new DataHash %s", oldMetadata.GetDataHash(), req.GetInformation().GetDataHash())
 		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: responseMsg}, errors.New(responseMsg)
 	}
-	if oldMetadata.State != req.GetInformation().State {
+	if oldMetadata.GetState() != req.GetInformation().GetState() {
 		responseMsg = "update State not equal to old State"
+		log.Debugf("oldMetadata State %s , new State %s", oldMetadata.GetState().String(), req.GetInformation().GetState().String())
 		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: responseMsg}, errors.New(responseMsg)
 	}
-	if oldMetadata.LocationType != req.GetInformation().LocationType {
+	if oldMetadata.GetLocationType() != req.GetInformation().GetLocationType() {
 		responseMsg = "update LocationType not equal to old LocationType"
+		log.Debugf("oldMetadata LocationType %s , new LocationType %s", oldMetadata.GetLocationType().String(), req.GetInformation().GetLocationType().String())
 		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: responseMsg}, errors.New(responseMsg)
 	}
-	if oldMetadata.User != req.GetInformation().User {
+	if oldMetadata.GetUser() != req.GetInformation().GetUser() {
 		responseMsg = "update User not equal to old User"
+		log.Debugf("oldMetadata User %s , new User %s", oldMetadata.GetUser(), req.GetInformation().GetUser())
 		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: responseMsg}, errors.New(responseMsg)
 	}
-	if oldMetadata.UserType != req.GetInformation().UserType {
+	if oldMetadata.GetUserType() != req.GetInformation().GetUserType() {
 		responseMsg = "update UserType not equal to old UserType"
+		log.Debugf("oldMetadata UserType %s , new UserType %s", oldMetadata.GetUserType().String(), req.GetInformation().GetUserType().String())
 		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: responseMsg}, errors.New(responseMsg)
 	}
 

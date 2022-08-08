@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/carrierdb/rawdb"
+	"github.com/datumtechs/datum-network-carrier/common"
 	"github.com/datumtechs/datum-network-carrier/p2p"
 	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
@@ -191,17 +192,18 @@ func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *carrierapipb
 	}
 
 	metadataAuthorityMsg := types.NewMetadataAuthorityMessageFromRequest(req)
-
-	from, _, err := signsuite.Sender(req.GetUserType(), metadataAuthorityMsg.Hash(), req.GetSign())
-	if nil != err {
-		log.WithError(err).Errorf("RPC-API:ApplyMetadataAuthority failed, cannot fetch sender from sign, userType: {%s}, user: {%s}",
-			req.GetUserType().String(), req.GetUser())
-		return &carrierapipb.ApplyMetadataAuthorityResponse{Status: backend.ErrApplyMetadataAuthority.ErrCode(), Msg: "cannot fetch sender from sign"}, nil
-	}
-	if from != req.GetUser() {
-		log.WithError(err).Errorf("RPC-API:ApplyMetadataAuthority failed, sender from sign and user is not sameone, userType: {%s}, user: {%s}, sender of sign: {%s}",
-			req.GetUserType().String(), req.GetUser(), from)
-		return &carrierapipb.ApplyMetadataAuthorityResponse{Status: backend.ErrApplyMetadataAuthority.ErrCode(), Msg: "the user sign is invalid"}, nil
+	if common.OpenMessageSignCheck {
+		from, _, err := signsuite.Sender(req.GetUserType(), metadataAuthorityMsg.Hash(), req.GetSign())
+		if nil != err {
+			log.WithError(err).Errorf("RPC-API:ApplyMetadataAuthority failed, cannot fetch sender from sign, userType: {%s}, user: {%s}",
+				req.GetUserType().String(), req.GetUser())
+			return &carrierapipb.ApplyMetadataAuthorityResponse{Status: backend.ErrApplyMetadataAuthority.ErrCode(), Msg: "cannot fetch sender from sign"}, nil
+		}
+		if from != req.GetUser() {
+			log.WithError(err).Errorf("RPC-API:ApplyMetadataAuthority failed, sender from sign and user is not sameone, userType: {%s}, user: {%s}, sender of sign: {%s}",
+				req.GetUserType().String(), req.GetUser(), from)
+			return &carrierapipb.ApplyMetadataAuthorityResponse{Status: backend.ErrApplyMetadataAuthority.ErrCode(), Msg: "the user sign is invalid"}, nil
+		}
 	}
 
 	// verify special options of metadataAuth...
@@ -264,16 +266,18 @@ func (svr *Server) RevokeMetadataAuthority(ctx context.Context, req *carrierapip
 	}
 
 	metadataAuthorityRevokeMsg := types.NewMetadataAuthorityRevokeMessageFromRequest(req)
-	from, _, err := signsuite.Sender(req.GetUserType(), metadataAuthorityRevokeMsg.Hash(), req.GetSign())
-	if nil != err {
-		log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, cannot fetch sender from sign, userType: {%s}, user: {%s}",
-			req.GetUserType().String(), req.GetUser())
-		return &carriertypespb.SimpleResponse{Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "cannot fetch sender from sign"}, nil
-	}
-	if from != req.GetUser() {
-		log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, sender from sign and user is not sameone, userType: {%s}, user: {%s}, sender of sign: {%s}",
-			req.GetUserType().String(), req.GetUser(), from)
-		return &carriertypespb.SimpleResponse{Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "the user sign is invalid"}, nil
+	if common.OpenMessageSignCheck {
+		from, _, err := signsuite.Sender(req.GetUserType(), metadataAuthorityRevokeMsg.Hash(), req.GetSign())
+		if nil != err {
+			log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, cannot fetch sender from sign, userType: {%s}, user: {%s}",
+				req.GetUserType().String(), req.GetUser())
+			return &carriertypespb.SimpleResponse{Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "cannot fetch sender from sign"}, nil
+		}
+		if from != req.GetUser() {
+			log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, sender from sign and user is not sameone, userType: {%s}, user: {%s}, sender of sign: {%s}",
+				req.GetUserType().String(), req.GetUser(), from)
+			return &carriertypespb.SimpleResponse{Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "the user sign is invalid"}, nil
+		}
 	}
 
 	metadataAuthId := metadataAuthorityRevokeMsg.GetMetadataAuthId()

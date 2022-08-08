@@ -520,6 +520,12 @@ func (msg *MetadataUpdateMsg) GetIndustry() string { return msg.GetMetadataSumma
 func (msg *MetadataUpdateMsg) GetMetadataOption() string {
 	return msg.GetMetadataSummary().MetadataOption
 }
+func (msg *MetadataUpdateMsg) GetUserType() commonconstantpb.UserType {
+	return msg.GetMetadataSummary().UserType
+}
+func (msg *MetadataUpdateMsg) GetUser() string {
+	return msg.GetMetadataSummary().User
+}
 func (msg *MetadataUpdateMsg) GetPublishAt() uint64 { return msg.GetMetadataSummary().PublishAt }
 func (msg *MetadataUpdateMsg) Hash() common.Hash {
 	if hash := msg.hash.Load(); hash != nil {
