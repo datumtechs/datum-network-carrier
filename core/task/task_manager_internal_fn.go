@@ -145,7 +145,7 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 			return nil, fmt.Errorf("consumeTypes len not equal consumeOptions len,please check")
 		}
 		/*
-			consumeMap:
+			consumeCache:
 			{
 				1:["metadataAuth:0xa","metadataAuth:0xb","metadataAuth:0xc"],
 				2:[{"contract": "0xefefef...ffff","balance": 12222},{"contract": "0xdfdfdf...ffff","balance": 12222}],
@@ -153,21 +153,21 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 			}
 		*/
 
-		consumeMap := make(map[uint8][]types.DataConsumePolicy, 3)
+		consumeCache := make(map[uint8][]types.DataConsumePolicy, 3)
 		// consumeTypes   => [1,2,3,1,1,2,4],4 is unknown type
 		// localTaskConsumeOptionsAddressMap => {2:{"0x111":{},"0x222":{}},3:{"0x444":{},"0x555":{}}}
 		localTaskConsumeOptionsAddressMap := make(map[uint8]map[string]struct{}, 0)
 		// save tk20 consume count
 		tk20ConsumeCount := make(map[string]*big.Int, 0)
 		for idx, consumeType := range consumeTypes {
-			localTaskConsumeOptionsAddressArray, has := localTaskConsumeOptionsAddressMap[consumeType]
-			dataConsumePolicyArray, ok := consumeMap[consumeType]
+			localTaskConsumeOptionsAddressCache, has := localTaskConsumeOptionsAddressMap[consumeType]
+			dataConsumePolicyArray, ok := consumeCache[consumeType]
 			if !has {
-				localTaskConsumeOptionsAddressArray = make(map[string]struct{}, 0)
-				localTaskConsumeOptionsAddressMap[consumeType] = localTaskConsumeOptionsAddressArray
+				localTaskConsumeOptionsAddressCache = make(map[string]struct{}, 0)
+				localTaskConsumeOptionsAddressMap[consumeType] = localTaskConsumeOptionsAddressCache
 			}
 			if !ok {
-				consumeMap[consumeType] = make([]types.DataConsumePolicy, 0)
+				consumeCache[consumeType] = make([]types.DataConsumePolicy, 0)
 			}
 			// check consume type
 			switch consumeType {
@@ -177,12 +177,12 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 					return nil, fmt.Errorf("json Unmarshal fail,the json string is %s", consumeOptions[idx])
 				}
 				// check duplicate contract address
-				if _, ok := localTaskConsumeOptionsAddressArray[option.Address()]; ok {
+				if _, ok := localTaskConsumeOptionsAddressCache[option.Address()]; ok {
 					return nil, fmt.Errorf("there is a duplicate tk20 contract address %s", option.Address())
 				}
-				localTaskConsumeOptionsAddressArray[option.Address()] = struct{}{}
-				localTaskConsumeOptionsAddressMap[consumeType] = localTaskConsumeOptionsAddressArray
-				consumeMap[consumeType] = append(dataConsumePolicyArray, option)
+				localTaskConsumeOptionsAddressCache[option.Address()] = struct{}{}
+				localTaskConsumeOptionsAddressMap[consumeType] = localTaskConsumeOptionsAddressCache
+				consumeCache[consumeType] = append(dataConsumePolicyArray, option)
 				tk20ConsumeCount[option.Address()] = option.GetBalance()
 			case types.ConsumeTk721:
 				var option *types.Tk721Consume
@@ -190,14 +190,14 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 					return nil, fmt.Errorf("json Unmarshal fail,the json string is %s", consumeOptions[idx])
 				}
 				// check duplicate contract address
-				if _, ok := localTaskConsumeOptionsAddressArray[option.Address()]; ok {
+				if _, ok := localTaskConsumeOptionsAddressCache[option.Address()]; ok {
 					return nil, fmt.Errorf("there is a duplicate tk721 contract address %s", option.Address())
 				}
-				localTaskConsumeOptionsAddressArray[option.Address()] = struct{}{}
-				localTaskConsumeOptionsAddressMap[consumeType] = localTaskConsumeOptionsAddressArray
-				consumeMap[consumeType] = append(dataConsumePolicyArray, option)
+				localTaskConsumeOptionsAddressCache[option.Address()] = struct{}{}
+				localTaskConsumeOptionsAddressMap[consumeType] = localTaskConsumeOptionsAddressCache
+				consumeCache[consumeType] = append(dataConsumePolicyArray, option)
 			case types.ConsumeMetadataAuth:
-				consumeMap[consumeType] = append(dataConsumePolicyArray, types.MetadataAuthConsume(consumeOptions[idx]))
+				consumeCache[consumeType] = append(dataConsumePolicyArray, types.MetadataAuthConsume(consumeOptions[idx]))
 			default:
 				return nil, fmt.Errorf("taskId %s task params have unknown consume type %d", localTask.GetTaskId(), consumeType)
 			}
@@ -205,7 +205,7 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 
 		// if isBeginConsume is false,return immediately, no follow-up checks are required
 		if !isBeginConsume {
-			return consumeMap, nil
+			return consumeCache, nil
 		}
 		var (
 			metadataFromDataSource *types.Metadata
@@ -286,7 +286,7 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 				}
 			}
 		}
-		return consumeMap, nil
+		return consumeCache, nil
 	}
 	partyIdToMetadataId := make(map[string]string, 0)
 	// dataPolicyTypes -> [40001,40002,40001]
