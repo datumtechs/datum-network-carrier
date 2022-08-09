@@ -13,7 +13,6 @@ import (
 	"github.com/datumtechs/datum-network-carrier/rpc/backend"
 	didsdkgocrypto "github.com/datumtechs/did-sdk-go/crypto"
 	"github.com/datumtechs/did-sdk-go/did"
-	proofkeys "github.com/datumtechs/did-sdk-go/keys/proof"
 	"github.com/datumtechs/did-sdk-go/types"
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -219,7 +218,7 @@ func (s *CarrierAPIBackend) DownloadVCLocal(issuerDid, issuerUrl, applicantDid s
 
 func (s *CarrierAPIBackend) DownloadVCRemote(issuerDid, applicantDid string, reqDigest, reqSignature string) *api.DownloadVCResponse {
 	//从签名恢复的publicKey，必须和document中的一致
-	failedReponse := &api.DownloadVCResponse{
+	failedResponse := &api.DownloadVCResponse{
 		Status: backend.ErrDownloadVC.ErrCode(),
 		Msg:    backend.ErrDownloadVC.Error(),
 	}
@@ -227,20 +226,20 @@ func (s *CarrierAPIBackend) DownloadVCRemote(issuerDid, applicantDid string, req
 	publicKey, err := crypto.SigToPub(hexutil.MustDecode(reqDigest), hexutil.MustDecode(reqSignature))
 	if err != nil {
 		log.WithError(err).Error("download VC: failed to recover public key from signature, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
-		return failedReponse
+		return failedResponse
 	}
 	// 申请人的document
 	docResponse := s.carrier.didService.DocumentService.QueryDidDocument(applicantDid)
 	if docResponse.Status != did.Response_SUCCESS {
 		log.WithError(err).Error("download VC: failed to find doc document, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
-		return failedReponse
+		return failedResponse
 	}
 
 	// publicKey是否存在
 	didPublicKey := docResponse.Data.FindDidPublicKeyByPublicKey(hex.EncodeToString(crypto.FromECDSAPub(publicKey)))
 	if didPublicKey == nil {
 		log.WithError(err).Error("download VC: failed to find public key in document , issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
-		return failedReponse
+		return failedResponse
 	}
 
 	//验证签名
@@ -249,7 +248,7 @@ func (s *CarrierAPIBackend) DownloadVCRemote(issuerDid, applicantDid string, req
 	ok := didsdkgocrypto.VerifySecp256k1Signature(reqHash, reqSignature, publicKey)
 	if !ok {
 		log.WithError(err).Error("download VC: failed to verify signature, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
-		return failedReponse
+		return failedResponse
 	}
 
 	sig := didsdkgocrypto.SignSecp256k1(reqHash, tk.WalletManagerInstance().GetPrivateKey())
@@ -265,11 +264,11 @@ func (s *CarrierAPIBackend) DownloadVCRemote(issuerDid, applicantDid string, req
 	adminService, err := s.carrier.consulManager.QueryAdminService()
 	if err != nil {
 		log.WithError(err).Error("download VC: failed to find local admin RPC service, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
-		return failedReponse
+		return failedResponse
 	}
 	if adminService == nil {
 		log.WithError(err).Error("download VC: local admin RPC service is none, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
-		return failedReponse
+		return failedResponse
 	}
 	log.Debugf("download VC: adminService info:%+v", adminService)
 
@@ -282,13 +281,13 @@ func (s *CarrierAPIBackend) DownloadVCRemote(issuerDid, applicantDid string, req
 
 	if err != nil {
 		log.WithError(err).Error("download VC: failed to dial admin RPC service, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
-		return failedReponse
+		return failedResponse
 	}
 	client := api.NewVcServiceClient(conn)
 	downloadVcResp, err := client.DownloadVCRemote(context.Background(), reqRemote)
 	if err != nil {
 		log.WithError(err).Error("download VC: failed to call admin service, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
-		return failedReponse
+		return failedResponse
 	}
 	return downloadVcResp
 }
@@ -310,15 +309,15 @@ func (s *CarrierAPIBackend) CreateVC(didString string, context string, pctId uin
 	req.Type = types.CREDENTIAL_TYPE_VC
 	req.Context = types.DEFAULT_CREDENTIAL_CONTEXT
 
-	response := s.carrier.didService.VcService.CreateCredential(req)
+	response := s.carrier.didService.CredentialService.CreateCredential(req)
 	if response.Status != did.Response_SUCCESS {
 		return "", nil, errors.New(response.Msg)
 	}
 
-	digest := response.Data.GetDigest(nil, response.Data.ClaimData.GetSeed())
-	//save proof
-	pubkeyHex := hex.EncodeToString(crypto.FromECDSAPub(tk.WalletManagerInstance().GetPublicKey()))
-	saveProofResp := s.carrier.didService.VcService.SaveVCProof(tk.WalletManagerInstance().GetPrivateKey(), digest, pubkeyHex, response.Data.Proof[proofkeys.SIGNATURE])
+	createEvidenceReq := new(did.CreateEvidenceReq)
+	createEvidenceReq.PrivateKey = tk.WalletManagerInstance().GetPrivateKey()
+	createEvidenceReq.Credential = response.Data
+	saveProofResp := s.carrier.didService.CredentialService.CreateEvidence(*createEvidenceReq)
 
 	if saveProofResp.Status != did.Response_SUCCESS {
 		return "", nil, errors.New(response.Msg)

@@ -5,11 +5,12 @@ go 1.18
 require (
 	contrib.go.opencensus.io/exporter/jaeger v0.2.1
 	github.com/aliyun/alibaba-cloud-sdk-go v1.61.1545
-	github.com/bglmmz/chainclient v0.0.0-20220731143903-9b327389888a
+	github.com/bglmmz/chainclient v0.0.1
+	github.com/btcsuite/btcd v0.21.0-beta
 	github.com/btcsuite/btcutil v1.0.2
 	github.com/d4l3k/messagediff v1.2.1
-	github.com/datumtechs/did-sdk-go v0.0.0-20220805014721-c4208df4b632
-	github.com/ethereum/go-ethereum v1.10.20
+	github.com/datumtechs/did-sdk-go v0.0.2
+	github.com/ethereum/go-ethereum v1.10.21
 	github.com/ferranbt/fastssz v0.0.0-20210526181520-7df50c8568f8
 	github.com/fjl/memsize v0.0.0-20190710130421-bcb5799ab5e5
 	github.com/gogo/protobuf v1.3.2
@@ -18,6 +19,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.0.1
 	github.com/hashicorp/consul/api v1.3.0
 	github.com/hashicorp/golang-lru v0.5.5-0.20210104140557-80c98217689d
 	github.com/ipfs/go-ipfs-addr v0.0.1
@@ -69,7 +71,6 @@ require (
 	github.com/VictoriaMetrics/fastcache v1.6.0 // indirect
 	github.com/armon/go-metrics v0.0.0-20180917152333-f0300d1749da // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/btcsuite/btcd v0.21.0-beta // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.2.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/cheekybits/genny v1.0.0 // indirect
@@ -103,6 +104,8 @@ require (
 	github.com/jbenet/goprocess v0.1.4 // indirect
 	github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af // indirect
 	github.com/json-iterator/go v1.1.10 // indirect
+	github.com/json-schema-spec/json-pointer-go v0.1.0 // indirect
+	github.com/json-schema-spec/json-schema-go v0.2.6 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.6 // indirect
 	github.com/koron/go-ssdp v0.0.2 // indirect
 	github.com/kr/pretty v0.2.1 // indirect
