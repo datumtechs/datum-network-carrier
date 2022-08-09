@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
+	"github.com/datumtechs/datum-network-carrier/core"
+	"github.com/datumtechs/datum-network-carrier/core/resource"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/types"
 	teassert "github.com/stretchr/testify/assert"
@@ -83,9 +85,11 @@ func TestExecuteTaskMonitor(t *testing.T) {
 }
 
 func TestCheckConsumeOptionsParams(t *testing.T) {
+	tm := Manager{
+		resourceMng: resource.NewResourceManager(core.MockDataCenter{}, nil, ""),
+	}
 	{
 		// correct
-		tm := Manager{}
 		task := types.NewTask(
 			&carriertypespb.TaskPB{
 				MetaAlgorithmId: "plaintext",
@@ -117,7 +121,6 @@ func TestCheckConsumeOptionsParams(t *testing.T) {
 	}
 	{
 		// test ciphertext balance less than cryptoAlgoConsumeUnit
-		tm := Manager{}
 		task := types.NewTask(
 			&carriertypespb.TaskPB{
 				MetaAlgorithmId: "ciphertext",
@@ -133,7 +136,6 @@ func TestCheckConsumeOptionsParams(t *testing.T) {
 	}
 	{
 		// test plaintext balance less than cryptoAlgoConsumeUnit
-		tm := Manager{}
 		task := types.NewTask(
 			&carriertypespb.TaskPB{
 				MetaAlgorithmId: "plaintext",
@@ -150,7 +152,6 @@ func TestCheckConsumeOptionsParams(t *testing.T) {
 	{
 		// test Check whether the contract address exists in the datacenter and the corresponding metadata
 		// 0xb7e4b947F015f3f7C06E5173C2CfF41F2DDBAF04 not in dataCenter metadata
-		tm := Manager{}
 		task := types.NewTask(
 			&carriertypespb.TaskPB{
 				MetaAlgorithmId: "plaintext",
@@ -166,7 +167,6 @@ func TestCheckConsumeOptionsParams(t *testing.T) {
 	}
 	{
 		// test save metadataId include the contract address of the two same
-		tm := Manager{}
 		task := types.NewTask(
 			&carriertypespb.TaskPB{
 				MetaAlgorithmId: "plaintext",
@@ -182,7 +182,6 @@ func TestCheckConsumeOptionsParams(t *testing.T) {
 	}
 	{
 		// test consumeTypes len not equal consumeOptions len
-		tm := Manager{}
 		task := types.NewTask(
 			&carriertypespb.TaskPB{
 				MetaAlgorithmId: "plaintext",
@@ -198,7 +197,6 @@ func TestCheckConsumeOptionsParams(t *testing.T) {
 	}
 	{
 		// isBeginConsume is false
-		tm := Manager{}
 		task := types.NewTask(
 			&carriertypespb.TaskPB{
 				MetaAlgorithmId: "plaintext",

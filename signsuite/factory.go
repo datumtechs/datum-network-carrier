@@ -10,14 +10,18 @@ import (
 	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"github.com/datumtechs/datum-network-carrier/signsuite/eip712"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/sha3"
+	"strings"
 )
+
+var log = logrus.WithField("prefix", "signSuite")
 
 func Sender(userType commonconstantpb.UserType, hash common.Hash, sig []byte) (string, string, error) {
 
 	switch userType {
 	case commonconstantpb.UserType_User_1: // PlatON
-		return RecoverEIP712(sig, &eip712.TypedData{})
+		return RecoverEIP712(sig, eip712TypeDataForSign(hash.Hex()))
 	case commonconstantpb.UserType_User_2: // Alaya
 		return "", "", nil
 	case commonconstantpb.UserType_User_3: // Ethereum
@@ -48,10 +52,13 @@ func RecoverEIP712(signature []byte, data *eip712.TypedData) (string, string, er
 	}
 
 	p, _, err := btcec.RecoverCompact(btcec.S256(), btcsig, sighash)
+	if err != nil {
+		return "", "", err
+	}
 	pk := (*ecdsa.PublicKey)(p)
 	address := crypto.PubkeyToAddress(*pk).String()
 	publicKeyHexString := hex.EncodeToString(crypto.FromECDSAPub(pk))
-	return address, publicKeyHexString, err
+	return strings.ToLower(address), publicKeyHexString, err
 }
 
 func LegacyKeccak256(data []byte) ([]byte, error) {
@@ -62,4 +69,31 @@ func LegacyKeccak256(data []byte) ([]byte, error) {
 		return nil, err
 	}
 	return hasher.Sum(nil), err
+}
+
+func eip712TypeDataForSign(contents string) *eip712.TypedData {
+	log.Debugf("eip712TypeDataForSign contents detail is:%s", contents)
+	return &eip712.TypedData{
+		Domain: eip712.TypedDataDomain{
+			Name: "Datum",
+		},
+		Message: eip712.TypedDataMessage{
+			"contents": contents,
+		},
+		PrimaryType: "sign",
+		Types: eip712.Types{
+			"EIP712Domain": {
+				{
+					Name: "name",
+					Type: "string",
+				},
+			},
+			"sign": {
+				{
+					Name: "contents",
+					Type: "string",
+				},
+			},
+		},
+	}
 }

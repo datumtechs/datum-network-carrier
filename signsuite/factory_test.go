@@ -3,6 +3,7 @@ package signsuite
 import (
 	"bytes"
 	"encoding/hex"
+	"github.com/datumtechs/datum-network-carrier/common"
 	"github.com/datumtechs/datum-network-carrier/common/bytesutil"
 	"github.com/datumtechs/datum-network-carrier/common/rlputil"
 	"github.com/datumtechs/datum-network-carrier/signsuite/eip712"
@@ -48,12 +49,11 @@ func TestSender(t *testing.T) {
 			t.Fatal(err)
 		}
 		address, _, err := RecoverEIP712(expected, testTypedData)
-		assert.Equal(t, address, "0xC115CEADF9e5923330e5f42903Fe7f926DDA65D2")
+		assert.Equal(t, address, "0xc115ceadf9e5923330e5f42903fe7f926dda65d2")
 
 	}
 
 	var buf bytes.Buffer
-	//buf.Write([]byte("0xf795811af86e9f23a0c03de5115398b8d4778ed4"))
 	buf.Write([]byte("111111111111111111111111"))
 	buf.Write(bytesutil.Uint32ToBytes(uint32(1)))
 	buf.Write([]byte("7e7afd35ff1ebe5db3a06759a2d42293b8fc73f2b1dfd7e16527bddca9ed9584"))
@@ -65,19 +65,10 @@ func TestSender(t *testing.T) {
 	buf.Write([]byte("{\"metadataColumns\":[{\"index\":1,\"type\":\"string\",\"size\":0,\"name\":\"CLIENT_ID\"},{\"index\":2,\"type\":\"string\",\"size\":0,\"name\":\"DEFAULT\"},{\"index\":3,\"type\":\"string\",\"size\":0,\"name\":\"HOUSING\"},{\"index\":4,\"type\":\"string\",\"size\":0,\"name\":\"LOAN\"},{\"index\":5,\"type\":\"string\",\"size\":0,\"name\":\"CONTACT\"},{\"index\":6,\"type\":\"string\",\"size\":0,\"name\":\"CAMPAIGN\"},{\"index\":7,\"type\":\"string\",\"size\":0,\"name\":\"PDAYS\"},{\"index\":8,\"type\":\"string\",\"size\":0,\"name\":\"PREVIOUS\"},{\"index\":9,\"type\":\"string\",\"size\":0,\"name\":\"EURIBOR3M\"},{\"index\":10,\"type\":\"string\",\"size\":0,\"name\":\"MONTH_APR\"},{\"index\":11,\"type\":\"string\",\"size\":0,\"name\":\"MONTH_AUG\"},{\"index\":12,\"type\":\"string\",\"size\":0,\"name\":\"MONTH_DEC\"},{\"index\":13,\"type\":\"string\",\"size\":0,\"name\":\"MONTH_JUL\"},{\"index\":14,\"type\":\"string\",\"size\":0,\"name\":\"MONTH_JUN\"},{\"index\":15,\"type\":\"string\",\"size\":0,\"name\":\"MONTH_MAR\"},{\"index\":16,\"type\":\"string\",\"size\":0,\"name\":\"MONTH_MAY\"},{\"index\":17,\"type\":\"string\",\"size\":0,\"name\":\"MONTH_NOV\"},{\"index\":18,\"type\":\"string\",\"size\":0,\"name\":\"MONTH_OCT\"},{\"index\":19,\"type\":\"string\",\"size\":0,\"name\":\"MONTH_SEP\"},{\"index\":20,\"type\":\"string\",\"size\":0,\"name\":\"DAY_OF_WEEK_FRI\"},{\"index\":21,\"type\":\"string\",\"size\":0,\"name\":\"DAY_OF_WEEK_MON\"},{\"index\":22,\"type\":\"string\",\"size\":0,\"name\":\"DAY_OF_WEEK_THU\"},{\"index\":23,\"type\":\"string\",\"size\":0,\"name\":\"DAY_OF_WEEK_TUE\"},{\"index\":24,\"type\":\"string\",\"size\":0,\"name\":\"DAY_OF_WEEK_WED\"},{\"index\":25,\"type\":\"string\",\"size\":0,\"name\":\"POUTCOME_FAILURE\"},{\"index\":26,\"type\":\"string\",\"size\":0,\"name\":\"POUTCOME_NONEXISTENT\"},{\"index\":27,\"type\":\"string\",\"size\":0,\"name\":\"POUTCOME_SUCCESS\"},{\"index\":28,\"type\":\"string\",\"size\":0,\"name\":\"Y\"}],\"columns\":28,\"rows\":45036,\"consumeOptions\":[],\"dataPath\":\"/home/user1/data/data_root/bank_train_partyA_20220805-084455.csv\",\"condition\":3,\"originId\":\"4c3b974ac80f6cda3f0654b28212606c91e0fcecac4c88ba3183cd51fd0f3f41\",\"size\":3792331,\"consumeTypes\":[],\"hasTitle\":true}"))
 	v := rlputil.RlpHash(buf.Bytes())
 	assert.Equal(t, v.Hex(), "0x6a536d83476b9aa73c8abf72e61b4acb980530652e7c0ef9afcf6a5ac9005a00")
-	//sign := common.Hex2Bytes("0eead833cc96e135a8f99ffff64118fd600b76f1f6e4124ae5a9973d793beff1372c44484b833fa1a732779d88c2ac00da66417d99d8a6d3107cbd02c1d721521b")
-	////localTaskConsumeOptionsAddressArray, err := NewLatSigner(new(big.Int).SetInt64(0)).Sender(v, sign)
-	//localTaskConsumeOptionsAddressArray, publicKey, err := Sender(1, v, sign)
-	//assert.Nil(t, err)
-	//t.Log(localTaskConsumeOptionsAddressArray)
-	//t.Log(publicKey)
 
-	//var buf bytes.Buffer
-	//buf.Write([]byte("0xf795811af86e9f23a0c03de5115398b8d4778ed4"))
-	//v := rlputil.RlpHash(buf.Bytes())
-	//sign := common.Hex2Bytes("8741b27806ac5f62d9d43a6a5434e07d456e1b8d78f59ad51ad89acecfeb5f171fa7986924d2b92a94b0c6db7598bda67b69641a6c2c712b308bf8cf2679f2df1b")
-	//localTaskConsumeOptionsAddressArray, publicKey, err := Sender(1, v, sign)
-	//assert.Nil(t, err)
-	//t.Log(localTaskConsumeOptionsAddressArray)
-	//t.Log(publicKey)
+	sign := common.Hex2Bytes("44a0f4174bf8c9dc313ffa3eea2d7fc158acc01ab74f6c65aa0730b556fd07c71c36003a110118c1a7ac6d1a2c912b60cb2064666ea48987cb013a92e4bb508a1b")
+	hashStr := "0x6ba5a559cce87a060cbae660818fc2b0159f6522812b825d6df2497fe2e3ec8b"
+	walletAddress, _, err := Sender(1, common.HexToHash(hashStr), sign)
+	assert.Nil(t, err)
+	assert.Equal(t, walletAddress, "0xc115ceadf9e5923330e5f42903fe7f926dda65d2")
 }
