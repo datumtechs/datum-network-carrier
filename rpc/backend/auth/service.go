@@ -429,8 +429,8 @@ func (svr *Server) UpdateIdentityCredential(ctx context.Context, req *carrierapi
 	if identityId == "" {
 		return &carriertypespb.SimpleResponse{Status: backend.ErrUpdateIdentityCredential.Code, Msg: "identityId can not be empty "}, nil
 	}
-	if len(identityId) != 41 {
-		return &carriertypespb.SimpleResponse{Status: backend.ErrUpdateIdentityCredential.Code, Msg: "identityId len not equal 41 "}, nil
+	if len(identityId) != common.IdentityIdLength {
+		return &carriertypespb.SimpleResponse{Status: backend.ErrUpdateIdentityCredential.Code, Msg: fmt.Sprintf("identityId len not equal %d ", common.IdentityIdLength)}, nil
 	}
 	updateIdentityCredentialMsg := &types.UpdateIdentityCredentialMsg{
 		IdentityId: identityId,
