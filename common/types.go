@@ -23,6 +23,8 @@ const (
 	AddressLength = 20
 	// OpenMessageSignCheck Disable disable or enable message check sign
 	OpenMessageSignCheck = false
+	// IdentityIdLength identityId string length
+	IdentityIdLength = 50
 )
 
 var (
