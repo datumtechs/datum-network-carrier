@@ -151,49 +151,55 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 			}
 		*/
 
-		consumeCache := make(map[uint8][]types.DataConsumePolicy, 3)
+		// collection consumeOptions by consumeType
+		//
+		consumeCache := make(map[uint8][]types.DataConsumePolicy, 0)
 		// consumeTypes   => [1,2,3,1,1,2,4],4 is unknown type
-		// mergeSameConsumeTypeAddressCache => {2:{"0x111":{},"0x222":{}},3:{"0x444":{},"0x555":{}}}
-		mergeSameConsumeTypeAddressCache := make(map[uint8]map[string]struct{}, 0)
-		// save tk20 consume count
-		tk20ConsumeCount := make(map[string]*big.Int, 0)
+		// taskConsumeTypeContractAddressCache => {2:{"0x111":{},"0x222":{}},3:{"0x444":{},"0x555":{}}}
+		taskConsumeOptionContractAddressCache := make(map[uint8]map[string]struct{}, 0)
+		// tk20 consume balance cache
+		tk20ConsumeBalanceCache := make(map[string]*big.Int, 0)
 		for idx, consumeType := range consumeTypes {
-			contractAddressCache, has := mergeSameConsumeTypeAddressCache[consumeType]
+
 			dataConsumePolicyCache, ok := consumeCache[consumeType]
-			if !has {
-				contractAddressCache = make(map[string]struct{}, 0)
-				mergeSameConsumeTypeAddressCache[consumeType] = contractAddressCache
-			}
 			if !ok {
-				consumeCache[consumeType] = make([]types.DataConsumePolicy, 0)
+				dataConsumePolicyCache = make([]types.DataConsumePolicy, 0)
 			}
+
 			// check consume type
 			switch consumeType {
-			case types.ConsumeTk20:
-				var option *types.Tk20Consume
-				if err := json.Unmarshal([]byte(consumeOptions[idx]), &option); err != nil {
-					return nil, fmt.Errorf("json Unmarshal fail,the json string is %s", consumeOptions[idx])
+			case types.ConsumeTk20, types.ConsumeTk721:
+				contractAddressCache, has := taskConsumeOptionContractAddressCache[consumeType]
+				if !has {
+					contractAddressCache = make(map[string]struct{}, 0)
 				}
-				// check duplicate contract address
-				if _, ok := contractAddressCache[option.Address()]; ok {
-					return nil, fmt.Errorf("there is a duplicate tk20 contract address %s", option.Address())
+
+				if consumeType == types.ConsumeTk20 {
+					var option *types.Tk20Consume
+					if err := json.Unmarshal([]byte(consumeOptions[idx]), &option); err != nil {
+						return nil, fmt.Errorf("json Unmarshal fail,the json string is %s", consumeOptions[idx])
+					}
+					// check duplicate contract address
+					if _, ok := contractAddressCache[option.Address()]; ok {
+						return nil, fmt.Errorf("there is a duplicate tk20 contract address %s", option.Address())
+					}
+					contractAddressCache[option.Address()] = struct{}{}
+					taskConsumeOptionContractAddressCache[consumeType] = contractAddressCache
+					consumeCache[consumeType] = append(dataConsumePolicyCache, option)
+					tk20ConsumeBalanceCache[option.Address()] = option.GetBalance()
+				} else {
+					var option *types.Tk721Consume
+					if err := json.Unmarshal([]byte(consumeOptions[idx]), &option); err != nil {
+						return nil, fmt.Errorf("json Unmarshal fail,the json string is %s", consumeOptions[idx])
+					}
+					// check duplicate contract address
+					if _, ok := contractAddressCache[option.Address()]; ok {
+						return nil, fmt.Errorf("there is a duplicate tk721 contract address %s", option.Address())
+					}
+					contractAddressCache[option.Address()] = struct{}{}
+					taskConsumeOptionContractAddressCache[consumeType] = contractAddressCache
+					consumeCache[consumeType] = append(dataConsumePolicyCache, option)
 				}
-				contractAddressCache[option.Address()] = struct{}{}
-				mergeSameConsumeTypeAddressCache[consumeType] = contractAddressCache
-				consumeCache[consumeType] = append(dataConsumePolicyCache, option)
-				tk20ConsumeCount[option.Address()] = option.GetBalance()
-			case types.ConsumeTk721:
-				var option *types.Tk721Consume
-				if err := json.Unmarshal([]byte(consumeOptions[idx]), &option); err != nil {
-					return nil, fmt.Errorf("json Unmarshal fail,the json string is %s", consumeOptions[idx])
-				}
-				// check duplicate contract address
-				if _, ok := contractAddressCache[option.Address()]; ok {
-					return nil, fmt.Errorf("there is a duplicate tk721 contract address %s", option.Address())
-				}
-				contractAddressCache[option.Address()] = struct{}{}
-				mergeSameConsumeTypeAddressCache[consumeType] = contractAddressCache
-				consumeCache[consumeType] = append(dataConsumePolicyCache, option)
 			case types.ConsumeMetadataAuth:
 				consumeCache[consumeType] = append(dataConsumePolicyCache, types.MetadataAuthConsume(consumeOptions[idx]))
 			default:
@@ -201,6 +207,8 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 			}
 		}
 
+		// verify consumeOptions of task with consumeOptions of metadata
+		//
 		metadata, err := m.resourceMng.GetDB().QueryMetadataById(metadataId)
 		if err != nil {
 			return nil, fmt.Errorf("failed to query %s from data center", metadataId)
@@ -208,21 +216,20 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 
 		var option *types.MetadataOptionCSV
 		metadataOption := metadata.GetData().GetMetadataOption()
-		log.Debugf(fmt.Sprintf("QueryMetadataById metadataId is %s,it's metadataOption is %s", metadataId, metadataOption))
-		err = json.Unmarshal([]byte(metadataOption), &option)
-		if err != nil {
+		//log.Debugf(fmt.Sprintf("QueryMetadataById metadataId is %s,it's metadataOption is %s", metadataId, metadataOption))
+
+		if err = json.Unmarshal([]byte(metadataOption), &option); err != nil {
 			return nil, err
 		}
-		metadataSameConsumeTypeAddressMap := make(map[uint8]map[string]struct{}, 0)
-		consumeOptionsDataSource, consumeTypesDataSource := option.GetConsumeOptions(), option.GetConsumeTypes()
-		for idx, consumeType := range consumeTypesDataSource {
-			if consumeType == types.ConsumeMetadataAuth {
-				continue
-			}
-			result, ok := metadataSameConsumeTypeAddressMap[consumeType]
+
+		metadataConsumeOptionContractAddressCache := make(map[uint8]map[string]struct{}, 0)
+		consumeTypesOfMatedata, consumeOptionsOfMatedata := option.GetConsumeTypes(), option.GetConsumeOptions()
+
+		for idx, consumeType := range consumeTypesOfMatedata {
+
+			contractAddressCache, ok := metadataConsumeOptionContractAddressCache[consumeType]
 			if !ok {
-				result = make(map[string]struct{}, 0)
-				metadataSameConsumeTypeAddressMap[consumeType] = result
+				contractAddressCache = make(map[string]struct{}, 0)
 			}
 			switch consumeType {
 			case types.ConsumeTk721:
@@ -230,43 +237,53 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 				if !isBeginConsume {
 					return consumeCache, nil
 				}
-				var addressArr []string
-				if err := json.Unmarshal([]byte(consumeOptionsDataSource[idx]), &addressArr); err != nil {
-					return nil, fmt.Errorf("json %s unmarshal fail", consumeOptionsDataSource[idx])
-				} else {
-					for _, address := range addressArr {
-						result[address] = struct{}{}
-						metadataSameConsumeTypeAddressMap[consumeType] = result
-					}
+
+				var contractAddresses []string
+				if err := json.Unmarshal([]byte(consumeOptionsOfMatedata[idx]), &contractAddresses); err != nil {
+					return nil, fmt.Errorf("json %s unmarshal fail", consumeOptionsOfMatedata[idx])
 				}
+
+				for _, address := range contractAddresses {
+					contractAddressCache[address] = struct{}{}
+					metadataConsumeOptionContractAddressCache[consumeType] = contractAddressCache
+				}
+
 			case types.ConsumeTk20:
 				// if isBeginConsume is false,return immediately, no follow-up checks are required
 				if !isBeginConsume {
 					return consumeCache, nil
 				}
-				var infos []*types.MetadataConsumeOptionTK20
-				if err := json.Unmarshal([]byte(consumeOptionsDataSource[idx]), &infos); err != nil {
-					return nil, fmt.Errorf("json %s Unmarshal fail", consumeOptionsDataSource[idx])
-				} else {
-					for _, info := range infos {
-						contractAddress := info.GetContract()
-						cryptoAlgoConsumeUnit := info.GetCryptoAlgoConsumeUnit()
-						plainAlgoConsumeUnit := info.GetPlainAlgoConsumeUnit()
-						result[contractAddress] = struct{}{}
-						metadataSameConsumeTypeAddressMap[consumeType] = result
-						balance, ok := tk20ConsumeCount[contractAddress]
-						if !ok {
-							continue
-						}
-						metaAlgorithmId := strings.TrimSpace(localTask.GetTaskData().GetMetaAlgorithmId())
-						if metaAlgorithmId == ciphertextAlgorithm && balance.Cmp(cryptoAlgoConsumeUnit) == -1 {
-							return nil, fmt.Errorf("MetaAlgorithmId is ciphertext balance %s less than cryptoAlgoConsumeUnit %s,contract address %s", balance.String(), cryptoAlgoConsumeUnit.String(), contractAddress)
-						}
-						if metaAlgorithmId == plaintextAlgorithm && balance.Cmp(plainAlgoConsumeUnit) == -1 {
-							return nil, fmt.Errorf("MetaAlgorithmId is plaintext balance %s less than plainAlgoConsumeUnit %s,contract address %s", balance.String(), plainAlgoConsumeUnit.String(), contractAddress)
-						}
+
+				var tk20ConsumeOtions []*types.MetadataConsumeOptionTK20
+				if err := json.Unmarshal([]byte(consumeOptionsOfMatedata[idx]), &tk20ConsumeOtions); err != nil {
+					return nil, fmt.Errorf("json %s Unmarshal fail", consumeOptionsOfMatedata[idx])
+				}
+
+				for _, option := range tk20ConsumeOtions {
+
+					contractAddress := option.GetContract()
+					cryptoAlgoConsumeUnit := option.GetCryptoAlgoConsumeUnit()
+					plainAlgoConsumeUnit := option.GetPlainAlgoConsumeUnit()
+
+					contractAddressCache[contractAddress] = struct{}{}
+					metadataConsumeOptionContractAddressCache[consumeType] = contractAddressCache
+
+					// check consume tk20 balance of task.
+					balance, ok := tk20ConsumeBalanceCache[contractAddress]
+					if !ok {
+						continue
+					}
+					// todo this field is used for the time being,
+					//   and will not be used in the subsequent algorithm market.
+					algotithmType := strings.TrimSpace(localTask.GetTaskData().GetMetaAlgorithmId())
+					if algotithmType == ciphertextAlgorithm && balance.Cmp(cryptoAlgoConsumeUnit) == -1 {
+						return nil, fmt.Errorf("MetaAlgorithmId is ciphertext balance %s less than cryptoAlgoConsumeUnit %s,contract address %s", balance.String(), cryptoAlgoConsumeUnit.String(), contractAddress)
+					}
+					if algotithmType == plaintextAlgorithm && balance.Cmp(plainAlgoConsumeUnit) == -1 {
+						return nil, fmt.Errorf("MetaAlgorithmId is plaintext balance %s less than plainAlgoConsumeUnit %s,contract address %s", balance.String(), plainAlgoConsumeUnit.String(), contractAddress)
 					}
 				}
+
 			case types.ConsumeMetadataAuth:
 				// if isBeginConsume is false,return immediately, no follow-up checks are required
 				if !isBeginConsume {
@@ -275,27 +292,28 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 			}
 		}
 
-		// check if the task contract address is in the consumeOptions of the data center metadata
-		for consumeType, addressSet := range mergeSameConsumeTypeAddressCache {
-			if consumeType == types.ConsumeMetadataAuth {
-				continue
-			}
-			for address, _ := range addressSet {
-				if _, ok := metadataSameConsumeTypeAddressMap[consumeType][address]; !ok {
-					return nil, fmt.Errorf("task params tk20 contract address %s not in dataCenter metadata", address)
+		// check if the task contract address is in the consumeOptions of metadata
+		for consumeType, contractAddressCache := range taskConsumeOptionContractAddressCache {
+
+			for address, _ := range contractAddressCache {
+				if _, ok := metadataConsumeOptionContractAddressCache[consumeType][address]; !ok {
+					return nil, fmt.Errorf("task params contract address %s not in metadata", address)
 				}
 			}
 		}
 		return consumeCache, nil
 	}
-	partyIdToMetadataId := make(map[string]string, 0)
+
+	partyIdAndMetadataIdCache := make(map[string]string, 0)
 	// dataPolicyTypes -> [40001,40002,40001]
 	for index, policyType := range localTask.GetTaskData().GetDataPolicyTypes() {
 		// if policyType is 40001
 		switch policyType {
 		case types.TASK_DATA_POLICY_IS_CSV_HAVE_CONSUME:
+
 			policyOption := localTask.GetTaskData().GetDataPolicyOptions()[index]
-			log.Debugf(fmt.Sprintf(`"checkConsumeOptionsParams type is csv,policyOption %s"`, policyOption))
+			//log.Debugf(fmt.Sprintf(`"checkConsumeOptionsParams type is csv,policyOption %s"`, policyOption))
+
 			var consumePolicy *types.TaskMetadataPolicyCsvConsume
 			if err := json.Unmarshal([]byte(policyOption), &consumePolicy); nil != err {
 				return nil, nil, fmt.Errorf("json Unmarshal fail,the json string is %s", policyOption)
@@ -316,16 +334,18 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 			*/
 			consumeOptions := consumePolicy.GetConsumeOptions()
 			metadataId := consumePolicy.GetMetadataId()
-			partyIdToMetadataId[consumePolicy.GetPartyId()] = metadataId
+
 			dataConsumePolicyMap, err = checkTaskMetadataConsumeOptionsFn(metadataId, consumePolicy.GetConsumeTypes(), consumeOptions)
 			if err != nil {
 				return nil, nil, err
 			}
+			partyIdAndMetadataIdCache[consumePolicy.GetPartyId()] = metadataId
+
 		default:
-			log.Info(fmt.Sprintf("checkConsumeOptionsParams other dataPolicyType %d not consume", policyType))
+			log.Debugf(fmt.Sprintf("checkConsumeOptionsParams other dataPolicyType %d not consume", policyType))
 		}
 	}
-	return dataConsumePolicyMap, partyIdToMetadataId, nil
+	return dataConsumePolicyMap, partyIdAndMetadataIdCache, nil
 }
 
 func (m *Manager) beginConsumeMetadataOrPower(task *types.NeedExecuteTask, localTask *types.Task) error {
