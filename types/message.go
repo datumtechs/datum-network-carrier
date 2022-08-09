@@ -451,7 +451,7 @@ func (msg *MetadataMsg) Hash() common.Hash {
 	buf.Write(bytesutil.Uint32ToBytes(uint32(msg.GetLocationType())))
 	buf.Write(bytesutil.Uint32ToBytes(uint32(msg.GetDataType())))
 	buf.Write([]byte(msg.GetIndustry()))
-	buf.Write([]byte(msg.GetState().String()))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(msg.GetState())))
 	//buf.Write(bytesutil.Uint64ToBytes(msg.GetNonce()))
 	buf.Write([]byte(msg.GetMetadataOption()))
 
@@ -470,7 +470,7 @@ func (msg *MetadataMsg) HashByCreateTime() common.Hash {
 	buf.Write(bytesutil.Uint32ToBytes(uint32(msg.GetLocationType())))
 	buf.Write(bytesutil.Uint32ToBytes(uint32(msg.GetDataType())))
 	buf.Write([]byte(msg.GetIndustry()))
-	buf.Write([]byte(msg.GetState().String()))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(msg.GetState())))
 	//buf.Write(bytesutil.Uint64ToBytes(msg.GetNonce()))
 	buf.Write([]byte(msg.GetMetadataOption()))
 	buf.Write(bytesutil.Uint64ToBytes(timeutils.UnixMsecUint64()))
@@ -539,7 +539,7 @@ func (msg *MetadataUpdateMsg) Hash() common.Hash {
 	buf.Write(bytesutil.Uint32ToBytes(uint32(msg.GetLocationType())))
 	buf.Write(bytesutil.Uint32ToBytes(uint32(msg.GetDataType())))
 	buf.Write([]byte(msg.GetIndustry()))
-	buf.Write([]byte(msg.GetState().String()))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(msg.GetState())))
 	//buf.Write(bytesutil.Uint64ToBytes(msg.GetNonce()))
 	buf.Write([]byte(msg.GetMetadataOption()))
 
