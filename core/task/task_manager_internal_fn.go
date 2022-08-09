@@ -160,11 +160,11 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 		// save tk20 consume count
 		tk20ConsumeCount := make(map[string]*big.Int, 0)
 		for idx, consumeType := range consumeTypes {
-			localTaskConsumeOptionsAddressCache, has := localTaskConsumeOptionsAddressMap[consumeType]
+			contractAddressCache, has := localTaskConsumeOptionsAddressMap[consumeType]
 			dataConsumePolicyArray, ok := consumeCache[consumeType]
 			if !has {
-				localTaskConsumeOptionsAddressCache = make(map[string]struct{}, 0)
-				localTaskConsumeOptionsAddressMap[consumeType] = localTaskConsumeOptionsAddressCache
+				contractAddressCache = make(map[string]struct{}, 0)
+				localTaskConsumeOptionsAddressMap[consumeType] = contractAddressCache
 			}
 			if !ok {
 				consumeCache[consumeType] = make([]types.DataConsumePolicy, 0)
@@ -177,11 +177,11 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 					return nil, fmt.Errorf("json Unmarshal fail,the json string is %s", consumeOptions[idx])
 				}
 				// check duplicate contract address
-				if _, ok := localTaskConsumeOptionsAddressCache[option.Address()]; ok {
+				if _, ok := contractAddressCache[option.Address()]; ok {
 					return nil, fmt.Errorf("there is a duplicate tk20 contract address %s", option.Address())
 				}
-				localTaskConsumeOptionsAddressCache[option.Address()] = struct{}{}
-				localTaskConsumeOptionsAddressMap[consumeType] = localTaskConsumeOptionsAddressCache
+				contractAddressCache[option.Address()] = struct{}{}
+				localTaskConsumeOptionsAddressMap[consumeType] = contractAddressCache
 				consumeCache[consumeType] = append(dataConsumePolicyArray, option)
 				tk20ConsumeCount[option.Address()] = option.GetBalance()
 			case types.ConsumeTk721:
@@ -190,11 +190,11 @@ func (m *Manager) checkConsumeOptionsParams(localTask *types.Task, isBeginConsum
 					return nil, fmt.Errorf("json Unmarshal fail,the json string is %s", consumeOptions[idx])
 				}
 				// check duplicate contract address
-				if _, ok := localTaskConsumeOptionsAddressCache[option.Address()]; ok {
+				if _, ok := contractAddressCache[option.Address()]; ok {
 					return nil, fmt.Errorf("there is a duplicate tk721 contract address %s", option.Address())
 				}
-				localTaskConsumeOptionsAddressCache[option.Address()] = struct{}{}
-				localTaskConsumeOptionsAddressMap[consumeType] = localTaskConsumeOptionsAddressCache
+				contractAddressCache[option.Address()] = struct{}{}
+				localTaskConsumeOptionsAddressMap[consumeType] = contractAddressCache
 				consumeCache[consumeType] = append(dataConsumePolicyArray, option)
 			case types.ConsumeMetadataAuth:
 				consumeCache[consumeType] = append(dataConsumePolicyArray, types.MetadataAuthConsume(consumeOptions[idx]))
