@@ -280,14 +280,24 @@ func (gc *GrpcClient) GetMetadataAuthorityList(ctx context.Context, request *dat
 	return gc.metadataAuthService.ListMetadataAuthority(ctx, request, RPCMaxCallRecvMsgSize)
 }
 
-func (gc *GrpcClient) FindMetadataAuthority(ctx context.Context, request *datacenterapipb.FindMetadataAuthorityRequest) (*datacenterapipb.FindMetadataAuthorityResponse, error) {
+func (gc *GrpcClient) FindMetadataAuthorityById(ctx context.Context, request *datacenterapipb.FindMetadataAuthorityByIdRequest) (*datacenterapipb.FindMetadataAuthorityByIdResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}
 	// TODO: Requests take too long, consider stream processing
 	ctx, cancel := context.WithTimeout(ctx, TweentySecondGrpcRequestTimeout)
 	defer cancel()
-	return gc.metadataAuthService.FindMetadataAuthority(ctx, request)
+	return gc.metadataAuthService.FindMetadataAuthorityById(ctx, request)
+}
+
+func (gc *GrpcClient) FindMetadataAuthorityByIds(ctx context.Context, request *datacenterapipb.FindMetadataAuthorityByIdsRequest) (*datacenterapipb.ListMetadataAuthorityResponse, error) {
+	if nil == gc {
+		return nil, fmt.Errorf("datacenter rpc client is nil")
+	}
+	// TODO: Requests take too long, consider stream processing
+	ctx, cancel := context.WithTimeout(ctx, TweentySecondGrpcRequestTimeout)
+	defer cancel()
+	return gc.metadataAuthService.FindMetadataAuthorityByIds(ctx, request)
 }
 
 // ************************************** Task module *******************************************************

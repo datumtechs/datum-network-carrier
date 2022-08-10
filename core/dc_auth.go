@@ -142,34 +142,29 @@ func (dc *DataCenter) UpdateMetadataAuthority(metadataAuth *types.MetadataAuthor
 }
 
 func (dc *DataCenter) QueryMetadataAuthority(metadataAuthId string) (*types.MetadataAuthority, error) {
-	response, err := dc.client.FindMetadataAuthority(dc.ctx, &datacenterapipb.FindMetadataAuthorityRequest{
+	response, err := dc.client.FindMetadataAuthorityById(dc.ctx, &datacenterapipb.FindMetadataAuthorityByIdRequest{
 		MetadataAuthId: metadataAuthId,
 	})
 	if err != nil {
 		return nil, err
 	}
 	if response.GetStatus() != 0 {
-		return nil, fmt.Errorf("call datacenter FindMetadataAuthority error, status %d,error msg %s", response.GetStatus(), response.GetMsg())
+		return nil, fmt.Errorf("call datacenter FindMetadataAuthorityById error, status %d,error msg %s", response.GetStatus(), response.GetMsg())
 	}
 	return types.NewMetadataAuthority(response.MetadataAuthority), nil
 }
 
 func (dc *DataCenter) QueryMetadataAuthorityListByIds(metadataAuthIds []string) (types.MetadataAuthArray, error) {
-	//dc.serviceMu.RLock()
-	//defer dc.serviceMu.RUnlock()
-	//response, err := dc.client.GetM(dc.ctx, &datacenterapipb.ListMetadataAuthorityRequest{
-	//	IdentityId:  identityId,
-	//	LastUpdated: lastUpdate,
-	//	PageSize:    pageSize,
-	//})
-	//if err != nil {
-	//	return nil, err
-	//}
-	//if response.GetStatus() != 0 {
-	//	return nil, fmt.Errorf("call datacenter GetMetadataAuthorityList error, status %d,error msg %s", response.GetStatus(), response.GetMsg())
-	//}
-	//return types.NewMetadataAuthArrayFromResponse(response.GetMetadataAuthorities()), nil
-	return nil, nil
+	response, err := dc.client.FindMetadataAuthorityByIds(dc.ctx, &datacenterapipb.FindMetadataAuthorityByIdsRequest{
+		MetadataAuthIds: metadataAuthIds,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if response.GetStatus() != 0 {
+		return nil, fmt.Errorf("call datacenter FindMetadataAuthorityByIds error, status %d,error msg %s", response.GetStatus(), response.GetMsg())
+	}
+	return types.NewMetadataAuthArrayFromResponse(response.GetMetadataAuthorities()), nil
 }
 
 func (dc *DataCenter) QueryMetadataAuthorityListByIdentityId(identityId string, lastUpdate uint64, pageSize uint64) (types.MetadataAuthArray, error) {
