@@ -197,7 +197,7 @@ type TaskMetadataPolicyCsvConsume struct {
 	ConsumeOptions []string `json:"consumeOptions"`
 }
 
-type DataConsumePolicy interface {
+type DataConsumeOption interface {
 	Address() string
 }
 type MetadataAuthConsume string

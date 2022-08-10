@@ -249,6 +249,10 @@ const (
 
 func (o *MetadataConsumeOptionMetadataAuth) GetStatus() uint64 { return o.Status }
 
+//type MetadataConsumeOptionTK interface {
+//	GetContract() string
+//}
+
 /**
 
 tk20 consume kind:
