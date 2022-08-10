@@ -130,16 +130,16 @@ func (m *PayAgent) buildInput(method string, params ...interface{}) []byte {
 }
 
 // VerifyNFT verify each NTF
-func (m *PayAgent) VerifyTk721(taskSponsorAccount common.Address, tk721ItemList []*carrierapipb.TkItem) (bool, error) {
+func (m *PayAgent) VerifyTk721(taskSponsorAccount common.Address, tk721ItemList []*carrierapipb.TkItem) error {
 	m.txSyncLocker.Lock()
 	defer m.txSyncLocker.Unlock()
 
 	for _, tkErc721 := range tk721ItemList {
 		if err := m.inspectTk721ExtInfo(taskSponsorAccount, tkErc721); err != nil {
-			return false, err
+			return err
 		}
 	}
-	return true, nil
+	return nil
 }
 
 // PrepayTk20 transfers more than enough gas from task sponsor to DatumPay, this gas will payAgent carrier to call PrepayTk20()/Settle(), and remaining gas will refund to task sponsor.
