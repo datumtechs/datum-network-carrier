@@ -1048,7 +1048,7 @@ func (m *Manager) executeTaskOnDataNode(task *types.NeedExecuteTask, localTask *
 		return fmt.Errorf("dataNode rpc api wrong resp %s when ready to execute task", resp.GetMsg())
 	}
 
-	log.Infof("Success to publish schedTask to `data-Fighter` node to executing, taskId: {%s}, role: {%s}, partyId: {%s}, dataNodeId: {%s}",
+	log.Infof("Succeed to publish schedTask to `data-Fighter` node to executing, taskId: {%s}, role: {%s}, partyId: {%s}, dataNodeId: {%s}",
 		task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), dataNodeId)
 	return nil
 }
@@ -1109,7 +1109,7 @@ func (m *Manager) executeTaskOnJobNode(task *types.NeedExecuteTask, localTask *t
 		return fmt.Errorf("jobNode rpc api wrong resp %s when ready to execute task", resp.GetMsg())
 	}
 
-	log.Infof("Success to publish schedTask to `job-Fighter` node to executing, taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
+	log.Infof("Succeed to publish schedTask to `job-Fighter` node to executing, taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
 		task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), jobNodeId)
 	return nil
 }
@@ -1185,7 +1185,7 @@ func (m *Manager) terminateTaskOnDataNode(task *types.NeedExecuteTask) error {
 		return fmt.Errorf("dataNode rpc api wrong resp %s when ready to terminate task", resp.GetMsg())
 	}
 
-	log.Infof("Success to publish schedTask to `data-Fighter` node to terminating, taskId: {%s}, role: {%s}, partyId: {%s}, dataNodeId: {%s}",
+	log.Infof("Succeed to publish schedTask to `data-Fighter` node to terminating, taskId: {%s}, role: {%s}, partyId: {%s}, dataNodeId: {%s}",
 		task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), dataNodeId)
 	return nil
 }
@@ -1246,7 +1246,7 @@ func (m *Manager) terminateTaskOnJobNode(task *types.NeedExecuteTask) error {
 		return fmt.Errorf("jobNode rpc api wrong resp %s when ready to terminate task", resp.GetMsg())
 	}
 
-	log.Infof("Success to publish schedTask to `job-Fighter` node to terminating, taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
+	log.Infof("Succeed to publish schedTask to `job-Fighter` node to terminating, taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
 		task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), jobNodeId)
 	return nil
 }

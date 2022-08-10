@@ -155,8 +155,20 @@ func (dc *DataCenter) QueryMetadataAuthority(metadataAuthId string) (*types.Meta
 }
 
 func (dc *DataCenter) QueryMetadataAuthorityListByIds(metadataAuthIds []string) (types.MetadataAuthArray, error) {
-	//todo: Discussion: Do we need to achieve?
-	panic("implements me")
+	//dc.serviceMu.RLock()
+	//defer dc.serviceMu.RUnlock()
+	//response, err := dc.client.GetM(dc.ctx, &datacenterapipb.ListMetadataAuthorityRequest{
+	//	IdentityId:  identityId,
+	//	LastUpdated: lastUpdate,
+	//	PageSize:    pageSize,
+	//})
+	//if err != nil {
+	//	return nil, err
+	//}
+	//if response.GetStatus() != 0 {
+	//	return nil, fmt.Errorf("call datacenter GetMetadataAuthorityList error, status %d,error msg %s", response.GetStatus(), response.GetMsg())
+	//}
+	//return types.NewMetadataAuthArrayFromResponse(response.GetMetadataAuthorities()), nil
 	return nil, nil
 }
 

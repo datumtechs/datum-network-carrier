@@ -6,7 +6,6 @@ import (
 	"github.com/datumtechs/datum-network-carrier/carrierdb"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
 	"github.com/datumtechs/datum-network-carrier/core/policy"
-	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"time"
@@ -129,8 +128,8 @@ func (am *AuthorityManager) HasValidMetadataAuth(userType commonconstantpb.UserT
 	return am.metadataAuth.HasValidMetadataAuth(userType, user, identityId, metadataId)
 }
 
-func (am *AuthorityManager) VerifyMetadataAuthWithMetadataOption(metadataAuthId string, auth *carriertypespb.MetadataAuthority) (bool, error) {
-	return am.metadataAuth.VerifyMetadataAuthWithMetadataOption(metadataAuthId, auth)
+func (am *AuthorityManager) VerifyMetadataAuthWithMetadataOption(auth *types.MetadataAuthority) (bool, error) {
+	return am.metadataAuth.VerifyMetadataAuthWithMetadataOption(auth)
 }
 
 func (am *AuthorityManager) VerifyMetadataAuthInfo(auth *types.MetadataAuthority) (bool, error) {

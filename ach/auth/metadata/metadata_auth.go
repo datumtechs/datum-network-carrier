@@ -7,7 +7,6 @@ import (
 	"github.com/datumtechs/datum-network-carrier/carrierdb/rawdb"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
 	"github.com/datumtechs/datum-network-carrier/core/policy"
-	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"github.com/datumtechs/datum-network-carrier/rpc/backend"
 	"github.com/datumtechs/datum-network-carrier/types"
@@ -313,35 +312,36 @@ func (ma *MetadataAuthority) HasNotValidMetadataAuth(userType commonconstantpb.U
 	return true, nil
 }
 
-func (ma *MetadataAuthority) VerifyMetadataAuthWithMetadataOption(metadataAuthId string, auth *carriertypespb.MetadataAuthority) (bool, error) {
+func (ma *MetadataAuthority) VerifyMetadataAuthWithMetadataOption(auth *types.MetadataAuthority) (bool, error) {
 
-	identity, err := ma.dataCenter.QueryIdentityById(auth.GetOwner().GetIdentityId())
+	identity, err := ma.dataCenter.QueryIdentityById(auth.GetData().GetAuth().GetOwner().GetIdentityId())
 	if nil != err {
 		return false, fmt.Errorf("can not query global identity list, %s", err)
 	}
 	if nil == identity {
 		return false, fmt.Errorf("not found identity with identityId of auth, %s, identityId: {%s}",
-			err, auth.GetOwner().GetIdentityId())
+			err, auth.GetData().GetAuth().GetOwner().GetIdentityId())
 	}
 
-	metadata, err := ma.dataCenter.QueryMetadataById(auth.GetMetadataId())
+	metadata, err := ma.dataCenter.QueryMetadataById(auth.GetData().GetAuth().GetMetadataId())
 	if rawdb.IsNoDBNotFoundErr(err) {
-		return false, fmt.Errorf("found global metadata arr by metadataId failed, %s, metadataId: {%s}", err, auth.GetMetadataId())
+		return false, fmt.Errorf("found global metadata arr by metadataId failed, %s, metadataId: {%s}", err, auth.GetData().GetAuth())
 	}
 	if nil == metadata {
-		return false, fmt.Errorf("not found metadata with metadataId from metadataAuth, %s, metadataId: {%s}, metadataAuthId: {%s}", err, auth.GetMetadataId(), metadataAuthId)
+		return false, fmt.Errorf("not found metadata with metadataId from metadataAuth, %s, metadataId: {%s}, metadataAuthId: {%s}",
+			err, auth.GetData().GetAuth().GetMetadataId(), auth.GetData().GetMetadataAuthId())
 	}
-	if metadata.GetData().GetOwner().GetIdentityId() != auth.GetOwner().GetIdentityId() {
+	if metadata.GetData().GetOwner().GetIdentityId() != auth.GetData().GetAuth().GetOwner().GetIdentityId() {
 		return false, fmt.Errorf("the owner identityId of metadataAuth and the owner identityId metadata is not same, %s, metadataId: {%s}, metadataAuthId: {%s}, identityId of metadata: {%s}, identityId of metadataAuth: {%s}",
-			err, auth.GetMetadataId(), metadataAuthId, metadata.GetData().GetOwner().GetIdentityId(), auth.GetOwner().GetIdentityId())
+			err, auth.GetData().GetAuth().GetMetadataId(), auth.GetData().GetMetadataAuthId(), metadata.GetData().GetOwner().GetIdentityId(), auth.GetData().GetAuth().GetOwner().GetIdentityId())
 	}
 
 	consumeTypes, err := ma.policyEngine.FetchConsumeTypes(metadata.GetData().GetDataType(), metadata.GetData().GetMetadataOption())
 	if nil != err {
-		return false, fmt.Errorf("not fetch consumeTypes from metadataOption, %s, metadataId: {%s}", err, auth.GetMetadataId())
+		return false, fmt.Errorf("not fetch consumeTypes from metadataOption, %s, metadataId: {%s}", err, auth.GetData().GetAuth().GetMetadataId())
 	}
 
-	var index int = -1
+	var index = -1
 	for i, typ := range consumeTypes {
 		if typ == types.ConsumeMetadataAuth {
 			index = i
@@ -349,33 +349,37 @@ func (ma *MetadataAuthority) VerifyMetadataAuthWithMetadataOption(metadataAuthId
 		}
 	}
 	if -1 == index {
-		return false, fmt.Errorf("not found metadataAuthConsumeType from metadataOption, %s, metadataId: {%s}, consumeTypes: %v", err, auth.GetMetadataId(), consumeTypes)
+		return false, fmt.Errorf("not found metadataAuthConsumeType from metadataOption, %s, metadataId: {%s}, consumeTypes: %v",
+			err, auth.GetData().GetAuth().GetMetadataId(), consumeTypes)
 	}
 	consumeOptions, err := ma.policyEngine.FetchConsumeOptions(metadata.GetData().GetDataType(), metadata.GetData().GetMetadataOption())
 	if nil != err {
-		return false, fmt.Errorf("not fetch consumeOptions from metadataOption, %s, metadataId: {%s}", err, auth.GetMetadataId())
+		return false, fmt.Errorf("not fetch consumeOptions from metadataOption, %s, metadataId: {%s}",
+			err, auth.GetData().GetAuth().GetMetadataId())
 	}
 	if len(consumeTypes) != len(consumeOptions) {
-		return false, fmt.Errorf("consumeTypesLen and consumeOptionsLen is not same fron metadataOption, %s, metadataId: {%s}", err, auth.GetMetadataId())
+		return false, fmt.Errorf("consumeTypesLen and consumeOptionsLen is not same fron metadataOption, %s, metadataId: {%s}",
+			err, auth.GetData().GetAuth().GetMetadataId())
 	}
 	var option *types.MetadataConsumeOptionMetadataAuth
 	if err := json.Unmarshal([]byte(consumeOptions[index]), &option); nil != err {
-		return false, fmt.Errorf("can not unmashal consumeOptions to metadataConsumeOptionMetadataAuth, %s, metadataId: {%s}", err, auth.GetMetadataId())
+		return false, fmt.Errorf("can not unmashal consumeOptions to metadataConsumeOptionMetadataAuth, %s, metadataId: {%s}",
+			err, auth.GetData().GetAuth().GetMetadataId())
 	}
 
 	now := timeutils.UnixMsecUint64()
-	switch auth.GetUsageRule().GetUsageType() {
+	switch auth.GetData().GetAuth().GetUsageRule().GetUsageType() {
 	case commonconstantpb.MetadataUsageType_Usage_Period:
 		// 1、check type
 		if option.GetStatus()&types.McomaStatusPeriodConsumeKind != types.McomaStatusPeriodConsumeKind {
 			return false, fmt.Errorf("metadataAuth consume kind not support period kind, metadataId: {%s}, usageType: {%s}, usageEndTime: {%d}, consume kind status: {%d}",
-				auth.GetMetadataId(), auth.GetUsageRule().GetUsageType().String(), auth.GetUsageRule().GetEndAt(), option.GetStatus())
+				auth.GetData().GetAuth().GetMetadataId(), auth.GetData().GetAuth().GetUsageRule().GetUsageType().String(), auth.GetData().GetAuth().GetUsageRule().GetEndAt(), option.GetStatus())
 		}
 
 		// 2、check time
-		if now >= auth.GetUsageRule().GetEndAt() {
+		if now >= auth.GetData().GetAuth().GetUsageRule().GetEndAt() {
 			return false, fmt.Errorf("usaageRule endTime of metadataAuth has expire, metadataId: {%s}, usageType: {%s}, usageEndTime: {%d}, now: {%d}",
-				auth.GetMetadataId(), auth.GetUsageRule().GetUsageType().String(), auth.GetUsageRule().GetEndAt(), now)
+				auth.GetData().GetAuth().GetMetadataId(), auth.GetData().GetAuth().GetUsageRule().GetUsageType().String(), auth.GetData().GetAuth().GetUsageRule().GetEndAt(), now)
 		}
 
 	case commonconstantpb.MetadataUsageType_Usage_Times:
@@ -383,25 +387,81 @@ func (ma *MetadataAuthority) VerifyMetadataAuthWithMetadataOption(metadataAuthId
 		// 1、check type
 		if option.GetStatus()&types.McomaStatusTimesConsumeKind != types.McomaStatusTimesConsumeKind {
 			return false, fmt.Errorf("metadataAuth consume kind not support times kind, metadataId: {%s}, usageType: {%s}, usageEndTime: {%d}, consume kind status: {%d}",
-				auth.GetMetadataId(), auth.GetUsageRule().GetUsageType().String(), auth.GetUsageRule().GetEndAt(), option.GetStatus())
+				auth.GetData().GetAuth().GetMetadataId(), auth.GetData().GetAuth().GetUsageRule().GetUsageType().String(), auth.GetData().GetAuth().GetUsageRule().GetEndAt(), option.GetStatus())
 		}
 
 		// 2、check count
-		if auth.GetUsageRule().GetTimes() == 0 {
+		if auth.GetData().GetAuth().GetUsageRule().GetTimes() == 0 {
 			return false, fmt.Errorf("usaageRule times of metadataAuth must be greater than zero, metadataId: {%s}, usageType: {%s}, usageEndTime: {%d}, now: {%d}",
-				auth.GetMetadataId(), auth.GetUsageRule().GetUsageType().String(), auth.GetUsageRule().GetEndAt(), now)
+				auth.GetData().GetAuth().GetMetadataId(), auth.GetData().GetAuth().GetUsageRule().GetUsageType().String(), auth.GetData().GetAuth().GetUsageRule().GetEndAt(), now)
 		}
 	default:
 		return false, fmt.Errorf("unknown usageType of the metadataAuth, metadataId: {%s}, usageType: {%s}",
-			auth.GetMetadataId(), auth.GetUsageRule().GetUsageType().String())
+			auth.GetData().GetAuth().GetMetadataId(), auth.GetData().GetAuth().GetUsageRule().GetUsageType().String())
+	}
+
+	checkUsageTypeFn := func(metadataConsumeStatus uint64, authConsumeStatus commonconstantpb.MetadataUsageType) (bool, error) {
+		switch {
+
+		// there are options of consumption by times and consumption by time period.
+		case metadataConsumeStatus&types.McomaStatusTimesConsumeKind == types.McomaStatusTimesConsumeKind &&
+			metadataConsumeStatus&types.McomaStatusPeriodConsumeKind == types.McomaStatusPeriodConsumeKind:
+
+			if authConsumeStatus != commonconstantpb.MetadataUsageType_Usage_Times &&
+				authConsumeStatus != commonconstantpb.MetadataUsageType_Usage_Period {
+				return false, fmt.Errorf("unknown usageType of metadataAuth, metadataAuthId: {%s}, usageType: {%s}",
+					auth.GetData().GetMetadataAuthId(), authConsumeStatus.String())
+			}
+
+		// there is option of consumption by times only.
+		case metadataConsumeStatus&types.McomaStatusTimesConsumeKind == types.McomaStatusTimesConsumeKind &&
+			metadataConsumeStatus&types.McomaStatusPeriodConsumeKind != types.McomaStatusPeriodConsumeKind:
+
+			if authConsumeStatus != commonconstantpb.MetadataUsageType_Usage_Times {
+				return false, fmt.Errorf("usageType of metadataAuth not by times, metadataAuthId: {%s}, usageType: {%s}",
+					auth.GetData().GetMetadataAuthId(), authConsumeStatus.String())
+			}
+
+		// there is option of consumption by time period only.
+		case metadataConsumeStatus&types.McomaStatusTimesConsumeKind != types.McomaStatusTimesConsumeKind &&
+			metadataConsumeStatus&types.McomaStatusPeriodConsumeKind == types.McomaStatusPeriodConsumeKind:
+
+			if authConsumeStatus != commonconstantpb.MetadataUsageType_Usage_Period {
+				return false, fmt.Errorf("usageType of metadataAuth not by time period, metadataAuthId: {%s}, usageType: {%s}",
+					auth.GetData().GetMetadataAuthId(), authConsumeStatus.String())
+			}
+		// unknown consumption type.
+		default:
+			return false, fmt.Errorf("unknown consumption type on metadataAuth consume option of metadata, metadataId: {%s}, metadata consume status: {%d}",
+				auth.GetData().GetAuth().GetMetadataId(), metadataConsumeStatus)
+		}
+		return true, nil
 	}
 
 	// check only one valid metadataAuth related one metadata? or multi metadataAuths related one metadata?
-	if option.GetStatus()&types.McomaStatusAuthMulti != types.McomaStatusTimesConsumeKind {
-		// TODO 还未实现， 需要查所有的 授权 对比 方式
+	//
+	// only one valid related
+	if option.GetStatus()&types.McomaStatusAuthMulti != types.McomaStatusAuthMulti {
+
+		has, err := ma.HasValidMetadataAuth(auth.GetData().GetUserType(), auth.GetData().GetUser(), auth.GetData().GetAuth().GetOwner().GetIdentityId(), auth.GetData().GetAuth().GetMetadataId())
+		if nil != err {
+			return false, fmt.Errorf("cannot check if there is only one valid metadataAuth, %s, userType: {%s}, user: {%s}, metadata onwer identityId: {%s}, metadataId: {%s}",
+				err, auth.GetData().GetUserType(), auth.GetData().GetUser(), auth.GetData().GetAuth().GetOwner().GetIdentityId(), auth.GetData().GetAuth().GetMetadataId())
+		}
+		if has {
+			return false, fmt.Errorf("only one valid metadataAuth already exists, userType: {%s}, user: {%s}, metadata onwer identityId: {%s}, metadataId: {%s}",
+				auth.GetData().GetUserType(), auth.GetData().GetUser(), auth.GetData().GetAuth().GetOwner().GetIdentityId(), auth.GetData().GetAuth().GetMetadataId())
+		}
+
+		//return checkUsageTypeFn(option.GetStatus(), auth.GetData().GetAuth().GetUsageRule().GetUsageType())
 	}
 
-	return true, nil
+	//// multi valid related
+	//if option.GetStatus()&types.McomaStatusAuthMulti == types.McomaStatusAuthMulti {
+	//	return checkUsageTypeFn(option.GetStatus(), auth.GetData().GetAuth().GetUsageRule().GetUsageType())
+	//}
+
+	return checkUsageTypeFn(option.GetStatus(), auth.GetData().GetAuth().GetUsageRule().GetUsageType())
 }
 
 func (ma *MetadataAuthority) VerifyMetadataAuthInfo(auth *types.MetadataAuthority) (bool, error) {
