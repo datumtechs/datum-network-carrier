@@ -129,10 +129,23 @@ func (m *PayAgent) buildInput(method string, params ...interface{}) []byte {
 	return input
 }
 
-// Prepay transfers more than enough gas from task sponsor to DatumPay, this gas will payAgent carrier to call Prepay()/Settle(), and remaining gas will refund to task sponsor.
-// Prepay returns hx.Hash, and error.
-// The complete procedure consists of two calls to DatumPay, the first is Prepay, the second is Settle.
-func (m *PayAgent) Prepay(taskID *big.Int, taskSponsorAccount common.Address, tkItemList []*carrierapipb.TkItem) (common.Hash, error) {
+// VerifyNFT verify each NTF
+func (m *PayAgent) VerifyTkErc721(taskSponsorAccount common.Address, tkErc721ItemList []*carrierapipb.TkItem) (bool, error) {
+	m.txSyncLocker.Lock()
+	defer m.txSyncLocker.Unlock()
+
+	for _, tkErc721 := range tkErc721ItemList {
+		if err := m.inspectTkErc721ExtInfo(taskSponsorAccount, tkErc721); err != nil {
+			return false, err
+		}
+	}
+	return true, nil
+}
+
+// PrepayTkErc20 transfers more than enough gas from task sponsor to DatumPay, this gas will payAgent carrier to call PrepayTkErc20()/Settle(), and remaining gas will refund to task sponsor.
+// PrepayTkErc20 returns hx.Hash, and error.
+// The complete procedure consists of two calls to DatumPay, the first is PrepayTkErc20, the second is Settle.
+func (m *PayAgent) PrepayTkErc20(taskID *big.Int, taskSponsorAccount common.Address, tkItemList []*carrierapipb.TkItem) (common.Hash, error) {
 	m.txSyncLocker.Lock()
 	defer m.txSyncLocker.Unlock()
 
