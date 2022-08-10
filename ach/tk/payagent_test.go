@@ -197,7 +197,7 @@ func TestToken20Pay_Prepay(t *testing.T) {
 
 	dataTokenTransferItemList := []*carrierapipb.TkItem{tkItem1, tkItem2}
 
-	txHash, err := payAgent.Prepay(taskID, taskSponsor, dataTokenTransferItemList)
+	txHash, err := payAgent.PrepayTk20(taskID, taskSponsor, dataTokenTransferItemList)
 	if err != nil {
 		t.Fatal(err)
 	}

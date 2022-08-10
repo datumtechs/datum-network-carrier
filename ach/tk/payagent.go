@@ -129,10 +129,23 @@ func (m *PayAgent) buildInput(method string, params ...interface{}) []byte {
 	return input
 }
 
-// Prepay transfers more than enough gas from task sponsor to DatumPay, this gas will payAgent carrier to call Prepay()/Settle(), and remaining gas will refund to task sponsor.
-// Prepay returns hx.Hash, and error.
-// The complete procedure consists of two calls to DatumPay, the first is Prepay, the second is Settle.
-func (m *PayAgent) Prepay(taskID *big.Int, taskSponsorAccount common.Address, tkItemList []*carrierapipb.TkItem) (common.Hash, error) {
+// VerifyNFT verify each NTF
+func (m *PayAgent) VerifyTk721(taskSponsorAccount common.Address, tk721ItemList []*carrierapipb.TkItem) (bool, error) {
+	m.txSyncLocker.Lock()
+	defer m.txSyncLocker.Unlock()
+
+	for _, tkErc721 := range tk721ItemList {
+		if err := m.inspectTk721ExtInfo(taskSponsorAccount, tkErc721); err != nil {
+			return false, err
+		}
+	}
+	return true, nil
+}
+
+// PrepayTk20 transfers more than enough gas from task sponsor to DatumPay, this gas will payAgent carrier to call PrepayTk20()/Settle(), and remaining gas will refund to task sponsor.
+// PrepayTk20 returns hx.Hash, and error.
+// The complete procedure consists of two calls to DatumPay, the first is PrepayTk20, the second is Settle.
+func (m *PayAgent) PrepayTk20(taskID *big.Int, taskSponsorAccount common.Address, tk20ItemList []*carrierapipb.TkItem) (common.Hash, error) {
 	m.txSyncLocker.Lock()
 	defer m.txSyncLocker.Unlock()
 
@@ -142,20 +155,20 @@ func (m *PayAgent) Prepay(taskID *big.Int, taskSponsorAccount common.Address, tk
 		return common.Hash{}, errors.New("organization private key is missing")
 	}
 
-	tkErc20AddressList, tkErc20AmountList, tkErc721ItemList := groupingTkList(tkItemList)
-	for _, amt := range tkErc20AmountList {
+	tk20AddressList, tk20AmountList, tkErc721ItemList := groupingTkList(tk20ItemList)
+	for _, amt := range tk20AmountList {
 		if amt == nil || amt.Int64() == 0 {
 			amt = defaultDataTkPrepaymentAmount
 		}
 	}
 
 	for _, tkErc721 := range tkErc721ItemList {
-		if err := m.inspectTkErc721ExtInfo(taskSponsorAccount, tkErc721); err != nil {
+		if err := m.inspectTk721ExtInfo(taskSponsorAccount, tkErc721); err != nil {
 			return common.Hash{}, err
 		}
 	}
 
-	input := m.buildInput("prepay", mockTaskID, taskSponsorAccount, big.NewInt(1), tkErc20AddressList, tkErc20AmountList)
+	input := m.buildInput("prepay", mockTaskID, taskSponsorAccount, big.NewInt(1), tk20AddressList, tk20AmountList)
 
 	//估算gas
 	gasEstimated, err := m.ethContext.EstimateGas(context.Background(), datumPayAddress, input)
@@ -176,9 +189,9 @@ func (m *PayAgent) Prepay(taskID *big.Int, taskSponsorAccount common.Address, tk
 	feePrepaid := new(big.Int).Mul(new(big.Int).SetUint64(gasEstimated), opts.GasPrice)
 
 	log.Debugf("Start call contract prepay(), taskID: %s, nonce: %d, gasEstimated: %d, gasLimit: %d, gasPrice: %d, feePrepaid: %d, taskSponsorAccount: %s, dataTokenAddressList: %v, dataTokenAmountList: %v",
-		taskIDHex, opts.Nonce, gasEstimated, opts.GasLimit, opts.GasPrice, feePrepaid, taskSponsorAccount.String(), tkErc20AddressList, tkErc20AmountList)
+		taskIDHex, opts.Nonce, gasEstimated, opts.GasLimit, opts.GasPrice, feePrepaid, taskSponsorAccount.String(), tk20AddressList, tk20AmountList)
 
-	tx, err := m.tkPayContractInstance.Prepay(opts, taskID, taskSponsorAccount, feePrepaid, tkErc20AddressList, tkErc20AmountList)
+	tx, err := m.tkPayContractInstance.Prepay(opts, taskID, taskSponsorAccount, feePrepaid, tk20AddressList, tk20AmountList)
 	if err != nil {
 		log.WithError(err).Errorf("failed to call DatumPay.Prepay(), taskID: %s", taskIDHex)
 		return common.Hash{}, errors.New("failed to call DatumPay.Prepay()")
