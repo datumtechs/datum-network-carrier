@@ -135,7 +135,7 @@ func TestToken20Pay_AddWhiteList(t *testing.T) {
 		t.Fatalf("failed to build transact options: %v", err)
 	}
 
-	tx, err := payAgent.tkPayContractInstance.AddWhitelist(opts, walletAddress)
+	tx, err := payAgent.payAgentContractInstance.AddWhitelist(opts, walletAddress)
 	if err != nil {
 		t.Fatalf("failed to AddWhitelist : %v", err)
 	}

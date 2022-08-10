@@ -15,8 +15,8 @@ import (
 	"github.com/datumtechs/datum-network-carrier/common/hexutil"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/ethereum/go-ethereum/common"
-	ethereumtypes "github.com/ethereum/go-ethereum/core/types"
+	ethcommon "github.com/ethereum/go-ethereum/common"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	log "github.com/sirupsen/logrus"
 	"math/big"
 )
@@ -25,8 +25,8 @@ const keystoreFile = ".keystore"
 
 //"task:0x81050ea1c64ab0ed96e50b151c36bcef180eea18d3b3245e7c4a42aa08638c58"
 var (
-	datumPayAddress               = common.HexToAddress("0x263B1D39843BF2e1DA27d827e749992fbD1f1577")
-	defaultDataTkPrepaymentAmount = big.NewInt(1e18)
+	payAgentAddress           = ethcommon.HexToAddress("0x263B1D39843BF2e1DA27d827e749992fbD1f1577")
+	defaultTkPrepaymentAmount = big.NewInt(1e18)
 
 	mockTaskID, _ = hexutil.DecodeBig("0x81050ea1c64ab0ed96e50b151c36bcef180eea18d3b3245e7c4a42aa08638c58")
 )
@@ -35,14 +35,14 @@ type Config struct {
 	URL           string `json:"chain"`
 	WalletPwd     string
 	privateKey    *ecdsa.PrivateKey
-	walletAddress common.Address
+	walletAddress ethcommon.Address
 }
 
 type PayAgent struct {
-	ethContext            *chainclient.EthContext
-	abi                   abi.ABI
-	tkPayContractInstance *contracts.DatumPay
-	txSyncLocker          sync.Mutex
+	ethContext               *chainclient.EthContext
+	abi                      abi.ABI
+	payAgentContractInstance *contracts.DatumPay
+	txSyncLocker             sync.Mutex
 }
 
 func NewPayAgent(ethContext *chainclient.EthContext) *PayAgent {
@@ -50,25 +50,25 @@ func NewPayAgent(ethContext *chainclient.EthContext) *PayAgent {
 	m := new(PayAgent)
 	m.ethContext = ethContext
 
-	instance, err := contracts.NewDatumPay(datumPayAddress, m.ethContext.GetClient())
+	instance, err := contracts.NewDatumPay(payAgentAddress, m.ethContext.GetClient())
 	if err != nil {
 		log.Fatal(err)
 	}
-	m.tkPayContractInstance = instance
+	m.payAgentContractInstance = instance
 
 	return m
 }
 
-func groupingTkList(tkItemList []*carrierapipb.TkItem) ([]common.Address, []*big.Int, []*carrierapipb.TkItem) {
-	tkErc20AddressList := make([]common.Address, 0)
+func groupingTkList(tkItemList []*carrierapipb.TkItem) ([]ethcommon.Address, []*big.Int, []*carrierapipb.TkItem) {
+	tkErc20AddressList := make([]ethcommon.Address, 0)
 	tkErc20AmountList := make([]*big.Int, 0)
 	tkErc721ItemList := make([]*carrierapipb.TkItem, 0)
 
 	for _, item := range tkItemList {
 		if item.TkType == constant.TkType_Tk20 {
-			tkErc20AddressList = append(tkErc20AddressList, common.HexToAddress(item.TkAddress))
+			tkErc20AddressList = append(tkErc20AddressList, ethcommon.HexToAddress(item.TkAddress))
 			if len(item.Value) == 0 {
-				tkErc20AmountList = append(tkErc20AmountList, defaultDataTkPrepaymentAmount)
+				tkErc20AmountList = append(tkErc20AmountList, defaultTkPrepaymentAmount)
 			} else {
 				vInt, err := strconv.ParseUint(item.Value, 10, 64)
 				if err != nil {
@@ -93,8 +93,8 @@ func (m *PayAgent) EstimateTaskGas(taskSponsorAddress string, tkItemList []*carr
 	tk20AddressList, tk20AmountList, _ := groupingTkList(tkItemList)
 
 	// Estimating task gas happens before task starting, and the task ID has not been generated at this moment, so, apply a mock task ID.
-	input := m.buildInput("prepay", mockTaskID, common.HexToAddress(taskSponsorAddress), big.NewInt(1), tk20AddressList, tk20AmountList)
-	gasLimit, err := m.ethContext.EstimateGas(context.Background(), datumPayAddress, input)
+	input := m.buildInput("prepay", mockTaskID, ethcommon.HexToAddress(taskSponsorAddress), big.NewInt(1), tk20AddressList, tk20AmountList)
+	gasLimit, err := m.ethContext.EstimateGas(context.Background(), payAgentAddress, input)
 	if err != nil {
 		log.Errorf("call EstimateTaskGas error: %v", err)
 		return 0, nil, err
@@ -130,7 +130,7 @@ func (m *PayAgent) buildInput(method string, params ...interface{}) []byte {
 }
 
 // VerifyNFT verify each NTF
-func (m *PayAgent) VerifyTk721(taskSponsorAccount common.Address, tk721ItemList []*carrierapipb.TkItem) error {
+func (m *PayAgent) VerifyTk721(taskSponsorAccount ethcommon.Address, tk721ItemList []*carrierapipb.TkItem) error {
 	m.txSyncLocker.Lock()
 	defer m.txSyncLocker.Unlock()
 
@@ -145,36 +145,37 @@ func (m *PayAgent) VerifyTk721(taskSponsorAccount common.Address, tk721ItemList 
 // PrepayTk20 transfers more than enough gas from task sponsor to DatumPay, this gas will payAgent carrier to call PrepayTk20()/Settle(), and remaining gas will refund to task sponsor.
 // PrepayTk20 returns hx.Hash, and error.
 // The complete procedure consists of two calls to DatumPay, the first is PrepayTk20, the second is Settle.
-func (m *PayAgent) PrepayTk20(taskID *big.Int, taskSponsorAccount common.Address, tk20ItemList []*carrierapipb.TkItem) (common.Hash, error) {
+func (m *PayAgent) PrepayTk20(taskID *big.Int, taskSponsorAccount ethcommon.Address, tk20ItemList []*carrierapipb.TkItem) (ethcommon.Hash, error) {
 	m.txSyncLocker.Lock()
 	defer m.txSyncLocker.Unlock()
 
 	taskIDHex := hexutil.EncodeBig(taskID)
 	if WalletManagerInstance().GetPrivateKey() == nil {
 		log.Errorf("cannot send Prepay transaction cause organization wallet missing")
-		return common.Hash{}, errors.New("organization private key is missing")
+		return ethcommon.Hash{}, errors.New("organization private key is missing")
 	}
 
-	tk20AddressList, tk20AmountList, tkErc721ItemList := groupingTkList(tk20ItemList)
+	//tk20AddressList, tk20AmountList, tk721ItemList := groupingTkList(tk20ItemList)
+	tk20AddressList, tk20AmountList, _ := groupingTkList(tk20ItemList)
 	for _, amt := range tk20AmountList {
 		if amt == nil || amt.Int64() == 0 {
-			amt = defaultDataTkPrepaymentAmount
+			amt = defaultTkPrepaymentAmount
 		}
 	}
 
-	for _, tkErc721 := range tkErc721ItemList {
+	/*for _, tkErc721 := range tk721ItemList {
 		if err := m.inspectTk721ExtInfo(taskSponsorAccount, tkErc721); err != nil {
 			return common.Hash{}, err
 		}
-	}
+	}*/
 
 	input := m.buildInput("prepay", mockTaskID, taskSponsorAccount, big.NewInt(1), tk20AddressList, tk20AmountList)
 
 	//估算gas
-	gasEstimated, err := m.ethContext.EstimateGas(context.Background(), datumPayAddress, input)
+	gasEstimated, err := m.ethContext.EstimateGas(context.Background(), payAgentAddress, input)
 	if err != nil {
 		log.Errorf("failed to estimate gas for DatumPay.Prepay(), taskID: %s, error: %v", taskIDHex, err)
-		return common.Hash{}, errors.New("failed to estimate gas for DatumPay.Prepay()")
+		return ethcommon.Hash{}, errors.New("failed to estimate gas for DatumPay.Prepay()")
 	}
 
 	//交易参数直接使用用户预付的总的gas，尽量放大，以防止交易执行gas不足
@@ -182,7 +183,7 @@ func (m *PayAgent) PrepayTk20(taskID *big.Int, taskSponsorAccount common.Address
 	opts, err := m.ethContext.BuildTxOpts(0, gasEstimated)
 	if err != nil {
 		log.Errorf("failed to build transact options to call DatumPay.Prepay(): %v", err)
-		return common.Hash{}, errors.New("failed to build transact options to call DatumPay.Prepay()")
+		return ethcommon.Hash{}, errors.New("failed to build transact options to call DatumPay.Prepay()")
 	}
 
 	//gas fee, 支付助手合约，需要记录用户预付的手续费
@@ -191,10 +192,10 @@ func (m *PayAgent) PrepayTk20(taskID *big.Int, taskSponsorAccount common.Address
 	log.Debugf("Start call contract prepay(), taskID: %s, nonce: %d, gasEstimated: %d, gasLimit: %d, gasPrice: %d, feePrepaid: %d, taskSponsorAccount: %s, dataTokenAddressList: %v, dataTokenAmountList: %v",
 		taskIDHex, opts.Nonce, gasEstimated, opts.GasLimit, opts.GasPrice, feePrepaid, taskSponsorAccount.String(), tk20AddressList, tk20AmountList)
 
-	tx, err := m.tkPayContractInstance.Prepay(opts, taskID, taskSponsorAccount, feePrepaid, tk20AddressList, tk20AmountList)
+	tx, err := m.payAgentContractInstance.Prepay(opts, taskID, taskSponsorAccount, feePrepaid, tk20AddressList, tk20AmountList)
 	if err != nil {
 		log.WithError(err).Errorf("failed to call DatumPay.Prepay(), taskID: %s", taskIDHex)
-		return common.Hash{}, errors.New("failed to call DatumPay.Prepay()")
+		return ethcommon.Hash{}, errors.New("failed to call DatumPay.Prepay()")
 	}
 	log.Debugf("call DatumPay.Prepay() txHash:%v, taskID:%s", tx.Hash().Hex(), taskIDHex)
 
@@ -208,7 +209,7 @@ func (m *PayAgent) PrepayTk20(taskID *big.Int, taskSponsorAccount common.Address
 // Settle returns hx.Hash, and error.
 // gasUsedPrepay - carrier used gas for Prepay()
 
-func (m *PayAgent) Settle(taskID *big.Int, gasUsedPrepay uint64) (common.Hash, error) {
+func (m *PayAgent) Settle(taskID *big.Int, gasUsedPrepay uint64) (ethcommon.Hash, error) {
 	m.txSyncLocker.Lock()
 	defer m.txSyncLocker.Unlock()
 
@@ -216,16 +217,16 @@ func (m *PayAgent) Settle(taskID *big.Int, gasUsedPrepay uint64) (common.Hash, e
 
 	if WalletManagerInstance().GetPrivateKey() == nil {
 		log.Errorf("cannot send Settle transaction cause organization wallet missing")
-		return common.Hash{}, errors.New("organization private key is missing")
+		return ethcommon.Hash{}, errors.New("organization private key is missing")
 	}
 
 	input := m.buildInput("settle", taskID, big.NewInt(1), new(big.Int).SetUint64(1))
 
 	//估算gas
-	gasEstimated, err := m.ethContext.EstimateGas(context.Background(), datumPayAddress, input)
+	gasEstimated, err := m.ethContext.EstimateGas(context.Background(), payAgentAddress, input)
 	if err != nil {
 		log.Errorf("failed to estimate gas for DatumPay.Settle(), taskID: %s, error: %v", hexutil.EncodeBig(taskID), err)
-		return common.Hash{}, errors.New("failed to estimate gas for DatumPay.Settle()")
+		return ethcommon.Hash{}, errors.New("failed to estimate gas for DatumPay.Settle()")
 	}
 
 	//交易参数的gasLimit可以放大，以防止交易执行gas不足；实际并不会真的消耗这么多
@@ -244,10 +245,10 @@ func (m *PayAgent) Settle(taskID *big.Int, gasUsedPrepay uint64) (common.Hash, e
 	log.Debugf("call contract settle(),  taskID: %s, nonce: %d, gasUsedPrepay: %d, gasEstimated: %d, gasLimit: %d, gasPrice: %d, totalFeeUsed: %d", taskIDHex, opts.Nonce, gasUsedPrepay, gasEstimated, opts.GasLimit, opts.GasPrice, totalFeeUsed)
 
 	//合约
-	tx, err := m.tkPayContractInstance.Settle(opts, taskID, totalFeeUsed)
+	tx, err := m.payAgentContractInstance.Settle(opts, taskID, totalFeeUsed)
 	if err != nil {
 		log.Errorf("failed to call DatumPay.Settle(), taskID: %s, error: %v", taskIDHex, err)
-		return common.Hash{}, errors.New("failed to call DatumPay.Settle()")
+		return ethcommon.Hash{}, errors.New("failed to call DatumPay.Settle()")
 	}
 	log.Debugf("call DatumPay.Settle() txHash:%v, taskID:%s", tx.Hash().Hex(), taskIDHex)
 
@@ -255,7 +256,7 @@ func (m *PayAgent) Settle(taskID *big.Int, gasUsedPrepay uint64) (common.Hash, e
 }
 
 // GetReceipt returns the tx receipt. The caller goroutine will be blocked, and the caller could receive the receipt by channel.
-func (m *PayAgent) GetReceipt(ctx context.Context, txHash common.Hash, interval time.Duration) *ethereumtypes.Receipt {
+func (m *PayAgent) GetReceipt(ctx context.Context, txHash ethcommon.Hash, interval time.Duration) *ethtypes.Receipt {
 	return m.ethContext.WaitReceipt(ctx, txHash, interval)
 }
 
@@ -268,7 +269,7 @@ func (m *PayAgent) GetReceipt(ctx context.Context, txHash common.Hash, interval 
 // constant int8 private END = 3;
 func (m *PayAgent) GetTaskState(taskId *big.Int) (int, error) {
 	log.Debugf("Start call contract taskState(), params{taskID: %s}", hexutil.EncodeBig(taskId))
-	if state, err := m.tkPayContractInstance.TaskState(&bind.CallOpts{}, taskId); err != nil {
+	if state, err := m.payAgentContractInstance.TaskState(&bind.CallOpts{}, taskId); err != nil {
 		return -1, err
 	} else {
 		return int(state), nil
