@@ -408,7 +408,7 @@ func (m *Manager) beginConsumeByTk(task *types.NeedExecuteTask, localTask *types
 			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt, user.String(), "["+strings.Join(addrs, ",")+"]")
 		//consumeTk20:=ConsumePolicyArray.(types.Tk20Consume)
 		// start prepay dataToken
-		txHash, err := m.payAgent.PrepayTkErc20(taskIdBigInt, user, tkTtems)
+		txHash, err := m.payAgent.PrepayTk20(taskIdBigInt, user, tkTtems)
 		if nil != err {
 			return fmt.Errorf("cannot call token20Pay to prepay datatoken on beginConsumeByTk(), %s", err)
 		}
