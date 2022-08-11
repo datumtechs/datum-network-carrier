@@ -97,29 +97,30 @@ func (m *WalletManager) GetPublicKey() *ecdsa.PublicKey {
 
 // loadPrivateKey loads private key from local DB, and caches the private key
 func (m *WalletManager) loadPrivateKey() {
-	/*if m.priKey != nil {
+	if m.priKey != nil {
+		log.Info("organization wallet loaded already")
 		return
-	}*/
+	}
 
 	// datacenter存储的是加密后的私钥
 	priKeyHex, err := m.dataCenter.FindOrgPriKey()
 	if nil != err {
-		log.WithError(err).Error("failed to load organization wallet. ", err)
+		log.WithError(err).Error("failed to load organization wallet", err)
 		return
 	}
 
 	if len(priKeyHex) == 0 {
-		log.Warn("failed to load organization wallet. ")
+		log.Warn("failed to load organization wallet")
 		return
 	}
 	if m.kms != nil {
 		if key, err := m.kms.Decrypt(priKeyHex); err != nil {
-			log.Errorf("decrypt organization wallet private key error: %v", err)
+			log.WithError(err).Errorf("failed to decrypt organization wallet private key:%s", priKeyHex)
 			return
 		} else {
 			priKey, err := crypto.HexToECDSA(key)
 			if err != nil {
-				log.Errorf("convert organization wallet private key to ECDSA error: %v", err)
+				log.WithError(err).Errorf("failed to convert organization wallet private key to ECDSA:%s", priKeyHex)
 				return
 			} else {
 				m.priKey = priKey
@@ -132,7 +133,7 @@ func (m *WalletManager) loadPrivateKey() {
 	} else {
 		priKey, err := crypto.HexToECDSA(priKeyHex)
 		if err != nil {
-			log.Errorf("not a valid private key hex: %v", err)
+			log.WithError(err).Errorf("not a valid private key hex:%s", priKeyHex)
 			return
 		}
 		m.priKey = priKey
