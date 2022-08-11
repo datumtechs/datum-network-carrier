@@ -47,7 +47,7 @@ type PayAgent struct {
 }
 
 func NewPayAgent(ethContext *chainclient.EthContext) *PayAgent {
-	log.Infof("Init payAgent agent: %+v...", ethContext)
+	log.Infof("Init pay agent, wallet address: %s...", ethContext.GetAddress())
 	m := new(PayAgent)
 	m.ethContext = ethContext
 

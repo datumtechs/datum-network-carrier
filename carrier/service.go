@@ -127,6 +127,7 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 	//初始化钱包管理器
 	tk.InitWalletManager(config.CarrierDB, kmsConfig)
 
+	log.Infof("success to init organization wallet:%s", tk.WalletManagerInstance().GetAddress())
 	var ethContext *chainclient.EthContext
 
 	if cliCtx.IsSet(flags.BlockChain.Name) {
