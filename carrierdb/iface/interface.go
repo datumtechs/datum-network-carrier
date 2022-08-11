@@ -75,10 +75,21 @@ type LocalStoreCarrierDB interface {
 	QueryMetadataUpdateMsgArr() (types.MetadataUpdateMsgArr, error)
 	QueryMetadataAuthorityMsgArr() (types.MetadataAuthorityMsgArr, error)
 	QueryTaskMsgArr() (types.TaskMsgArr, error)
-
+	// add by v0.4.0 carrier internal wallet's privateKey
 	SaveOrgPriKey(priKey string) error
 	// FindOrgPriKey does not return ErrNotFound if the organization wallet not found.
 	FindOrgPriKey() (string, error)
+	// add by v0.5.0 about msg nonce
+	QueryIdentityMsgNonce() (uint64, error)
+	IncreaseIdentityMsgNonce() (uint64, error)
+	QueryMetadataMsgNonce() (uint64, error)
+	IncreaseMetadataMsgNonce() (uint64, error)
+	QueryMetadataAuthMsgNonce() (uint64, error)
+	IncreaseMetadataAuthMsgNonce() (uint64, error)
+	QueryPowerMsgNonce() (uint64, error)
+	IncreasePowerMsgNonce() (uint64, error)
+	QueryTaskMsgNonce() (uint64, error)
+	IncreaseTaskMsgNonce() (uint64, error)
 }
 
 type MetadataCarrierDB interface {

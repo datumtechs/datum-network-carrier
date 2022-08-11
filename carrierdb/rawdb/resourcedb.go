@@ -1865,3 +1865,169 @@ func FindOrgPriKey(db DatabaseReader) (string, error) {
 	}
 	return "", nil
 }
+
+func QueryIdentityMsgNonce(db DatabaseReader) (uint64, error) {
+
+	val, err := db.Get(GetIdentityMsgNonceKey())
+
+	var nonce uint64
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return 0, err
+	case IsDBNotFoundErr(err):
+		return 0, nil
+	case nil == err && len(val) != 0:
+		nonce = bytesutil.BytesToUint64(val)
+	}
+	return nonce, nil
+}
+func IncreaseIdentityMsgNonce(db KeyValueStore) (uint64, error) {
+
+	key := GetIdentityMsgNonceKey()
+	val, err := db.Get(key)
+
+	var nonce uint64
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return 0, err
+	case IsDBNotFoundErr(err):
+		// do nothing
+	case nil == err && len(val) != 0:
+		nonce = bytesutil.BytesToUint64(val)
+	}
+	nonce++
+
+	return nonce, db.Put(key, bytesutil.Uint64ToBytes(nonce))
+}
+func QueryMetadataMsgNonce(db DatabaseReader) (uint64, error) {
+
+	val, err := db.Get(GetMetadataMsgNonceKey())
+
+	var nonce uint64
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return 0, err
+	case IsDBNotFoundErr(err):
+		return 0, nil
+	case nil == err && len(val) != 0:
+		nonce = bytesutil.BytesToUint64(val)
+	}
+	return nonce, nil
+}
+func IncreaseMetadataMsgNonce(db KeyValueStore) (uint64, error) {
+
+	key := GetMetadataMsgNonceKey()
+	val, err := db.Get(key)
+
+	var nonce uint64
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return 0, err
+	case IsDBNotFoundErr(err):
+		// do nothing
+	case nil == err && len(val) != 0:
+		nonce = bytesutil.BytesToUint64(val)
+	}
+	nonce++
+
+	return nonce, db.Put(key, bytesutil.Uint64ToBytes(nonce))
+}
+func QueryMetadataAuthMsgNonce(db DatabaseReader) (uint64, error) {
+
+	val, err := db.Get(GetMetadataAuthMsgNonceKey())
+
+	var nonce uint64
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return 0, err
+	case IsDBNotFoundErr(err):
+		return 0, nil
+	case nil == err && len(val) != 0:
+		nonce = bytesutil.BytesToUint64(val)
+	}
+	return nonce, nil
+}
+func IncreaseMetadataAuthMsgNonce(db KeyValueStore) (uint64, error) {
+
+	key := GetMetadataAuthMsgNonceKey()
+	val, err := db.Get(key)
+
+	var nonce uint64
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return 0, err
+	case IsDBNotFoundErr(err):
+		// do nothing
+	case nil == err && len(val) != 0:
+		nonce = bytesutil.BytesToUint64(val)
+	}
+	nonce++
+
+	return nonce, db.Put(key, bytesutil.Uint64ToBytes(nonce))
+}
+func QueryPowerMsgNonce(db DatabaseReader) (uint64, error) {
+
+	val, err := db.Get(GetPowerMsgNonceKey())
+
+	var nonce uint64
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return 0, err
+	case IsDBNotFoundErr(err):
+		return 0, nil
+	case nil == err && len(val) != 0:
+		nonce = bytesutil.BytesToUint64(val)
+	}
+	return nonce, nil
+}
+func IncreasePowerMsgNonce(db KeyValueStore) (uint64, error) {
+
+	key := GetPowerMsgNonceKey()
+	val, err := db.Get(key)
+
+	var nonce uint64
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return 0, err
+	case IsDBNotFoundErr(err):
+		// do nothing
+	case nil == err && len(val) != 0:
+		nonce = bytesutil.BytesToUint64(val)
+	}
+	nonce++
+
+	return nonce, db.Put(key, bytesutil.Uint64ToBytes(nonce))
+}
+func QueryTaskMsgNonce(db DatabaseReader) (uint64, error) {
+
+	val, err := db.Get(GetTaskMsgNonceKey())
+
+	var nonce uint64
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return 0, err
+	case IsDBNotFoundErr(err):
+		return 0, nil
+	case nil == err && len(val) != 0:
+		nonce = bytesutil.BytesToUint64(val)
+	}
+	return nonce, nil
+}
+func IncreaseTaskMsgNonce(db KeyValueStore) (uint64, error) {
+
+	key := GetTaskMsgNonceKey()
+	val, err := db.Get(key)
+
+	var nonce uint64
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return 0, err
+	case IsDBNotFoundErr(err):
+		// do nothing
+	case nil == err && len(val) != 0:
+		nonce = bytesutil.BytesToUint64(val)
+	}
+	nonce++
+
+	return nonce, db.Put(key, bytesutil.Uint64ToBytes(nonce))
+}

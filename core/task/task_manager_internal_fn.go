@@ -134,8 +134,7 @@ func (m *Manager) fetchConsumeOption(localTask *types.Task) (map[uint8][]*taskCo
 		return nil, fmt.Errorf("dataPolicyTypes len not equal dataPolicyOptions len")
 	}
 
-	var taskConsumeOptionsMap map[uint8][]*taskConsumeOption
-
+	taskConsumeOptionsMap := make(map[uint8][]*taskConsumeOption, 0)
 	fetchTaskMetadataConsumeOptionsFn := func(partyId, metadataId string, consumeTypes []uint8, consumeOptions []string) (map[uint8][]*taskConsumeOption, error) {
 
 		taskConsumeOptionsCache := make(map[uint8][]*taskConsumeOption, 0)
