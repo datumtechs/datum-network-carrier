@@ -806,21 +806,7 @@ func (m *MessageHandler) BroadcastMetadataAuthMsgArr(metadataAuthMsgArr types.Me
 		//		so the data legitimacy is verified again
 		// ############################################
 		// ############################################
-		pass, err := m.authManager.VerifyMetadataAuthWithMetadataOption(msg.GetMetadataAuthority().GetMetadataId(), msg.GetMetadataAuthority())
-		if nil != err {
-			log.WithError(err).Errorf("Failed to verify metadataAuth with metadataOption on MessageHandler with broadcast metadataAuth, metadataId: {%s}, auth: %s",
-				msg.GetMetadataAuthority().GetMetadataId(), msg.GetMetadataAuthority().String())
-			continue
-		}
-		if !pass {
-			log.Errorf("invalid metadataAuth on MessageHandler with broadcast metadataAuth, metadataId: {%s}, auth: %s",
-				msg.GetMetadataAuthority().GetMetadataId(), msg.GetMetadataAuthority().String())
-			continue
-		}
-
-		//TODO 填充 nonce
-		// Store metadataAuthority
-		if err := m.authManager.ApplyMetadataAuthority(types.NewMetadataAuthority(&carriertypespb.MetadataAuthorityPB{
+		auth := types.NewMetadataAuthority(&carriertypespb.MetadataAuthorityPB{
 			MetadataAuthId:  msg.GetMetadataAuthId(),
 			User:            msg.GetUser(),
 			UserType:        msg.GetUserType(),
@@ -836,7 +822,22 @@ func (m *MessageHandler) BroadcastMetadataAuthMsgArr(metadataAuthMsgArr types.Me
 			AuditAt: 0,
 			State:   commonconstantpb.MetadataAuthorityState_MAState_Released,
 			Sign:    msg.GetSign(),
-		})); nil != err {
+		})
+		pass, err := m.authManager.VerifyMetadataAuthWithMetadataOption(auth)
+		if nil != err {
+			log.WithError(err).Errorf("Failed to verify metadataAuth with metadataOption on MessageHandler with broadcast metadataAuth, metadataId: {%s}, auth: %s",
+				msg.GetMetadataAuthority().GetMetadataId(), msg.GetMetadataAuthority().String())
+			continue
+		}
+		if !pass {
+			log.Errorf("invalid metadataAuth on MessageHandler with broadcast metadataAuth, metadataId: {%s}, auth: %s",
+				msg.GetMetadataAuthority().GetMetadataId(), msg.GetMetadataAuthority().String())
+			continue
+		}
+
+		//TODO 填充 nonce
+		// Store metadataAuthority
+		if err := m.authManager.ApplyMetadataAuthority(auth); nil != err {
 			log.WithError(err).Errorf("Failed to store metadataAuth to dataCenter on MessageHandler with broadcast metadataAuth, metadataAuthId: {%s}, metadataId: {%s}, userType: {%s}, user:{%s}",
 				msg.GetMetadataAuthId(), msg.GetMetadataAuthority().GetMetadataId(), msg.GetUserType(), msg.GetUser())
 			continue
