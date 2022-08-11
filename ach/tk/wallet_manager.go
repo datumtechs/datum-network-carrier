@@ -125,7 +125,7 @@ func (m *WalletManager) loadPrivateKey() {
 				m.priKey = priKey
 				m.pubKey = &priKey.PublicKey
 				m.walletAddress = crypto.PubkeyToAddress(priKey.PublicKey)
-				log.Errorf("success to load organization wallet:%s", m.walletAddress)
+				log.Debugf("success to load organization wallet:%s", m.walletAddress)
 				return
 			}
 		}
@@ -138,7 +138,7 @@ func (m *WalletManager) loadPrivateKey() {
 		m.priKey = priKey
 		m.pubKey = &priKey.PublicKey
 		m.walletAddress = crypto.PubkeyToAddress(priKey.PublicKey)
-		log.Errorf("success to load organization wallet:%s", m.walletAddress)
+		log.Debugf("success to load organization wallet:%s", m.walletAddress)
 		return
 	}
 }
