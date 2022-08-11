@@ -97,9 +97,9 @@ func (m *WalletManager) GetPublicKey() *ecdsa.PublicKey {
 
 // loadPrivateKey loads private key from local DB, and caches the private key
 func (m *WalletManager) loadPrivateKey() {
-	if m.priKey != nil {
+	/*if m.priKey != nil {
 		return
-	}
+	}*/
 
 	// datacenter存储的是加密后的私钥
 	priKeyHex, err := m.dataCenter.FindOrgPriKey()
