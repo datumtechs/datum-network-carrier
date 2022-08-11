@@ -70,10 +70,12 @@ func (m *PayAgent) getTk721ExtInfo(tk *carrierapipb.TkItem) (*struct {
 
 	tokenId, ok := big.NewInt(0).SetString(tk.GetId(), 10)
 	if !ok {
+		log.WithError(err).Errorf("failed to parse tk id:%s", tk.Id)
 		return nil, TkIdError
 	}
 	resp, err := instance.GetExtInfo(nil, tokenId)
 	if err != nil {
+		log.WithError(err).Errorf("failed to get tk ext info, tkAddr:%s, tkId:%d", tk.TkAddress, tokenId)
 		return nil, err
 	}
 	return &resp, nil
