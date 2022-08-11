@@ -1672,6 +1672,34 @@ func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types
 					}
 					inputDataArr = append(inputDataArr, inputData)
 				}
+			case types.TASK_DATA_POLICY_IS_CSV_HAVE_CONSUME:
+				var dataPolicy *types.TaskMetadataPolicyCsvConsume
+				if err := json.Unmarshal([]byte(localTask.GetTaskData().GetDataPolicyOptions()[i]), &dataPolicy); nil != err {
+					return "", fmt.Errorf("can not unmarshal dataPolicyOption, %s, taskId: {%s}, partyId: {%s}", err, localTask.GetTaskId(), partyId)
+				}
+
+				if dataPolicy.GetPartyId() == partyId {
+					inputData, err := m.metadataInputConsumeCSV(task, localTask, dataPolicy)
+					if nil != err {
+						return "", fmt.Errorf("can not unmarshal metadataInputConsumeCSV, %s, taskId: {%s}, partyId: {%s}, metadataId: {%s}, metadataName: {%s}",
+							err, localTask.GetTaskId(), partyId, dataPolicy.GetMetadataId(), dataPolicy.GetMetadataName())
+					}
+					inputDataArr = append(inputDataArr, inputData)
+				}
+			case types.TASK_DATA_POLICY_CSV_WITH_TASKRESULTDATA:
+				var dataPolicy *types.TaskMetadataPolicyCSVWithTaskResultData
+				if err := json.Unmarshal([]byte(localTask.GetTaskData().GetDataPolicyOptions()[i]), &dataPolicy); nil != err {
+					return "", fmt.Errorf("can not unmarshal dataPolicyOption, %s, taskId: {%s}, partyId: {%s}", err, localTask.GetTaskId(), partyId)
+				}
+
+				if dataPolicy.GetPartyId() == partyId {
+					inputData, err := m.metadataInputCSVWithTaskResultData(task, localTask, dataPolicy)
+					if nil != err {
+						return "", fmt.Errorf("can not unmarshal metadataInputCSVWithTaskResultData, %s, taskId: {%s}, partyId: {%s}, taskId of taskResultData: {%s}",
+							err, localTask.GetTaskId(), partyId, dataPolicy.GetTaskId())
+					}
+					inputDataArr = append(inputDataArr, inputData)
+				}
 			case types.TASK_DATA_POLICY_DIR:
 				var dataPolicy *types.TaskMetadataPolicyDIR
 				if err := json.Unmarshal([]byte(localTask.GetTaskData().GetDataPolicyOptions()[i]), &dataPolicy); nil != err {
@@ -1702,20 +1730,6 @@ func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types
 					inputDataArr = append(inputDataArr, inputData)
 				}
 
-			case types.TASK_DATA_POLICY_CSV_WITH_TASKRESULTDATA:
-				var dataPolicy *types.TaskMetadataPolicyCSVWithTaskResultData
-				if err := json.Unmarshal([]byte(localTask.GetTaskData().GetDataPolicyOptions()[i]), &dataPolicy); nil != err {
-					return "", fmt.Errorf("can not unmarshal dataPolicyOption, %s, taskId: {%s}, partyId: {%s}", err, localTask.GetTaskId(), partyId)
-				}
-
-				if dataPolicy.GetPartyId() == partyId {
-					inputData, err := m.metadataInputCSVWithTaskResultData(task, localTask, dataPolicy)
-					if nil != err {
-						return "", fmt.Errorf("can not unmarshal metadataInputCSVWithTaskResultData, %s, taskId: {%s}, partyId: {%s}, taskId of taskResultData: {%s}",
-							err, localTask.GetTaskId(), partyId, dataPolicy.GetTaskId())
-					}
-					inputDataArr = append(inputDataArr, inputData)
-				}
 			default:
 				return "", fmt.Errorf("unknown dataPolicy type, taskId: {%s}, partyId: {%s}, dataPolicyType: {%d}", task.GetTaskId(), partyId, policyType)
 			}
@@ -1812,6 +1826,84 @@ func (m *Manager) metadataInputCSV(task *types.NeedExecuteTask, localTask *types
 		DataPath:        dataPath,
 		KeyColumn:       keyColumn,
 		SelectedColumns: selectedColumns,
+	}, nil
+}
+func (m *Manager) metadataInputConsumeCSV(task *types.NeedExecuteTask, localTask *types.Task, dataPolicy *types.TaskMetadataPolicyCsvConsume) (*types.InputConsumeDataCSV, error) {
+	var (
+		dataPath        string
+		keyColumn       string
+		selectedColumns []string
+	)
+
+	metadataId := dataPolicy.GetMetadataId()
+	internalMetadataFlag, err := m.resourceMng.GetDB().IsInternalMetadataById(metadataId)
+	if nil != err {
+		return nil, fmt.Errorf("cannot check metadata whether internal metadata, %s", err)
+	}
+
+	var metadata *types.Metadata
+
+	// whether the metadata is internal metadata ?
+	if internalMetadataFlag {
+		// query internal metadata
+		metadata, err = m.resourceMng.GetDB().QueryInternalMetadataById(metadataId)
+		if nil != err {
+			return nil, fmt.Errorf("cannot query internale metadata, %s", err)
+		}
+	} else {
+		// query published metadata
+		metadata, err = m.resourceMng.GetDB().QueryMetadataById(metadataId)
+		if nil != err {
+			return nil, fmt.Errorf("cannot query publish metadata, %s", err)
+		}
+	}
+
+	if types.IsNotCSVdata(metadata.GetData().GetDataType()) {
+		return nil, fmt.Errorf("dataType of metadata is not `CSV`, dataType: %s", metadata.GetData().GetDataType().String())
+	}
+
+	var metadataOption *types.MetadataOptionCSV
+	if err := json.Unmarshal([]byte(metadata.GetData().GetMetadataOption()), &metadataOption); nil != err {
+		return nil, fmt.Errorf("can not unmarshal `CSV` metadataOption, %s", err)
+	}
+
+	// collection all the column name cache
+	columnNameCache := make(map[uint32]string, 0)
+	for _, mdop := range metadataOption.GetMetadataColumns() {
+		columnNameCache[mdop.GetIndex()] = mdop.GetName()
+	}
+	// find key column name
+	if kname, ok := columnNameCache[dataPolicy.QueryKeyColumn()]; ok {
+		keyColumn = kname
+	} else {
+		return nil, fmt.Errorf("not found the keyColumn of task dataPolicy on `CSV` metadataOption, columnIndex: {%d}", dataPolicy.QueryKeyColumn())
+	}
+
+	// find all select column names
+	selectedColumns = make([]string, len(dataPolicy.QuerySelectedColumns()))
+	for i, selectedColumnIndex := range dataPolicy.QuerySelectedColumns() {
+
+		if sname, ok := columnNameCache[selectedColumnIndex]; ok {
+			selectedColumns[i] = sname
+		} else {
+			return nil, fmt.Errorf("not found the selectColumn of task dataPolicy on `CSV` metadataOption, columnIndex: {%d}", selectedColumnIndex)
+		}
+	}
+
+	dataPath = metadataOption.GetDataPath()
+	if strings.Trim(dataPath, "") == "" {
+		return nil, fmt.Errorf("dataPath is empty")
+	}
+
+	return &types.InputConsumeDataCSV{
+		InputType:       dataPolicy.QueryInputType(),
+		AccessType:      uint32(metadata.GetData().GetLocationType()),
+		DataType:        uint32(metadata.GetData().GetDataType()),
+		DataPath:        dataPath,
+		KeyColumn:       keyColumn,
+		SelectedColumns: selectedColumns,
+		ConsumeTypes:    metadataOption.GetConsumeTypes(),
+		ConsumeOptions:  metadataOption.GetConsumeOptions(),
 	}, nil
 }
 func (m *Manager) metadataInputDIR(task *types.NeedExecuteTask, localTask *types.Task, dataPolicy *types.TaskMetadataPolicyDIR) (*types.InputDataDIR, error) {

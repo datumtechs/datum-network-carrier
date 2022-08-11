@@ -726,7 +726,8 @@ func (m *MessageHandler) BroadcastMetadataUpdateMsgArr(metadataUpdateMsgArr type
 		return
 	}
 	for _, msg := range metadataUpdateMsgArr {
-		if types.IsCSVdata(msg.GetMetadataSummary().DataType) {
+		switch msg.GetMetadataSummary().GetDataType() {
+		case commonconstantpb.OrigindataType_OrigindataType_CSV:
 			var option *types.MetadataOptionCSV
 			if err := json.Unmarshal([]byte(msg.GetMetadataSummary().MetadataOption), &option); nil != err {
 				log.WithError(err).Errorf("Failed to unmashal metadataOption on MessageHandler with broadcast metadata update msg, metadataId: {%s}",
@@ -769,6 +770,8 @@ func (m *MessageHandler) BroadcastMetadataUpdateMsgArr(metadataUpdateMsgArr type
 
 			log.Debugf("broadcast metadata update msg succeed, metadataId: {%s}", msg.GetMetadataId())
 			m.resourceMng.GetDB().RemoveMetadataUpdateMsg(msg.GetMetadataId()) // remove from disk if msg been handle
+		default:
+			log.Warnf("BroadcastMetadataUpdateMsgArr Unknown type %s found", msg.GetMetadataSummary().GetDataType().String())
 		}
 	}
 }

@@ -565,7 +565,8 @@ func checkCanUpdateMetadataFieldIsLegal(oldMetadata *carriertypespb.MetadataPB, 
 		consumeTypes     []uint8
 		duplicateAddress []string
 	)
-	if req.GetInformation().GetDataType() == commonconstantpb.OrigindataType_OrigindataType_CSV {
+	switch req.GetInformation().GetDataType() {
+	case commonconstantpb.OrigindataType_OrigindataType_CSV:
 		var option *types.MetadataOptionCSV
 		err := json.Unmarshal([]byte(metadataOption), &option)
 		if err != nil {
@@ -577,8 +578,9 @@ func checkCanUpdateMetadataFieldIsLegal(oldMetadata *carriertypespb.MetadataPB, 
 		if len(consumeTypes) == 0 {
 			return nil, nil
 		}
-	} else {
+	default:
 		//todo other dataType
+		log.Warnf("checkCanUpdateMetadataFieldIsLegal Unknown type %s found", req.GetInformation().GetDataType().String())
 		return nil, nil
 	}
 
