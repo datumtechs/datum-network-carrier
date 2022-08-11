@@ -2,7 +2,6 @@ package types
 
 import (
 	"fmt"
-	"math/big"
 )
 
 var (
@@ -203,8 +202,8 @@ type DataConsumeOption interface {
 type MetadataAuthConsume string
 
 type Tk20Consume struct {
-	Contract string   `json:"contract"`
-	Balance  *big.Int `json:"balance"`
+	Contract string `json:"contract"`
+	Balance  string `json:"balance"`
 }
 
 type Tk721Consume struct {
@@ -221,7 +220,7 @@ func (tk *Tk721Consume) GetTokenId() uint64 {
 func (tk *Tk20Consume) Address() string {
 	return tk.Contract
 }
-func (tk *Tk20Consume) GetBalance() *big.Int {
+func (tk *Tk20Consume) GetBalance() string {
 	return tk.Balance
 }
 func (tk MetadataAuthConsume) Address() string {
