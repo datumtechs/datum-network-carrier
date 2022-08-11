@@ -81,6 +81,7 @@ func (msg *IdentityMsg) ToDataCenter() *Identity {
 		DataStatus: commonconstantpb.DataStatus_DataStatus_Valid,
 		Status:     commonconstantpb.CommonStatus_CommonStatus_Valid,
 		Credential: "",
+		Nonce:      msg.GetOrganization().GetNonce(),
 	})
 }
 func (msg *IdentityMsg) Marshal() ([]byte, error) { return nil, nil }

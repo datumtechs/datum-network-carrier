@@ -47,7 +47,7 @@ type PayAgent struct {
 }
 
 func NewPayAgent(ethContext *chainclient.EthContext) *PayAgent {
-	log.Info("Init payAgent agent...")
+	log.Infof("Init pay agent, wallet address: %s...", ethContext.GetAddress())
 	m := new(PayAgent)
 	m.ethContext = ethContext
 
@@ -95,7 +95,7 @@ func groupingTkList(tkItemList []*carrierapipb.TkItem) ([]ethcommon.Address, []*
 // EstimateTaskGas estimates gas fee for a task's sponsor.
 // EstimateTaskGas returns estimated gas and suggested gas price.
 func (m *PayAgent) EstimateTaskGas(taskSponsorAddress string, tkItemList []*carrierapipb.TkItem) (uint64, *big.Int, error) {
-	log.Debugf("call EstimateTaskGas, sponsorAddress: %s, tknAddressList:%v", taskSponsorAddress, tkItemList)
+	log.Debugf("call EstimateTaskGas, sender: %s, sponsorAddress: %s, tknAddressList:%v", m.ethContext.GetAddress().Hex(), taskSponsorAddress, tkItemList)
 
 	tk20AddressList, tk20AmountList, _ := groupingTkList(tkItemList)
 

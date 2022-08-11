@@ -97,18 +97,19 @@ func (m *WalletManager) GetPublicKey() *ecdsa.PublicKey {
 
 // loadPrivateKey loads private key from local DB, and caches the private key
 func (m *WalletManager) loadPrivateKey() {
-	if m.priKey != nil {
+	/*if m.priKey != nil {
 		return
-	}
+	}*/
 
 	// datacenter存储的是加密后的私钥
 	priKeyHex, err := m.dataCenter.FindOrgPriKey()
 	if nil != err {
-		log.WithError(err).Error("failed to query organization wallet. ", err)
+		log.WithError(err).Error("failed to load organization wallet. ", err)
 		return
 	}
 
 	if len(priKeyHex) == 0 {
+		log.Warn("failed to load organization wallet. ")
 		return
 	}
 	if m.kms != nil {
@@ -124,6 +125,7 @@ func (m *WalletManager) loadPrivateKey() {
 				m.priKey = priKey
 				m.pubKey = &priKey.PublicKey
 				m.walletAddress = crypto.PubkeyToAddress(priKey.PublicKey)
+				log.Debugf("success to load organization wallet:%s", m.walletAddress)
 				return
 			}
 		}
@@ -136,6 +138,7 @@ func (m *WalletManager) loadPrivateKey() {
 		m.priKey = priKey
 		m.pubKey = &priKey.PublicKey
 		m.walletAddress = crypto.PubkeyToAddress(priKey.PublicKey)
+		log.Debugf("success to load organization wallet:%s", m.walletAddress)
 		return
 	}
 }
