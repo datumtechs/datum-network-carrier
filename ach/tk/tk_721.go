@@ -65,17 +65,18 @@ func (m *PayAgent) getTk721ExtInfo(tk *carrierapipb.TkItem) (*struct {
 
 	instance, err := contracts.NewErc721(common.HexToAddress(tk.TkAddress), m.ethContext.GetClient())
 	if err != nil {
+		log.WithError(err).Errorf("failed to get tk instance:%s", tk.GetTkAddress())
 		return nil, err
 	}
 
 	tokenId, ok := big.NewInt(0).SetString(tk.GetId(), 10)
 	if !ok {
-		log.WithError(err).Errorf("failed to parse tk id:%s", tk.GetId())
+		log.Errorf("failed to parse tk id:%s", tk.GetId())
 		return nil, TkIdError
 	}
 	resp, err := instance.GetExtInfo(nil, tokenId)
 	if err != nil {
-		log.WithError(err).Errorf("failed to get tk ext info, tkAddr:%s, tkId:%d", tk.TkAddress, tokenId)
+		log.WithError(err).Errorf("failed to get tk ext info, tkAddr:%s, tkId:%d", tk.GetTkAddress(), tokenId)
 		return nil, err
 	}
 	return &resp, nil
