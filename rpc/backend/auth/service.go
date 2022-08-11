@@ -214,7 +214,23 @@ func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *carrierapipb
 	// 		check metadataAuth with metadata
 	// ############################################
 	// ############################################
-	pass, err := svr.B.VerifyMetadataAuthWithMetadataOption(req.GetAuth().GetMetadataId(), req.GetAuth())
+	pass, err := svr.B.VerifyMetadataAuthWithMetadataOption(types.NewMetadataAuthority(&carriertypespb.MetadataAuthorityPB{
+		MetadataAuthId:  "",
+		User:            req.GetUser(),
+		UserType:        req.GetUserType(),
+		Auth:            req.GetAuth(),
+		AuditOption:     commonconstantpb.AuditMetadataOption_Audit_Pending,
+		AuditSuggestion: "",
+		UsedQuo: &carriertypespb.MetadataUsedQuo{
+			UsageType: req.GetAuth().GetUsageRule().GetUsageType(),
+			Expire:    false, // Initialized zero value
+			UsedTimes: 0,     // Initialized zero value
+		},
+		ApplyAt: metadataAuthorityMsg.GetCreateAt(),
+		AuditAt: 0,
+		State:   commonconstantpb.MetadataAuthorityState_MAState_Released,
+		Sign:    req.GetSign(),
+	}))
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:ApplyMetadataAuthority failed, can not verify metadataAuth with metadataOption, metadataId: {%s}, auth: %s",
 			req.GetAuth().GetMetadataId(), req.GetAuth().String())

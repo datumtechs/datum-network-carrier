@@ -1070,8 +1070,8 @@ func (s *CarrierAPIBackend) HasValidMetadataAuth(userType commonconstantpb.UserT
 	return s.carrier.authManager.HasValidMetadataAuth(userType, user, identityId, metadataId)
 }
 
-func (s *CarrierAPIBackend) VerifyMetadataAuthWithMetadataOption(metadataAuthId string, auth *carriertypespb.MetadataAuthority) (bool, error) {
-	return s.carrier.authManager.VerifyMetadataAuthWithMetadataOption(metadataAuthId, auth)
+func (s *CarrierAPIBackend) VerifyMetadataAuthWithMetadataOption(auth *types.MetadataAuthority) (bool, error) {
+	return s.carrier.authManager.VerifyMetadataAuthWithMetadataOption(auth)
 }
 
 func (s *CarrierAPIBackend) VerifyMetadataAuthInfo(auth *types.MetadataAuthority) (bool, error) {
