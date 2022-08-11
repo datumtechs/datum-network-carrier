@@ -104,11 +104,12 @@ func (m *WalletManager) loadPrivateKey() {
 	// datacenter存储的是加密后的私钥
 	priKeyHex, err := m.dataCenter.FindOrgPriKey()
 	if nil != err {
-		log.WithError(err).Error("failed to query organization wallet. ", err)
+		log.WithError(err).Error("failed to load organization wallet. ", err)
 		return
 	}
 
 	if len(priKeyHex) == 0 {
+		log.Warn("failed to load organization wallet. ")
 		return
 	}
 	if m.kms != nil {
