@@ -16,6 +16,7 @@ var (
 	NotForExpectedAlgorithm = errors.New("the tk is not for current algorithm")
 	TermExpired             = errors.New("the tk is expired")
 	TermError               = errors.New("the tk term is error")
+	TkIdError               = errors.New("the tk id is error")
 	SysError                = errors.New("system internal error")
 )
 
@@ -67,7 +68,11 @@ func (m *PayAgent) getTk721ExtInfo(tk *carrierapipb.TkItem) (*struct {
 		return nil, err
 	}
 
-	resp, err := instance.GetExtInfo(nil, big.NewInt(0).SetUint64(tk.GetId()))
+	tokenId, ok := big.NewInt(0).SetString(tk.GetId(), 10)
+	if !ok {
+		return nil, TkIdError
+	}
+	resp, err := instance.GetExtInfo(nil, tokenId)
 	if err != nil {
 		return nil, err
 	}
