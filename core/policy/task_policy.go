@@ -8,7 +8,6 @@ import (
 	"github.com/datumtechs/datum-network-carrier/types"
 )
 
-
 func (pe *PolicyEngine) FetchMetedataIdByPartyIdFromDataPolicy(partyId string, policyTypes []uint32, policyOptions []string) (string, error) {
 
 	if len(policyTypes) != len(policyOptions) {
@@ -39,16 +38,8 @@ func (pe *PolicyEngine) FetchMetedataIdByPartyIdAndOptionFromDataPolicy(partyId 
 		if policy.GetPartyId() == partyId {
 			return policy.GetMetadataId(), nil
 		}
-	case types.TASK_DATA_POLICY_DIR:
-		var policy *types.TaskMetadataPolicyDIR
-		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
-			return "", err
-		}
-		if policy.GetPartyId() == partyId {
-			return policy.GetMetadataId(), nil
-		}
-	case types.TASK_DATA_POLICY_BINARY:
-		var policy *types.TaskMetadataPolicyBINARY
+	case types.TASK_DATA_POLICY_IS_CSV_HAVE_CONSUME:
+		var policy *types.TaskMetadataPolicyCsvConsume
 		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
 			return "", err
 		}
@@ -69,6 +60,22 @@ func (pe *PolicyEngine) FetchMetedataIdByPartyIdAndOptionFromDataPolicy(partyId 
 				return IgnoreMetadataId, nil
 			}
 			return resultData.GetMetadataId(), nil
+		}
+	case types.TASK_DATA_POLICY_DIR:
+		var policy *types.TaskMetadataPolicyDIR
+		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
+			return "", err
+		}
+		if policy.GetPartyId() == partyId {
+			return policy.GetMetadataId(), nil
+		}
+	case types.TASK_DATA_POLICY_BINARY:
+		var policy *types.TaskMetadataPolicyBINARY
+		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
+			return "", err
+		}
+		if policy.GetPartyId() == partyId {
+			return policy.GetMetadataId(), nil
 		}
 	}
 	return "", types.NotFoundMetadataPolicy
@@ -103,6 +110,26 @@ func (pe *PolicyEngine) FetchAllMetedataIdByOptionFromDataPolicy(policyType uint
 		}
 
 		return policy.GetMetadataId(), nil
+	case types.TASK_DATA_POLICY_IS_CSV_HAVE_CONSUME:
+		var policy *types.TaskMetadataPolicyCsvConsume
+		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
+			return "", err
+		}
+
+		return policy.GetMetadataId(), nil
+	case types.TASK_DATA_POLICY_CSV_WITH_TASKRESULTDATA:
+		var policy *types.TaskMetadataPolicyCSVWithTaskResultData
+		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
+			return "", err
+		}
+		resultData, err := pe.db.QueryTaskUpResulData(policy.GetTaskId())
+		if rawdb.IsNoDBNotFoundErr(err) {
+			return "", err
+		}
+		if rawdb.IsDBNotFoundErr(err) {
+			return IgnoreMetadataId, nil
+		}
+		return resultData.GetMetadataId(), nil
 	case types.TASK_DATA_POLICY_DIR:
 		var policy *types.TaskMetadataPolicyDIR
 		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
@@ -117,20 +144,6 @@ func (pe *PolicyEngine) FetchAllMetedataIdByOptionFromDataPolicy(policyType uint
 		}
 
 		return policy.GetMetadataId(), nil
-
-	case types.TASK_DATA_POLICY_CSV_WITH_TASKRESULTDATA:
-		var policy *types.TaskMetadataPolicyCSVWithTaskResultData
-		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
-			return "", err
-		}
-		resultData, err := pe.db.QueryTaskUpResulData(policy.GetTaskId())
-		if rawdb.IsNoDBNotFoundErr(err) {
-			return "", err
-		}
-		if rawdb.IsDBNotFoundErr(err) {
-			return IgnoreMetadataId, nil
-		}
-		return resultData.GetMetadataId(), nil
 	}
 	return "", types.NotFoundMetadataPolicy
 }
@@ -165,16 +178,8 @@ func (pe *PolicyEngine) FetchMetedataNameByPartyIdAndOptionFromDataPolicy(partyI
 		if policy.GetPartyId() == partyId {
 			return policy.GetMetadataName(), nil
 		}
-	case types.TASK_DATA_POLICY_DIR:
-		var policy *types.TaskMetadataPolicyDIR
-		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
-			return "", err
-		}
-		if policy.GetPartyId() == partyId {
-			return policy.GetMetadataName(), nil
-		}
-	case types.TASK_DATA_POLICY_BINARY:
-		var policy *types.TaskMetadataPolicyBINARY
+	case types.TASK_DATA_POLICY_IS_CSV_HAVE_CONSUME:
+		var policy *types.TaskMetadataPolicyCsvConsume
 		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
 			return "", err
 		}
@@ -203,10 +208,25 @@ func (pe *PolicyEngine) FetchMetedataNameByPartyIdAndOptionFromDataPolicy(partyI
 			}
 			return metadata.GetData().GetMetadataName(), nil
 		}
+	case types.TASK_DATA_POLICY_DIR:
+		var policy *types.TaskMetadataPolicyDIR
+		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
+			return "", err
+		}
+		if policy.GetPartyId() == partyId {
+			return policy.GetMetadataName(), nil
+		}
+	case types.TASK_DATA_POLICY_BINARY:
+		var policy *types.TaskMetadataPolicyBINARY
+		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
+			return "", err
+		}
+		if policy.GetPartyId() == partyId {
+			return policy.GetMetadataName(), nil
+		}
 	}
 	return "", types.NotFoundMetadataPolicy
 }
-
 
 // ==============================================================  power policy ==============================================================
 
@@ -244,7 +264,6 @@ func (pe *PolicyEngine) FetchPowerPartyIdByOptionFromPowerPolicy(policyType uint
 		return "", types.NotFoundPowerPolicy
 	}
 }
-
 
 // ==============================================================  receiver policy ==============================================================
 func (pe *PolicyEngine) FetchReceiverPartyIdsFromReceiverPolicy(policyTypes []uint32, policyOptions []string) ([]string, error) {

@@ -1409,3 +1409,14 @@ type InputDataCSV struct {
 	KeyColumn       string   `json:"key_column"`
 	SelectedColumns []string `json:"selected_columns"`
 }
+
+type InputConsumeDataCSV struct {
+	InputType       uint32   `json:"input_type"`
+	AccessType      uint32   `json:"access_type"` // 访问数据的方式，(fighter用决定是否预先加载数据). 0:unknown, 1:local <default>, 2:http, 3:https, 4:ftp
+	DataType        uint32   `json:"data_type"`
+	DataPath        string   `json:"data_path"`
+	KeyColumn       string   `json:"key_column"`
+	SelectedColumns []string `json:"selected_columns"`
+	ConsumeTypes    []uint8  `json:"consumeTypes"`
+	ConsumeOptions  []string `json:"consumeOptions"`
+}
