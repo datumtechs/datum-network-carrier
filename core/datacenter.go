@@ -392,6 +392,58 @@ func (dc *DataCenter) QueryTaskMsgArr() (types.TaskMsgArr, error) {
 	return rawdb.QueryTaskMsgArr(dc.db)
 }
 
+// about msg nonce
+func (dc *DataCenter) QueryIdentityMsgNonce() (uint64, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.QueryIdentityMsgNonce(dc.db)
+}
+func (dc *DataCenter) IncreaseIdentityMsgNonce() (uint64, error) {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.IncreaseIdentityMsgNonce(dc.db)
+}
+func (dc *DataCenter) QueryMetadataMsgNonce() (uint64, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.QueryMetadataMsgNonce(dc.db)
+}
+func (dc *DataCenter) IncreaseMetadataMsgNonce() (uint64, error) {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.IncreaseMetadataMsgNonce(dc.db)
+}
+func (dc *DataCenter) QueryMetadataAuthMsgNonce() (uint64, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.QueryMetadataAuthMsgNonce(dc.db)
+}
+func (dc *DataCenter) IncreaseMetadataAuthMsgNonce() (uint64, error) {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.IncreaseMetadataAuthMsgNonce(dc.db)
+}
+func (dc *DataCenter) QueryPowerMsgNonce() (uint64, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.QueryPowerMsgNonce(dc.db)
+}
+func (dc *DataCenter) IncreasePowerMsgNonce() (uint64, error) {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.IncreasePowerMsgNonce(dc.db)
+}
+func (dc *DataCenter) QueryTaskMsgNonce() (uint64, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.QueryTaskMsgNonce(dc.db)
+}
+func (dc *DataCenter) IncreaseTaskMsgNonce() (uint64, error) {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.IncreaseTaskMsgNonce(dc.db)
+}
+
 // ****************************************************************************************************************
 func (dc *DataCenter) Stop() {
 	if !atomic.CompareAndSwapInt32(&dc.running, 0, 1) {

@@ -72,6 +72,18 @@ var (
 
 	// --------------- for organization built-in private key ---------------
 	orgPriKeyPrefix = []byte("orgPriKeyPrefix:")
+
+	// --------------- for msg nonce ---------------
+	// identityMsgNonceKey -> nonce
+	identityMsgNonceKey = []byte("identityMsgNonceKey")
+	// metadataMsgNonceKey -> nonce
+	metadataMsgNonceKey = []byte("metadataMsgNonceKey")
+	// metadataAuthMsgNonceKey -> nonce
+	metadataAuthMsgNonceKey = []byte("metadataAuthMsgNonceKey")
+	// powerMsgNonceKey -> nonce
+	powerMsgNonceKey = []byte("powerMsgNonceKey")
+	// taskMsgNonceKey -> nonce
+	taskMsgNonceKey = []byte("taskMsgNonceKey")
 )
 
 const (
@@ -359,4 +371,24 @@ func GetTaskBulletKey(taskId string) []byte {
 
 func GetOrgPriKeyPrefix() []byte {
 	return orgPriKeyPrefix
+}
+
+func GetIdentityMsgNonceKey() []byte {
+	return identityMsgNonceKey
+}
+
+func GetMetadataMsgNonceKey() []byte {
+	return metadataMsgNonceKey
+}
+
+func GetMetadataAuthMsgNonceKey() []byte {
+	return metadataAuthMsgNonceKey
+}
+
+func GetPowerMsgNonceKey() []byte {
+	return powerMsgNonceKey
+}
+
+func GetTaskMsgNonceKey() []byte {
+	return taskMsgNonceKey
 }
