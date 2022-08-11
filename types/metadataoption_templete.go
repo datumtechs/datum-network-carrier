@@ -3,7 +3,6 @@ package types
 import (
 	"fmt"
 	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
-	"math/big"
 )
 
 var (
@@ -264,23 +263,17 @@ tk20 consume kind:
 }
 */
 type MetadataConsumeOptionTK20 struct {
-	Contract              string   `json:"contract"`              // the tk20 contract address
-	CryptoAlgoConsumeUnit *big.Int `json:"cryptoAlgoConsumeUnit"` // Pricing unit for ciphertext algorithm (number of tks, minimum unit)
-	PlainAlgoConsumeUnit  *big.Int `json:"plainAlgoConsumeUnit"`  // Pricing unit for plain algorithm (number of tks, minimum unit)
+	Contract              string `json:"contract"`              // the tk20 contract address
+	CryptoAlgoConsumeUnit string `json:"cryptoAlgoConsumeUnit"` // Pricing unit for ciphertext algorithm (number of tks, minimum unit)
+	PlainAlgoConsumeUnit  string `json:"plainAlgoConsumeUnit"`  // Pricing unit for plain algorithm (number of tks, minimum unit)
 }
 
 func (o *MetadataConsumeOptionTK20) GetContract() string { return o.Contract }
-func (o *MetadataConsumeOptionTK20) GetCryptoAlgoConsumeUnit() *big.Int {
+func (o *MetadataConsumeOptionTK20) GetCryptoAlgoConsumeUnit() string {
 	return o.CryptoAlgoConsumeUnit
 }
-func (o *MetadataConsumeOptionTK20) GetCryptoAlgoConsumeUnitUint64() uint64 {
-	return o.CryptoAlgoConsumeUnit.Uint64()
-}
-func (o *MetadataConsumeOptionTK20) GetPlainAlgoConsumeUnit() *big.Int {
+func (o *MetadataConsumeOptionTK20) GetPlainAlgoConsumeUnit() string {
 	return o.PlainAlgoConsumeUnit
-}
-func (o *MetadataConsumeOptionTK20) GetPlainAlgoConsumeUnitUint64() uint64 {
-	return o.PlainAlgoConsumeUnit.Uint64()
 }
 
 /**

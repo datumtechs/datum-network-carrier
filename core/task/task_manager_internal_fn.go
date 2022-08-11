@@ -240,7 +240,7 @@ func (m *Manager) beginConsumeMetadataOrPower(task *types.NeedExecuteTask, local
 func (m *Manager) beginConsumeByTk20(task *types.NeedExecuteTask, localTask *types.Task, dataConsumeOptions []*taskConsumeOption) error {
 
 	// fetch tk20
-	taskTk20ConsumeContractCache := make(map[string]*big.Int, 0) // address -> balance
+	taskTk20ConsumeContractCache := make(map[string]string, 0) // address -> balance
 	metadataIds := make([]string, 0)
 	metadataIdCache := make(map[string]struct{}, 0)
 	partyMetadataIdCache := make(map[string]string, 0)
@@ -325,13 +325,25 @@ func (m *Manager) beginConsumeByTk20(task *types.NeedExecuteTask, localTask *typ
 			// todo this field is used for the time being,
 			//   and will not be used in the subsequent algorithm market.
 			algotithmType := strings.TrimSpace(localTask.GetTaskData().GetMetaAlgorithmId())
-			if algotithmType == ciphertextAlgorithm && balance.Cmp(option.GetCryptoAlgoConsumeUnit()) == -1 {
-				return fmt.Errorf("ciphertext balance less than cryptoAlgoConsumeUnit on beginConsumeByTk20(), contract address: {%s}, balance: {%s}, uint: {%s}",
-					contractAdrress, balance.String(), option.GetCryptoAlgoConsumeUnit().String())
+			blanceConvertBigInt, ok := new(big.Int).SetString(balance, 10)
+			if !ok {
+				return fmt.Errorf("%s convert bigInt fail,please check", balance)
 			}
-			if algotithmType == plaintextAlgorithm && balance.Cmp(option.GetPlainAlgoConsumeUnit()) == -1 {
+			cryptoAlgoConsumeUnitConvertBigInt, ok := new(big.Int).SetString(option.GetCryptoAlgoConsumeUnit(), 10)
+			if !ok {
+				return fmt.Errorf("%s convert bigInt fail,please check", option.GetCryptoAlgoConsumeUnit())
+			}
+			plainAlgoConsumeUnitConvertBigInt, ok := new(big.Int).SetString(option.GetPlainAlgoConsumeUnit(), 10)
+			if !ok {
+				return fmt.Errorf("%s convert bigInt fail,please check", option.GetPlainAlgoConsumeUnit())
+			}
+			if algotithmType == ciphertextAlgorithm && blanceConvertBigInt.Cmp(cryptoAlgoConsumeUnitConvertBigInt) == -1 {
+				return fmt.Errorf("ciphertext balance less than cryptoAlgoConsumeUnit on beginConsumeByTk20(), contract address: {%s}, balance: {%s}, uint: {%s}",
+					contractAdrress, balance, option.GetCryptoAlgoConsumeUnit())
+			}
+			if algotithmType == plaintextAlgorithm && blanceConvertBigInt.Cmp(plainAlgoConsumeUnitConvertBigInt) == -1 {
 				return fmt.Errorf("plaintext balance less than plainAlgoConsumeUnit on beginConsumeByTk20(), contract address: {%s}, balance: {%s}, uint: {%s}",
-					contractAdrress, balance.String(), option.GetPlainAlgoConsumeUnit().String())
+					contractAdrress, balance, option.GetPlainAlgoConsumeUnit())
 			}
 		}
 
@@ -342,7 +354,7 @@ func (m *Manager) beginConsumeByTk20(task *types.NeedExecuteTask, localTask *typ
 			tkTtems = append(tkTtems, &carrierapipb.TkItem{
 				TkType:    commonconstantpb.TkType_Tk20,
 				TkAddress: option.Address(),
-				Value:     option.GetBalance().String(),
+				Value:     option.GetBalance(),
 			})
 		}
 
