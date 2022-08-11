@@ -7,6 +7,7 @@ import (
 	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	"github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -55,6 +56,12 @@ func NewPayAgent(ethContext *chainclient.EthContext) *PayAgent {
 		log.Fatal(err)
 	}
 	m.payAgentContractInstance = instance
+
+	abiCode, err := abi.JSON(strings.NewReader(contracts.DatumPayMetaData.ABI))
+	if err != nil {
+		log.Fatal(err)
+	}
+	m.abi = abiCode
 
 	return m
 }
