@@ -23,23 +23,23 @@ var (
 func (m *PayAgent) inspectTk721ExtInfo(taskSponsorAddress common.Address, tk *carrierapipb.TkItem) error {
 	extInfo, err := m.getTk721ExtInfo(tk)
 	if err != nil {
-		log.WithError(err).Errorf("cannot fetch erc721 token ext info: tk:%s, id: %d", tk.TkAddress, tk.Id)
+		log.WithError(err).Errorf("cannot fetch erc721 token ext info: tk:%s, id: %s", tk.TkAddress, tk.Id)
 		return SysError
 	}
 
 	if extInfo.Owner != taskSponsorAddress {
-		log.WithError(err).Errorf("task sponsor is not the tk owner, tk: %s, id: %d", tk.TkAddress, tk.Id)
+		log.WithError(err).Errorf("task sponsor is not the tk owner, tk: %s, id: %s", tk.TkAddress, tk.Id)
 		return NotOwner
 	}
 
 	utcMilli, err := strconv.ParseInt(extInfo.Term, 10, 64)
 	if err != nil {
-		log.WithError(err).Errorf("the tk term is error, tk: %s, id: %d", tk.TkAddress, tk.Id)
+		log.WithError(err).Errorf("the tk term is error, tk: %s, id: %s", tk.TkAddress, tk.Id)
 		return TermError
 	}
 
 	if utcMilli < time.Now().UTC().UnixMilli() {
-		log.WithError(err).Errorf("the tk is Expired, tk: %s, id: %d", tk.TkAddress, tk.Id)
+		log.WithError(err).Errorf("the tk is Expired, tk: %s, id: %s", tk.TkAddress, tk.Id)
 		return TermExpired
 	}
 	/*currentBlockNo, err := m.ethContext.BlockNumber(context.Background())
@@ -65,15 +65,18 @@ func (m *PayAgent) getTk721ExtInfo(tk *carrierapipb.TkItem) (*struct {
 
 	instance, err := contracts.NewErc721(common.HexToAddress(tk.TkAddress), m.ethContext.GetClient())
 	if err != nil {
+		log.WithError(err).Errorf("failed to get tk instance:%s", tk.GetTkAddress())
 		return nil, err
 	}
 
 	tokenId, ok := big.NewInt(0).SetString(tk.GetId(), 10)
 	if !ok {
+		log.Errorf("failed to parse tk id:%s", tk.GetId())
 		return nil, TkIdError
 	}
 	resp, err := instance.GetExtInfo(nil, tokenId)
 	if err != nil {
+		log.WithError(err).Errorf("failed to get tk ext info, tkAddr:%s, tkId:%d", tk.GetTkAddress(), tokenId)
 		return nil, err
 	}
 	return &resp, nil
