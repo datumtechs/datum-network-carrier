@@ -10,6 +10,7 @@ import (
 	fighterapipb "github.com/datumtechs/datum-network-carrier/pb/fighter/api/data"
 	"github.com/datumtechs/datum-network-carrier/rpc/backend"
 	"github.com/datumtechs/datum-network-carrier/types"
+	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"io"
 	"strings"
@@ -398,10 +399,19 @@ func (svr *Server) DownloadTaskResultData(req *carrierapipb.DownloadTaskResultDa
 	if err != nil {
 		return err
 	}
-	dataNodeClient, ok := svr.B.GetQueryDataNodeClientByNodeId(taskResultSummary.GetNodeId())
+	dataNodeInfo, ok := svr.B.GetQueryDataNodeClientByNodeId(taskResultSummary.GetNodeId())
 	if !ok {
 		return fmt.Errorf("RPC-API:DownloadTaskResultData call GetQueryDataNodeClientByNodeId fail")
 	}
+	dataServerAddress := dataNodeInfo.GetAddress()
+	log.Debugf("DownloadTaskResultData dataServerAddress %s", dataServerAddress)
+	conn, err := grpc.Dial(dataServerAddress, grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("net.Connect err: %v", err)
+	}
+	defer conn.Close()
+	grpcDataClient := fighterapipb.NewDataProviderClient(conn)
+
 	metadataOption := taskResultSummary.GetMetadataOption()
 	var dataPath string
 	switch taskResultSummary.GetDataType() {
@@ -420,7 +430,7 @@ func (svr *Server) DownloadTaskResultData(req *carrierapipb.DownloadTaskResultDa
 	default:
 		return fmt.Errorf("RPC-API:DownloadTaskResultDat not support data type %d", taskResultSummary.GetDataType())
 	}
-	dataNodeStream, err := dataNodeClient.DownloadData(&fighterapipb.DownloadRequest{
+	dataNodeStream, err := grpcDataClient.DownloadData(context.Background(), &fighterapipb.DownloadRequest{
 		DataPath: dataPath,
 		Options:  options,
 	})
