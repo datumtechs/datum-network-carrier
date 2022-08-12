@@ -263,7 +263,8 @@ func (m *Manager) beginConsumeByTk20(task *types.NeedExecuteTask, localTask *typ
 			metadataIds = append(metadataIds, taskConsumeOption.GetMetadataId())
 		}
 		// partyId and metadataIds cache
-		if task.GetLocalTaskRole() == commonconstantpb.TaskRole_TaskRole_DataSupplier {
+		if task.GetLocalTaskRole() == commonconstantpb.TaskRole_TaskRole_DataSupplier &&
+			taskConsumeOption.GetMetadataId() == task.GetLocalTaskOrganization().GetPartyId() {
 			partyMetadataIdCache[taskConsumeOption.GetPartyId()] = taskConsumeOption.GetMetadataId()
 		}
 	}
@@ -436,7 +437,10 @@ func (m *Manager) beginConsumeByTk20(task *types.NeedExecuteTask, localTask *typ
 
 		// check metadataId of myself (only by dataSupplier)
 		if task.GetLocalTaskRole() == commonconstantpb.TaskRole_TaskRole_DataSupplier {
-
+			if len(partyMetadataIdCache) == 0 {
+				log.Debugf("beginConsumeByTk20 partyMetadataIdCache length is 0")
+				return nil
+			}
 			metadataId, ok := partyMetadataIdCache[task.GetLocalTaskOrganization().GetPartyId()]
 
 			if !ok {
