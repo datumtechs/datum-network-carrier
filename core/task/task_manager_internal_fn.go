@@ -194,7 +194,16 @@ func (m *Manager) fetchConsumeOption(localTask *types.Task) (map[uint8][]*taskCo
 			if err := json.Unmarshal([]byte(policyOption), &consumePolicy); nil != err {
 				return nil, fmt.Errorf("taskMetadataPolicyCsvConsume json Unmarshal %s, taskMetadataPolicyCsvConsume: %s", err, policyOption)
 			}
-
+			metadataId := consumePolicy.GetMetadataId()
+			metadataDetail, err := m.resourceMng.GetDB().QueryMetadataById(metadataId)
+			if err != nil {
+				log.WithError(err).Warnf("fetchConsumeOption call QueryMetadataById fail!")
+				return nil, err
+			}
+			if localTask.GetTaskData().GetUser() == metadataDetail.GetData().GetUser() {
+				log.Warnf("Data owners do not need to consume credentials to perform tasks")
+				continue
+			}
 			dataConsumeOptionCache, err := fetchTaskMetadataConsumeOptionsFn(consumePolicy.GetPartyId(), consumePolicy.GetMetadataId(), consumePolicy.GetConsumeTypes(), consumePolicy.GetConsumeOptions())
 			if nil != err {
 				return nil, err
