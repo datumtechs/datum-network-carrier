@@ -204,7 +204,7 @@ func (m *Manager) fetchConsumeOption(localTask *types.Task) (map[uint8][]*taskCo
 				log.Warnf("Data owners do not need to consume credentials to perform tasks")
 				continue
 			}
-			dataConsumeOptionCache, err := fetchTaskMetadataConsumeOptionsFn(consumePolicy.GetPartyId(), consumePolicy.GetMetadataId(), consumePolicy.GetConsumeTypes(), consumePolicy.GetConsumeOptions())
+			dataConsumeOptionCache, err := fetchTaskMetadataConsumeOptionsFn(consumePolicy.GetPartyId(), metadataId, consumePolicy.GetConsumeTypes(), consumePolicy.GetConsumeOptions())
 			if nil != err {
 				return nil, err
 			}
