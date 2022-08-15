@@ -260,6 +260,12 @@ func (pe *PolicyEngine) FetchPowerPartyIdByOptionFromPowerPolicy(policyType uint
 			return "", err
 		}
 		return policy.GetPowerPartyId(), nil
+	case types.TASK_POWER_POLICY_FIXED_ORGANIZATION_PROVIDE:
+		var policy *types.TaskPowerPolicyFixedOrganizationProvide
+		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
+			return "", err
+		}
+		return policy.GetPowerPartyId(), nil
 	default:
 		return "", types.NotFoundPowerPolicy
 	}
