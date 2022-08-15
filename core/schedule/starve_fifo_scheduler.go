@@ -505,7 +505,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 					return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)
 				}
 			case *ReScheduleWithFixedOrganizationProvidePower:
-				c := coller.(*ReScheduleWithDataNodeProvidePower)
+				c := coller.(*ReScheduleWithFixedOrganizationProvidePower)
 
 				if len(c.GetSuppliers()) != len(c.GetProvides()) {
 					log.Errorf("fixedOrganizationProvider: election powerSuppliers count and election providePolicys count is not same on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, powerSuppliers len: %d, providePolicys len: %d",
@@ -562,8 +562,17 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(
 
 			switch policyType {
 			case types.TASK_POWER_POLICY_ASSIGNMENT_SYMBOL_RANDOM_ELECTION, types.TASK_POWER_POLICY_FIXED_ORGANIZATION_PROVIDE:
-
-				if task.GetTaskData().GetPowerPolicyOptions()[i] == partyId && task.GetTaskData().GetPowerSuppliers()[i].GetPartyId() == partyId {
+				policyOption := task.GetTaskData().GetPowerPolicyOptions()[i]
+				partyIdFromPolicyOption := policyOption
+				if policyType == types.TASK_POWER_POLICY_FIXED_ORGANIZATION_PROVIDE {
+					var fixedOrganizationProvide *types.TaskPowerPolicyFixedOrganizationProvide
+					if err := json.Unmarshal([]byte(policyOption), &fixedOrganizationProvide); err != nil {
+						log.Debugf("json Unmarshal fixedOrganizationProvide fail %s,err is:%v", policyOption, err)
+						return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)
+					}
+					partyIdFromPolicyOption = fixedOrganizationProvide.GetPowerPartyId()
+				}
+				if partyIdFromPolicyOption == partyId && task.GetTaskData().GetPowerSuppliers()[i].GetPartyId() == partyId {
 
 					log.Debugf("Succeed CalculateSlotCount when role is powerSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, cost.mem: {%d}, cost.Bandwidth: {%d}, cost.Processor: {%d}",
 						task.GetTaskId(), taskRole.String(), partyId,
