@@ -407,7 +407,7 @@ func (svr *Server) DownloadTaskResultData(req *carrierapipb.DownloadTaskResultDa
 	log.Debugf("DownloadTaskResultData dataServerAddress %s", dataServerAddress)
 	conn, err := grpc.Dial(dataServerAddress, grpc.WithInsecure())
 	if err != nil {
-		log.Fatalf("net.Connect err: %v", err)
+		return fmt.Errorf("net.Connect err: %v", err)
 	}
 	defer conn.Close()
 	grpcDataClient := fighterapipb.NewDataProviderClient(conn)
