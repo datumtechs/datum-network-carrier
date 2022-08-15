@@ -200,7 +200,8 @@ func (m *Manager) fetchConsumeOption(localTask *types.Task) (map[uint8][]*taskCo
 				log.WithError(err).Warnf("fetchConsumeOption call QueryMetadataById fail!")
 				return nil, err
 			}
-			if localTask.GetTaskData().GetUser() == metadataDetail.GetData().GetUser() {
+			if localTask.GetTaskData().GetUser() == metadataDetail.GetData().GetUser() &&
+				localTask.GetTaskData().GetUserType() == metadataDetail.GetData().GetUserType() {
 				log.Warnf("Data owners do not need to consume credentials to perform tasks,metadataId is %s,partyId %s", metadataId, consumePolicy.GetPartyId())
 				continue
 			}
