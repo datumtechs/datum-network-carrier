@@ -19,6 +19,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/common/build"
+	"github.com/datumtechs/datum-network-carrier/cmd/common"
 	"go/parser"
 	"go/token"
 	"io/ioutil"
@@ -57,6 +58,10 @@ func executablePath(name string) string {
 }
 
 func main() {
+	// write version info to version.txt
+	if err := WriteToFile("cmd/carrier/version.txt", common.Version()); err != nil {
+		log.Printf("write version info to version.txt fail,%v", err)
+	}
 	// go run build/ci.go install ./cmd/carrier
 	log.SetFlags(log.Lshortfile)
 
@@ -74,6 +79,19 @@ func main() {
 	default:
 		log.Fatal("unknown command ", os.Args[1])
 	}
+}
+
+func WriteToFile(fileName string, content string) error {
+	f, err := os.OpenFile(fileName, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0644)
+	if err != nil {
+		fmt.Println("file create failed. err: " + err.Error())
+	} else {
+		n, _ := f.Seek(0, os.SEEK_END)
+		_, err = f.WriteAt([]byte(content), n)
+		fmt.Println("write succeed!")
+		defer f.Close()
+	}
+	return err
 }
 
 // Compiling
