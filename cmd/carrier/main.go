@@ -1,10 +1,10 @@
 package main
 
 import (
+	_ "embed"
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/cmd"
 	dbcommand "github.com/datumtechs/datum-network-carrier/cmd/carrier/db"
-	"github.com/datumtechs/datum-network-carrier/cmd/common"
 	"github.com/datumtechs/datum-network-carrier/common/debug"
 	"github.com/datumtechs/datum-network-carrier/common/flags"
 	"github.com/datumtechs/datum-network-carrier/common/logutil"
@@ -21,6 +21,8 @@ import (
 	runtimeDebug "runtime/debug"
 )
 
+//go:embed version.txt
+var version string
 var (
 	appFlags = []cli.Flag{
 		flags.SetGCPercent,
@@ -146,7 +148,7 @@ func main() {
 	app.Usage = "this is a carrier network implementation for Carrier Node"
 	// set action func.
 	app.Action = startNode
-	app.Version = common.Version()
+	app.Version = version
 	app.Commands = []*cli.Command{
 		dbcommand.Commands,
 	}
