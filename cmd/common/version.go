@@ -18,6 +18,7 @@ import (
 var gitCommit = "{STABLE_GIT_COMMIT}"
 var buildDate = "{DATE}"
 var gitTag = "{STABLE_GIT_TAG}"
+var version = "0.5.0"
 
 // Version returns the version string of this build.
 func Version() string {
@@ -25,7 +26,7 @@ func Version() string {
 		now := time.Now().Format(time.RFC3339)
 		buildDate = now
 	}
-	return fmt.Sprintf("%s. Built at: %s", BuildData(), buildDate)
+	return fmt.Sprintf("%sBuilt at: %s", BuildData(), buildDate)
 }
 
 // SemanticVersion returns the Major.Minor.Patch version of this build.
@@ -44,5 +45,5 @@ func BuildData() string {
 			gitCommit = strings.TrimRight(string(commit), "\r\n")
 		}
 	}
-	return fmt.Sprintf("Carrier/%s/%s", gitTag, gitCommit)
+	return fmt.Sprintf("\nversion:%s\ntag:%s\ncommit:%s\n", version, gitTag, gitCommit)
 }
