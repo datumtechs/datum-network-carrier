@@ -50,7 +50,7 @@ func (ma *MetadataAuthority) AuditMetadataAuthority(audit *types.MetadataAuthAud
 		return commonconstantpb.AuditMetadataOption_Audit_Pending, fmt.Errorf("query metadataAuth failed, %s", err)
 	}
 
-	pass, err := ma.VerifyMetadataAuthInfo(metadataAuth)
+	pass, err := ma.VerifyMetadataAuthInfo(metadataAuth, false)
 	if nil != err {
 		log.WithError(err).Errorf("Failed to verify old metadataAuth on MetadataAuthority.AuditMetadataAuthority(), metadataAuthId: {%s}",
 			audit.GetMetadataAuthId())
@@ -91,7 +91,7 @@ func (ma *MetadataAuthority) AuditMetadataAuthority(audit *types.MetadataAuthAud
 	auditOption := audit.GetAuditOption()
 	auditSuggestion := audit.GetAuditSuggestion()
 
-	_, err = ma.VerifyMetadataAuthInfo(metadataAuth)
+	_, err = ma.VerifyMetadataAuthInfo(metadataAuth, false)
 	switch err {
 	case ErrMetadataAuthHasAudited:
 		log.Errorf("the old metadataAuth has already audited on MetadataAuthority.AuditMetadataAuthority(), metadataAuthId: {%s}, audit option: {%s}",
@@ -464,7 +464,7 @@ func (ma *MetadataAuthority) VerifyMetadataAuthWithMetadataOption(auth *types.Me
 	return checkUsageTypeFn(option.GetStatus(), auth.GetData().GetAuth().GetUsageRule().GetUsageType())
 }
 
-func (ma *MetadataAuthority) VerifyMetadataAuthInfo(auth *types.MetadataAuthority) (bool, error) {
+func (ma *MetadataAuthority) VerifyMetadataAuthInfo(auth *types.MetadataAuthority, checkEndTime bool) (bool, error) {
 
 	if auth.GetData().GetAuditOption() != commonconstantpb.AuditMetadataOption_Audit_Pending {
 		return false, ErrMetadataAuthHasAudited
@@ -476,6 +476,10 @@ func (ma *MetadataAuthority) VerifyMetadataAuthInfo(auth *types.MetadataAuthorit
 
 	switch auth.GetData().GetAuth().GetUsageRule().GetUsageType() {
 	case commonconstantpb.MetadataUsageType_Usage_Period:
+		if checkEndTime && timeutils.UnixMsecUint64() <= auth.GetData().GetAuth().GetUsageRule().GetStartAt() {
+			log.Debugf("VerifyMetadataAuthInfo need check endTime")
+			return false, ErrMetadataAuthHasExpired
+		}
 		if timeutils.UnixMsecUint64() >= auth.GetData().GetAuth().GetUsageRule().GetEndAt() {
 			return false, ErrMetadataAuthHasExpired
 		}
