@@ -462,7 +462,7 @@ func (ma *MetadataAuthority) VerifyMetadataAuthWithMetadataOption(auth *types.Me
 	return checkUsageTypeFn(option.GetStatus(), auth.GetData().GetAuth().GetUsageRule().GetUsageType())
 }
 
-func (ma *MetadataAuthority) VerifyMetadataAuthInfo(auth *types.MetadataAuthority, checkEndTime bool) (bool, error) {
+func (ma *MetadataAuthority) VerifyMetadataAuthInfo(auth *types.MetadataAuthority, checkStartTime bool) (bool, error) {
 
 	if auth.GetData().GetAuditOption() != commonconstantpb.AuditMetadataOption_Audit_Pending {
 		return false, ErrMetadataAuthHasAudited
@@ -474,7 +474,7 @@ func (ma *MetadataAuthority) VerifyMetadataAuthInfo(auth *types.MetadataAuthorit
 
 	switch auth.GetData().GetAuth().GetUsageRule().GetUsageType() {
 	case commonconstantpb.MetadataUsageType_Usage_Period:
-		if checkEndTime && timeutils.UnixMsecUint64() <= auth.GetData().GetAuth().GetUsageRule().GetStartAt() {
+		if checkStartTime && timeutils.UnixMsecUint64() <= auth.GetData().GetAuth().GetUsageRule().GetStartAt() {
 			log.Debugf("VerifyMetadataAuthInfo need check endTime")
 			return false, ErrMetadataAuthHasExpired
 		}
