@@ -48,7 +48,7 @@ func TestSender(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		address, _, err := RecoverEIP712(expected, testTypedData)
+		address, _, err := recoverEIP712(expected, testTypedData)
 		assert.Equal(t, address, "0xc115ceadf9e5923330e5f42903fe7f926dda65d2")
 
 	}
