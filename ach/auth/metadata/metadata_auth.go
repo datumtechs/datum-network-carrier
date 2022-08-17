@@ -13,11 +13,12 @@ import (
 )
 
 var (
-	ErrMetadataAuthHasAudited        = fmt.Errorf("the metadataAuth state was audited")
-	ErrMetadataAuthHasNotReleased    = fmt.Errorf("the metadataAuth state was not released")
-	ErrMetadataAuthHasExpired        = fmt.Errorf("the metadataAuth had been expired")
-	ErrMetadataAuthHasNotEnoughTimes = fmt.Errorf("the metadataAuth had been not enough times")
-	ErrMetadataAuthUnknoenUsageType  = fmt.Errorf("unknown usageType of the old metadataAuth")
+	ErrMetadataAuthHasAudited             = fmt.Errorf("the metadataAuth state was audited")
+	ErrMetadataAuthHasNotReleased         = fmt.Errorf("the metadataAuth state was not released")
+	ErrMetadataAuthHasNotEnteredStartTime = fmt.Errorf("current time has not yet taken effect")
+	ErrMetadataAuthHasExpired             = fmt.Errorf("the metadataAuth had been expired")
+	ErrMetadataAuthHasNotEnoughTimes      = fmt.Errorf("the metadataAuth had been not enough times")
+	ErrMetadataAuthUnknoenUsageType       = fmt.Errorf("unknown usageType of the old metadataAuth")
 )
 
 type MetadataAuthority struct {
@@ -473,10 +474,9 @@ func (ma *MetadataAuthority) VerifyMetadataAuthInfo(auth *types.MetadataAuthorit
 	}
 
 	switch auth.GetData().GetAuth().GetUsageRule().GetUsageType() {
-	case commonconstantpb.MetadataUsageType_Usage_Period:
-		if checkStartTime && timeutils.UnixMsecUint64() <= auth.GetData().GetAuth().GetUsageRule().GetStartAt() {
-			log.Debugf("VerifyMetadataAuthInfo need check endTime")
-			return false, ErrMetadataAuthHasExpired
+	case commonconstantpb.MetadataUsageType_Usage_Period: // the time must be in ragne [StartAt, EndAt)
+		if checkStartTime && timeutils.UnixMsecUint64() < auth.GetData().GetAuth().GetUsageRule().GetStartAt() {
+			return false, ErrMetadataAuthHasNotEnteredStartTime
 		}
 		if timeutils.UnixMsecUint64() >= auth.GetData().GetAuth().GetUsageRule().GetEndAt() {
 			return false, ErrMetadataAuthHasExpired
