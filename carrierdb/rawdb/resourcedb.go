@@ -1003,7 +1003,6 @@ func StoreValidUserMetadataAuthStatusByMetadataId(db KeyValueStore, userType com
 	}
 
 	statusVal := oldStatus
-
 	// metadataAuth state, the low-order uint8.
 	oldMetadataStatus := oldStatus &^ (0xFF << 8)
 	metadataStatus := status &^ (0xFF << 8)
@@ -1014,35 +1013,36 @@ func StoreValidUserMetadataAuthStatusByMetadataId(db KeyValueStore, userType com
 	// increase OR decrease valid count value.
 	// 0: do nothing, -1: decrease, 1: increase
 	var increaseORdecrease int
+	if statusVal != 0 {
+		switch {
+		// has `unknown` old status for metadataAuth OR
+		// has `invalid` old status for metadataAuth OR
+		// has `revoke` old status for metadataAuth
+		case oldMetadataStatus == uint16(commonconstantpb.MetadataAuthorityState_MAState_Unknown),
+			oldMetadataStatus == uint16(commonconstantpb.MetadataAuthorityState_MAState_Invalid),
+			oldMetadataStatus == uint16(commonconstantpb.MetadataAuthorityState_MAState_Revoked):
+			return fmt.Errorf("old metadataAuth status has not `created` or `released`")
+		case oldMetadataStatus == uint16(commonconstantpb.MetadataAuthorityState_MAState_Released) &&
+			metadataStatus == uint16(commonconstantpb.MetadataAuthorityState_MAState_Created):
+			return fmt.Errorf("can not change metadataStatus to `created` status from `released` status")
+		// will change to `unknown` status for metadataAuth
+		case metadataStatus == uint16(commonconstantpb.MetadataAuthorityState_MAState_Unknown):
+			return fmt.Errorf("can not change metadataStatus to `unknown` status")
+		// has not `pending` audit option.
+		case oldAuditOption != uint16(commonconstantpb.AuditMetadataOption_Audit_Pending):
+			return fmt.Errorf("old audit option has not `pending`")
+		// will change to `invalid` status or`revoke` status for metadataAuth
+		case metadataStatus == uint16(commonconstantpb.MetadataAuthorityState_MAState_Invalid),
+			metadataStatus == uint16(commonconstantpb.MetadataAuthorityState_MAState_Revoked):
+			increaseORdecrease = -1
+		case oldMetadataStatus == uint16(commonconstantpb.MetadataAuthorityState_MAState_Created) &&
+			metadataStatus == uint16(commonconstantpb.MetadataAuthorityState_MAState_Released):
+			// do nothing...
+		default: // first set `created` OR `released` status into.
+			increaseORdecrease = 1
+		}
 
-	switch {
-	// has `unknown` old status for metadataAuth OR
-	// has `invalid` old status for metadataAuth OR
-	// has `revoke` old status for metadataAuth
-	case oldMetadataStatus == uint16(commonconstantpb.MetadataAuthorityState_MAState_Unknown),
-		oldMetadataStatus == uint16(commonconstantpb.MetadataAuthorityState_MAState_Invalid),
-		oldMetadataStatus == uint16(commonconstantpb.MetadataAuthorityState_MAState_Revoked):
-		return fmt.Errorf("old metadataAuth status has not `created` or `released`")
-	case oldMetadataStatus == uint16(commonconstantpb.MetadataAuthorityState_MAState_Released) &&
-		metadataStatus == uint16(commonconstantpb.MetadataAuthorityState_MAState_Created):
-		return fmt.Errorf("can not change metadataStatus to `created` status from `released` status")
-	// will change to `unknown` status for metadataAuth
-	case metadataStatus == uint16(commonconstantpb.MetadataAuthorityState_MAState_Unknown):
-		return fmt.Errorf("can not change metadataStatus to `unknown` status")
-	// has not `pending` audit option.
-	case oldAuditOption != uint16(commonconstantpb.AuditMetadataOption_Audit_Pending):
-		return fmt.Errorf("old audit option has not `pending`")
-	// will change to `invalid` status or`revoke` status for metadataAuth
-	case metadataStatus == uint16(commonconstantpb.MetadataAuthorityState_MAState_Invalid),
-		metadataStatus == uint16(commonconstantpb.MetadataAuthorityState_MAState_Revoked):
-		increaseORdecrease = -1
-	case oldMetadataStatus == uint16(commonconstantpb.MetadataAuthorityState_MAState_Created) &&
-		metadataStatus == uint16(commonconstantpb.MetadataAuthorityState_MAState_Released):
-		// do nothing...
-	default: // first set `created` OR `released` status into.
-		increaseORdecrease = 1
 	}
-
 	// new value: high-order uint8 + low-order uint8
 	statusVal = auditOption + metadataStatus
 

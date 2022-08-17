@@ -116,9 +116,12 @@ func (dc *DataCenter) QueryIdentityList(lastUpdate uint64, pageSize uint64) (typ
 func (dc *DataCenter) InsertMetadataAuthority(metadataAuth *types.MetadataAuthority) error {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
-	_, err := dc.client.SaveMetadataAuthority(dc.ctx, &datacenterapipb.MetadataAuthorityRequest{
+	response, err := dc.client.SaveMetadataAuthority(dc.ctx, &datacenterapipb.MetadataAuthorityRequest{
 		MetadataAuthority: metadataAuth.GetData(),
 	})
+	if response.GetStatus() != 0 {
+		return fmt.Errorf("InsertMetadataAuthority fail,status:%d,error msg:%s", response.GetStatus(), response.GetMsg())
+	}
 	if err != nil {
 		return err
 	}
