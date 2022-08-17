@@ -363,7 +363,8 @@ func (ma *MetadataAuthority) VerifyMetadataAuthWithMetadataOption(auth *types.Me
 		return false, fmt.Errorf("can not unmashal consumeOptions to metadataConsumeOptionMetadataAuth, %s, metadataId: {%s}",
 			err, auth.GetData().GetAuth().GetMetadataId())
 	}
-	option := options[index]
+	// default options length only 1,design so, see documentation
+	option := options[0]
 	now := timeutils.UnixMsecUint64()
 	switch auth.GetData().GetAuth().GetUsageRule().GetUsageType() {
 	case commonconstantpb.MetadataUsageType_Usage_Period:
