@@ -853,10 +853,12 @@ func (m *MessageHandler) BroadcastMetadataAuthMsgArr(metadataAuthMsgArr types.Me
 				Expire:    false, // Initialized zero value
 				UsedTimes: 0,     // Initialized zero value
 			},
-			ApplyAt: msg.GetCreateAt(),
-			AuditAt: 0,
-			State:   commonconstantpb.MetadataAuthorityState_MAState_Released,
-			Sign:    msg.GetSign(),
+			ApplyAt:   msg.GetCreateAt(),
+			AuditAt:   0,
+			State:     commonconstantpb.MetadataAuthorityState_MAState_Released,
+			Sign:      msg.GetSign(),
+			PublishAt: timeutils.UnixMsecUint64(),
+			UpdateAt:  timeutils.UnixMsecUint64(),
 		})
 		pass, err := m.authManager.VerifyMetadataAuthWithMetadataOption(auth)
 		if nil != err {

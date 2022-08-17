@@ -123,21 +123,18 @@ func (ma *MetadataAuthority) AuditMetadataAuthority(audit *types.MetadataAuthAud
 	metadataAuth.GetData().AuditSuggestion = auditSuggestion
 	metadataAuth.GetData().AuditAt = timeutils.UnixMsecUint64()
 
-	if err := ma.dataCenter.UpdateMetadataAuthority(metadataAuth); nil != err {
-		log.WithError(err).Errorf("Failed to update metadataAuth after audit on MetadataAuthority.AuditMetadataAuthority(), metadataAuthId: {%s}, audit option:{%s}",
-			audit.GetMetadataAuthId(), audit.GetAuditOption().String())
-		return metadataAuth.GetData().GetAuditOption(), fmt.Errorf("update metadataAuth failed, %s", err)
-	}
-
-	log.Debugf("metadataAuth audit succeed and call succeed `UpdateMetadataAuthority()` on MetadataAuthority.AuditMetadataAuthority(), metadataAuthId: {%s}, metadataId: {%s}, userType: {%s}, user:{%s} with audit option: {%s}, suggestion: {%s}, auditAt: {%d}",
-		metadataAuth.GetData().GetMetadataAuthId(), metadataAuth.GetData().GetAuth().GetMetadataId(), metadataAuth.GetUserType(), metadataAuth.GetUser(), metadataAuth.GetData().GetAuditOption(), metadataAuth.GetData().GetAuditSuggestion(), metadataAuth.GetData().GetAuditAt())
-
 	if err := ma.dataCenter.StoreValidUserMetadataAuthStatusByMetadataId(metadataAuth.GetUserType(), metadataAuth.GetUser(), metadataAuth.GetData().GetAuth().GetMetadataId(), metadataAuth.GetData().GetMetadataAuthId(), metadataAuth.GetMergeStatus()); nil != err {
 		log.WithError(err).Errorf("Failed to update metadataAuth status AND audit option into local db while metadataAuth has invalid on MetadataAuthority.AuditMetadataAuthority(), metadataAuthId: {%s}, metadataId: {%s}, userType: {%s}, user:{%s}, status: {%s}, auditOption: {%s}",
 			metadataAuth.GetData().GetMetadataAuthId(), metadataAuth.GetData().GetAuth().GetMetadataId(), metadataAuth.GetUserType(), metadataAuth.GetUser(), metadataAuth.GetData().GetState().String(), metadataAuth.GetData().GetAuditOption().String())
 		return metadataAuth.GetData().GetAuditOption(), fmt.Errorf("remove metadataId and invalid metadataAuthId mapping failed, %s", err)
 	}
-
+	if err := ma.dataCenter.UpdateMetadataAuthority(metadataAuth); nil != err {
+		log.WithError(err).Errorf("Failed to update metadataAuth after audit on MetadataAuthority.AuditMetadataAuthority(), metadataAuthId: {%s}, audit option:{%s}",
+			audit.GetMetadataAuthId(), audit.GetAuditOption().String())
+		return metadataAuth.GetData().GetAuditOption(), fmt.Errorf("update metadataAuth failed, %s", err)
+	}
+	log.Debugf("metadataAuth audit succeed and call succeed `UpdateMetadataAuthority()` on MetadataAuthority.AuditMetadataAuthority(), metadataAuthId: {%s}, metadataId: {%s}, userType: {%s}, user:{%s} with audit option: {%s}, suggestion: {%s}, auditAt: {%d}",
+		metadataAuth.GetData().GetMetadataAuthId(), metadataAuth.GetData().GetAuth().GetMetadataId(), metadataAuth.GetUserType(), metadataAuth.GetUser(), metadataAuth.GetData().GetAuditOption(), metadataAuth.GetData().GetAuditSuggestion(), metadataAuth.GetData().GetAuditAt())
 	return metadataAuth.GetData().GetAuditOption(), nil
 }
 
@@ -361,12 +358,12 @@ func (ma *MetadataAuthority) VerifyMetadataAuthWithMetadataOption(auth *types.Me
 		return false, fmt.Errorf("consumeTypesLen and consumeOptionsLen is not same fron metadataOption, %s, metadataId: {%s}",
 			err, auth.GetData().GetAuth().GetMetadataId())
 	}
-	var option *types.MetadataConsumeOptionMetadataAuth
-	if err := json.Unmarshal([]byte(consumeOptions[index]), &option); nil != err {
+	var options []*types.MetadataConsumeOptionMetadataAuth
+	if err := json.Unmarshal([]byte(consumeOptions[index]), &options); nil != err {
 		return false, fmt.Errorf("can not unmashal consumeOptions to metadataConsumeOptionMetadataAuth, %s, metadataId: {%s}",
 			err, auth.GetData().GetAuth().GetMetadataId())
 	}
-
+	option := options[index]
 	now := timeutils.UnixMsecUint64()
 	switch auth.GetData().GetAuth().GetUsageRule().GetUsageType() {
 	case commonconstantpb.MetadataUsageType_Usage_Period:
