@@ -408,7 +408,16 @@ func (svr *Server) PublishMetadataByTaskResultFile(ctx context.Context, req *car
 
 func (svr *Server) UpdateMetadata(ctx context.Context, req *carrierapipb.UpdateMetadataRequest) (*carriertypespb.SimpleResponse, error) {
 	log.Debugf("RPC-API:UpdateMetadata req is:%s", req.String())
-	_, err := svr.B.GetNodeIdentity()
+	localIdentityInfo, err := svr.B.GetNodeIdentity()
+	var oldMetadataInfo *types.Metadata
+	oldMetadataInfo, err = svr.B.GetMetadataDetail(req.GetInformation().GetMetadataId())
+	if err != nil {
+		return &carriertypespb.SimpleResponse{Status: backend.ErrQueryMetadataDetailById.ErrCode(), Msg: "call GetMetadataDetail fail"}, err
+	}
+	oldMetadata := oldMetadataInfo.GetData()
+	if localIdentityInfo.GetIdentityId() != oldMetadata.GetOwner().GetIdentityId() {
+		return &carriertypespb.SimpleResponse{Status: backend.ErrIdentityNotEqualLocalNodeIdentityId.ErrCode(), Msg: backend.ErrIdentityNotEqualLocalNodeIdentityId.Msg}, nil
+	}
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:UpdateMetadata failed, query local identity failed, can not publish metadata")
 		return &carriertypespb.SimpleResponse{Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
@@ -444,12 +453,6 @@ func (svr *Server) UpdateMetadata(ctx context.Context, req *carrierapipb.UpdateM
 	}
 
 	// get old metadata info by dataCenter
-	var oldMetadataInfo *types.Metadata
-	oldMetadataInfo, err = svr.B.GetMetadataDetail(req.GetInformation().GetMetadataId())
-	if err != nil {
-		return &carriertypespb.SimpleResponse{Status: backend.ErrQueryMetadataDetailById.ErrCode(), Msg: "call GetMetadataDetail fail"}, err
-	}
-	oldMetadata := oldMetadataInfo.GetData()
 	if result, err := checkCanUpdateMetadataFieldIsLegal(oldMetadata, req); err != nil {
 		return result, err
 	}
