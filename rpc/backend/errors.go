@@ -37,12 +37,13 @@ var (
 
 // metadata
 var (
-	ErrQueryMetadataDetail         = &RpcBizErr{Code: 11001, Msg: "Query metadata detail failed"}
-	ErrQueryMetadataDetailList     = &RpcBizErr{Code: 11002, Msg: "Query metadata detail list failed"}
-	ErrPublishMetadataMsg          = &RpcBizErr{Code: 11003, Msg: "PublishMetaData failed"}
-	ErrRevokeMetadataMsg           = &RpcBizErr{Code: 11004, Msg: "RevokemetaData failed"}
-	ErrQueryMetadataUsedTaskIdList = &RpcBizErr{Code: 11005, Msg: "Query metadata used taskId list failed"}
-	ErrQueryMetadataDetailById     = &RpcBizErr{Code: 11007, Msg: "Query metadata detail failed by metadataId"}
+	ErrQueryMetadataDetail                 = &RpcBizErr{Code: 11001, Msg: "Query metadata detail failed"}
+	ErrQueryMetadataDetailList             = &RpcBizErr{Code: 11002, Msg: "Query metadata detail list failed"}
+	ErrPublishMetadataMsg                  = &RpcBizErr{Code: 11003, Msg: "PublishMetaData failed"}
+	ErrRevokeMetadataMsg                   = &RpcBizErr{Code: 11004, Msg: "RevokemetaData failed"}
+	ErrQueryMetadataUsedTaskIdList         = &RpcBizErr{Code: 11005, Msg: "Query metadata used taskId list failed"}
+	ErrQueryMetadataDetailById             = &RpcBizErr{Code: 11007, Msg: "Query metadata detail failed by metadataId"}
+	ErrIdentityNotEqualLocalNodeIdentityId = &RpcBizErr{Code: 11008, Msg: "The id of the organization to which the metadata belongs does not match the id of the local organization, and the metadata information cannot be updated"}
 )
 
 // power
