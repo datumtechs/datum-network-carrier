@@ -51,7 +51,7 @@ func (ma *MetadataAuthority) AuditMetadataAuthority(audit *types.MetadataAuthAud
 		return commonconstantpb.AuditMetadataOption_Audit_Pending, fmt.Errorf("query metadataAuth failed, %s", err)
 	}
 
-	pass, err := ma.VerifyMetadataAuthInfo(metadataAuth, false)
+	pass, err := ma.VerifyMetadataAuthInfo(metadataAuth, false, true)
 	if nil != err {
 		log.WithError(err).Errorf("Failed to verify old metadataAuth on MetadataAuthority.AuditMetadataAuthority(), metadataAuthId: {%s}",
 			audit.GetMetadataAuthId())
@@ -92,7 +92,7 @@ func (ma *MetadataAuthority) AuditMetadataAuthority(audit *types.MetadataAuthAud
 	auditOption := audit.GetAuditOption()
 	auditSuggestion := audit.GetAuditSuggestion()
 
-	_, err = ma.VerifyMetadataAuthInfo(metadataAuth, false)
+	_, err = ma.VerifyMetadataAuthInfo(metadataAuth, false, true)
 	switch err {
 	case ErrMetadataAuthHasAudited:
 		log.Errorf("the old metadataAuth has already audited on MetadataAuthority.AuditMetadataAuthority(), metadataAuthId: {%s}, audit option: {%s}",
@@ -463,9 +463,9 @@ func (ma *MetadataAuthority) VerifyMetadataAuthWithMetadataOption(auth *types.Me
 	return checkUsageTypeFn(option.GetStatus(), auth.GetData().GetAuth().GetUsageRule().GetUsageType())
 }
 
-func (ma *MetadataAuthority) VerifyMetadataAuthInfo(auth *types.MetadataAuthority, checkStartTime bool) (bool, error) {
+func (ma *MetadataAuthority) VerifyMetadataAuthInfo(auth *types.MetadataAuthority, checkStartTime, checkAuditPending bool) (bool, error) {
 
-	if auth.GetData().GetAuditOption() != commonconstantpb.AuditMetadataOption_Audit_Pending {
+	if (auth.GetData().GetAuditOption() != commonconstantpb.AuditMetadataOption_Audit_Pending) && checkAuditPending {
 		return false, ErrMetadataAuthHasAudited
 	}
 
