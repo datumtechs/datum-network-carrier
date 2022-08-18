@@ -132,8 +132,8 @@ func (am *AuthorityManager) VerifyMetadataAuthWithMetadataOption(auth *types.Met
 	return am.metadataAuth.VerifyMetadataAuthWithMetadataOption(auth)
 }
 
-func (am *AuthorityManager) VerifyMetadataAuthInfo(auth *types.MetadataAuthority) (bool, error) {
-	return am.metadataAuth.VerifyMetadataAuthInfo(auth, true)
+func (am *AuthorityManager) VerifyMetadataAuthInfo(auth *types.MetadataAuthority, checkStartTime, checkAuditPending bool) (bool, error) {
+	return am.metadataAuth.VerifyMetadataAuthInfo(auth, checkStartTime, checkAuditPending)
 }
 
 func (am *AuthorityManager) QueryMetadataAuthIdsByMetadataId(userType commonconstantpb.UserType, user, metadataId string) ([]string, error) {

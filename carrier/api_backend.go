@@ -1075,7 +1075,7 @@ func (s *CarrierAPIBackend) VerifyMetadataAuthWithMetadataOption(auth *types.Met
 }
 
 func (s *CarrierAPIBackend) VerifyMetadataAuthInfo(auth *types.MetadataAuthority) (bool, error) {
-	return s.carrier.authManager.VerifyMetadataAuthInfo(auth)
+	return s.carrier.authManager.VerifyMetadataAuthInfo(auth, false, true)
 }
 
 // task api

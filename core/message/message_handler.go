@@ -911,7 +911,7 @@ func (m *MessageHandler) BroadcastMetadataAuthRevokeMsgArr(metadataAuthRevokeMsg
 		}
 
 		// The data authorization application information that has been audited and cannot be revoked
-		pass, err := m.authManager.VerifyMetadataAuthInfo(metadataAuth)
+		pass, err := m.authManager.VerifyMetadataAuthInfo(metadataAuth, false, true)
 		if nil != err {
 			log.WithError(err).Errorf("Failed to verify metadataAuth on MessageHandler with revoke metadataAuth msg, metadataAuthId: {%s}, user:{%s}, state: {%s}",
 				revoke.GetMetadataAuthId(), revoke.GetUser(), metadataAuth.GetData().GetAuditOption().String())

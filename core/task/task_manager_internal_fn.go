@@ -691,7 +691,7 @@ func (m *Manager) beginConsumeByMetadataAuth(task *types.NeedExecuteTask, localT
 			}
 
 			// consume
-			consume, ok := (taskConsumeOption.GetDataConsumeOption()).(*types.MetadataAuthConsume)
+			consume, ok := (taskConsumeOption.GetDataConsumeOption()).(types.MetadataAuthConsume)
 			if !ok {
 				return fmt.Errorf("can not convert metadataAuthConsume on beginConsumeByMetadataAuth(), consume: %s",
 					taskConsumeOption.GetDataConsumeOption().Address())
@@ -750,9 +750,9 @@ func (m *Manager) beginConsumeByMetadataAuth(task *types.NeedExecuteTask, localT
 				return fmt.Errorf("the metadata auth is not owned by user on beginConsumeByMetadataAuth(), metadataAuthId: {%s}", auth.GetData().GetMetadataAuthId())
 			}
 			// check metadataAuth
-			pass, err := m.authMng.VerifyMetadataAuthInfo(auth)
+			pass, err := m.authMng.VerifyMetadataAuthInfo(auth, true, false)
 			if nil != err {
-				return fmt.Errorf("can not verify metadataAuth on beginConsumeByMetadataAuth(), metadataAuthId: {%s}", auth.GetData().GetMetadataAuthId())
+				return fmt.Errorf("can not verify metadataAuth on beginConsumeByMetadataAuth(), metadataAuthId: {%s},error info:%v", auth.GetData().GetMetadataAuthId(), err)
 			}
 			if !pass {
 				return fmt.Errorf("invalid metadataAuth on beginConsumeByMetadataAuth(), metadataAuthId: {%s}", auth.GetData().GetMetadataAuthId())
@@ -923,7 +923,7 @@ func (m *Manager) endConsumeByMetadataAuth(task *types.NeedExecuteTask, localTas
 			}
 
 			// consume
-			consume, ok := (taskConsumeOption.GetDataConsumeOption()).(*types.MetadataAuthConsume)
+			consume, ok := (taskConsumeOption.GetDataConsumeOption()).(types.MetadataAuthConsume)
 			if !ok {
 				return fmt.Errorf("can not convert metadataAuthConsume on endConsumeByMetadataAuth(), consume: %s",
 					taskConsumeOption.GetDataConsumeOption().Address())
