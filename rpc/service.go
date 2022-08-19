@@ -131,6 +131,8 @@ func (s *Service) Start() error {
 	carrierapipb.RegisterAuthServiceServer(s.grpcServer, &auth.Server{B: s.cfg.BackendAPI})
 	carrierapipb.RegisterTaskServiceServer(s.grpcServer, &task.Server{B: s.cfg.BackendAPI})
 	carrierapipb.RegisterDIDServiceServer(s.grpcServer, &did.Server{B: s.cfg.BackendAPI})
+	carrierapipb.RegisterVcServiceServer(s.grpcServer, &did.Server{B: s.cfg.BackendAPI})
+	carrierapipb.RegisterProposalServiceServer(s.grpcServer, &did.Server{B: s.cfg.BackendAPI})
 	service_discover_health.RegisterHealthServer(s.grpcServer, &health_check.HealthCheck{})
 
 	if s.cfg.EnableDebugRPCEndpoints {
