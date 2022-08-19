@@ -79,6 +79,9 @@ func (s *CarrierAPIBackend) ApplyVCLocal(issuerDid, issuerUrl, applicantDid stri
 	defer cancelFn()
 
 	conn, err := grpclient.DialContext(ctx, issuerUrl, true)
+	if err != nil {
+		return err
+	}
 	defer conn.Close()
 
 	client := api.NewVcServiceClient(conn)
@@ -137,32 +140,32 @@ func (s *CarrierAPIBackend) ApplyVCRemote(issuerDid, applicantDid string, pctId 
 	reqRemote.ReqSignature = hex.EncodeToString(sig)
 
 	//查找本地admin服务端口
-	adminService, err := s.carrier.consulManager.QueryAdminService()
+	adminGrpcService, err := s.carrier.consulManager.QueryAdminService()
 	if err != nil {
-		log.WithError(err).Error("cannot find local admin RPC service")
-		return errors.New("cannot find local admin RPC service")
+		log.WithError(err).Error("cannot find local admin gRPC service")
+		return errors.New("cannot find local admin gRPC service")
 	}
-	if adminService == nil {
-		return errors.New("cannot find local admin RPC service")
+	if adminGrpcService == nil {
+		return errors.New("cannot find local admin gRPC service")
 	}
-	log.Debugf("adminService info:%+v", adminService)
+	log.Debugf("adminGrpcService info:%+v", adminGrpcService)
 
 	ctx, cancelFn := context.WithTimeout(context.Background(), grpclient.DefaultGrpcDialTimeout)
 	defer cancelFn()
 
-	adminServiceUrl := adminService.Address + ":" + strconv.Itoa(adminService.Port)
-	conn, err := grpclient.DialContext(ctx, adminServiceUrl, true)
+	adminGrpcServiceEndpoint := adminGrpcService.Address + ":" + strconv.Itoa(adminGrpcService.Port)
+	conn, err := grpclient.DialContext(ctx, adminGrpcServiceEndpoint, true)
 	defer conn.Close()
 
 	if err != nil {
-		log.WithError(err).Error("failed to dial admin service")
+		log.WithError(err).Error("failed to dial admin gRPC service")
 		return err
 	}
 	client := api.NewVcServiceClient(conn)
 	simpleResp, err := client.ApplyVCRemote(context.Background(), reqRemote)
 	if err != nil {
-		log.WithError(err).Error("failed to forward VC apply to admin service")
-		return errors.New("failed to forward VC apply to admin service")
+		log.WithError(err).Error("failed to forward VC apply to admin gRPC service")
+		return errors.New("failed to forward VC apply to admin gRPC service")
 	}
 
 	if simpleResp.Status != 0 {
@@ -207,7 +210,7 @@ func (s *CarrierAPIBackend) DownloadVCLocal(issuerDid, issuerUrl, applicantDid s
 	// 请求issuer的carrier
 	downloadVcResp, err := client.DownloadVCRemote(context.Background(), reqRemote)
 	if err != nil {
-		log.WithError(err).Error("download VC: failed to call issuer, issuerDid:%s, issuerUrl:%s, applicantDid:%s", issuerDid, issuerUrl, applicantDid)
+		log.WithError(err).Errorf("download VC: failed to call issuer, issuerDid:%s, issuerUrl:%s, applicantDid:%s", issuerDid, issuerUrl, applicantDid)
 		return &api.DownloadVCResponse{
 			Status: 0,
 			Msg:    "failed to download VC",
@@ -225,20 +228,20 @@ func (s *CarrierAPIBackend) DownloadVCRemote(issuerDid, applicantDid string, req
 
 	publicKey, err := crypto.SigToPub(hexutil.MustDecode(reqDigest), hexutil.MustDecode(reqSignature))
 	if err != nil {
-		log.WithError(err).Error("download VC: failed to recover public key from signature, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
+		log.WithError(err).Errorf("download VC: failed to recover public key from signature, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
 		return failedResponse
 	}
 	// 申请人的document
 	docResponse := s.carrier.didService.DocumentService.QueryDidDocument(applicantDid)
 	if docResponse.Status != did.Response_SUCCESS {
-		log.WithError(err).Error("download VC: failed to find doc document, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
+		log.Errorf("download VC: failed to find doc document, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
 		return failedResponse
 	}
 
 	// publicKey是否存在
 	didPublicKey := docResponse.Data.FindDidPublicKeyByPublicKey(hex.EncodeToString(crypto.FromECDSAPub(publicKey)))
 	if didPublicKey == nil {
-		log.WithError(err).Error("download VC: failed to find public key in document , issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
+		log.Errorf("download VC: failed to find public key in document , issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
 		return failedResponse
 	}
 
@@ -247,7 +250,7 @@ func (s *CarrierAPIBackend) DownloadVCRemote(issuerDid, applicantDid string, req
 	reqHash := hashutil.HashSHA256([]byte(rawData))
 	ok := didsdkgocrypto.VerifySecp256k1Signature(reqHash, reqSignature, publicKey)
 	if !ok {
-		log.WithError(err).Error("download VC: failed to verify signature, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
+		log.Errorf("download VC: failed to verify signature, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
 		return failedResponse
 	}
 
@@ -263,11 +266,11 @@ func (s *CarrierAPIBackend) DownloadVCRemote(issuerDid, applicantDid string, req
 	//查找本地admin服务端口
 	adminService, err := s.carrier.consulManager.QueryAdminService()
 	if err != nil {
-		log.WithError(err).Error("download VC: failed to find local admin RPC service, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
+		log.WithError(err).Errorf("download VC: failed to find local admin RPC service, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
 		return failedResponse
 	}
 	if adminService == nil {
-		log.WithError(err).Error("download VC: local admin RPC service is none, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
+		log.Errorf("download VC: local admin RPC service is none, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
 		return failedResponse
 	}
 	log.Debugf("download VC: adminService info:%+v", adminService)
@@ -280,13 +283,13 @@ func (s *CarrierAPIBackend) DownloadVCRemote(issuerDid, applicantDid string, req
 	defer conn.Close()
 
 	if err != nil {
-		log.WithError(err).Error("download VC: failed to dial admin RPC service, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
+		log.WithError(err).Errorf("download VC: failed to dial admin RPC service, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
 		return failedResponse
 	}
 	client := api.NewVcServiceClient(conn)
 	downloadVcResp, err := client.DownloadVCRemote(context.Background(), reqRemote)
 	if err != nil {
-		log.WithError(err).Error("download VC: failed to call admin service, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
+		log.WithError(err).Errorf("download VC: failed to call admin service, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
 		return failedResponse
 	}
 	return downloadVcResp
