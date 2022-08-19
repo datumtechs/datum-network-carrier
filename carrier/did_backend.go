@@ -1,7 +1,6 @@
 package carrier
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -31,7 +30,7 @@ func toApiTxInfo(didTxInfo *did.TransactionInfo) *api.TxInfo {
 func (s *CarrierAPIBackend) CreateDID() (string, *api.TxInfo, error) {
 	req := did.CreateDidReq{}
 	req.PrivateKey = tk.WalletManagerInstance().GetPrivateKey()
-	req.PublicKey = hex.EncodeToString(crypto.FromECDSAPub(tk.WalletManagerInstance().GetPublicKey()))
+	req.PublicKey = hexutil.Encode(crypto.FromECDSAPub(tk.WalletManagerInstance().GetPublicKey()))
 	req.PublicKeyType = types.PublicKey_SECP256K1
 
 	response := s.carrier.didService.DocumentService.CreateDID(req)
@@ -57,8 +56,8 @@ func (s *CarrierAPIBackend) ApplyVCLocal(issuerDid, issuerUrl, applicantDid stri
 	reqRemote.PctId = pctId
 	reqRemote.ExpirationDate = expirationDate
 	reqRemote.ExtInfo = extInfo
-	reqRemote.ReqDigest = hex.EncodeToString(reqHash)
-	reqRemote.ReqSignature = hex.EncodeToString(sig)
+	reqRemote.ReqDigest = hexutil.Encode(reqHash)
+	reqRemote.ReqSignature = hexutil.Encode(sig)
 
 	/*issuerAddress, err := types.ParseToAddress(issuerDid)
 	if err != nil {
@@ -111,7 +110,7 @@ func (s *CarrierAPIBackend) ApplyVCRemote(issuerDid, applicantDid string, pctId 
 	}
 
 	// publicKey是否存在
-	didPublicKey := docReponse.Data.FindDidPublicKeyByPublicKey(hex.EncodeToString(crypto.FromECDSAPub(publicKey)))
+	didPublicKey := docReponse.Data.FindDidPublicKeyByPublicKey(hexutil.Encode(crypto.FromECDSAPub(publicKey)))
 	if didPublicKey == nil {
 		return errors.New("cannot find public key in did document")
 	}
@@ -136,8 +135,8 @@ func (s *CarrierAPIBackend) ApplyVCRemote(issuerDid, applicantDid string, pctId 
 	reqRemote.PctId = pctId
 	reqRemote.ExpirationDate = expirationDate
 	reqRemote.ExtInfo = extInfo
-	reqRemote.ReqDigest = hex.EncodeToString(reqHash)
-	reqRemote.ReqSignature = hex.EncodeToString(sig)
+	reqRemote.ReqDigest = hexutil.Encode(reqHash)
+	reqRemote.ReqSignature = hexutil.Encode(sig)
 
 	//查找本地admin服务端口
 	adminGrpcService, err := s.carrier.consulManager.QueryAdminService()
@@ -183,8 +182,8 @@ func (s *CarrierAPIBackend) DownloadVCLocal(issuerDid, issuerUrl, applicantDid s
 	reqRemote := new(api.DownloadVCReq)
 	reqRemote.IssuerDid = issuerDid
 	reqRemote.ApplicantDid = applicantDid
-	reqRemote.ReqDigest = hex.EncodeToString(reqHash)
-	reqRemote.ReqSignature = hex.EncodeToString(sig)
+	reqRemote.ReqDigest = hexutil.Encode(reqHash) //0x prefix
+	reqRemote.ReqSignature = hexutil.Encode(sig)  //0x prefix
 
 	/*issuerAddress, err := types.ParseToAddress(issuerDid)
 	if err != nil {
@@ -239,7 +238,7 @@ func (s *CarrierAPIBackend) DownloadVCRemote(issuerDid, applicantDid string, req
 	}
 
 	// publicKey是否存在
-	didPublicKey := docResponse.Data.FindDidPublicKeyByPublicKey(hex.EncodeToString(crypto.FromECDSAPub(publicKey)))
+	didPublicKey := docResponse.Data.FindDidPublicKeyByPublicKey(hexutil.Encode(crypto.FromECDSAPub(publicKey)))
 	if didPublicKey == nil {
 		log.Errorf("download VC: failed to find public key in document , issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
 		return failedResponse
@@ -260,8 +259,8 @@ func (s *CarrierAPIBackend) DownloadVCRemote(issuerDid, applicantDid string, req
 	reqRemote := new(api.DownloadVCReq)
 	reqRemote.IssuerDid = issuerDid
 	reqRemote.ApplicantDid = applicantDid
-	reqRemote.ReqDigest = hex.EncodeToString(reqHash)
-	reqRemote.ReqSignature = hex.EncodeToString(sig)
+	reqRemote.ReqDigest = hexutil.Encode(reqHash)
+	reqRemote.ReqSignature = hexutil.Encode(sig)
 
 	//查找本地admin服务端口
 	adminService, err := s.carrier.consulManager.QueryAdminService()
