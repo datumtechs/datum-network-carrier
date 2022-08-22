@@ -81,6 +81,7 @@ func (s *CarrierAPIBackend) ApplyVCLocal(issuerDid, issuerUrl, applicantDid stri
 
 	conn, err := grpclient.DialContext(ctx, issuerUrl, true)
 	if err != nil {
+		log.WithError(err).Error("ApplyVCLocal: failed to dial up issuer:%s", issuerUrl)
 		return err
 	}
 	defer conn.Close()
@@ -90,10 +91,11 @@ func (s *CarrierAPIBackend) ApplyVCLocal(issuerDid, issuerUrl, applicantDid stri
 	// 请求issuer的carrier
 	simpleResp, err := client.ApplyVCRemote(context.Background(), reqRemote)
 	if err != nil {
+		log.WithError(err).Error("ApplyVCLocal: failed to call issuer service")
 		return err
 	}
 	if simpleResp.Status != 0 {
-		return errors.New(fmt.Sprintf("apply vc error: %d", simpleResp.Status))
+		return errors.New(fmt.Sprintf("apply VC error: %d", simpleResp.Status))
 	}
 	return nil
 }
@@ -146,13 +148,13 @@ func (s *CarrierAPIBackend) ApplyVCRemote(issuerDid, applicantDid string, pctId 
 	//查找本地admin服务端口
 	adminGrpcService, err := s.carrier.consulManager.QueryAdminService()
 	if err != nil {
-		log.WithError(err).Error("cannot find local admin gRPC service")
+		log.WithError(err).Error("ApplyVCRemote: cannot find local admin gRPC service")
 		return errors.New("cannot find local admin gRPC service")
 	}
 	if adminGrpcService == nil {
 		return errors.New("cannot find local admin gRPC service")
 	}
-	log.Debugf("adminGrpcService info:%+v", adminGrpcService)
+	log.Debugf("ApplyVCRemote: adminGrpcService info:%+v", adminGrpcService)
 
 	ctx, cancelFn := context.WithTimeout(context.Background(), grpclient.DefaultGrpcDialTimeout)
 	defer cancelFn()
@@ -160,20 +162,21 @@ func (s *CarrierAPIBackend) ApplyVCRemote(issuerDid, applicantDid string, pctId 
 	adminGrpcServiceEndpoint := adminGrpcService.Address + ":" + strconv.Itoa(adminGrpcService.Port)
 	conn, err := grpclient.DialContext(ctx, adminGrpcServiceEndpoint, true)
 	defer conn.Close()
-
 	if err != nil {
-		log.WithError(err).Error("failed to dial admin gRPC service")
+		log.WithError(err).Errorf("ApplyVCRemote: failed to dial admin gRPC service:%s", adminGrpcServiceEndpoint)
 		return err
 	}
+
 	client := api.NewVcServiceClient(conn)
 	simpleResp, err := client.ApplyVCRemote(context.Background(), reqRemote)
 	if err != nil {
-		log.WithError(err).Error("failed to forward VC apply to admin gRPC service")
-		return errors.New("failed to forward VC apply to admin gRPC service")
+		log.WithError(err).Error("ApplyVCRemote: failed to call admin gRPC service")
+		return errors.New("failed to call admin gRPC service")
 	}
 
 	if simpleResp.Status != 0 {
-		return errors.New(fmt.Sprintf("forward VC apply error: %d", simpleResp.Status))
+		log.Errorf("ApplyVCRemote: admin gRPC service error: %+v", *simpleResp)
+		return errors.New(fmt.Sprintf("admin gRPC service error: %+v", simpleResp.Msg))
 	}
 	return nil
 }
@@ -181,6 +184,11 @@ func (s *CarrierAPIBackend) ApplyVCRemote(issuerDid, applicantDid string, pctId 
 //接收本地组织admin的VC申请，用本地私钥签名，并调用远端carrier的ApplyVCRemote
 func (s *CarrierAPIBackend) DownloadVCLocal(issuerDid, issuerUrl, applicantDid string) *api.DownloadVCResponse {
 	log.Debugf("DownloadVCLocal, issuerDid:%s, issuerUrl:%s, applicantDid:%s", issuerDid, issuerUrl, applicantDid)
+
+	failedResponse := &api.DownloadVCResponse{
+		Status: backend.ErrDownloadVC.ErrCode(),
+		Msg:    backend.ErrDownloadVC.Error(),
+	}
 
 	rawData := applicantDid
 	reqHash := hashutil.HashSHA256([]byte(rawData))
@@ -211,16 +219,17 @@ func (s *CarrierAPIBackend) DownloadVCLocal(issuerDid, issuerUrl, applicantDid s
 
 	conn, err := grpclient.DialContext(ctx, issuerUrl, true)
 	defer conn.Close()
+	if err != nil {
+		log.WithError(err).Errorf("DownloadVCLocal: failed to dial up issuer:%s", issuerUrl)
+		return failedResponse
+	}
 	client := api.NewVcServiceClient(conn)
 
 	// 请求issuer的carrier
 	downloadVcResp, err := client.DownloadVCRemote(context.Background(), reqRemote)
 	if err != nil {
-		log.WithError(err).Errorf("download VC: failed to call issuer, issuerDid:%s, issuerUrl:%s, applicantDid:%s", issuerDid, issuerUrl, applicantDid)
-		return &api.DownloadVCResponse{
-			Status: 0,
-			Msg:    "failed to download VC",
-		}
+		log.WithError(err).Error("DownloadVCLocal: failed to call issuer service")
+		return failedResponse
 	}
 	return downloadVcResp
 }
@@ -236,20 +245,20 @@ func (s *CarrierAPIBackend) DownloadVCRemote(issuerDid, applicantDid string, req
 
 	publicKey, err := crypto.SigToPub(hexutil.MustDecode(reqDigest), hexutil.MustDecode(reqSignature))
 	if err != nil {
-		log.WithError(err).Errorf("download VC: failed to recover public key from signature, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
+		log.WithError(err).Errorf("DownloadVCRemote: failed to recover public key from signature, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
 		return failedResponse
 	}
 	// 申请人的document
 	docResponse := s.carrier.didService.DocumentService.QueryDidDocument(applicantDid)
 	if docResponse.Status != did.Response_SUCCESS {
-		log.Errorf("download VC: failed to find doc document, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
+		log.Errorf("DownloadVCRemote: failed to find doc document, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
 		return failedResponse
 	}
 
 	// publicKey是否存在
 	didPublicKey := docResponse.Data.FindDidPublicKeyByPublicKey(hexutil.Encode(crypto.FromECDSAPub(publicKey)))
 	if didPublicKey == nil {
-		log.Errorf("download VC: failed to find public key in document , issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
+		log.Errorf("DownloadVCRemote: failed to find public key in document , issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
 		return failedResponse
 	}
 
@@ -258,7 +267,7 @@ func (s *CarrierAPIBackend) DownloadVCRemote(issuerDid, applicantDid string, req
 	reqHash := hashutil.HashSHA256([]byte(rawData))
 	ok := didsdkgocrypto.VerifySecp256k1Signature(reqHash, reqSignature, publicKey)
 	if !ok {
-		log.Errorf("download VC: failed to verify signature, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
+		log.Errorf("DownloadVCRemote: failed to verify signature, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
 		return failedResponse
 	}
 
@@ -274,14 +283,14 @@ func (s *CarrierAPIBackend) DownloadVCRemote(issuerDid, applicantDid string, req
 	//查找本地admin服务端口
 	adminService, err := s.carrier.consulManager.QueryAdminService()
 	if err != nil {
-		log.WithError(err).Errorf("download VC: failed to find local admin RPC service, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
+		log.WithError(err).Errorf("DownloadVCRemote: failed to find local admin RPC service, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
 		return failedResponse
 	}
 	if adminService == nil {
 		log.Errorf("download VC: local admin RPC service is none, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
 		return failedResponse
 	}
-	log.Debugf("download VC: adminService info:%+v", adminService)
+	log.Debugf("DownloadVCRemote: adminService info:%+v", adminService)
 
 	ctx, cancelFn := context.WithTimeout(context.Background(), grpclient.DefaultGrpcDialTimeout)
 	defer cancelFn()
@@ -289,15 +298,15 @@ func (s *CarrierAPIBackend) DownloadVCRemote(issuerDid, applicantDid string, req
 	adminServiceUrl := adminService.Address + ":" + strconv.Itoa(adminService.Port)
 	conn, err := grpclient.DialContext(ctx, adminServiceUrl, true)
 	defer conn.Close()
-
 	if err != nil {
-		log.WithError(err).Errorf("download VC: failed to dial admin RPC service, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
+		log.WithError(err).Errorf("DownloadVCRemote: failed to dial up admin RPC service:%s", adminServiceUrl)
+		failedResponse.Msg = ""
 		return failedResponse
 	}
 	client := api.NewVcServiceClient(conn)
 	downloadVcResp, err := client.DownloadVCRemote(context.Background(), reqRemote)
 	if err != nil {
-		log.WithError(err).Errorf("download VC: failed to call admin service, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
+		log.WithError(err).Error("DownloadVCRemote: failed to call admin service")
 		return failedResponse
 	}
 	return downloadVcResp
@@ -320,7 +329,12 @@ func (s *CarrierAPIBackend) CreateVC(didString string, context string, pctId uin
 	req.Type = types.CREDENTIAL_TYPE_VC
 	req.Context = types.DEFAULT_CREDENTIAL_CONTEXT
 
+	jsonString, _ := json.Marshal(req)
+	log.Debugf("CreateCredential request: %s", jsonString)
 	response := s.carrier.didService.CredentialService.CreateCredential(req)
+	jsonString, _ = json.Marshal(response)
+	log.Debugf("CreateCredential response: %s", jsonString)
+
 	if response.Status != did.Response_SUCCESS {
 		return "", nil, errors.New(response.Msg)
 	}
@@ -328,8 +342,11 @@ func (s *CarrierAPIBackend) CreateVC(didString string, context string, pctId uin
 	createEvidenceReq := new(did.CreateEvidenceReq)
 	createEvidenceReq.PrivateKey = tk.WalletManagerInstance().GetPrivateKey()
 	createEvidenceReq.Credential = response.Data
+	jsonString, _ = json.Marshal(createEvidenceReq)
+	log.Debugf("CreateEvidence request: %s", jsonString)
 	saveProofResp := s.carrier.didService.CredentialService.CreateEvidence(*createEvidenceReq)
-
+	jsonString, _ = json.Marshal(saveProofResp)
+	log.Debugf("CreateEvidence response: %s", jsonString)
 	if saveProofResp.Status != did.Response_SUCCESS {
 		return "", nil, errors.New(response.Msg)
 	}
