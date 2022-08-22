@@ -195,6 +195,8 @@ github.com/d4l3k/messagediff v1.2.1 h1:ZcAIMYsUg0EAp9X+tt8/enBE/Q8Yd5kzPynLyKptt
 github.com/d4l3k/messagediff v1.2.1/go.mod h1:Oozbb1TVXFac9FtSIxHBMnBCq2qeH/2KkEQxENCrlLo=
 github.com/datumtechs/did-sdk-go v0.0.2 h1:h+qZf5Ws7t2OCZqTBDi0N4l1HLvVD/p9a7sRLsZauT0=
 github.com/datumtechs/did-sdk-go v0.0.2/go.mod h1:484TpuAI87hAsNjfVrFXSIhj+3MzB2wKvT9BrC4EEJc=
+github.com/datumtechs/did-sdk-go v0.0.3 h1:mhMCFA+oSFHDhM1MdhmIV5bMY+TPJAyK7ze9RHU3fx8=
+github.com/datumtechs/did-sdk-go v0.0.3/go.mod h1:484TpuAI87hAsNjfVrFXSIhj+3MzB2wKvT9BrC4EEJc=
 github.com/davecgh/go-spew v0.0.0-20171005155431-ecdeabc65495/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
