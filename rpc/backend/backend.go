@@ -103,7 +103,7 @@ type Backend interface {
 	// v 0.5.0
 	GetQueryDataNodeClientByNodeId(nodeId string) (*grpclient.DataNodeClient, bool)
 
-	CreateDID() (string, *carrierapipb.TxInfo, error)
+	CreateDID() (string, *carrierapipb.TxInfo, error, int)
 	// CreateVC... if context is empty means default value
 	// CreateVC... if expirationDate is empty means default value
 

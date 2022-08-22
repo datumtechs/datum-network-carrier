@@ -5,15 +5,21 @@ import (
 	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	"github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/rpc/backend"
+	"github.com/datumtechs/did-sdk-go/did"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"math/big"
 )
 
 func (svr *Server) CreateDID(ctx context.Context, req *emptypb.Empty) (*carrierapipb.CreateDIDResponse, error) {
-	didString, txInfo, err := svr.B.CreateDID()
+	didString, txInfo, err, respStatus := svr.B.CreateDID()
 	if nil != err {
 		log.WithError(err).Error("RPC-API:CreateDID failed")
-		return &carrierapipb.CreateDIDResponse{Status: backend.ErrCreateDID.ErrCode(), Msg: backend.ErrCreateDID.Error(), Did: ""}, nil
+		if respStatus == int(did.Response_EXIST) {
+			return &carrierapipb.CreateDIDResponse{Status: backend.ErrDIDExists.ErrCode(), Msg: backend.ErrDIDExists.Error(), Did: ""}, nil
+		} else {
+			return &carrierapipb.CreateDIDResponse{Status: backend.ErrCreateDID.ErrCode(), Msg: backend.ErrCreateDID.Error(), Did: ""}, nil
+		}
+
 	}
 	log.Debugf("RPC-API:CreateDID Succeed: didString {%s}", didString)
 	return &carrierapipb.CreateDIDResponse{

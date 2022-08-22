@@ -27,7 +27,7 @@ func toApiTxInfo(didTxInfo *did.TransactionInfo) *api.TxInfo {
 	return &api.TxInfo{BlockNumber: didTxInfo.BlockNumber, TxIndex: uint32(didTxInfo.TransactionIndex), TxHash: didTxInfo.TxHash}
 }
 
-func (s *CarrierAPIBackend) CreateDID() (string, *api.TxInfo, error) {
+func (s *CarrierAPIBackend) CreateDID() (string, *api.TxInfo, error, int) {
 	req := did.CreateDidReq{}
 	req.PrivateKey = tk.WalletManagerInstance().GetPrivateKey()
 	req.PublicKey = hexutil.Encode(crypto.FromECDSAPub(tk.WalletManagerInstance().GetPublicKey()))
@@ -36,9 +36,10 @@ func (s *CarrierAPIBackend) CreateDID() (string, *api.TxInfo, error) {
 	response := s.carrier.didService.DocumentService.CreateDID(req)
 
 	if response.Status != did.Response_SUCCESS {
-		return "", nil, errors.New(response.Msg)
+		return "", nil, errors.New(response.Msg), int(response.Status)
+
 	}
-	return response.Data, toApiTxInfo(&response.TxInfo), nil
+	return response.Data, toApiTxInfo(&response.TxInfo), nil, 0
 }
 
 //接收本地组织admin的VC申请，用本地私钥签名，并调用远端carrier的ApplyVCRemote
