@@ -2,6 +2,8 @@ package carrier
 
 import (
 	"context"
+	"github.com/datumtechs/datum-network-carrier/common/hashutil"
+	"github.com/datumtechs/datum-network-carrier/common/hexutil"
 	"github.com/datumtechs/datum-network-carrier/grpclient"
 	"github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	"github.com/datumtechs/datum-network-carrier/service/discovery"
@@ -74,4 +76,12 @@ func newConsulManager() *discovery.ConnectConsul {
 	)
 
 	return consulManager
+}
+
+func Test_HexEncoding(t *testing.T) {
+	rawData := "applicantDid + claim"
+	reqHash := hashutil.HashSHA256([]byte(rawData))
+
+	t.Logf("hex1:%s", hexutil.MustDecode(hexutil.Encode(reqHash)))
+
 }

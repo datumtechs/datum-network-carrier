@@ -535,8 +535,7 @@
           "type": "string"
         },
         "id": {
-          "type": "string",
-          "format": "uint64"
+          "type": "string"
         },
         "value": {
           "type": "string"

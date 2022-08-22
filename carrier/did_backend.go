@@ -43,6 +43,8 @@ func (s *CarrierAPIBackend) CreateDID() (string, *api.TxInfo, error) {
 
 //接收本地组织admin的VC申请，用本地私钥签名，并调用远端carrier的ApplyVCRemote
 func (s *CarrierAPIBackend) ApplyVCLocal(issuerDid, issuerUrl, applicantDid string, pctId uint64, claim, expirationDate, vccontext, extInfo string) error {
+	log.Debugf("ApplyVCLocal, issuerDid:%s, issuerUrl:%s, applicantDid:%s, pctId:%d, claim:%s", issuerDid, issuerUrl, applicantDid, pctId, claim)
+
 	rawData := applicantDid + claim
 	reqHash := hashutil.HashSHA256([]byte(rawData))
 	sig := didsdkgocrypto.SignSecp256k1(reqHash, tk.WalletManagerInstance().GetPrivateKey())
@@ -98,19 +100,22 @@ func (s *CarrierAPIBackend) ApplyVCLocal(issuerDid, issuerUrl, applicantDid stri
 
 //接收远端组织carier的VC申请，校验申请签名，并调用本地admin的applyVC接口
 func (s *CarrierAPIBackend) ApplyVCRemote(issuerDid, applicantDid string, pctId uint64, claim, expirationDate, vccontext, extInfo, reqDigest, reqSignature string) error {
+	log.Debugf("ApplyVCRemote, issuerDid:%s, applicantDid:%s, pctId:%d, claim:%s, reqDigest:%s, reqSignature:%s", issuerDid, applicantDid, pctId, claim, reqDigest, reqSignature)
 	//从签名恢复的publicKey，必须和document中的一致
 	publicKey, err := crypto.SigToPub(hexutil.MustDecode(reqDigest), hexutil.MustDecode(reqSignature))
 	if err != nil {
 		return errors.New("cannot recover public key from signature")
 	}
 	// 申请人的document
-	docReponse := s.carrier.didService.DocumentService.QueryDidDocument(applicantDid)
-	if docReponse.Status != did.Response_SUCCESS {
+	docResponse := s.carrier.didService.DocumentService.QueryDidDocument(applicantDid)
+	if docResponse.Status != did.Response_SUCCESS {
 		return errors.New(fmt.Sprintf("cannot find did document:%s", applicantDid))
 	}
 
+	docJson, _ := json.Marshal(docResponse)
+	log.Debugf("did document:%+v", string(docJson))
 	// publicKey是否存在
-	didPublicKey := docReponse.Data.FindDidPublicKeyByPublicKey(hexutil.Encode(crypto.FromECDSAPub(publicKey)))
+	didPublicKey := docResponse.Data.FindDidPublicKeyByPublicKey(hexutil.Encode(crypto.FromECDSAPub(publicKey)))
 	if didPublicKey == nil {
 		return errors.New("cannot find public key in did document")
 	}
@@ -175,6 +180,8 @@ func (s *CarrierAPIBackend) ApplyVCRemote(issuerDid, applicantDid string, pctId 
 
 //接收本地组织admin的VC申请，用本地私钥签名，并调用远端carrier的ApplyVCRemote
 func (s *CarrierAPIBackend) DownloadVCLocal(issuerDid, issuerUrl, applicantDid string) *api.DownloadVCResponse {
+	log.Debugf("DownloadVCLocal, issuerDid:%s, issuerUrl:%s, applicantDid:%s", issuerDid, issuerUrl, applicantDid)
+
 	rawData := applicantDid
 	reqHash := hashutil.HashSHA256([]byte(rawData))
 	sig := didsdkgocrypto.SignSecp256k1(reqHash, tk.WalletManagerInstance().GetPrivateKey())
@@ -219,6 +226,8 @@ func (s *CarrierAPIBackend) DownloadVCLocal(issuerDid, issuerUrl, applicantDid s
 }
 
 func (s *CarrierAPIBackend) DownloadVCRemote(issuerDid, applicantDid string, reqDigest, reqSignature string) *api.DownloadVCResponse {
+	log.Debugf("DownloadVCRemote, issuerDid:%s, applicantDid:%s, reqDigest:%s, reqSignature:%s", issuerDid, applicantDid, reqDigest, reqSignature)
+
 	//从签名恢复的publicKey，必须和document中的一致
 	failedResponse := &api.DownloadVCResponse{
 		Status: backend.ErrDownloadVC.ErrCode(),
