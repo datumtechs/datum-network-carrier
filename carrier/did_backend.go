@@ -321,9 +321,13 @@ func (s *CarrierAPIBackend) CreateVC(applicantDid string, context string, pctId 
 		return "", nil, err
 	}
 	req := did.CreateCredentialReq{}
-	req.PrivateKey = tk.WalletManagerInstance().GetPrivateKey()
-	req.Did = applicantDid
 	req.Issuer = types.BuildDid(tk.WalletManagerInstance().GetAddress())
+	req.PrivateKey = tk.WalletManagerInstance().GetPrivateKey()
+	//in carrier, the public key is default to did:pid:xxxx#keys-1
+	req.PublicKeyId = types.BuildPublicKeyId(req.Issuer, strconv.Itoa(1))
+
+	req.Did = applicantDid
+
 	req.PctId = new(big.Int).SetUint64(pctId)
 	req.Context = context
 	req.ExpirationDate = expirationDate
