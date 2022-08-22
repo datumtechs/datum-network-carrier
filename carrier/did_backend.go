@@ -312,7 +312,9 @@ func (s *CarrierAPIBackend) DownloadVCRemote(issuerDid, applicantDid string, req
 	return downloadVcResp
 }
 
-func (s *CarrierAPIBackend) CreateVC(didString string, context string, pctId uint64, claimJson string, expirationDate string) (string, *api.TxInfo, error) {
+func (s *CarrierAPIBackend) CreateVC(applicantDid string, context string, pctId uint64, claimJson string, expirationDate string) (string, *api.TxInfo, error) {
+	log.Debugf("CreateVC, applicantDid:%s, context:%s, pctId:%d, claimJson:%s, expirationDate:%s", applicantDid, context, pctId, claimJson, expirationDate)
+
 	var claimMap types.Claim
 	err := json.Unmarshal([]byte(claimJson), &claimMap)
 	if err != nil {
