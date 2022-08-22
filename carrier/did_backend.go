@@ -322,7 +322,7 @@ func (s *CarrierAPIBackend) CreateVC(applicantDid string, context string, pctId 
 	}
 	req := did.CreateCredentialReq{}
 	req.PrivateKey = tk.WalletManagerInstance().GetPrivateKey()
-	req.Did = didString
+	req.Did = applicantDid
 	req.Issuer = types.BuildDid(tk.WalletManagerInstance().GetAddress())
 	req.PctId = new(big.Int).SetUint64(pctId)
 	req.Context = context
