@@ -120,13 +120,13 @@ func (m *WalletManager) loadPrivateKey() {
 		} else {
 			priKey, err := crypto.HexToECDSA(key)
 			if err != nil {
-				log.WithError(err).Errorf("failed to convert organization wallet private key to ECDSA:%s", priKeyHex)
+				log.WithError(err).Errorf("failed to convert organization wallet private key to ECDSA:%s", key)
 				return
 			} else {
 				m.priKey = priKey
 				m.pubKey = &priKey.PublicKey
 				m.walletAddress = crypto.PubkeyToAddress(priKey.PublicKey)
-				log.Debugf("success to load organization wallet:%s", m.walletAddress)
+				log.Debugf("success to load organization wallet:%s privateKey:%s", m.walletAddress, key)
 				return
 			}
 		}
@@ -139,7 +139,7 @@ func (m *WalletManager) loadPrivateKey() {
 		m.priKey = priKey
 		m.pubKey = &priKey.PublicKey
 		m.walletAddress = crypto.PubkeyToAddress(priKey.PublicKey)
-		log.Debugf("success to load organization wallet:%s", m.walletAddress)
+		log.Debugf("success to load organization wallet:%s privateKey:%s", m.walletAddress, priKeyHex)
 		return
 	}
 }
