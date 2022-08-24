@@ -1,7 +1,6 @@
 package carrier
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -28,22 +27,25 @@ func toApiTxInfo(didTxInfo *did.TransactionInfo) *api.TxInfo {
 	return &api.TxInfo{BlockNumber: didTxInfo.BlockNumber, TxIndex: uint32(didTxInfo.TransactionIndex), TxHash: didTxInfo.TxHash}
 }
 
-func (s *CarrierAPIBackend) CreateDID() (string, *api.TxInfo, error) {
+func (s *CarrierAPIBackend) CreateDID() (string, *api.TxInfo, error, int) {
 	req := did.CreateDidReq{}
 	req.PrivateKey = tk.WalletManagerInstance().GetPrivateKey()
-	req.PublicKey = hex.EncodeToString(crypto.FromECDSAPub(tk.WalletManagerInstance().GetPublicKey()))
+	req.PublicKey = hexutil.Encode(crypto.FromECDSAPub(tk.WalletManagerInstance().GetPublicKey()))
 	req.PublicKeyType = types.PublicKey_SECP256K1
 
 	response := s.carrier.didService.DocumentService.CreateDID(req)
 
 	if response.Status != did.Response_SUCCESS {
-		return "", nil, errors.New(response.Msg)
+		return "", nil, errors.New(response.Msg), int(response.Status)
+
 	}
-	return response.Data, toApiTxInfo(&response.TxInfo), nil
+	return response.Data, toApiTxInfo(&response.TxInfo), nil, 0
 }
 
 //接收本地组织admin的VC申请，用本地私钥签名，并调用远端carrier的ApplyVCRemote
 func (s *CarrierAPIBackend) ApplyVCLocal(issuerDid, issuerUrl, applicantDid string, pctId uint64, claim, expirationDate, vccontext, extInfo string) error {
+	log.Debugf("ApplyVCLocal, issuerDid:%s, issuerUrl:%s, applicantDid:%s, pctId:%d, claim:%s", issuerDid, issuerUrl, applicantDid, pctId, claim)
+
 	rawData := applicantDid + claim
 	reqHash := hashutil.HashSHA256([]byte(rawData))
 	sig := didsdkgocrypto.SignSecp256k1(reqHash, tk.WalletManagerInstance().GetPrivateKey())
@@ -57,8 +59,8 @@ func (s *CarrierAPIBackend) ApplyVCLocal(issuerDid, issuerUrl, applicantDid stri
 	reqRemote.PctId = pctId
 	reqRemote.ExpirationDate = expirationDate
 	reqRemote.ExtInfo = extInfo
-	reqRemote.ReqDigest = hex.EncodeToString(reqHash)
-	reqRemote.ReqSignature = hex.EncodeToString(sig)
+	reqRemote.ReqDigest = hexutil.Encode(reqHash)
+	reqRemote.ReqSignature = hexutil.Encode(sig)
 
 	/*issuerAddress, err := types.ParseToAddress(issuerDid)
 	if err != nil {
@@ -79,6 +81,10 @@ func (s *CarrierAPIBackend) ApplyVCLocal(issuerDid, issuerUrl, applicantDid stri
 	defer cancelFn()
 
 	conn, err := grpclient.DialContext(ctx, issuerUrl, true)
+	if err != nil {
+		log.WithError(err).Errorf("ApplyVCLocal: failed to dial up issuer:%s", issuerUrl)
+		return err
+	}
 	defer conn.Close()
 
 	client := api.NewVcServiceClient(conn)
@@ -86,29 +92,33 @@ func (s *CarrierAPIBackend) ApplyVCLocal(issuerDid, issuerUrl, applicantDid stri
 	// 请求issuer的carrier
 	simpleResp, err := client.ApplyVCRemote(context.Background(), reqRemote)
 	if err != nil {
+		log.WithError(err).Error("ApplyVCLocal: failed to call issuer service")
 		return err
 	}
 	if simpleResp.Status != 0 {
-		return errors.New(fmt.Sprintf("apply vc error: %d", simpleResp.Status))
+		return errors.New(fmt.Sprintf("apply VC error: %d", simpleResp.Status))
 	}
 	return nil
 }
 
 //接收远端组织carier的VC申请，校验申请签名，并调用本地admin的applyVC接口
 func (s *CarrierAPIBackend) ApplyVCRemote(issuerDid, applicantDid string, pctId uint64, claim, expirationDate, vccontext, extInfo, reqDigest, reqSignature string) error {
+	log.Debugf("ApplyVCRemote, issuerDid:%s, applicantDid:%s, pctId:%d, claim:%s, reqDigest:%s, reqSignature:%s", issuerDid, applicantDid, pctId, claim, reqDigest, reqSignature)
 	//从签名恢复的publicKey，必须和document中的一致
 	publicKey, err := crypto.SigToPub(hexutil.MustDecode(reqDigest), hexutil.MustDecode(reqSignature))
 	if err != nil {
 		return errors.New("cannot recover public key from signature")
 	}
 	// 申请人的document
-	docReponse := s.carrier.didService.DocumentService.QueryDidDocument(applicantDid)
-	if docReponse.Status != did.Response_SUCCESS {
+	docResponse := s.carrier.didService.DocumentService.QueryDidDocument(applicantDid)
+	if docResponse.Status != did.Response_SUCCESS {
 		return errors.New(fmt.Sprintf("cannot find did document:%s", applicantDid))
 	}
 
+	docJson, _ := json.Marshal(docResponse)
+	log.Debugf("did document:%+v", string(docJson))
 	// publicKey是否存在
-	didPublicKey := docReponse.Data.FindDidPublicKeyByPublicKey(hex.EncodeToString(crypto.FromECDSAPub(publicKey)))
+	didPublicKey := docResponse.Data.FindDidPublicKeyByPublicKey(hexutil.Encode(crypto.FromECDSAPub(publicKey)))
 	if didPublicKey == nil {
 		return errors.New("cannot find public key in did document")
 	}
@@ -133,46 +143,54 @@ func (s *CarrierAPIBackend) ApplyVCRemote(issuerDid, applicantDid string, pctId 
 	reqRemote.PctId = pctId
 	reqRemote.ExpirationDate = expirationDate
 	reqRemote.ExtInfo = extInfo
-	reqRemote.ReqDigest = hex.EncodeToString(reqHash)
-	reqRemote.ReqSignature = hex.EncodeToString(sig)
+	reqRemote.ReqDigest = hexutil.Encode(reqHash)
+	reqRemote.ReqSignature = hexutil.Encode(sig)
 
 	//查找本地admin服务端口
-	adminService, err := s.carrier.consulManager.QueryAdminService()
+	adminGrpcService, err := s.carrier.consulManager.QueryAdminService()
 	if err != nil {
-		log.WithError(err).Error("cannot find local admin RPC service")
-		return errors.New("cannot find local admin RPC service")
+		log.WithError(err).Error("ApplyVCRemote: cannot find local admin gRPC service")
+		return errors.New("cannot find local admin gRPC service")
 	}
-	if adminService == nil {
-		return errors.New("cannot find local admin RPC service")
+	if adminGrpcService == nil {
+		return errors.New("cannot find local admin gRPC service")
 	}
-	log.Debugf("adminService info:%+v", adminService)
+	log.Debugf("ApplyVCRemote: adminGrpcService info:%+v", adminGrpcService)
 
 	ctx, cancelFn := context.WithTimeout(context.Background(), grpclient.DefaultGrpcDialTimeout)
 	defer cancelFn()
 
-	adminServiceUrl := adminService.Address + ":" + strconv.Itoa(adminService.Port)
-	conn, err := grpclient.DialContext(ctx, adminServiceUrl, true)
+	adminGrpcServiceEndpoint := adminGrpcService.Address + ":" + strconv.Itoa(adminGrpcService.Port)
+	conn, err := grpclient.DialContext(ctx, adminGrpcServiceEndpoint, true)
 	defer conn.Close()
-
 	if err != nil {
-		log.WithError(err).Error("failed to dial admin service")
+		log.WithError(err).Errorf("ApplyVCRemote: failed to dial admin gRPC service:%s", adminGrpcServiceEndpoint)
 		return err
 	}
+
 	client := api.NewVcServiceClient(conn)
 	simpleResp, err := client.ApplyVCRemote(context.Background(), reqRemote)
 	if err != nil {
-		log.WithError(err).Error("failed to forward VC apply to admin service")
-		return errors.New("failed to forward VC apply to admin service")
+		log.WithError(err).Error("ApplyVCRemote: failed to call admin gRPC service")
+		return errors.New("failed to call admin gRPC service")
 	}
 
 	if simpleResp.Status != 0 {
-		return errors.New(fmt.Sprintf("forward VC apply error: %d", simpleResp.Status))
+		log.Errorf("ApplyVCRemote: admin gRPC service error: %+v", *simpleResp)
+		return errors.New(fmt.Sprintf("admin gRPC service error: %+v", simpleResp.Msg))
 	}
 	return nil
 }
 
 //接收本地组织admin的VC申请，用本地私钥签名，并调用远端carrier的ApplyVCRemote
 func (s *CarrierAPIBackend) DownloadVCLocal(issuerDid, issuerUrl, applicantDid string) *api.DownloadVCResponse {
+	log.Debugf("DownloadVCLocal, issuerDid:%s, issuerUrl:%s, applicantDid:%s", issuerDid, issuerUrl, applicantDid)
+
+	failedResponse := &api.DownloadVCResponse{
+		Status: backend.ErrDownloadVC.ErrCode(),
+		Msg:    backend.ErrDownloadVC.Error(),
+	}
+
 	rawData := applicantDid
 	reqHash := hashutil.HashSHA256([]byte(rawData))
 	sig := didsdkgocrypto.SignSecp256k1(reqHash, tk.WalletManagerInstance().GetPrivateKey())
@@ -180,8 +198,8 @@ func (s *CarrierAPIBackend) DownloadVCLocal(issuerDid, issuerUrl, applicantDid s
 	reqRemote := new(api.DownloadVCReq)
 	reqRemote.IssuerDid = issuerDid
 	reqRemote.ApplicantDid = applicantDid
-	reqRemote.ReqDigest = hex.EncodeToString(reqHash)
-	reqRemote.ReqSignature = hex.EncodeToString(sig)
+	reqRemote.ReqDigest = hexutil.Encode(reqHash) //0x prefix
+	reqRemote.ReqSignature = hexutil.Encode(sig)  //0x prefix
 
 	/*issuerAddress, err := types.ParseToAddress(issuerDid)
 	if err != nil {
@@ -202,21 +220,24 @@ func (s *CarrierAPIBackend) DownloadVCLocal(issuerDid, issuerUrl, applicantDid s
 
 	conn, err := grpclient.DialContext(ctx, issuerUrl, true)
 	defer conn.Close()
+	if err != nil {
+		log.WithError(err).Errorf("DownloadVCLocal: failed to dial up issuer:%s", issuerUrl)
+		return failedResponse
+	}
 	client := api.NewVcServiceClient(conn)
 
 	// 请求issuer的carrier
 	downloadVcResp, err := client.DownloadVCRemote(context.Background(), reqRemote)
 	if err != nil {
-		log.WithError(err).Error("download VC: failed to call issuer, issuerDid:%s, issuerUrl:%s, applicantDid:%s", issuerDid, issuerUrl, applicantDid)
-		return &api.DownloadVCResponse{
-			Status: 0,
-			Msg:    "failed to download VC",
-		}
+		log.WithError(err).Error("DownloadVCLocal: failed to call issuer service")
+		return failedResponse
 	}
 	return downloadVcResp
 }
 
 func (s *CarrierAPIBackend) DownloadVCRemote(issuerDid, applicantDid string, reqDigest, reqSignature string) *api.DownloadVCResponse {
+	log.Debugf("DownloadVCRemote, issuerDid:%s, applicantDid:%s, reqDigest:%s, reqSignature:%s", issuerDid, applicantDid, reqDigest, reqSignature)
+
 	//从签名恢复的publicKey，必须和document中的一致
 	failedResponse := &api.DownloadVCResponse{
 		Status: backend.ErrDownloadVC.ErrCode(),
@@ -225,20 +246,20 @@ func (s *CarrierAPIBackend) DownloadVCRemote(issuerDid, applicantDid string, req
 
 	publicKey, err := crypto.SigToPub(hexutil.MustDecode(reqDigest), hexutil.MustDecode(reqSignature))
 	if err != nil {
-		log.WithError(err).Error("download VC: failed to recover public key from signature, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
+		log.WithError(err).Errorf("DownloadVCRemote: failed to recover public key from signature, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
 		return failedResponse
 	}
 	// 申请人的document
 	docResponse := s.carrier.didService.DocumentService.QueryDidDocument(applicantDid)
 	if docResponse.Status != did.Response_SUCCESS {
-		log.WithError(err).Error("download VC: failed to find doc document, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
+		log.Errorf("DownloadVCRemote: failed to find doc document, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
 		return failedResponse
 	}
 
 	// publicKey是否存在
-	didPublicKey := docResponse.Data.FindDidPublicKeyByPublicKey(hex.EncodeToString(crypto.FromECDSAPub(publicKey)))
+	didPublicKey := docResponse.Data.FindDidPublicKeyByPublicKey(hexutil.Encode(crypto.FromECDSAPub(publicKey)))
 	if didPublicKey == nil {
-		log.WithError(err).Error("download VC: failed to find public key in document , issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
+		log.Errorf("DownloadVCRemote: failed to find public key in document , issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
 		return failedResponse
 	}
 
@@ -247,7 +268,7 @@ func (s *CarrierAPIBackend) DownloadVCRemote(issuerDid, applicantDid string, req
 	reqHash := hashutil.HashSHA256([]byte(rawData))
 	ok := didsdkgocrypto.VerifySecp256k1Signature(reqHash, reqSignature, publicKey)
 	if !ok {
-		log.WithError(err).Error("download VC: failed to verify signature, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
+		log.Errorf("DownloadVCRemote: failed to verify signature, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
 		return failedResponse
 	}
 
@@ -257,20 +278,20 @@ func (s *CarrierAPIBackend) DownloadVCRemote(issuerDid, applicantDid string, req
 	reqRemote := new(api.DownloadVCReq)
 	reqRemote.IssuerDid = issuerDid
 	reqRemote.ApplicantDid = applicantDid
-	reqRemote.ReqDigest = hex.EncodeToString(reqHash)
-	reqRemote.ReqSignature = hex.EncodeToString(sig)
+	reqRemote.ReqDigest = hexutil.Encode(reqHash)
+	reqRemote.ReqSignature = hexutil.Encode(sig)
 
 	//查找本地admin服务端口
 	adminService, err := s.carrier.consulManager.QueryAdminService()
 	if err != nil {
-		log.WithError(err).Error("download VC: failed to find local admin RPC service, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
+		log.WithError(err).Errorf("DownloadVCRemote: failed to find local admin RPC service, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
 		return failedResponse
 	}
 	if adminService == nil {
-		log.WithError(err).Error("download VC: local admin RPC service is none, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
+		log.Errorf("download VC: local admin RPC service is none, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
 		return failedResponse
 	}
-	log.Debugf("download VC: adminService info:%+v", adminService)
+	log.Debugf("DownloadVCRemote: adminService info:%+v", adminService)
 
 	ctx, cancelFn := context.WithTimeout(context.Background(), grpclient.DefaultGrpcDialTimeout)
 	defer cancelFn()
@@ -278,30 +299,36 @@ func (s *CarrierAPIBackend) DownloadVCRemote(issuerDid, applicantDid string, req
 	adminServiceUrl := adminService.Address + ":" + strconv.Itoa(adminService.Port)
 	conn, err := grpclient.DialContext(ctx, adminServiceUrl, true)
 	defer conn.Close()
-
 	if err != nil {
-		log.WithError(err).Error("download VC: failed to dial admin RPC service, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
+		log.WithError(err).Errorf("DownloadVCRemote: failed to dial up admin RPC service:%s", adminServiceUrl)
+		failedResponse.Msg = ""
 		return failedResponse
 	}
 	client := api.NewVcServiceClient(conn)
 	downloadVcResp, err := client.DownloadVCRemote(context.Background(), reqRemote)
 	if err != nil {
-		log.WithError(err).Error("download VC: failed to call admin service, issuerDid:%s, applicantDid:%s", issuerDid, applicantDid)
+		log.WithError(err).Error("DownloadVCRemote: failed to call admin service")
 		return failedResponse
 	}
 	return downloadVcResp
 }
 
-func (s *CarrierAPIBackend) CreateVC(didString string, context string, pctId uint64, claimJson string, expirationDate string) (string, *api.TxInfo, error) {
+func (s *CarrierAPIBackend) CreateVC(applicantDid string, context string, pctId uint64, claimJson string, expirationDate string) (string, *api.TxInfo, error) {
+	log.Debugf("CreateVC, applicantDid:%s, context:%s, pctId:%d, claimJson:%s, expirationDate:%s", applicantDid, context, pctId, claimJson, expirationDate)
+
 	var claimMap types.Claim
 	err := json.Unmarshal([]byte(claimJson), &claimMap)
 	if err != nil {
 		return "", nil, err
 	}
 	req := did.CreateCredentialReq{}
-	req.PrivateKey = tk.WalletManagerInstance().GetPrivateKey()
-	req.Did = didString
 	req.Issuer = types.BuildDid(tk.WalletManagerInstance().GetAddress())
+	req.PrivateKey = tk.WalletManagerInstance().GetPrivateKey()
+	//in carrier, the public key is default to did:pid:xxxx#keys-1
+	req.PublicKeyId = types.BuildPublicKeyId(req.Issuer, strconv.Itoa(1))
+
+	req.Did = applicantDid
+
 	req.PctId = new(big.Int).SetUint64(pctId)
 	req.Context = context
 	req.ExpirationDate = expirationDate
@@ -309,7 +336,12 @@ func (s *CarrierAPIBackend) CreateVC(didString string, context string, pctId uin
 	req.Type = types.CREDENTIAL_TYPE_VC
 	req.Context = types.DEFAULT_CREDENTIAL_CONTEXT
 
+	jsonString, _ := json.Marshal(req)
+	log.Debugf("CreateCredential request: %s", jsonString)
 	response := s.carrier.didService.CredentialService.CreateCredential(req)
+	jsonString, _ = json.Marshal(response)
+	log.Debugf("CreateCredential response: %s", jsonString)
+
 	if response.Status != did.Response_SUCCESS {
 		return "", nil, errors.New(response.Msg)
 	}
@@ -317,8 +349,11 @@ func (s *CarrierAPIBackend) CreateVC(didString string, context string, pctId uin
 	createEvidenceReq := new(did.CreateEvidenceReq)
 	createEvidenceReq.PrivateKey = tk.WalletManagerInstance().GetPrivateKey()
 	createEvidenceReq.Credential = response.Data
+	jsonString, _ = json.Marshal(createEvidenceReq)
+	log.Debugf("CreateEvidence request: %s", jsonString)
 	saveProofResp := s.carrier.didService.CredentialService.CreateEvidence(*createEvidenceReq)
-
+	jsonString, _ = json.Marshal(saveProofResp)
+	log.Debugf("CreateEvidence response: %s", jsonString)
 	if saveProofResp.Status != did.Response_SUCCESS {
 		return "", nil, errors.New(response.Msg)
 	}

@@ -36,8 +36,8 @@ const (
 	ConsulServiceTagFuzzQueryExpression = "%s in Tags"
 	ConsulServiceIdEquelQueryExpression = `ID=="%s"`
 
-	AdminConsulServiceFilter = "admin in Tags"
-	AdminConsulServiceId     = "adminService"
+	AdminGrpcServiceConsulFilter = "adminGrpc in Tags"
+	AdminGrpcServiceConsulName   = "adminGrpcService"
 )
 
 var log = logrus.WithField("prefix", "discovery-consul")
@@ -198,12 +198,12 @@ func (ca *ConnectConsul) QueryJobNodeServices() (map[string]*api.AgentService, e
 }
 
 func (ca *ConnectConsul) QueryAdminService() (*api.AgentService, error) {
-	services, err := ca.QueryServiceInfoByFilter(AdminConsulServiceFilter)
+	services, err := ca.QueryServiceInfoByFilter(AdminGrpcServiceConsulFilter)
 	if err != nil {
 		return nil, err
 	}
 	for _, service := range services {
-		if service.ID == AdminConsulServiceId {
+		if service.Service == AdminGrpcServiceConsulName {
 			return service, nil
 		}
 	}

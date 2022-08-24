@@ -68,7 +68,7 @@ func (m *Identity) GetUpdateAt() uint64 { return m.data.GetUpdateAt() }
 func (m *Identity) GetStatus() commonconstantpb.CommonStatus { return m.data.GetStatus() }
 func (m *Identity) GetDataStatus() commonconstantpb.DataStatus { return m.data.GetDataStatus() }
 func (m *Identity) GetDataId() string { return m.data.GetDataId() }
-
+func (m *Identity) GetNonce() uint64 { return m.data.GetNonce() }
 func (m *Identity) String() string {
 	//return fmt.Sprintf(`{"identity": %s, "nodeId": %s, "nodeName": %s, "dataId": %s, "dataStatus": %s, "status": %s}`,
 	//	m.data.Identity, m.data.NodeId, m.data.NodeName, m.data.DataId, m.data.DataStatus, m.data.Status)

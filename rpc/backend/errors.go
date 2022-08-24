@@ -91,11 +91,12 @@ var (
 // did
 var (
 	ErrCreateDID        = &RpcBizErr{Code: 15001, Msg: "Create DID failed"}
-	ErrApplyVC          = &RpcBizErr{Code: 15002, Msg: "Apply VC failed"}
-	ErrCreateVC         = &RpcBizErr{Code: 15003, Msg: "Create VC failed"}
-	ErrDownloadVC       = &RpcBizErr{Code: 15004, Msg: "Download VC failed"}
-	ErrSubmitProposal   = &RpcBizErr{Code: 15005, Msg: "Submit proposal failed"}
-	ErrWithdrawProposal = &RpcBizErr{Code: 15006, Msg: "Withdraw proposal failed"}
-	ErrVoteProposal     = &RpcBizErr{Code: 15007, Msg: "Vote proposal failed"}
-	ErrEffectProposal   = &RpcBizErr{Code: 15008, Msg: "Effect proposal failed"}
+	ErrDIDExists        = &RpcBizErr{Code: 15002, Msg: "DID exists"}
+	ErrApplyVC          = &RpcBizErr{Code: 15003, Msg: "Apply VC failed"}
+	ErrCreateVC         = &RpcBizErr{Code: 15004, Msg: "Create VC failed"}
+	ErrDownloadVC       = &RpcBizErr{Code: 15005, Msg: "Download VC failed"}
+	ErrSubmitProposal   = &RpcBizErr{Code: 15006, Msg: "Submit proposal failed"}
+	ErrWithdrawProposal = &RpcBizErr{Code: 15007, Msg: "Withdraw proposal failed"}
+	ErrVoteProposal     = &RpcBizErr{Code: 15008, Msg: "Vote proposal failed"}
+	ErrEffectProposal   = &RpcBizErr{Code: 15009, Msg: "Effect proposal failed"}
 )

@@ -154,6 +154,8 @@ func (svr *Server) GetIdentityList(ctx context.Context, req *carrierapipb.GetIde
 			UpdateAt:   identity.GetUpdateAt(),
 			DataStatus: identity.GetDataStatus(),
 			Status:     identity.GetStatus(),
+			Credential: identity.GetCredential(),
+			Nonce:      identity.GetNonce(),
 		}
 		arr[i] = iden
 		if hexNodeId, err := p2p.HexPeerID(identity.GetNodeId()); err == nil {
@@ -442,6 +444,16 @@ func (svr *Server) GetGlobalMetadataAuthorityList(ctx context.Context, req *carr
 func (svr *Server) UpdateIdentityCredential(ctx context.Context, req *carrierapipb.UpdateIdentityCredentialRequest) (*carriertypespb.SimpleResponse, error) {
 	identityId := req.GetIdentityId()
 	credential := req.GetCredential()
+
+	identity, err := svr.B.GetNodeIdentity()
+	if nil != err {
+		log.WithError(err).Errorf("RPC-API:UpdateIdentityCredential failed, query local identity failed")
+		return &carriertypespb.SimpleResponse{Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
+	}
+	if identity.GetIdentityId() != identityId {
+		log.WithError(err).Errorf("RPC-API:UpdateIdentityCredential failed,req.GetIdentityId() not equal the identityId of the organization")
+		return &carriertypespb.SimpleResponse{Status: backend.ErrIdentityNotEqualLocalNodeIdentityId.ErrCode(), Msg: backend.ErrIdentityNotEqualLocalNodeIdentityId.Msg}, nil
+	}
 	if identityId == "" {
 		return &carriertypespb.SimpleResponse{Status: backend.ErrUpdateIdentityCredential.Code, Msg: "identityId can not be empty "}, nil
 	}
