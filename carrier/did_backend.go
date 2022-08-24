@@ -82,7 +82,7 @@ func (s *CarrierAPIBackend) ApplyVCLocal(issuerDid, issuerUrl, applicantDid stri
 
 	conn, err := grpclient.DialContext(ctx, issuerUrl, true)
 	if err != nil {
-		log.WithError(err).Error("ApplyVCLocal: failed to dial up issuer:%s", issuerUrl)
+		log.WithError(err).Errorf("ApplyVCLocal: failed to dial up issuer:%s", issuerUrl)
 		return err
 	}
 	defer conn.Close()
