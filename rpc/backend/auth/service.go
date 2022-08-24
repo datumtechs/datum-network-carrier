@@ -154,6 +154,8 @@ func (svr *Server) GetIdentityList(ctx context.Context, req *carrierapipb.GetIde
 			UpdateAt:   identity.GetUpdateAt(),
 			DataStatus: identity.GetDataStatus(),
 			Status:     identity.GetStatus(),
+			Credential: identity.GetCredential(),
+			Nonce:      identity.GetNonce(),
 		}
 		arr[i] = iden
 		if hexNodeId, err := p2p.HexPeerID(identity.GetNodeId()); err == nil {
