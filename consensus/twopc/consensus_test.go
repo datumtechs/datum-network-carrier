@@ -11,7 +11,6 @@ import (
 	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"gotest.tools/assert"
-	"math"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -21,16 +20,18 @@ import (
 
 func TestProposalStateMonitor(t *testing.T) {
 
-	now := time.Now()
+	start := time.Now()
 
 	arr := []time.Time{
-		now.Add(time.Duration(6) * time.Second),
-		now.Add(time.Duration(1) * time.Second),
-		now.Add(time.Duration(8) * time.Second),
-		now.Add(time.Duration(4) * time.Second),
-		now.Add(time.Duration(2) * time.Second),
-		now.Add(time.Duration(3) * time.Second),
-		now.Add(time.Duration(1) * time.Second),
+		start.Add(time.Duration(6) * time.Second),
+		start.Add(time.Duration(1) * time.Second),
+		start.Add(time.Duration(8) * time.Second),
+		time.Unix((start.UnixNano()/1e6-9999)/1000, 0), // pass + 9999 ms == now
+		start.Add(time.Duration(4) * time.Second),
+		start.Add(time.Duration(2) * time.Second),
+		start.Add(time.Duration(3) * time.Second),
+		time.Unix((start.UnixNano()/1e6-3000)/1000, 0), // pass + 3000 ms == now
+		start.Add(time.Duration(1) * time.Second),
 	}
 
 	consensus := &Twopc{
@@ -41,10 +42,10 @@ func TestProposalStateMonitor(t *testing.T) {
 
 	queue := consensus.state.syncProposalStateMonitors
 
-	t.Log("now time ", now.Format("2006-01-02 15:04:05"), "timestamp", now.UnixNano()/1e6)
+	t.Log("now time ", start.Format("2006-01-02 15:04:05"), "timestamp", start.UnixNano()/1e6)
 
 	timer := consensus.proposalStateMonitorTimer()
-	timer.Reset(time.Duration(math.MaxInt32) * time.Millisecond)
+	//timer.Reset(time.Duration(math.MaxInt32) * time.Millisecond)
 
 	ctx, cancelFn := context.WithCancel(context.Background())
 
@@ -61,8 +62,10 @@ func TestProposalStateMonitor(t *testing.T) {
 				now := timeutils.UnixMsec()
 				if future > now {
 					timer.Reset(time.Duration(future-now) * time.Millisecond)
+					t.Logf("match future time %d now %d duration %d \n", future, now, future-now)
 				} else if future < now {
-					timer.Reset(time.Duration(now) * time.Millisecond)
+					timer.Reset(time.Duration(0) * time.Millisecond)
+					t.Logf("match pass time %d now %d duration %d \n", future, now, future-now)
 				}
 				// when future value is 0, we do nothing
 
@@ -78,9 +81,9 @@ func TestProposalStateMonitor(t *testing.T) {
 	var count uint32
 
 	go func(queue *ctypes.SyncProposalStateMonitorQueue) {
-		t.Log("Start add new one member into 2pc consensus proposalState monitor queue")
+		t.Logf("Start add new one member into 2pc consensus proposalState monitor queue, arr size %d", len(arr))
 		for i, tm := range arr {
-			orgState := ctypes.NewOrgProposalState(common.Hash{byte(uint8(i))},
+			orgState := ctypes.NewOrgProposalState(common.Hash{uint8(i)},
 				fmt.Sprintf("taskId:%d", i), commonconstantpb.TaskRole_TaskRole_Unknown,
 				&carriertypespb.TaskOrganization{
 					PartyId:    fmt.Sprintf("senderPartyId:%d", i),
@@ -94,10 +97,13 @@ func TestProposalStateMonitor(t *testing.T) {
 					NodeId:     fmt.Sprintf("nodeId:%d", i),
 					IdentityId: fmt.Sprintf("identityId:%d", i),
 				}, timeutils.UnixMsecUint64())
-			queue.AddMonitor(ctypes.NewProposalStateMonitor(orgState, tm.UnixNano()/1e6, tm.UnixNano()/1e6+1000,
-				func(orgState *ctypes.OrgProposalState) {
-					atomic.AddUint32(&count, 1)
-				}))
+			monitor := ctypes.NewProposalStateMonitor(orgState, tm.UnixNano()/1e6, tm.UnixNano()/1e6+1000, nil)
+			// this fun would execute arr size * 2 times.
+			monitor.SetCallBackFn(func(orgState *ctypes.OrgProposalState) {
+				atomic.AddUint32(&count, 1)
+				//t.Logf("execute proposalId %s", orgState.GetProposalId().String())
+			})
+			queue.AddMonitor(monitor)
 		}
 	}(queue)
 
@@ -276,8 +282,8 @@ func TestConsensusasyncCallCh(t *testing.T) {
 	var (
 		errOne = fmt.Errorf("I am err one")
 		errTwo = fmt.Errorf("I am err two")
-		count = uint32(0)
-		wg sync.WaitGroup
+		count  = uint32(0)
+		wg     sync.WaitGroup
 	)
 
 	wg.Add(3)
@@ -343,14 +349,13 @@ func TestConsensusasyncCallCh(t *testing.T) {
 
 	}(cancal, &count)
 
-
 	go func() {
 
 		defer wg.Done()
 
 		for {
 			select {
-			case fn := <- twopc.asyncCallCh:
+			case fn := <-twopc.asyncCallCh:
 				fn()
 			case <-ctx.Done():
 				t.Log("count: ", count)
@@ -364,7 +369,7 @@ func TestConsensusasyncCallCh(t *testing.T) {
 
 }
 
-func TestContex (t *testing.T)  {
+func TestContex(t *testing.T) {
 
 	childCtx := context.WithValue(context.Background(), "key1", "value1")
 
@@ -378,4 +383,25 @@ func TestContex (t *testing.T)  {
 	v = childCtx.Value("key1").(string)
 	fmt.Println("second fetch value:", v)
 
+}
+
+func TestProposalMonitorTimerReset(t *testing.T) {
+
+	consensus := &Twopc{
+		state: &state{
+			syncProposalStateMonitors: ctypes.NewSyncProposalStateMonitorQueue(0),
+		},
+	}
+
+	timer := consensus.proposalStateMonitorTimer()
+
+	timer.Reset(time.Duration(0) * time.Millisecond)
+
+	for {
+		select {
+		case <-timer.C:
+			t.Log("lalala")
+			return
+		}
+	}
 }
