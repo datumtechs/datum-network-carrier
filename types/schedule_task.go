@@ -45,7 +45,7 @@ const (
 
 // Local tasks that need to be agreed (scheduled but not yet agreed)
 type NeedConsensusTask struct {
-	task *Task
+	task     *Task
 	evidence string
 	blackOrg string
 }
@@ -103,7 +103,9 @@ func (nrst *NeedReplayScheduleTask) SendResult(result *ReplayScheduleResult) {
 func (nrst *NeedReplayScheduleTask) ReceiveResult() *ReplayScheduleResult {
 	return <-nrst.resultCh
 }
-func (nrst *NeedReplayScheduleTask) GetLocalTaskRole() commonconstantpb.TaskRole     { return nrst.taskRole }
+func (nrst *NeedReplayScheduleTask) GetLocalTaskRole() commonconstantpb.TaskRole {
+	return nrst.taskRole
+}
 func (nrst *NeedReplayScheduleTask) GetLocalPartyId() string                 { return nrst.partyId }
 func (nrst *NeedReplayScheduleTask) GetTask() *Task                          { return nrst.task }
 func (nrst *NeedReplayScheduleTask) GetEvidence() string                     { return nrst.evidence }
@@ -155,14 +157,15 @@ type DatatokenPaySpec struct {
 	// constant int8 private PREPAY = 1;
 	// constant int8 private SETTLE = 2;
 	// constant int8 private END = 3;
-	Consumed     int32  `json:"consumed"`
+	Consumed int32 `json:"consumed"`
 	//GasEstimated uint64 `json:"gasEstimated"` // prepay estimate gas total about task
-	GasUsed      uint64 `json:"gasUsed"`      // prepay gas used about task
+	GasUsed uint64 `json:"gasUsed"` // prepay gas used about task
 }
 
-func (s *DatatokenPaySpec) GetConsumed() int32      { return s.Consumed }
+func (s *DatatokenPaySpec) GetConsumed() int32 { return s.Consumed }
+
 //func (s *DatatokenPaySpec) GetGasEstimated() uint64 { return s.GasEstimated }
-func (s *DatatokenPaySpec) GetGasUsed() uint64      { return s.GasUsed }
+func (s *DatatokenPaySpec) GetGasUsed() uint64 { return s.GasUsed }
 
 // Tasks to be executed (local and remote, which have been completed by consensus and can be executed by issuing fighter)
 type NeedExecuteTask struct {
@@ -203,9 +206,9 @@ func NewNeedExecuteTask(
 		err:                    err,
 	}
 }
-func (net *NeedExecuteTask) HasRemotePID() bool                   { return strings.Trim(string(net.remotepid), "") != "" }
-func (net *NeedExecuteTask) HasEmptyRemotePID() bool              { return !net.HasRemotePID() }
-func (net *NeedExecuteTask) GetRemotePID() peer.ID                { return net.remotepid }
+func (net *NeedExecuteTask) HasRemotePID() bool                           { return strings.Trim(string(net.remotepid), "") != "" }
+func (net *NeedExecuteTask) HasEmptyRemotePID() bool                      { return !net.HasRemotePID() }
+func (net *NeedExecuteTask) GetRemotePID() peer.ID                        { return net.remotepid }
 func (net *NeedExecuteTask) GetLocalTaskRole() commonconstantpb.TaskRole  { return net.localTaskRole }
 func (net *NeedExecuteTask) GetRemoteTaskRole() commonconstantpb.TaskRole { return net.remoteTaskRole }
 func (net *NeedExecuteTask) GetLocalTaskOrganization() *carriertypespb.TaskOrganization {
@@ -214,13 +217,13 @@ func (net *NeedExecuteTask) GetLocalTaskOrganization() *carriertypespb.TaskOrgan
 func (net *NeedExecuteTask) GetRemoteTaskOrganization() *carriertypespb.TaskOrganization {
 	return net.remoteTaskOrganization
 }
-func (net *NeedExecuteTask) GetTaskId() string                          { return net.taskId }
-func (net *NeedExecuteTask) GetConsStatus() TaskActionStatus            { return net.status }
-func (net *NeedExecuteTask) GetLocalResource() *PrepareVoteResource     { return net.localResource }
+func (net *NeedExecuteTask) GetTaskId() string                                 { return net.taskId }
+func (net *NeedExecuteTask) GetConsStatus() TaskActionStatus                   { return net.status }
+func (net *NeedExecuteTask) GetLocalResource() *PrepareVoteResource            { return net.localResource }
 func (net *NeedExecuteTask) GetResources() *carriertwopcpb.ConfirmTaskPeerInfo { return net.resources }
-func (net *NeedExecuteTask) GetConsumeQueryId() string                  { return net.consumeQueryId }
-func (net *NeedExecuteTask) GetConsumeSpec() string                     { return net.consumeSpec }
-func (net *NeedExecuteTask) GetErr() error                              { return net.err }
+func (net *NeedExecuteTask) GetConsumeQueryId() string                         { return net.consumeQueryId }
+func (net *NeedExecuteTask) GetConsumeSpec() string                            { return net.consumeSpec }
+func (net *NeedExecuteTask) GetErr() error                                     { return net.err }
 func (net *NeedExecuteTask) String() string {
 	localIdentityStr := "{}"
 	if nil != net.GetLocalTaskOrganization() {
@@ -235,7 +238,7 @@ func (net *NeedExecuteTask) String() string {
 		localResourceStr = net.GetLocalResource().String()
 	}
 	return fmt.Sprintf(`{"remotepid": %s, "localTaskRole": %s, "localTaskOrganization": %s, "remoteTaskRole": %s, "remoteTaskOrganization": %s, "taskId": %s, "localResource": %s, "resources": %s, "err": %s}`,
-		net.GetRemotePID(), net.GetLocalTaskRole().String(), localIdentityStr, net.GetRemoteTaskRole().String(), remoteIdentityStr, net.GetTaskId(), localResourceStr, ConfirmTaskPeerInfoString(net.GetResources()), net.GetErr())
+		net.GetRemotePID(), net.GetLocalTaskRole().String(), localIdentityStr, net.GetRemoteTaskRole().String(), remoteIdentityStr, net.GetTaskId(), localResourceStr, confirmTaskPeerInfoString(net.GetResources()), net.GetErr())
 }
 
 func (net *NeedExecuteTask) SetConsumeQueryId(consumeQueryId string) {
@@ -517,7 +520,7 @@ func (syncQueue *SyncExecuteTaskMonitorQueue) siftDownMonitor(i int) {
 	}
 }
 
-func ConfirmTaskPeerInfoString(resources *carriertwopcpb.ConfirmTaskPeerInfo) string {
+func confirmTaskPeerInfoString(resources *carriertwopcpb.ConfirmTaskPeerInfo) string {
 	if nil == resources {
 		return "{}"
 	}
@@ -525,13 +528,9 @@ func ConfirmTaskPeerInfoString(resources *carriertwopcpb.ConfirmTaskPeerInfo) st
 	for i, peerInfo := range resources.GetDataSupplierPeerInfos() {
 		var resource *PrepareVoteResource
 		if nil == peerInfo {
-			resource = &PrepareVoteResource{}
+			resource = NewPrepareVoteResource("", "", "", "")
 		} else {
-			resource = &PrepareVoteResource{
-				Ip:      string(peerInfo.Ip),
-				Port:    string(peerInfo.Port),
-				PartyId: string(peerInfo.PartyId),
-			}
+			resource = NewPrepareVoteResource("", string(peerInfo.GetIp()), string(peerInfo.GetPort()), string(peerInfo.GetPartyId()))
 		}
 		dataSupplierList[i] = resource.String()
 	}
@@ -541,13 +540,9 @@ func ConfirmTaskPeerInfoString(resources *carriertwopcpb.ConfirmTaskPeerInfo) st
 	for i, peerInfo := range resources.GetPowerSupplierPeerInfos() {
 		var resource *PrepareVoteResource
 		if nil == peerInfo {
-			resource = &PrepareVoteResource{}
+			resource = NewPrepareVoteResource("", "", "", "")
 		} else {
-			resource = &PrepareVoteResource{
-				Ip:      string(peerInfo.Ip),
-				Port:    string(peerInfo.Port),
-				PartyId: string(peerInfo.PartyId),
-			}
+			resource = NewPrepareVoteResource("", string(peerInfo.GetIp()), string(peerInfo.GetPort()), string(peerInfo.GetPartyId()))
 		}
 		powerSupplierList[i] = resource.String()
 	}
@@ -557,13 +552,9 @@ func ConfirmTaskPeerInfoString(resources *carriertwopcpb.ConfirmTaskPeerInfo) st
 	for i, peerInfo := range resources.GetResultReceiverPeerInfos() {
 		var resource *PrepareVoteResource
 		if nil == peerInfo {
-			resource = &PrepareVoteResource{}
+			resource = NewPrepareVoteResource("", "", "", "")
 		} else {
-			resource = &PrepareVoteResource{
-				Ip:      string(peerInfo.Ip),
-				Port:    string(peerInfo.Port),
-				PartyId: string(peerInfo.PartyId),
-			}
+			resource = NewPrepareVoteResource("", string(peerInfo.GetIp()), string(peerInfo.GetPort()), string(peerInfo.GetPartyId()))
 		}
 		receiverList[i] = resource.String()
 	}
