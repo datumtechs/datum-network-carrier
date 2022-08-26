@@ -13,6 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind/backends"
 	"github.com/ethereum/go-ethereum/common"
+	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethcore "github.com/ethereum/go-ethereum/core"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
@@ -37,6 +38,8 @@ var (
 	tkAddress = ethcrypto.PubkeyToAddress(tkKey.PublicKey) //0xC00b0635a7660f1e7AA3Cfe789Eb04311c3A6E40
 )
 
+var payAgentContractProxy = ethcommon.HexToAddress("0x263B1D39843BF2e1DA27d827e749992fbD1f1577")
+
 var payAgent *PayAgent
 
 func setup() {
@@ -54,7 +57,7 @@ func setup() {
 
 	ethContext := chainclient.NewEthClientContext("https://devnetopenapi2.platon.network/rpc", "lat", WalletManagerInstance())
 
-	payAgent = NewPayAgent(ethContext)
+	payAgent = NewPayAgent(ethContext, payAgentContractProxy)
 }
 
 func Test_getChainID(t *testing.T) {
@@ -176,7 +179,7 @@ func TestToken20Pay_Prepay(t *testing.T) {
 
 	ethContext := chainclient.NewEthClientContext("https://devnetopenapi2.platon.network/rpc", "lat", WalletManagerInstance())
 
-	payAgent = NewPayAgent(ethContext)
+	payAgent = NewPayAgent(ethContext, payAgentContractProxy)
 
 	taskIdBytes, _ := hex.DecodeString("9977f8c9962d4eb67815022b7a079ba67382afd1bd3ed5d2df65d995d2ca6c41")
 

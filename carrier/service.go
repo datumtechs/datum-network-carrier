@@ -139,7 +139,8 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 		}
 		ethContext = chainclient.NewEthClientContext(chainUrl, chainHrp, tk.WalletManagerInstance())
 	}
-	payAgent := tk.NewPayAgent(ethContext)
+	var payAgentContractProxy = ethcommon.HexToAddress(cliCtx.String(flags.PayAgentContractProxy.Name))
+	payAgent := tk.NewPayAgent(ethContext, payAgentContractProxy)
 
 	var didConfig *did.Config
 	if cliCtx.IsSet(flags.DidDocumentContractProxy.Name) && cliCtx.IsSet(flags.DidPctContractProxy.Name) && cliCtx.IsSet(flags.DidProposalContractProxy.Name) && cliCtx.IsSet(flags.DidCredentialContractProxy.Name) {

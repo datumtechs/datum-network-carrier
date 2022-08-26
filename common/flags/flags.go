@@ -387,6 +387,12 @@ var (
 		Value: "",
 	}
 
+	PayAgentContractProxy = &cli.StringFlag{
+		Name:  "pay-agent-contract-proxy",
+		Usage: "datum pay agent contract proxy address.",
+		Value: "",
+	}
+
 	// ================================= TaskManager Flags ===========================================
 
 	// add by v.04.0

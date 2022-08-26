@@ -26,7 +26,7 @@ const keystoreFile = ".keystore"
 
 //"task:0x81050ea1c64ab0ed96e50b151c36bcef180eea18d3b3245e7c4a42aa08638c58"
 var (
-	payAgentAddress           = ethcommon.HexToAddress("0x263B1D39843BF2e1DA27d827e749992fbD1f1577")
+	//payAgentAddress           = ethcommon.HexToAddress("0x263B1D39843BF2e1DA27d827e749992fbD1f1577")
 	defaultTkPrepaymentAmount = big.NewInt(1e18)
 
 	mockTaskID, _ = hexutil.DecodeBig("0x81050ea1c64ab0ed96e50b151c36bcef180eea18d3b3245e7c4a42aa08638c58")
@@ -43,15 +43,17 @@ type PayAgent struct {
 	ethContext               *chainclient.EthContext
 	abi                      abi.ABI
 	payAgentContractInstance *contracts.DatumPay
+	payAgentContractProxy    ethcommon.Address
 	txSyncLocker             sync.Mutex
 }
 
-func NewPayAgent(ethContext *chainclient.EthContext) *PayAgent {
+func NewPayAgent(ethContext *chainclient.EthContext, payAgentContractProxy ethcommon.Address) *PayAgent {
 	log.Infof("Init pay agent, wallet address: %s...", ethContext.GetAddress())
 	m := new(PayAgent)
 	m.ethContext = ethContext
+	m.payAgentContractProxy = payAgentContractProxy
 
-	instance, err := contracts.NewDatumPay(payAgentAddress, m.ethContext.GetClient())
+	instance, err := contracts.NewDatumPay(m.payAgentContractProxy, m.ethContext.GetClient())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -101,7 +103,7 @@ func (m *PayAgent) EstimateTaskGas(taskSponsorAddress string, tkItemList []*carr
 
 	// Estimating task gas happens before task starting, and the task ID has not been generated at this moment, so, apply a mock task ID.
 	input := m.buildInput("prepay", mockTaskID, ethcommon.HexToAddress(taskSponsorAddress), big.NewInt(1), tk20AddressList, tk20AmountList)
-	gasLimit, err := m.ethContext.EstimateGas(context.Background(), payAgentAddress, input)
+	gasLimit, err := m.ethContext.EstimateGas(context.Background(), m.payAgentContractProxy, input)
 	if err != nil {
 		log.Errorf("call EstimateTaskGas error: %v", err)
 		return 0, nil, err
@@ -179,7 +181,7 @@ func (m *PayAgent) PrepayTk20(taskID *big.Int, taskSponsorAccount ethcommon.Addr
 	input := m.buildInput("prepay", mockTaskID, taskSponsorAccount, big.NewInt(1), tk20AddressList, tk20AmountList)
 
 	//估算gas
-	gasEstimated, err := m.ethContext.EstimateGas(context.Background(), payAgentAddress, input)
+	gasEstimated, err := m.ethContext.EstimateGas(context.Background(), m.payAgentContractProxy, input)
 	if err != nil {
 		log.Errorf("failed to estimate gas for DatumPay.Prepay(), taskID: %s, error: %v", taskIDHex, err)
 		return ethcommon.Hash{}, errors.New("failed to estimate gas for DatumPay.Prepay()")
@@ -230,7 +232,7 @@ func (m *PayAgent) Settle(taskID *big.Int, gasUsedPrepay uint64) (ethcommon.Hash
 	input := m.buildInput("settle", taskID, big.NewInt(1), new(big.Int).SetUint64(1))
 
 	//估算gas
-	gasEstimated, err := m.ethContext.EstimateGas(context.Background(), payAgentAddress, input)
+	gasEstimated, err := m.ethContext.EstimateGas(context.Background(), m.payAgentContractProxy, input)
 	if err != nil {
 		log.Errorf("failed to estimate gas for DatumPay.Settle(), taskID: %s, error: %v", hexutil.EncodeBig(taskID), err)
 		return ethcommon.Hash{}, errors.New("failed to estimate gas for DatumPay.Settle()")

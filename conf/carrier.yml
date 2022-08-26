@@ -193,6 +193,9 @@ pprof-addr: 0.0.0.0
 ## Configuration dir required to persist the consensus state.
 #consensus-state-wal-dir:
 
+## pay agent contract proxy address
+pay-agent-proxy: 0x263B1D39843BF2e1DA27d827e749992fbD1f1577
+
 #kms:
 #  key-id:
 #  region-id:
@@ -202,6 +205,7 @@ blockchain:
   url: https://mainnet.infura.io
   hrp: lat
 
+## DID agent contract proxy address
 did:
   document-contract-proxy: 0x279167d9767b10CEF88b9a81D9C912e475c0B75b
   pct-contract-proxy: 0xFa2A71584740c749F1EF055741140833534504CD

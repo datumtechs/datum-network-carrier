@@ -161,6 +161,13 @@ var appHelpFlagGroups = []flagGroup{
 			flags.DidCredentialContractProxy,
 		},
 	},
+
+	{
+		Name: "pay",
+		Flags: []cli.Flag{
+			flags.PayAgentContractProxy,
+		},
+	},
 }
 
 func init() {

@@ -134,6 +134,11 @@ var (
 		flags.DidProposalContractProxy,
 		flags.DidCredentialContractProxy,
 	}
+
+	// add v0.5.0
+	payAgentFlags = []cli.Flag{
+		flags.PayAgentContractProxy,
+	}
 )
 
 func init() {
@@ -146,11 +151,12 @@ func init() {
 	consensusFlags = cmd.WrapFlags(consensusFlags)
 	// add by v0.4.0
 	kmsFlags = cmd.WrapFlags(kmsFlags)
-	didFlags = cmd.WrapFlags(didFlags)
 	taskFlags = cmd.WrapFlags(taskFlags)
+	chainFlags = cmd.WrapFlags(chainFlags)
 
 	// add v0.5.0
-	chainFlags = cmd.WrapFlags(chainFlags)
+	didFlags = cmd.WrapFlags(didFlags)
+	payAgentFlags = cmd.WrapFlags(payAgentFlags)
 }
 
 func main() {
@@ -177,6 +183,7 @@ func main() {
 
 	// add v0.5.0
 	app.Flags = append(app.Flags, didFlags...)
+	app.Flags = append(app.Flags, payAgentFlags...)
 
 	app.Before = func(ctx *cli.Context) error {
 		// Load flags from config file, if specified.
