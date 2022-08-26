@@ -217,6 +217,8 @@ github.com/datumtechs/did-sdk-go v0.0.13 h1:Cn9SV17+HR33dj6t+iZQnru/KHLIAhf7dN5o
 github.com/datumtechs/did-sdk-go v0.0.13/go.mod h1:484TpuAI87hAsNjfVrFXSIhj+3MzB2wKvT9BrC4EEJc=
 github.com/datumtechs/did-sdk-go v0.0.14 h1:uYnWR+NtLfycCZJnWN5zeiucNJXVdzFLveaInQuANYI=
 github.com/datumtechs/did-sdk-go v0.0.14/go.mod h1:484TpuAI87hAsNjfVrFXSIhj+3MzB2wKvT9BrC4EEJc=
+github.com/datumtechs/did-sdk-go v0.0.15 h1:ogkoR9CjNAwTqASlFVb+Uj0B89dCzxzkgKC+f3a6OIM=
+github.com/datumtechs/did-sdk-go v0.0.15/go.mod h1:484TpuAI87hAsNjfVrFXSIhj+3MzB2wKvT9BrC4EEJc=
 github.com/davecgh/go-spew v0.0.0-20171005155431-ecdeabc65495/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=

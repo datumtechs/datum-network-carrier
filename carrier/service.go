@@ -27,6 +27,7 @@ import (
 	"github.com/datumtechs/datum-network-carrier/service/discovery"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/datumtechs/did-sdk-go/did"
+	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/urfave/cli/v2"
 	"strconv"
 	"sync"
@@ -139,7 +140,17 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 		ethContext = chainclient.NewEthClientContext(chainUrl, chainHrp, tk.WalletManagerInstance())
 	}
 	payAgent := tk.NewPayAgent(ethContext)
-	didService := did.NewDIDService(ethContext)
+
+	var didConfig *did.Config
+	if cliCtx.IsSet(flags.DidDocumentContractProxy.Name) && cliCtx.IsSet(flags.DidPctContractProxy.Name) && cliCtx.IsSet(flags.DidProposalContractProxy.Name) && cliCtx.IsSet(flags.DidCredentialContractProxy.Name) {
+		didConfig = &did.Config{
+			DocumentContractProxy:   ethcommon.HexToAddress(cliCtx.String(flags.DidDocumentContractProxy.Name)),
+			PctContractProxy:        ethcommon.HexToAddress(cliCtx.String(flags.DidPctContractProxy.Name)),
+			ProposalContractProxy:   ethcommon.HexToAddress(cliCtx.String(flags.DidProposalContractProxy.Name)),
+			CredentialContractProxy: ethcommon.HexToAddress(cliCtx.String(flags.DidCredentialContractProxy.Name)),
+		}
+	}
+	didService := did.NewDIDService(ethContext, didConfig)
 
 	taskManager, err := task.NewTaskManager(
 		config.P2P.PirKey(),

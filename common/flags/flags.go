@@ -362,6 +362,31 @@ var (
 		Value: "",
 	}
 
+	// ================================= did config Flags ===========================================
+	DidDocumentContractProxy = &cli.StringFlag{
+		Name:  "did.document-contract-proxy",
+		Usage: "DID document contract proxy address.",
+		Value: "",
+	}
+
+	DidPctContractProxy = &cli.StringFlag{
+		Name:  "did.pct-contract-proxy",
+		Usage: "DID pct contract proxy address.",
+		Value: "",
+	}
+
+	DidProposalContractProxy = &cli.StringFlag{
+		Name:  "did.proposal-contract-proxy",
+		Usage: "DID proposal contract proxy address.",
+		Value: "",
+	}
+
+	DidCredentialContractProxy = &cli.StringFlag{
+		Name:  "did.credential-contract-proxy",
+		Usage: "DID credential contract proxy address.",
+		Value: "",
+	}
+
 	// ================================= TaskManager Flags ===========================================
 
 	// add by v.04.0

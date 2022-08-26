@@ -150,6 +150,17 @@ var appHelpFlagGroups = []flagGroup{
 			flags.TaskMetadataConsumeOption,
 		},
 	},
+
+	// add v0.5.0
+	{
+		Name: "did",
+		Flags: []cli.Flag{
+			flags.DidDocumentContractProxy,
+			flags.DidPctContractProxy,
+			flags.DidProposalContractProxy,
+			flags.DidCredentialContractProxy,
+		},
+	},
 }
 
 func init() {

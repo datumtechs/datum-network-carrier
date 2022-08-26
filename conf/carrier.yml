@@ -201,3 +201,9 @@ pprof-addr: 0.0.0.0
 blockchain:
   url: https://mainnet.infura.io
   hrp: lat
+
+did:
+  document-contract-proxy: 0x279167d9767b10CEF88b9a81D9C912e475c0B75b
+  pct-contract-proxy: 0xFa2A71584740c749F1EF055741140833534504CD
+  credential-contract-proxy: 0x6Afe474d2201525558b50D5D5a8544e88d222E05
+  proposal-contract-proxy: 0x857027b23F73F5823984d90550A39cAA6FA43A11

@@ -126,6 +126,14 @@ var (
 		//flags.TaskConsResultChanSize,
 		flags.TaskMetadataConsumeOption,
 	}
+
+	// add v0.5.0
+	didFlags = []cli.Flag{
+		flags.DidDocumentContractProxy,
+		flags.DidPctContractProxy,
+		flags.DidProposalContractProxy,
+		flags.DidCredentialContractProxy,
+	}
 )
 
 func init() {
@@ -138,8 +146,11 @@ func init() {
 	consensusFlags = cmd.WrapFlags(consensusFlags)
 	// add by v0.4.0
 	kmsFlags = cmd.WrapFlags(kmsFlags)
-	chainFlags = cmd.WrapFlags(chainFlags)
+	didFlags = cmd.WrapFlags(didFlags)
 	taskFlags = cmd.WrapFlags(taskFlags)
+
+	// add v0.5.0
+	chainFlags = cmd.WrapFlags(chainFlags)
 }
 
 func main() {
@@ -163,6 +174,9 @@ func main() {
 	app.Flags = append(app.Flags, kmsFlags...)
 	app.Flags = append(app.Flags, chainFlags...)
 	app.Flags = append(app.Flags, taskFlags...)
+
+	// add v0.5.0
+	app.Flags = append(app.Flags, didFlags...)
 
 	app.Before = func(ctx *cli.Context) error {
 		// Load flags from config file, if specified.
