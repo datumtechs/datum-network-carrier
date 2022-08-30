@@ -2,110 +2,82 @@ package yarn
 
 import (
 	"bufio"
+	"context"
+	"encoding/json"
 	"fmt"
+	"github.com/datumtechs/datum-network-carrier/carrier"
 	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
-	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	fighterapipb "github.com/datumtechs/datum-network-carrier/pb/fighter/api/data"
-	"golang.org/x/net/context"
+	"github.com/datumtechs/datum-network-carrier/pb/fighter/types"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
+	"gotest.tools/assert"
 	"io"
 	"net"
 	"os"
 	"testing"
 )
 
-func startDownloadTaskResultDataService() {
-	address := "192.168.21.143:8899"
-	listener, err := net.Listen("tcp", address)
+const (
+	carrierAddress  = "127.0.0.1:8899"
+	dataNodeAddress = "127.0.0.1:3344"
+	savePath        = "./jobnode_service.go.bak"
+)
+
+type DataNode struct {
+}
+
+func TestServerDataNodeAndYarn(t *testing.T) {
+	go func() {
+		listener, err := net.Listen("tcp", dataNodeAddress)
+		if err != nil {
+			t.Fatalf("listener err %v", err)
+		}
+		t.Log(dataNodeAddress + " net.Listing...")
+		grpcServer := grpc.NewServer()
+		fighterapipb.RegisterDataProviderServer(grpcServer, &DataNode{})
+		err = grpcServer.Serve(listener)
+		if err != nil {
+			t.Fatalf("DataNode grpcServer call Serve err %v", err)
+		}
+	}()
+	listener, err := net.Listen("tcp", carrierAddress)
 	if err != nil {
-		log.Println("listener err ", err)
+		t.Fatalf("listener err %v", err)
 	}
-	log.Println(address + " net.Listing...")
+	t.Log(carrierAddress + " net.Listing...")
 	grpcServer := grpc.NewServer()
-	carrierapipb.RegisterYarnServiceServer(grpcServer, &YarnServiceServer{})
+	carrierapipb.RegisterYarnServiceServer(grpcServer, &Server{B: &carrier.MockApiBackend{}})
 	err = grpcServer.Serve(listener)
 	if err != nil {
-		log.Println("grpcServer call Serve err ", err)
+		t.Fatalf("Carrier grpcServer call Serve err %v", err)
 	}
-}
-func TestServer_DownloadTaskResultData(t *testing.T) {
-	startDownloadTaskResultDataService()
 }
 
-type YarnServiceServer struct{}
-
-func (s *YarnServiceServer) DownloadTaskResultData(req *carrierapipb.DownloadTaskResultDataRequest, server carrierapipb.YarnService_DownloadTaskResultDataServer) error {
-	log.Info("taskId is " + req.GetTaskId())
-	dataNodeIp := "192.168.10.154"
-	dataNodePort := 8700
-	dataPath := "/home/user1/data/data_root/insurance_predict_partyB_20220628-105125.csv"
-	var dataServerAddress = fmt.Sprintf("%s:%d", dataNodeIp, dataNodePort)
-	log.Info("dataServerAddress is ", dataServerAddress)
-	conn, err := grpc.Dial(dataServerAddress, grpc.WithInsecure())
+func TestDownloadResultData(t *testing.T) {
+	conn, err := grpc.Dial(carrierAddress, grpc.WithInsecure())
 	if err != nil {
-		log.Fatalf("net.Connect err: %v", err)
+		t.Fatalf("net.Connect err: %v", err)
 	}
-	defer conn.Close()
-	grpcClient := fighterapipb.NewDataProviderClient(conn)
-	stream, err := grpcClient.DownloadData(context.Background(), &fighterapipb.DownloadRequest{
-		DataPath: dataPath,
-		//Options:  map[string]string{"compress": "zip"},
-	})
-	if err != nil {
-		log.Fatalf("Call DownloadData err: %v", err)
-	}
-	for {
-		res, err := stream.Recv()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			log.Fatalf("Conversations get stream err: %v", err)
-		}
-		if res.GetStatus() == constant.TaskStatus_Start {
-			err = server.Send(&carrierapipb.DownloadTaskResultDataResponse{
-				Data: &carrierapipb.DownloadTaskResultDataResponse_Content{
-					Content: res.GetContent(),
-				},
-			})
-		} else {
-			err = server.Send(&carrierapipb.DownloadTaskResultDataResponse{
-				Data: &carrierapipb.DownloadTaskResultDataResponse_Status{
-					Status: res.GetStatus(),
-				},
-			})
-		}
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-func TestServer_MockDownloadTaskResultDataClient(t *testing.T) {
-	mockDownloadTaskResultDataClient()
-}
-func mockDownloadTaskResultDataClient() {
-	var dataServerAddress = "192.168.21.143:8899"
-	conn, err := grpc.Dial(dataServerAddress, grpc.WithInsecure())
-	if err != nil {
-		log.Fatalf("net.Connect err: %v", err)
-	}
-	defer conn.Close()
+	defer func() {
+		assert.NilError(t, conn.Close())
+	}()
 	grpcClient := carrierapipb.NewYarnServiceClient(conn)
 	stream, err := grpcClient.DownloadTaskResultData(context.Background(), &carrierapipb.DownloadTaskResultDataRequest{
-		TaskId: "this is TaskId,123456",
+		TaskId:  "task:0x26915db614c60bc03bf0f2239e5528813bc22c0d3e6848fd45a4fa8681a0192e",
+		Options: map[string]string{"aaa": "bbb"},
 	})
 	if err != nil {
-		log.Fatalf("Call DownloadData err: %v", err)
+		t.Fatalf("Call DownloadData err: %v", err)
 	}
-	filePath := "./golang.csv"
-	file, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE, 0666)
+	file, err := os.OpenFile(savePath, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
-		fmt.Println("open file fail", err)
+		t.Fatalf("open file fail %v", err)
 	}
-	defer file.Close()
+	//defer func() {
+	// 	assert.NilError(t, file.Close())
+	//}()
 	write := bufio.NewWriter(file)
 	for {
 		res, err := stream.Recv()
@@ -113,78 +85,101 @@ func mockDownloadTaskResultDataClient() {
 			break
 		}
 		if err != nil {
-			log.Fatalf("Conversations get stream err: %v", err)
+			t.Fatalf("Conversations get stream err: %v", err)
 		}
 		if res.GetStatus() == constant.TaskStatus_Start {
-			log.Println("this is status start")
+			t.Log("this is status start")
 		}
 		if res.GetStatus() == constant.TaskStatus_Finished {
-			log.Println("this is status Finished")
+			t.Log("this is status Finished")
 		}
-		write.Write(res.GetContent())
-		write.Flush()
+		_, err = write.Write(res.GetContent())
+		assert.NilError(t, err)
+		err = write.Flush()
+		assert.NilError(t, err)
 	}
+	defer func() {
+		assert.NilError(t, file.Close())
+		if err := os.Remove(savePath); err != nil {
+			t.Fatalf("remove fail %v", err)
+		}
+	}()
 }
-func (s *YarnServiceServer) GetNodeInfo(ctx context.Context, empty *emptypb.Empty) (*carrierapipb.GetNodeInfoResponse, error) {
+
+func (dn *DataNode) DownloadData(request *fighterapipb.DownloadRequest, server fighterapipb.DataProvider_DownloadDataServer) error {
+	dataPath := request.GetDataPath()
+	options := request.GetOptions()
+	_, err := json.Marshal(options)
+	if err != nil {
+		return fmt.Errorf("DownloadData json.Marshal options fail")
+	}
+	file, err := os.Open(dataPath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	for {
+		var chunk = make([]byte, 1024)
+		n, err := file.Read(chunk)
+		if err == io.EOF {
+			_ = server.Send(&fighterapipb.DownloadReply{
+				Data: &fighterapipb.DownloadReply_Status{
+					Status: constant.TaskStatus_Finished,
+				},
+			})
+			break
+		}
+		if err != nil {
+			return err
+		}
+		err = server.Send(&fighterapipb.DownloadReply{
+			Data: &fighterapipb.DownloadReply_Content{
+				Content: chunk[:n],
+			},
+		})
+		if err != nil {
+			_ = server.Send(&fighterapipb.DownloadReply{
+				Data: &fighterapipb.DownloadReply_Status{
+					Status: constant.TaskStatus_Failed,
+				},
+			})
+		}
+	}
+	return nil
+}
+
+func (dn *DataNode) GetStatus(ctx context.Context, empty *emptypb.Empty) (*fighterapipb.GetStatusReply, error) {
+	//TODO implement me
 	panic("implement me")
 }
-func (s *YarnServiceServer) SetSeedNode(ctx context.Context, request *carrierapipb.SetSeedNodeRequest) (*carrierapipb.SetSeedNodeResponse, error) {
+
+func (dn *DataNode) ListData(ctx context.Context, empty *emptypb.Empty) (*fighterapipb.ListDataReply, error) {
+	//TODO implement me
 	panic("implement me")
 }
-func (s *YarnServiceServer) DeleteSeedNode(ctx context.Context, request *carrierapipb.DeleteSeedNodeRequest) (*carriertypespb.SimpleResponse, error) {
+
+func (dn *DataNode) UploadData(server fighterapipb.DataProvider_UploadDataServer) error {
+	//TODO implement me
 	panic("implement me")
 }
-func (s *YarnServiceServer) GetSeedNodeList(ctx context.Context, empty *emptypb.Empty) (*carrierapipb.GetSeedNodeListResponse, error) {
+
+func (dn *DataNode) BatchUpload(server fighterapipb.DataProvider_BatchUploadServer) error {
+	//TODO implement me
 	panic("implement me")
 }
-func (s *YarnServiceServer) SetDataNode(ctx context.Context, request *carrierapipb.SetDataNodeRequest) (*carrierapipb.SetDataNodeResponse, error) {
+
+func (dn *DataNode) DeleteData(ctx context.Context, request *fighterapipb.DownloadRequest) (*fighterapipb.UploadReply, error) {
+	//TODO implement me
 	panic("implement me")
 }
-func (s *YarnServiceServer) UpdateDataNode(ctx context.Context, request *carrierapipb.UpdateDataNodeRequest) (*carrierapipb.SetDataNodeResponse, error) {
+
+func (dn *DataNode) HandleTaskReadyGo(ctx context.Context, req *types.TaskReadyGoReq) (*types.TaskReadyGoReply, error) {
+	//TODO implement me
 	panic("implement me")
 }
-func (s *YarnServiceServer) DeleteDataNode(ctx context.Context, request *carrierapipb.DeleteRegisteredNodeRequest) (*carriertypespb.SimpleResponse, error) {
-	panic("implement me")
-}
-func (s *YarnServiceServer) GetDataNodeList(ctx context.Context, empty *emptypb.Empty) (*carrierapipb.GetRegisteredNodeListResponse, error) {
-	panic("implement me")
-}
-func (s *YarnServiceServer) SetJobNode(ctx context.Context, request *carrierapipb.SetJobNodeRequest) (*carrierapipb.SetJobNodeResponse, error) {
-	panic("implement me")
-}
-func (s *YarnServiceServer) UpdateJobNode(ctx context.Context, request *carrierapipb.UpdateJobNodeRequest) (*carrierapipb.SetJobNodeResponse, error) {
-	panic("implement me")
-}
-func (s *YarnServiceServer) DeleteJobNode(ctx context.Context, request *carrierapipb.DeleteRegisteredNodeRequest) (*carriertypespb.SimpleResponse, error) {
-	panic("implement me")
-}
-func (s *YarnServiceServer) GetJobNodeList(ctx context.Context, empty *emptypb.Empty) (*carrierapipb.GetRegisteredNodeListResponse, error) {
-	panic("implement me")
-}
-func (s *YarnServiceServer) ReportTaskEvent(ctx context.Context, request *carrierapipb.ReportTaskEventRequest) (*carriertypespb.SimpleResponse, error) {
-	panic("implement me")
-}
-func (s *YarnServiceServer) ReportTaskResourceUsage(ctx context.Context, request *carrierapipb.ReportTaskResourceUsageRequest) (*carriertypespb.SimpleResponse, error) {
-	panic("implement me")
-}
-func (s *YarnServiceServer) ReportUpFileSummary(ctx context.Context, request *carrierapipb.ReportUpFileSummaryRequest) (*carriertypespb.SimpleResponse, error) {
-	panic("implement me")
-}
-func (s *YarnServiceServer) ReportTaskResultFileSummary(ctx context.Context, request *carrierapipb.ReportTaskResultFileSummaryRequest) (*carriertypespb.SimpleResponse, error) {
-	panic("implement me")
-}
-func (s *YarnServiceServer) QueryAvailableDataNode(ctx context.Context, request *carrierapipb.QueryAvailableDataNodeRequest) (*carrierapipb.QueryAvailableDataNodeResponse, error) {
-	panic("implement me")
-}
-func (s *YarnServiceServer) QueryFilePosition(ctx context.Context, request *carrierapipb.QueryFilePositionRequest) (*carrierapipb.QueryFilePositionResponse, error) {
-	panic("implement me")
-}
-func (s *YarnServiceServer) GetTaskResultFileSummary(ctx context.Context, request *carrierapipb.GetTaskResultFileSummaryRequest) (*carrierapipb.GetTaskResultFileSummaryResponse, error) {
-	panic("implement me")
-}
-func (s *YarnServiceServer) GetTaskResultFileSummaryList(ctx context.Context, empty *emptypb.Empty) (*carrierapipb.GetTaskResultFileSummaryListResponse, error) {
-	panic("implement me")
-}
-func (s *YarnServiceServer) GenerateObServerProxyWalletAddress(ctx context.Context, empty *emptypb.Empty) (*carrierapipb.GenerateObServerProxyWalletAddressResponse, error) {
+
+func (dn *DataNode) HandleCancelTask(ctx context.Context, req *types.TaskCancelReq) (*types.TaskCancelReply, error) {
+	//TODO implement me
 	panic("implement me")
 }
