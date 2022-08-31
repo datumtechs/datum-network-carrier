@@ -194,7 +194,10 @@ pprof-addr: 0.0.0.0
 #consensus-state-wal-dir:
 
 ## pay agent contract proxy address
-pay-agent-proxy: 0x263B1D39843BF2e1DA27d827e749992fbD1f1577
+pay-agent-contract-proxy: 0x263B1D39843BF2e1DA27d827e749992fbD1f1577
+
+## grpc timeout in seconds
+grpc-timeout: 300
 
 #kms:
 #  key-id:
