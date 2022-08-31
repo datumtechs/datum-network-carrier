@@ -12,6 +12,56 @@ import (
 type MockDataCenter struct {
 }
 
+func (mc MockDataCenter) QueryIdentityMsgNonce() (uint64, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (mc MockDataCenter) IncreaseIdentityMsgNonce() (uint64, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (mc MockDataCenter) QueryMetadataMsgNonce() (uint64, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (mc MockDataCenter) IncreaseMetadataMsgNonce() (uint64, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (mc MockDataCenter) QueryMetadataAuthMsgNonce() (uint64, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (mc MockDataCenter) IncreaseMetadataAuthMsgNonce() (uint64, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (mc MockDataCenter) QueryPowerMsgNonce() (uint64, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (mc MockDataCenter) IncreasePowerMsgNonce() (uint64, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (mc MockDataCenter) QueryTaskMsgNonce() (uint64, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (mc MockDataCenter) IncreaseTaskMsgNonce() (uint64, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (mc MockDataCenter) InsertData(blocks types.Blocks) (int, error)      { return 0, nil }
 func (mc MockDataCenter) Stop()                                            {}
 func (mc MockDataCenter) SetConfig(config *types.CarrierChainConfig) error { return nil }
@@ -405,13 +455,13 @@ func (mc MockDataCenter) ForEachTaskBullets(f func(key, value []byte) error) err
 func generateTestMetadata(metadataId string) (*types.Metadata, error) {
 	testMetadata := make(map[string]*types.Metadata, 0)
 	id := "MetadataId001"
-	metadataOption := `{"originId": "originId001", "dataPath": "dataPath001", "rows": 12, "columns": 7, "size": 56, "hasTitle": true, "metadataColumns": [], "consumeTypes": [1, 2, 3], "consumeOptions": ["[]", "[{\"contract\": \"0x67e4b947F015f3f7C06E5173C2CfF41F2DDBAF03\", \"cryptoAlgoConsumeUnit\": 1000000, \"plainAlgoConsumeUnit\": 2}, {\"contract\": \"0x67e4b947F015f3f7C06E5173C2CfF41F2DDBAF04\", \"cryptoAlgoConsumeUnit\": 1000000, \"plainAlgoConsumeUnit\": 4}, {\"contract\": \"0x67e4b947F015f3f7C06E5173C2CfF41F2DDBAF06\", \"cryptoAlgoConsumeUnit\": 1000000, \"plainAlgoConsumeUnit\": 11}, {\"contract\": \"0x67e4b947F015f3f7C06E5173C2CfF41F2DDBAF07\", \"cryptoAlgoConsumeUnit\": 1000000, \"plainAlgoConsumeUnit\": 7}]", "[\"0x77e4b947F015f3f7C06E5173C2CfF41F2DDBAF07\", \"0x77e4b947F015f3f7C06E5173C2CfF41F2DDBAF11\", \"0x79e4b947F015f3f7C06E5173C2CfF41F2DDBAF07\"]"]}`
+	metadataOption := `{"originId": "originId001", "dataPath": "dataPath001", "rows": 12, "columns": 7, "size": 56, "hasTitle": true, "metadataColumns": [], "consumeTypes": [1, 2, 3], "consumeOptions": ["[{\"status\":3}]", "[{\"contract\": \"0x67e4b947F015f3f7C06E5173C2CfF41F2DDBAF03\", \"cryptoAlgoConsumeUnit\": 1000000, \"plainAlgoConsumeUnit\": 2}, {\"contract\": \"0x67e4b947F015f3f7C06E5173C2CfF41F2DDBAF04\", \"cryptoAlgoConsumeUnit\": 1000000, \"plainAlgoConsumeUnit\": 4}, {\"contract\": \"0x67e4b947F015f3f7C06E5173C2CfF41F2DDBAF06\", \"cryptoAlgoConsumeUnit\": 1000000, \"plainAlgoConsumeUnit\": 11}, {\"contract\": \"0x67e4b947F015f3f7C06E5173C2CfF41F2DDBAF07\", \"cryptoAlgoConsumeUnit\": 1000000, \"plainAlgoConsumeUnit\": 7}]", "[\"0x77e4b947F015f3f7C06E5173C2CfF41F2DDBAF07\", \"0x77e4b947F015f3f7C06E5173C2CfF41F2DDBAF11\", \"0x79e4b947F015f3f7C06E5173C2CfF41F2DDBAF07\"]"]}`
 	testMetadata[id] = types.NewMetadata(&carriertypespb.MetadataPB{
 		MetadataId:     id,
 		MetadataOption: metadataOption,
 	})
 	id = "MetadataId002"
-	metadataOption = `{"originId": "originId002", "dataPath": "dataPath001", "rows": 12, "columns": 7, "size": 56, "hasTitle": true, "metadataColumns": [], "consumeTypes": [1, 2, 3], "consumeOptions": ["[]", "[{\"contract\": \"0x77e4b947F015f3f7C06E5173C2CfF41F2DDBAF03\", \"cryptoAlgoConsumeUnit\": 2000000, \"plainAlgoConsumeUnit\": 3}, {\"contract\": \"0x77e4b947F015f3f7C06E5173C2CfF41F2DDBAF04\", \"cryptoAlgoConsumeUnit\": 2000000, \"plainAlgoConsumeUnit\": 4}, {\"contract\": \"0x77e4b947F015f3f7C06E5173C2CfF41F2DDBAF06\", \"cryptoAlgoConsumeUnit\": 2000000, \"plainAlgoConsumeUnit\": 11}, {\"contract\": \"0x77e4b947F015f3f7C06E5173C2CfF41F2DDBAF07\", \"cryptoAlgoConsumeUnit\": 2000000, \"plainAlgoConsumeUnit\": 12}]", "[\"0x87e4b947F015f3f7C06E5173C2CfF41F2DDBAF07\", \"0x87e4b947F015f3f7C06E5173C2CfF41F2DDBAF11\", \"0x89e4b947F015f3f7C06E5173C2CfF41F2DDBAF07\"]"]}`
+	metadataOption = `{"originId": "originId002", "dataPath": "dataPath001", "rows": 12, "columns": 7, "size": 56, "hasTitle": true, "metadataColumns": [], "consumeTypes": [1, 2, 3], "consumeOptions": ["[{\"status\":3}]", "[{\"contract\": \"0x77e4b947F015f3f7C06E5173C2CfF41F2DDBAF03\", \"cryptoAlgoConsumeUnit\": 2000000, \"plainAlgoConsumeUnit\": 3}, {\"contract\": \"0x77e4b947F015f3f7C06E5173C2CfF41F2DDBAF04\", \"cryptoAlgoConsumeUnit\": 2000000, \"plainAlgoConsumeUnit\": 4}, {\"contract\": \"0x77e4b947F015f3f7C06E5173C2CfF41F2DDBAF06\", \"cryptoAlgoConsumeUnit\": 2000000, \"plainAlgoConsumeUnit\": 11}, {\"contract\": \"0x77e4b947F015f3f7C06E5173C2CfF41F2DDBAF07\", \"cryptoAlgoConsumeUnit\": 2000000, \"plainAlgoConsumeUnit\": 12}]", "[\"0x87e4b947F015f3f7C06E5173C2CfF41F2DDBAF07\", \"0x87e4b947F015f3f7C06E5173C2CfF41F2DDBAF11\", \"0x89e4b947F015f3f7C06E5173C2CfF41F2DDBAF07\"]"]}`
 	testMetadata[id] = types.NewMetadata(&carriertypespb.MetadataPB{
 		MetadataId:     id,
 		MetadataOption: metadataOption,
