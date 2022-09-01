@@ -128,6 +128,7 @@ github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6r
 github.com/bgentry/speakeasy v0.1.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
 github.com/bglmmz/chainclient v0.0.1 h1:p37zm39Ef/iTxpF3BvDntLCBaisKwVYGolwZ7vP2k6U=
 github.com/bglmmz/chainclient v0.0.1/go.mod h1:5Gb2Tazp9Rxeb6kBYPW2doSyxwIVwpr8i5Bhadxw7G0=
+github.com/bglmmz/chainclient v0.0.4/go.mod h1:5Gb2Tazp9Rxeb6kBYPW2doSyxwIVwpr8i5Bhadxw7G0=
 github.com/bradfitz/go-smtpd v0.0.0-20170404230938-deb6d6237625/go.mod h1:HYsPBTaaSFSlLx/70C2HPIMNZpVV8+vt/A+FMnYP11g=
 github.com/bradfitz/gomemcache v0.0.0-20170208213004-1952afaa557d/go.mod h1:PmM6Mmwb0LSuEubjR8N7PtNe1KxZLtOUHtbeikc5h60=
 github.com/btcsuite/btcd v0.0.0-20171128150713-2e60448ffcc6/go.mod h1:Dmm/EzmjnCiweXmzRIAiUWCInVmPgjkzgv5k4tVyXiQ=
@@ -221,6 +222,8 @@ github.com/datumtechs/did-sdk-go v0.0.15 h1:ogkoR9CjNAwTqASlFVb+Uj0B89dCzxzkgKC+
 github.com/datumtechs/did-sdk-go v0.0.15/go.mod h1:484TpuAI87hAsNjfVrFXSIhj+3MzB2wKvT9BrC4EEJc=
 github.com/datumtechs/did-sdk-go v0.0.16 h1:ShqLVi03Cb/FoB7uX/CZK2Wwo4PsLRD51TF6Q2oqlVs=
 github.com/datumtechs/did-sdk-go v0.0.16/go.mod h1:484TpuAI87hAsNjfVrFXSIhj+3MzB2wKvT9BrC4EEJc=
+github.com/datumtechs/did-sdk-go v0.0.17 h1:x6Mi1vZ7e7vs03yHnZex3awPqtsLqizrhRR5ldOprWs=
+github.com/datumtechs/did-sdk-go v0.0.17/go.mod h1:DyhS/sUDsIjjIviQbaOB3L53r+tongKmr9ITnce7ixU=
 github.com/davecgh/go-spew v0.0.0-20171005155431-ecdeabc65495/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
