@@ -60,11 +60,17 @@ type IdentityMsg struct {
 func NewIdentityMessageFromRequest(req *carrierapipb.ApplyIdentityJoinRequest) *IdentityMsg {
 	return &IdentityMsg{
 		organization: &carriertypespb.Organization{
-			NodeName:   req.GetInformation().GetNodeName(),
-			NodeId:     req.GetInformation().GetNodeId(),
-			IdentityId: req.GetInformation().GetIdentityId(),
-			ImageUrl:   req.GetInformation().GetImageUrl(),
-			Details:    req.GetInformation().GetDetails(),
+			NodeName:     req.GetInformation().GetNodeName(),
+			NodeId:       req.GetInformation().GetNodeId(),
+			IdentityId:   req.GetInformation().GetIdentityId(),
+			IdentityType: req.GetInformation().GetIdentityType(),
+			DataStatus:   req.GetInformation().GetDataStatus(),
+			Status:       req.GetInformation().GetStatus(),
+			UpdateAt:     req.GetInformation().GetUpdateAt(),
+			ImageUrl:     req.GetInformation().GetImageUrl(),
+			Details:      req.GetInformation().GetDetails(),
+			Credential:   req.GetInformation().GetCredential(),
+			Nonce:        req.GetInformation().GetNonce(),
 		},
 		CreateAt: timeutils.UnixMsecUint64(),
 	}
@@ -72,16 +78,18 @@ func NewIdentityMessageFromRequest(req *carrierapipb.ApplyIdentityJoinRequest) *
 
 func (msg *IdentityMsg) ToDataCenter() *Identity {
 	return NewIdentity(&carriertypespb.IdentityPB{
-		NodeName:   msg.GetOrganization().GetNodeName(),
-		NodeId:     msg.GetOrganization().GetNodeId(),
-		IdentityId: msg.GetOrganization().GetIdentityId(),
-		ImageUrl:   msg.GetOrganization().GetImageUrl(),
-		Details:    msg.GetOrganization().GetDetails(),
-		DataId:     "",
-		DataStatus: commonconstantpb.DataStatus_DataStatus_Valid,
-		Status:     commonconstantpb.CommonStatus_CommonStatus_Valid,
-		Credential: "",
-		Nonce:      msg.GetOrganization().GetNonce(),
+		NodeName:     msg.GetOrganization().GetNodeName(),
+		NodeId:       msg.GetOrganization().GetNodeId(),
+		IdentityId:   msg.GetOrganization().GetIdentityId(),
+		IdentityType: msg.GetOrganization().GetIdentityType(),
+		ImageUrl:     msg.GetOrganization().GetImageUrl(),
+		UpdateAt:     msg.GetOrganization().GetUpdateAt(),
+		Details:      msg.GetOrganization().GetDetails(),
+		DataId:       "",
+		DataStatus:   msg.GetOrganization().GetDataStatus(),
+		Status:       msg.GetOrganization().GetStatus(),
+		Credential:   msg.GetOrganization().GetCredential(),
+		Nonce:        msg.GetOrganization().GetNonce(),
 	})
 }
 func (msg *IdentityMsg) Marshal() ([]byte, error) { return nil, nil }
