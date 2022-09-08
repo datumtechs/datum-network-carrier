@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"context"
 	"github.com/datumtechs/datum-network-carrier/core/policy"
 	"github.com/datumtechs/datum-network-carrier/grpclient"
 	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
@@ -117,4 +118,6 @@ type Backend interface {
 	WithdrawProposal(proposalId *big.Int) (bool, *carrierapipb.TxInfo, error)
 	VoteProposal(proposalId *big.Int) (bool, *carrierapipb.TxInfo, error)
 	EffectProposal(proposalId *big.Int) (bool, *carrierapipb.TxInfo, error)
+	// CheckRequestIpIsPrivate v0.5.1
+	CheckRequestIpIsPrivate(ctx context.Context) error
 }

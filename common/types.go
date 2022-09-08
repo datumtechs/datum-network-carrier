@@ -25,6 +25,8 @@ const (
 	OpenMessageSignCheck = true
 	// IdentityIdLength identityId string length
 	IdentityIdLength = 50
+	// NotCheckPrivateIP check rpc call ip
+	NotCheckPrivateIP = false
 )
 
 var (

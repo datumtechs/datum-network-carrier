@@ -57,6 +57,7 @@ var appHelpFlagGroups = []flagGroup{
 			flags.DiscoveryServiceName,
 			flags.DiscoveryServerTags,
 			flags.DiscoveryServiceHealthCheckDeregister,
+			flags.AdminIpAddress,
 			flags.DiscoveryServiceHealthCheckInterval,
 		},
 	},

@@ -443,6 +443,16 @@ func (dc *DataCenter) IncreaseTaskMsgNonce() (uint64, error) {
 	defer dc.mu.Unlock()
 	return rawdb.IncreaseTaskMsgNonce(dc.db)
 }
+func (dc *DataCenter) SaveAdminAddress(address string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.SaveAdminAddress(dc.db, address)
+}
+func (dc *DataCenter) QueryAdminAddress() (string, error) {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.QueryAdminAddress(dc.db)
+}
 
 // ****************************************************************************************************************
 func (dc *DataCenter) Stop() {

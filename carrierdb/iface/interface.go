@@ -90,6 +90,8 @@ type LocalStoreCarrierDB interface {
 	IncreasePowerMsgNonce() (uint64, error)
 	QueryTaskMsgNonce() (uint64, error)
 	IncreaseTaskMsgNonce() (uint64, error)
+	SaveAdminAddress(address string) error
+	QueryAdminAddress() (string, error)
 }
 
 type MetadataCarrierDB interface {

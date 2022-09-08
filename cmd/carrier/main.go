@@ -61,6 +61,7 @@ var (
 		flags.DiscoveryServerTags,
 		flags.DiscoveryServiceHealthCheckDeregister,
 		flags.DiscoveryServiceHealthCheckInterval,
+		flags.AdminIpAddress,
 	}
 
 	p2pFlags = []cli.Flag{

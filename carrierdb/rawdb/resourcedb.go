@@ -2031,3 +2031,29 @@ func IncreaseTaskMsgNonce(db KeyValueStore) (uint64, error) {
 
 	return nonce, db.Put(key, bytesutil.Uint64ToBytes(nonce))
 }
+func SaveAdminAddress(db db.Database, address string) error {
+	key := GetAdminAddressKey()
+	val, err := rlp.EncodeToBytes(address)
+	if nil != err {
+		return err
+	}
+	return db.Put(key, val)
+}
+func QueryAdminAddress(db DatabaseReader) (string, error) {
+	key := GetOrgPriKeyPrefix()
+	if has, err := db.Has(key); err != nil {
+		return "", err
+	} else if has {
+		if val, err := db.Get(key); err != nil {
+			return "", err
+		} else {
+			var address string
+			if err := rlp.DecodeBytes(val, &address); err != nil {
+				return "", err
+			} else {
+				return address, nil
+			}
+		}
+	}
+	return "", nil
+}

@@ -17,6 +17,10 @@ import (
 )
 
 func (svr *Server) GetLocalTaskDetailList(ctx context.Context, req *carrierapipb.GetTaskDetailListRequest) (*carrierapipb.GetTaskDetailListResponse, error) {
+	if err := svr.B.CheckRequestIpIsPrivate(ctx); err != nil {
+		errMsg := fmt.Sprintf("GetLocalTaskDetailList %s", err.Error())
+		return &carrierapipb.GetTaskDetailListResponse{Status: backend.ErrRequirePrivateIP.ErrCode(), Msg: errMsg}, nil
+	}
 	pageSize := req.GetPageSize()
 	if pageSize == 0 {
 		pageSize = backend.DefaultPageSize
@@ -55,7 +59,10 @@ func (svr *Server) GetGlobalTaskDetailList(ctx context.Context, req *carrierapip
 }
 
 func (svr *Server) GetTaskDetailListByTaskIds(ctx context.Context, req *carrierapipb.GetTaskDetailListByTaskIdsRequest) (*carrierapipb.GetTaskDetailListResponse, error) {
-
+	if err := svr.B.CheckRequestIpIsPrivate(ctx); err != nil {
+		errMsg := fmt.Sprintf("GetTaskDetailListByTaskIds %s", err.Error())
+		return &carrierapipb.GetTaskDetailListResponse{Status: backend.ErrRequirePrivateIP.ErrCode(), Msg: errMsg}, nil
+	}
 	if len(req.GetTaskIds()) == 0 {
 		return &carrierapipb.GetTaskDetailListResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "required taskIds"}, nil
 	}

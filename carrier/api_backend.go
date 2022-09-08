@@ -2,10 +2,12 @@ package carrier
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/ach/tk"
 	rawdb "github.com/datumtechs/datum-network-carrier/carrierdb/rawdb"
+	"github.com/datumtechs/datum-network-carrier/common"
 	"github.com/datumtechs/datum-network-carrier/common/bytesutil"
 	"github.com/datumtechs/datum-network-carrier/common/rlputil"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
@@ -20,6 +22,7 @@ import (
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/libp2p/go-libp2p-core/peer"
+	rpcPeer "google.golang.org/grpc/peer"
 	"math/big"
 	"strings"
 )
@@ -1571,4 +1574,23 @@ func (s *CarrierAPIBackend) EstimateTaskGas(taskSponsorAddress string, tkItemLis
 // EstimateTaskGas
 func (s *CarrierAPIBackend) GetQueryDataNodeClientByNodeId(nodeId string) (*grpclient.DataNodeClient, bool) {
 	return s.carrier.resourceManager.QueryDataNodeClient(nodeId)
+}
+
+func (s *CarrierAPIBackend) CheckRequestIpIsPrivate(ctx context.Context) error {
+	if common.NotCheckPrivateIP {
+		return nil
+	}
+	s.carrier.privateIPCacheCacheLock.RLock()
+	defer s.carrier.privateIPCacheCacheLock.RUnlock()
+	pr, ok := rpcPeer.FromContext(ctx)
+	if !ok {
+		return fmt.Errorf("CheckRequestIpIsPrivate FromContext parsing failed")
+	}
+	clientIPAndPort := strings.Split(pr.Addr.String(), ":")
+	clientIP := clientIPAndPort[0]
+	log.Infof("CheckRequestIpIsPrivate clientIP is %s", clientIP)
+	if _, ok := s.carrier.privateIPCache[clientIP]; !ok {
+		return fmt.Errorf("this rpc interface only private ip call,you call ip is %s", clientIP)
+	}
+	return nil
 }

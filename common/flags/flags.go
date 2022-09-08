@@ -419,6 +419,12 @@ var (
 		Usage: "Metadata consumption options for tasks (default 0, 0 mean nothing, 1 mean metadataAuth, 2 mean datatoken)",
 		Value: 0,
 	}
+
+	AdminIpAddress = &cli.StringFlag{
+		Name:  "admin-ip-address",
+		Usage: "Specify the admin address, if not specified, read from consul or elsewhere",
+		Value: "",
+	}
 )
 
 // DefaultDataDir is the default data directory to use for the databases and other

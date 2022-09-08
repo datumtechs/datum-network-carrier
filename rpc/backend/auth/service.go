@@ -19,7 +19,10 @@ import (
 // for organization identity
 
 func (svr *Server) ApplyIdentityJoin(ctx context.Context, req *carrierapipb.ApplyIdentityJoinRequest) (*carriertypespb.SimpleResponse, error) {
-
+	if err := svr.B.CheckRequestIpIsPrivate(ctx); err != nil {
+		errMsg := fmt.Sprintf("ApplyIdentityJoin %s", err.Error())
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequirePrivateIP.ErrCode(), Msg: errMsg}, nil
+	}
 	identity, err := svr.B.GetNodeIdentity()
 	if rawdb.IsNoDBNotFoundErr(err) {
 		log.WithError(err).Errorf("RPC-API:ApplyIdentityJoin failed, query local identity failed, identityId: {%s}, nodeId: {%s}, nodeName: {%s}, imgUrl: {%s}, details: {%s}",
@@ -72,7 +75,10 @@ func (svr *Server) ApplyIdentityJoin(ctx context.Context, req *carrierapipb.Appl
 }
 
 func (svr *Server) RevokeIdentityJoin(ctx context.Context, req *emptypb.Empty) (*carriertypespb.SimpleResponse, error) {
-
+	if err := svr.B.CheckRequestIpIsPrivate(ctx); err != nil {
+		errMsg := fmt.Sprintf("RevokeIdentityJoin %s", err.Error())
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequirePrivateIP.ErrCode(), Msg: errMsg}, nil
+	}
 	_, err := svr.B.GetNodeIdentity()
 	if rawdb.IsDBNotFoundErr(err) {
 		log.WithError(err).Errorf("RPC-API:RevokeIdentityJoin failed, the identity was not exist, can not revoke identity")
@@ -112,6 +118,10 @@ func (svr *Server) RevokeIdentityJoin(ctx context.Context, req *emptypb.Empty) (
 }
 
 func (svr *Server) GetNodeIdentity(ctx context.Context, req *emptypb.Empty) (*carrierapipb.GetNodeIdentityResponse, error) {
+	if err := svr.B.CheckRequestIpIsPrivate(ctx); err != nil {
+		errMsg := fmt.Sprintf("GetNodeIdentity %s", err.Error())
+		return &carrierapipb.GetNodeIdentityResponse{Status: backend.ErrRequirePrivateIP.ErrCode(), Msg: errMsg}, nil
+	}
 	identity, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetNodeIdentity failed")
@@ -173,7 +183,6 @@ func (svr *Server) GetIdentityList(ctx context.Context, req *carrierapipb.GetIde
 // for metadata authority apply
 
 func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *carrierapipb.ApplyMetadataAuthorityRequest) (*carrierapipb.ApplyMetadataAuthorityResponse, error) {
-
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:ApplyMetadataAuthority failed, query local identity failed")
@@ -263,7 +272,10 @@ func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *carrierapipb
 }
 
 func (svr *Server) RevokeMetadataAuthority(ctx context.Context, req *carrierapipb.RevokeMetadataAuthorityRequest) (*carriertypespb.SimpleResponse, error) {
-
+	if err := svr.B.CheckRequestIpIsPrivate(ctx); err != nil {
+		errMsg := fmt.Sprintf("RevokeMetadataAuthority %s", err.Error())
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequirePrivateIP.ErrCode(), Msg: errMsg}, nil
+	}
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, query local identity failed")
@@ -338,7 +350,10 @@ func (svr *Server) RevokeMetadataAuthority(ctx context.Context, req *carrierapip
 }
 
 func (svr *Server) AuditMetadataAuthority(ctx context.Context, req *carrierapipb.AuditMetadataAuthorityRequest) (*carrierapipb.AuditMetadataAuthorityResponse, error) {
-
+	if err := svr.B.CheckRequestIpIsPrivate(ctx); err != nil {
+		errMsg := fmt.Sprintf("AuditMetadataAuthority %s", err.Error())
+		return &carrierapipb.AuditMetadataAuthorityResponse{Status: backend.ErrRequirePrivateIP.ErrCode(), Msg: errMsg}, nil
+	}
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:AuditMetadataAuthority failed, query local identity failed")
@@ -442,6 +457,10 @@ func (svr *Server) GetGlobalMetadataAuthorityList(ctx context.Context, req *carr
 }
 
 func (svr *Server) UpdateIdentityCredential(ctx context.Context, req *carrierapipb.UpdateIdentityCredentialRequest) (*carriertypespb.SimpleResponse, error) {
+	if err := svr.B.CheckRequestIpIsPrivate(ctx); err != nil {
+		errMsg := fmt.Sprintf("UpdateIdentityCredential %s", err.Error())
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequirePrivateIP.ErrCode(), Msg: errMsg}, nil
+	}
 	identityId := req.GetIdentityId()
 	credential := req.GetCredential()
 
