@@ -14,11 +14,6 @@ import (
 type MockApiBackend struct {
 }
 
-func (receiver *MockApiBackend) CheckRequestIpIsPrivate(ctx context.Context) error {
-	//TODO implement me
-	panic("implement me")
-}
-
 func (receiver *MockApiBackend) GetCarrierChainConfig() *types.CarrierChainConfig {
 	//TODO implement me
 	panic("implement me")

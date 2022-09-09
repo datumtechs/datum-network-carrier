@@ -159,7 +159,6 @@ func (svr *Server) ReportTaskResultFileSummary(ctx context.Context, req *carrier
 }
 
 func (svr *Server) QueryAvailableDataNode(ctx context.Context, req *carrierapipb.QueryAvailableDataNodeRequest) (*carrierapipb.QueryAvailableDataNodeResponse, error) {
-
 	if req.GetDataType() == commonconstantpb.OrigindataType_OrigindataType_Unknown {
 		return &carrierapipb.QueryAvailableDataNodeResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown dataType"}, nil
 	}
@@ -218,7 +217,6 @@ func (svr *Server) QueryAvailableDataNode(ctx context.Context, req *carrierapipb
 }
 
 func (svr *Server) QueryFilePosition(ctx context.Context, req *carrierapipb.QueryFilePositionRequest) (*carrierapipb.QueryFilePositionResponse, error) {
-
 	if "" == req.GetOriginId() {
 		return &carrierapipb.QueryFilePositionResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require originId"}, nil
 	}

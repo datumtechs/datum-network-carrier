@@ -61,8 +61,8 @@ type Service struct {
 	didService   *did.DIDService
 	policyEngine *policy.PolicyEngine
 	// add by v0.5.1
-	privateIPCache          map[string]struct{} // {"ip1":{},"ip2":{}}
-	privateIPCacheCacheLock *sync.RWMutex
+	PrivateIPCache          map[string]struct{} // {"ip1":{},"ip2":{}}
+	PrivateIPCacheCacheLock *sync.RWMutex
 	adminIPAddress          string
 	quit                    chan struct{}
 }
@@ -202,10 +202,11 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 			config.DiscoverServiceConfig.DiscoveryServerIP,
 			config.DiscoverServiceConfig.DiscoveryServerPort,
 		),
-		privateIPCache:          map[string]struct{}{"127.0.0.1": {}},
-		privateIPCacheCacheLock: &sync.RWMutex{},
+		PrivateIPCache:          map[string]struct{}{"127.0.0.1": {}},
+		PrivateIPCacheCacheLock: &sync.RWMutex{},
 		adminIPAddress:          strings.TrimSpace(cliCtx.String(flags.AdminIpAddress.Name)),
-		quit:                    make(chan struct{}),
+		//enableGrpcGateWayPrivateCheck: cliCtx.Bool(flags.EnableGrpcGateWayPrivateCheck.Name),
+		quit: make(chan struct{}),
 	}
 
 	//s.APIBackend = &CarrierAPIBackend{carrier: s}

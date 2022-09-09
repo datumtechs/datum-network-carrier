@@ -9,6 +9,7 @@ import (
 	"github.com/datumtechs/datum-network-carrier/p2p"
 	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	carrierrpcdebugpbv1 "github.com/datumtechs/datum-network-carrier/pb/carrier/rpc/debug/v1"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	"github.com/datumtechs/datum-network-carrier/rpc/backend"
 	"github.com/datumtechs/datum-network-carrier/rpc/backend/auth"
 	"github.com/datumtechs/datum-network-carrier/rpc/backend/did"
@@ -28,9 +29,12 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/grpclog"
 	service_discover_health "google.golang.org/grpc/health/grpc_health_v1"
+	rpcMetadata "google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
+	rpcPeer "google.golang.org/grpc/peer"
 	"google.golang.org/grpc/reflection"
 	"net"
+	"strings"
 	"sync"
 )
 
@@ -50,20 +54,24 @@ type Service struct {
 
 // Config options for the beacon node RPC server.
 type Config struct {
-	Host                    string
-	Port                    string
-	CertFlag                string
-	KeyFlag                 string
-	EnableDebugRPCEndpoints bool
-	Broadcaster             p2p.Broadcaster
-	PeersFetcher            p2p.PeersProvider
-	PeerManager             p2p.PeerManager
-	MetadataProvider        p2p.MetadataProvider
-	StateNotifier           statefeed.Notifier
-	BackendAPI              backend.Backend
-	DebugAPI                debug.DebugBackend
-	MaxMsgSize              int
-	MaxSendMsgSize          int
+	Host                          string
+	Port                          string
+	CertFlag                      string
+	KeyFlag                       string
+	EnableDebugRPCEndpoints       bool
+	Broadcaster                   p2p.Broadcaster
+	PeersFetcher                  p2p.PeersProvider
+	PeerManager                   p2p.PeerManager
+	MetadataProvider              p2p.MetadataProvider
+	StateNotifier                 statefeed.Notifier
+	BackendAPI                    backend.Backend
+	DebugAPI                      debug.DebugBackend
+	MaxMsgSize                    int
+	MaxSendMsgSize                int
+	EnableGrpcGateWayPrivateCheck bool
+	PrivateIPCache                map[string]struct{} // {"ip1":{},"ip2":{}}
+	PrivateIPCacheCacheLock       *sync.RWMutex
+	PublicRpcService              map[int]struct{}
 }
 
 // NewService instantiates a new RPC service instance that will
@@ -203,10 +211,49 @@ func (s *Service) validatorStreamConnectionInterceptor(
 func (s *Service) validatorUnaryConnectionInterceptor(
 	ctx context.Context,
 	req interface{},
-	_ *grpc.UnaryServerInfo,
+	un *grpc.UnaryServerInfo,
 	handler grpc.UnaryHandler,
 ) (interface{}, error) {
 	s.logNewClientConnection(ctx)
+	if common.NotCheckPrivateIP {
+		return handler(ctx, req)
+	}
+
+	fullName := un.FullMethod
+	fullNameCode := common.ServiceMethodControlCode[fullName]
+	if _, ok := s.cfg.PublicRpcService[fullNameCode]; ok {
+		return handler(ctx, req)
+	}
+
+	var clientIP string
+	in, ok := rpcMetadata.FromIncomingContext(ctx)
+	if !ok {
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequirePrivateIP.ErrCode(), Msg: "CheckRequestIpIsPrivate FromIncomingContext parsing failed"}, nil
+	}
+	// use x-forwarded-for to check if the client has gone through the proxy
+	// in.Get("x-forwarded-for") remoteAddress len is 0 ,then no use proxy
+	xForwardedFor := in.Get("x-forwarded-for")
+	if len(xForwardedFor) != 0 {
+		if !s.cfg.EnableGrpcGateWayPrivateCheck {
+			// request is proxy not check private
+			return handler(ctx, req)
+		}
+		ipList := strings.Split(xForwardedFor[0], ",")
+		clientIP = ipList[len(ipList)-1]
+		clientIP = strings.ReplaceAll(clientIP, " ", "")
+	} else {
+		pr, ok := rpcPeer.FromContext(ctx)
+		if !ok {
+			return &carriertypespb.SimpleResponse{Status: backend.ErrRequirePrivateIP.ErrCode(), Msg: "CheckRequestIpIsPrivate FromContext parsing failed"}, nil
+		}
+		clientIPAndPort := strings.Split(pr.Addr.String(), ":")
+		clientIP = clientIPAndPort[0]
+	}
+	s.cfg.PrivateIPCacheCacheLock.RLock()
+	defer s.cfg.PrivateIPCacheCacheLock.RUnlock()
+	if _, ok := s.cfg.PrivateIPCache[clientIP]; !ok {
+		return &carriertypespb.SimpleResponse{Status: backend.ErrRequirePrivateIP.ErrCode(), Msg: fmt.Sprintf("%s does not have permission to access %s", clientIP, un.FullMethod)}, nil
+	}
 	return handler(ctx, req)
 }
 

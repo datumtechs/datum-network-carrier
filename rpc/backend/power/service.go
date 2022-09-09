@@ -45,10 +45,6 @@ func (svr *Server) GetGlobalPowerDetailList(ctx context.Context, req *carrierapi
 }
 
 func (svr *Server) GetLocalPowerDetailList(ctx context.Context, req *emptypb.Empty) (*carrierapipb.GetLocalPowerDetailListResponse, error) {
-	if err := svr.B.CheckRequestIpIsPrivate(ctx); err != nil {
-		errMsg := fmt.Sprintf("UpdateMetadata %s", err.Error())
-		return &carrierapipb.GetLocalPowerDetailListResponse{Status: backend.ErrRequirePrivateIP.ErrCode(), Msg: errMsg}, nil
-	}
 	powerList, err := svr.B.GetLocalPowerDetailList()
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetLocalPowerDetailList failed")
@@ -93,10 +89,6 @@ func utilGetLocalPowerDetailResponseArrString(resp []*carrierapipb.GetLocalPower
 }
 
 func (svr *Server) PublishPower(ctx context.Context, req *carrierapipb.PublishPowerRequest) (*carrierapipb.PublishPowerResponse, error) {
-	if err := svr.B.CheckRequestIpIsPrivate(ctx); err != nil {
-		errMsg := fmt.Sprintf("PublishPower %s", err.Error())
-		return &carrierapipb.PublishPowerResponse{Status: backend.ErrRequirePrivateIP.ErrCode(), Msg: errMsg}, nil
-	}
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:PublishPower failed, query local identity failed, can not publish power, jonNodeId: {%s}", req.GetJobNodeId())
@@ -140,10 +132,7 @@ func (svr *Server) PublishPower(ctx context.Context, req *carrierapipb.PublishPo
 }
 
 func (svr *Server) RevokePower(ctx context.Context, req *carrierapipb.RevokePowerRequest) (*carriertypespb.SimpleResponse, error) {
-	if err := svr.B.CheckRequestIpIsPrivate(ctx); err != nil {
-		errMsg := fmt.Sprintf("RevokePower %s", err.Error())
-		return &carriertypespb.SimpleResponse{Status: backend.ErrRequirePrivateIP.ErrCode(), Msg: errMsg}, nil
-	}
+
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:RevokePower failed, query local identity failed, can not revoke power")

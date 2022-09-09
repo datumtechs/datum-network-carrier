@@ -267,11 +267,11 @@ func (s *Service) refreshResourceNodes() error {
 	}
 	// 127.0.0.1 default add to ipCaches
 	ipCaches["127.0.0.1"] = struct{}{}
-	if !reflect.DeepEqual(s.privateIPCache, ipCaches) {
-		s.privateIPCacheCacheLock.Lock()
-		defer s.privateIPCacheCacheLock.Unlock()
-		s.privateIPCache = ipCaches
-		log.Infof("privateIPCache detail is %v", s.privateIPCache)
+	if !reflect.DeepEqual(s.PrivateIPCache, ipCaches) {
+		s.PrivateIPCacheCacheLock.Lock()
+		defer s.PrivateIPCacheCacheLock.Unlock()
+		s.PrivateIPCache = ipCaches
+		log.Infof("PrivateIPCache detail is %v", s.PrivateIPCache)
 	}
 	return nil
 }

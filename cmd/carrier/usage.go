@@ -58,6 +58,8 @@ var appHelpFlagGroups = []flagGroup{
 			flags.DiscoveryServerTags,
 			flags.DiscoveryServiceHealthCheckDeregister,
 			flags.AdminIpAddress,
+			flags.EnableGrpcGateWayPrivateCheck,
+			flags.PublicRpcService,
 			flags.DiscoveryServiceHealthCheckInterval,
 		},
 	},

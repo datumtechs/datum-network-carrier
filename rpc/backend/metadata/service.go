@@ -54,10 +54,7 @@ func (svr *Server) GetLocalMetadataDetailList(ctx context.Context, req *carriera
 }
 
 func (svr *Server) GetLocalInternalMetadataDetailList(ctx context.Context, req *emptypb.Empty) (*carrierapipb.GetLocalMetadataDetailListResponse, error) {
-	if err := svr.B.CheckRequestIpIsPrivate(ctx); err != nil {
-		errMsg := fmt.Sprintf("GetLocalInternalMetadataDetailList %s", err.Error())
-		return &carrierapipb.GetLocalMetadataDetailListResponse{Status: backend.ErrRequirePrivateIP.ErrCode(), Msg: errMsg}, nil
-	}
+
 	metadataList, err := svr.B.GetLocalInternalMetadataDetailList()
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetLocalInternalMetadataDetailList failed")
@@ -72,10 +69,7 @@ func (svr *Server) GetLocalInternalMetadataDetailList(ctx context.Context, req *
 }
 
 func (svr *Server) PublishMetadata(ctx context.Context, req *carrierapipb.PublishMetadataRequest) (*carrierapipb.PublishMetadataResponse, error) {
-	if err := svr.B.CheckRequestIpIsPrivate(ctx); err != nil {
-		errMsg := fmt.Sprintf("GetLocalInternalMetadataDetailList %s", err.Error())
-		return &carrierapipb.PublishMetadataResponse{Status: backend.ErrRequirePrivateIP.ErrCode(), Msg: errMsg}, nil
-	}
+
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:PublishMetadata failed, query local identity failed, can not publish metadata")
@@ -122,10 +116,7 @@ func (svr *Server) PublishMetadata(ctx context.Context, req *carrierapipb.Publis
 }
 
 func (svr *Server) RevokeMetadata(ctx context.Context, req *carrierapipb.RevokeMetadataRequest) (*carriertypespb.SimpleResponse, error) {
-	if err := svr.B.CheckRequestIpIsPrivate(ctx); err != nil {
-		errMsg := fmt.Sprintf("RevokeMetadata %s", err.Error())
-		return &carriertypespb.SimpleResponse{Status: backend.ErrRequirePrivateIP.ErrCode(), Msg: errMsg}, nil
-	}
+
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:RevokeMetadata failed, query local identity failed, can not revoke metadata")
@@ -152,10 +143,7 @@ func (svr *Server) RevokeMetadata(ctx context.Context, req *carrierapipb.RevokeM
 }
 
 func (svr *Server) GetMetadataUsedTaskIdList(ctx context.Context, req *carrierapipb.GetMetadataUsedTaskIdListRequest) (*carrierapipb.GetMetadataUsedTaskIdListResponse, error) {
-	if err := svr.B.CheckRequestIpIsPrivate(ctx); err != nil {
-		errMsg := fmt.Sprintf("GetMetadataUsedTaskIdList %s", err.Error())
-		return &carrierapipb.GetMetadataUsedTaskIdListResponse{Status: backend.ErrRequirePrivateIP.ErrCode(), Msg: errMsg}, nil
-	}
+
 	if "" == req.GetMetadataId() {
 		return &carrierapipb.GetMetadataUsedTaskIdListResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require metadataId"}, nil
 	}
@@ -173,10 +161,7 @@ func (svr *Server) GetMetadataUsedTaskIdList(ctx context.Context, req *carrierap
 }
 
 func (svr *Server) PublishMetadataByInteranlMetadata(ctx context.Context, req *carrierapipb.PublishMetadataByInteranlMetadataRequest) (*carrierapipb.PublishMetadataResponse, error) {
-	if err := svr.B.CheckRequestIpIsPrivate(ctx); err != nil {
-		errMsg := fmt.Sprintf("PublishMetadataByInteranlMetadata %s", err.Error())
-		return &carrierapipb.PublishMetadataResponse{Status: backend.ErrRequirePrivateIP.ErrCode(), Msg: errMsg}, nil
-	}
+
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:PublishMetadataByInteranlMetadata failed, query local identity failed, can not publish metadata")
@@ -294,10 +279,7 @@ func (svr *Server) PublishMetadataByInteranlMetadata(ctx context.Context, req *c
 }
 
 func (svr *Server) PublishMetadataByTaskResultFile(ctx context.Context, req *carrierapipb.PublishMetadataByTaskResultFileRequest) (*carrierapipb.PublishMetadataResponse, error) {
-	if err := svr.B.CheckRequestIpIsPrivate(ctx); err != nil {
-		errMsg := fmt.Sprintf("PublishMetadataByTaskResultFile %s", err.Error())
-		return &carrierapipb.PublishMetadataResponse{Status: backend.ErrRequirePrivateIP.ErrCode(), Msg: errMsg}, nil
-	}
+
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:PublishMetadataByTaskResultFile failed, query local identity failed, can not publish metadata")
@@ -425,10 +407,7 @@ func (svr *Server) PublishMetadataByTaskResultFile(ctx context.Context, req *car
 }
 
 func (svr *Server) UpdateMetadata(ctx context.Context, req *carrierapipb.UpdateMetadataRequest) (*carriertypespb.SimpleResponse, error) {
-	if err := svr.B.CheckRequestIpIsPrivate(ctx); err != nil {
-		errMsg := fmt.Sprintf("UpdateMetadata %s", err.Error())
-		return &carriertypespb.SimpleResponse{Status: backend.ErrRequirePrivateIP.ErrCode(), Msg: errMsg}, nil
-	}
+
 	log.Debugf("RPC-API:UpdateMetadata req is:%s", req.String())
 	localIdentityInfo, err := svr.B.GetNodeIdentity()
 	var oldMetadataInfo *types.Metadata

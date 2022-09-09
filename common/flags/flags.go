@@ -425,6 +425,17 @@ var (
 		Usage: "Specify the admin address, if not specified, read from consul or elsewhere",
 		Value: "",
 	}
+
+	// EnableGrpcGateWayPrivateCheck disable-grpc-gateway
+	EnableGrpcGateWayPrivateCheck = &cli.BoolFlag{
+		Name:  "enable-grpc-gateway-private-check",
+		Usage: "Enable the gRPC gateway for JSON-HTTP requests private call check",
+	}
+
+	PublicRpcService = &cli.IntSliceFlag{
+		Name:  "public-rpc-service",
+		Usage: "Specify the public rpc server interface",
+	}
 )
 
 // DefaultDataDir is the default data directory to use for the databases and other

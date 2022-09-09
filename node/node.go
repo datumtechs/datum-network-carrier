@@ -37,11 +37,11 @@ import (
 // It handles the lifecycle of the entire system and registers
 // services to a service registry.
 type CarrierNode struct {
-	ctx       context.Context
-	cancel    context.CancelFunc
-	cliCtx    *cli.Context
-	config    *Config
-	services  *common.ServiceRegistry
+	ctx      context.Context
+	cancel   context.CancelFunc
+	cliCtx   *cli.Context
+	config   *Config
+	services *common.ServiceRegistry
 
 	db        carrierdb.CarrierDB
 	stateFeed *event.Feed
@@ -97,7 +97,7 @@ func New(cliCtx *cli.Context) (*CarrierNode, error) {
 	}
 
 	// register backend service.
-	if err := node.registerBackendService(config.Carrier, config.MockIdentityIdsFile,config.ConsensusStateFile); err != nil {
+	if err := node.registerBackendService(config.Carrier, config.MockIdentityIdsFile, config.ConsensusStateFile); err != nil {
 		return nil, err
 	}
 
@@ -120,7 +120,7 @@ func New(cliCtx *cli.Context) (*CarrierNode, error) {
 	return node, nil
 }
 
-func (node *CarrierNode) startDB (cliCtx *cli.Context, config *carrier.Config) error {
+func (node *CarrierNode) startDB(cliCtx *cli.Context, config *carrier.Config) error {
 	dbPath := filepath.Join(node.config.DataDir, "datachain")
 	log.WithField("database-path", dbPath).Info("Checking DB")
 	config.DefaultConsensusWal = node.config.DataDir
@@ -248,10 +248,10 @@ func (node *CarrierNode) registerP2P(cliCtx *cli.Context) error {
 	return node.services.RegisterService(svc)
 }
 
-func (node *CarrierNode) registerBackendService(carrierConfig *carrier.Config, mockIdentityIdsFile ,consensusStateFile string) error {
+func (node *CarrierNode) registerBackendService(carrierConfig *carrier.Config, mockIdentityIdsFile, consensusStateFile string) error {
 	carrierConfig.CarrierDB = node.db
 	carrierConfig.P2P = node.fetchP2P()
-	backendService, err := carrier.NewService(node.ctx,node.cliCtx, carrierConfig, mockIdentityIdsFile,consensusStateFile)
+	backendService, err := carrier.NewService(node.ctx, node.cliCtx, carrierConfig, mockIdentityIdsFile, consensusStateFile)
 	if err != nil {
 		return errors.Wrap(err, "could not register backend service")
 	}
@@ -280,24 +280,32 @@ func (node *CarrierNode) registerRPCService() error {
 	enableDebugRPCEndpoints := node.cliCtx.Bool(flags.EnableDebugRPCEndpoints.Name)
 	maxMsgSize := node.cliCtx.Int(flags.GrpcMaxCallRecvMsgSizeFlag.Name)
 	maxSendMsgSize := node.cliCtx.Int(flags.GrpcMaxCallSendMsgSizeFlag.Name)
-
+	publicRpcService := node.cliCtx.IntSlice(flags.PublicRpcService.Name)
+	publicRpcMap := make(map[int]struct{}, 0)
+	for _, value := range publicRpcService {
+		publicRpcMap[value] = struct{}{}
+	}
 	p2pService := node.fetchP2P()
 
 	rpcService := rpc.NewService(node.ctx, &rpc.Config{
-		Host:                    host,
-		Port:                    port,
-		CertFlag:                cert,
-		KeyFlag:                 key,
-		EnableDebugRPCEndpoints: enableDebugRPCEndpoints,
-		Broadcaster:             p2pService,
-		PeersFetcher:            p2pService,
-		PeerManager:             p2pService,
-		MetadataProvider:        p2pService,
-		StateNotifier:           node,
-		BackendAPI:              backend,
-		DebugAPI:				 debugBackend,
-		MaxMsgSize:              maxMsgSize,
-		MaxSendMsgSize:          maxSendMsgSize,
+		Host:                          host,
+		Port:                          port,
+		CertFlag:                      cert,
+		KeyFlag:                       key,
+		EnableDebugRPCEndpoints:       enableDebugRPCEndpoints,
+		Broadcaster:                   p2pService,
+		PeersFetcher:                  p2pService,
+		PeerManager:                   p2pService,
+		MetadataProvider:              p2pService,
+		StateNotifier:                 node,
+		BackendAPI:                    backend,
+		DebugAPI:                      debugBackend,
+		MaxMsgSize:                    maxMsgSize,
+		MaxSendMsgSize:                maxSendMsgSize,
+		EnableGrpcGateWayPrivateCheck: node.cliCtx.Bool(flags.EnableGrpcGateWayPrivateCheck.Name),
+		PrivateIPCache:                node.fetchBackend().PrivateIPCache,
+		PrivateIPCacheCacheLock:       node.fetchBackend().PrivateIPCacheCacheLock,
+		PublicRpcService:              publicRpcMap,
 	})
 	return node.services.RegisterService(rpcService)
 }
@@ -368,8 +376,8 @@ func (node *CarrierNode) fetchBlackList() *blacklist.IdentityBackListCache {
 	}
 	return s.BlackListAPI
 }
+
 // StateFeed implements statefeed.Notifier.
 func (node *CarrierNode) StateFeed() *event.Feed {
 	return node.stateFeed
 }
-

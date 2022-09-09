@@ -13,10 +13,6 @@ import (
 )
 
 func (svr *Server) GetNodeInfo(ctx context.Context, req *emptypb.Empty) (*carrierapipb.GetNodeInfoResponse, error) {
-	if err := svr.B.CheckRequestIpIsPrivate(ctx); err != nil {
-		errMsg := fmt.Sprintf("GetNodeInfo %s", err.Error())
-		return &carrierapipb.GetNodeInfoResponse{Status: backend.ErrRequirePrivateIP.ErrCode(), Msg: errMsg}, nil
-	}
 	node, err := svr.B.GetNodeInfo()
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetNodeInfo failed")
@@ -34,10 +30,6 @@ func (svr *Server) GetNodeInfo(ctx context.Context, req *emptypb.Empty) (*carrie
 }
 
 func (svr *Server) SetSeedNode(ctx context.Context, req *carrierapipb.SetSeedNodeRequest) (*carrierapipb.SetSeedNodeResponse, error) {
-	if err := svr.B.CheckRequestIpIsPrivate(ctx); err != nil {
-		errMsg := fmt.Sprintf("SetSeedNode %s", err.Error())
-		return &carrierapipb.SetSeedNodeResponse{Status: backend.ErrRequirePrivateIP.ErrCode(), Msg: errMsg}, nil
-	}
 	if "" == strings.Trim(req.GetAddr(), "") {
 		return &carrierapipb.SetSeedNodeResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require addr of seedNode"}, nil
 	}
@@ -76,10 +68,7 @@ func (svr *Server) SetSeedNode(ctx context.Context, req *carrierapipb.SetSeedNod
 }
 
 func (svr *Server) DeleteSeedNode(ctx context.Context, req *carrierapipb.DeleteSeedNodeRequest) (*carriertypespb.SimpleResponse, error) {
-	if err := svr.B.CheckRequestIpIsPrivate(ctx); err != nil {
-		errMsg := fmt.Sprintf("DeleteSeedNode %s", err.Error())
-		return &carriertypespb.SimpleResponse{Status: backend.ErrRequirePrivateIP.ErrCode(), Msg: errMsg}, nil
-	}
+
 	if "" == strings.Trim(req.GetAddr(), "") {
 		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require addr of seedNode"}, nil
 	}
@@ -108,10 +97,6 @@ func (svr *Server) GetSeedNodeList(ctx context.Context, req *emptypb.Empty) (*ca
 }
 
 func (svr *Server) SetDataNode(ctx context.Context, req *carrierapipb.SetDataNodeRequest) (*carrierapipb.SetDataNodeResponse, error) {
-	if err := svr.B.CheckRequestIpIsPrivate(ctx); err != nil {
-		errMsg := fmt.Sprintf("SetDataNode %s", err.Error())
-		return &carrierapipb.SetDataNodeResponse{Status: backend.ErrRequirePrivateIP.ErrCode(), Msg: errMsg}, nil
-	}
 	if "" == strings.Trim(req.GetInternalIp(), "") {
 		return &carrierapipb.SetDataNodeResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require internal Ip"}, nil
 	}
@@ -163,10 +148,6 @@ func (svr *Server) SetDataNode(ctx context.Context, req *carrierapipb.SetDataNod
 }
 
 func (svr *Server) UpdateDataNode(ctx context.Context, req *carrierapipb.UpdateDataNodeRequest) (*carrierapipb.SetDataNodeResponse, error) {
-	if err := svr.B.CheckRequestIpIsPrivate(ctx); err != nil {
-		errMsg := fmt.Sprintf("UpdateDataNode %s", err.Error())
-		return &carrierapipb.SetDataNodeResponse{Status: backend.ErrRequirePrivateIP.ErrCode(), Msg: errMsg}, nil
-	}
 	if "" == strings.Trim(req.GetId(), "") {
 		return &carrierapipb.SetDataNodeResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require id of data node"}, nil
 	}
@@ -221,10 +202,7 @@ func (svr *Server) UpdateDataNode(ctx context.Context, req *carrierapipb.UpdateD
 }
 
 func (svr *Server) DeleteDataNode(ctx context.Context, req *carrierapipb.DeleteRegisteredNodeRequest) (*carriertypespb.SimpleResponse, error) {
-	if err := svr.B.CheckRequestIpIsPrivate(ctx); err != nil {
-		errMsg := fmt.Sprintf("DeleteDataNode %s", err.Error())
-		return &carriertypespb.SimpleResponse{Status: backend.ErrRequirePrivateIP.ErrCode(), Msg: errMsg}, nil
-	}
+
 	if "" == strings.Trim(req.GetId(), "") {
 		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require id of data node"}, nil
 	}
@@ -240,10 +218,6 @@ func (svr *Server) DeleteDataNode(ctx context.Context, req *carrierapipb.DeleteR
 }
 
 func (svr *Server) GetDataNodeList(ctx context.Context, req *emptypb.Empty) (*carrierapipb.GetRegisteredNodeListResponse, error) {
-	if err := svr.B.CheckRequestIpIsPrivate(ctx); err != nil {
-		errMsg := fmt.Sprintf("GetDataNodeList %s", err.Error())
-		return &carrierapipb.GetRegisteredNodeListResponse{Status: backend.ErrRequirePrivateIP.ErrCode(), Msg: errMsg}, nil
-	}
 	list, err := svr.B.GetRegisterNodeList(carrierapipb.PrefixTypeDataNode)
 	if rawdb.IsNoDBNotFoundErr(err) {
 		log.WithError(err).Error("RPC-API:GetDataNodeList failed")
@@ -277,10 +251,6 @@ func (svr *Server) GetDataNodeList(ctx context.Context, req *emptypb.Empty) (*ca
 }
 
 func (svr *Server) SetJobNode(ctx context.Context, req *carrierapipb.SetJobNodeRequest) (*carrierapipb.SetJobNodeResponse, error) {
-	if err := svr.B.CheckRequestIpIsPrivate(ctx); err != nil {
-		errMsg := fmt.Sprintf("SetJobNode %s", err.Error())
-		return &carrierapipb.SetJobNodeResponse{Status: backend.ErrRequirePrivateIP.ErrCode(), Msg: errMsg}, nil
-	}
 	if "" == strings.Trim(req.GetInternalIp(), "") {
 		return &carrierapipb.SetJobNodeResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require internal Ip"}, nil
 	}
@@ -333,10 +303,6 @@ func (svr *Server) SetJobNode(ctx context.Context, req *carrierapipb.SetJobNodeR
 }
 
 func (svr *Server) UpdateJobNode(ctx context.Context, req *carrierapipb.UpdateJobNodeRequest) (*carrierapipb.SetJobNodeResponse, error) {
-	if err := svr.B.CheckRequestIpIsPrivate(ctx); err != nil {
-		errMsg := fmt.Sprintf("UpdateJobNode %s", err.Error())
-		return &carrierapipb.SetJobNodeResponse{Status: backend.ErrRequirePrivateIP.ErrCode(), Msg: errMsg}, nil
-	}
 	if "" == strings.Trim(req.GetId(), "") {
 		return &carrierapipb.SetJobNodeResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require id of job node"}, nil
 	}
@@ -393,10 +359,7 @@ func (svr *Server) UpdateJobNode(ctx context.Context, req *carrierapipb.UpdateJo
 }
 
 func (svr *Server) DeleteJobNode(ctx context.Context, req *carrierapipb.DeleteRegisteredNodeRequest) (*carriertypespb.SimpleResponse, error) {
-	if err := svr.B.CheckRequestIpIsPrivate(ctx); err != nil {
-		errMsg := fmt.Sprintf("DeleteJobNode %s", err.Error())
-		return &carriertypespb.SimpleResponse{Status: backend.ErrRequirePrivateIP.ErrCode(), Msg: errMsg}, nil
-	}
+
 	if "" == strings.Trim(req.GetId(), "") {
 		return &carriertypespb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require id of job node"}, nil
 	}
@@ -412,10 +375,6 @@ func (svr *Server) DeleteJobNode(ctx context.Context, req *carrierapipb.DeleteRe
 }
 
 func (svr *Server) GetJobNodeList(ctx context.Context, req *emptypb.Empty) (*carrierapipb.GetRegisteredNodeListResponse, error) {
-	if err := svr.B.CheckRequestIpIsPrivate(ctx); err != nil {
-		errMsg := fmt.Sprintf("GetJobNodeList %s", err.Error())
-		return &carrierapipb.GetRegisteredNodeListResponse{Status: backend.ErrRequirePrivateIP.ErrCode(), Msg: errMsg}, nil
-	}
 	list, err := svr.B.GetRegisterNodeList(carrierapipb.PrefixTypeJobNode)
 	if rawdb.IsNoDBNotFoundErr(err) {
 		log.WithError(err).Error("RPC-API:GetJobNodeList failed")
@@ -449,10 +408,6 @@ func (svr *Server) GetJobNodeList(ctx context.Context, req *emptypb.Empty) (*car
 }
 
 func (svr *Server) GenerateObServerProxyWalletAddress(ctx context.Context, req *emptypb.Empty) (*carrierapipb.GenerateObServerProxyWalletAddressResponse, error) {
-	if err := svr.B.CheckRequestIpIsPrivate(ctx); err != nil {
-		errMsg := fmt.Sprintf("GenerateObServerProxyWalletAddress %s", err.Error())
-		return &carrierapipb.GenerateObServerProxyWalletAddressResponse{Status: backend.ErrRequirePrivateIP.ErrCode(), Msg: errMsg}, nil
-	}
 	wallet, err := svr.B.GenerateObServerProxyWalletAddress()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:GenerateObServerProxyWalletAddress failed")

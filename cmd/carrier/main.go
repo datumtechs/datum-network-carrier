@@ -62,6 +62,8 @@ var (
 		flags.DiscoveryServiceHealthCheckDeregister,
 		flags.DiscoveryServiceHealthCheckInterval,
 		flags.AdminIpAddress,
+		flags.EnableGrpcGateWayPrivateCheck,
+		flags.PublicRpcService,
 	}
 
 	p2pFlags = []cli.Flag{

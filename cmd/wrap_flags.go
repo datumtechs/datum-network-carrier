@@ -26,6 +26,8 @@ func WrapFlags(flags []cli.Flag) []cli.Flag {
 			f = altsrc.NewStringFlag(t)
 		case *cli.StringSliceFlag:
 			f = altsrc.NewStringSliceFlag(t)
+		case *cli.IntSliceFlag:
+			f = altsrc.NewIntSliceFlag(t)
 		case *cli.Uint64Flag:
 			f = altsrc.NewUint64Flag(t)
 		case *cli.UintFlag:
