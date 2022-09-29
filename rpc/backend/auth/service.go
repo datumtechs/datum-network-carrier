@@ -19,7 +19,6 @@ import (
 // for organization identity
 
 func (svr *Server) ApplyIdentityJoin(ctx context.Context, req *carrierapipb.ApplyIdentityJoinRequest) (*carriertypespb.SimpleResponse, error) {
-
 	identity, err := svr.B.GetNodeIdentity()
 	if rawdb.IsNoDBNotFoundErr(err) {
 		log.WithError(err).Errorf("RPC-API:ApplyIdentityJoin failed, query local identity failed, identityId: {%s}, nodeId: {%s}, nodeName: {%s}, imgUrl: {%s}, details: {%s}",
@@ -72,7 +71,6 @@ func (svr *Server) ApplyIdentityJoin(ctx context.Context, req *carrierapipb.Appl
 }
 
 func (svr *Server) RevokeIdentityJoin(ctx context.Context, req *emptypb.Empty) (*carriertypespb.SimpleResponse, error) {
-
 	_, err := svr.B.GetNodeIdentity()
 	if rawdb.IsDBNotFoundErr(err) {
 		log.WithError(err).Errorf("RPC-API:RevokeIdentityJoin failed, the identity was not exist, can not revoke identity")
@@ -173,7 +171,6 @@ func (svr *Server) GetIdentityList(ctx context.Context, req *carrierapipb.GetIde
 // for metadata authority apply
 
 func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *carrierapipb.ApplyMetadataAuthorityRequest) (*carrierapipb.ApplyMetadataAuthorityResponse, error) {
-
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:ApplyMetadataAuthority failed, query local identity failed")
@@ -263,7 +260,6 @@ func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *carrierapipb
 }
 
 func (svr *Server) RevokeMetadataAuthority(ctx context.Context, req *carrierapipb.RevokeMetadataAuthorityRequest) (*carriertypespb.SimpleResponse, error) {
-
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, query local identity failed")
@@ -338,7 +334,6 @@ func (svr *Server) RevokeMetadataAuthority(ctx context.Context, req *carrierapip
 }
 
 func (svr *Server) AuditMetadataAuthority(ctx context.Context, req *carrierapipb.AuditMetadataAuthorityRequest) (*carrierapipb.AuditMetadataAuthorityResponse, error) {
-
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:AuditMetadataAuthority failed, query local identity failed")
@@ -442,6 +437,7 @@ func (svr *Server) GetGlobalMetadataAuthorityList(ctx context.Context, req *carr
 }
 
 func (svr *Server) UpdateIdentityCredential(ctx context.Context, req *carrierapipb.UpdateIdentityCredentialRequest) (*carriertypespb.SimpleResponse, error) {
+
 	identityId := req.GetIdentityId()
 	credential := req.GetCredential()
 

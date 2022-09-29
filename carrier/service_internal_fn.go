@@ -6,6 +6,7 @@ import (
 	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	"github.com/datumtechs/datum-network-carrier/service/discovery"
 	"github.com/datumtechs/datum-network-carrier/types"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -130,7 +131,7 @@ func (s *Service) refreshResourceNodes() error {
 	// ABOUT JOBNODE SERVICES
 	// ##########################
 	// ##########################
-
+	ipCaches := make(map[string]struct{}, 0)
 	jobNodeServices, err := s.consulManager.QueryJobNodeServices()
 	if nil != err {
 		log.WithError(err).Warnf("query jobNodeServices failed from discovery center on service.refreshResourceNodes()")
@@ -144,10 +145,10 @@ func (s *Service) refreshResourceNodes() error {
 		} else {
 			for _, node := range jobNodeList {
 				jobNodeDBCache[node.GetId()] = node
+				ipCaches[node.GetInternalIp()] = struct{}{}
 			}
 
 			for _, jobNodeService := range jobNodeServices {
-
 				if node, ok := jobNodeDBCache[jobNodeService.ID]; !ok { // add new registered jobNode service
 
 					if err = s.resourceManager.AddDiscoveryJobNodeResource(
@@ -157,7 +158,7 @@ func (s *Service) refreshResourceNodes() error {
 							jobNodeService.ID, jobNodeService.Address, jobNodeService.Port)
 						continue
 					}
-
+					ipCaches[node.GetInternalIp()] = struct{}{}
 				} else {
 
 					if err = s.resourceManager.UpdateDiscoveryJobNodeResource(
@@ -205,8 +206,8 @@ func (s *Service) refreshResourceNodes() error {
 		} else {
 			for _, node := range dataNodeList {
 				dataNodeDBCache[node.GetId()] = node
+				ipCaches[node.GetInternalIp()] = struct{}{}
 			}
-
 			for _, dataNodeService := range dataNodeServices {
 				if node, ok := dataNodeDBCache[dataNodeService.ID]; !ok { // add new registered dataNode service
 
@@ -217,7 +218,7 @@ func (s *Service) refreshResourceNodes() error {
 							dataNodeService.ID, dataNodeService.Address, dataNodeService.Port)
 						continue
 					}
-
+					ipCaches[node.GetInternalIp()] = struct{}{}
 				} else {
 
 					if err = s.resourceManager.UpdateDiscoveryDataNodeResource(
@@ -245,6 +246,32 @@ func (s *Service) refreshResourceNodes() error {
 
 			}
 		}
+	}
+	if s.adminIPAddress != "" {
+		ipCaches[s.adminIPAddress] = struct{}{}
+	} else {
+		adminService, err := s.consulManager.QueryAdminService()
+		if err != nil {
+			log.WithError(err).Errorf("cannot find local admin RPC service: %+v", err)
+		}
+		if adminService == nil {
+			log.WithError(err).Errorf("cannot find local admin RPC service: %+v", err)
+		} else {
+			if address, err := s.carrierDB.QueryAdminAddress(); err == nil && address != adminService.Address {
+				ipCaches[adminService.Address] = struct{}{}
+				if err := s.carrierDB.SaveAdminAddress(adminService.Address); err != nil {
+					log.WithError(err).Errorf("SaveAdminAddress fail! admin address is %s", adminService.Address)
+				}
+			}
+		}
+	}
+	// 127.0.0.1 default add to ipCaches
+	ipCaches["127.0.0.1"] = struct{}{}
+	if !reflect.DeepEqual(s.PrivateIPCache, ipCaches) {
+		s.PrivateIPCacheCacheLock.Lock()
+		defer s.PrivateIPCacheCacheLock.Unlock()
+		s.PrivateIPCache = ipCaches
+		log.Infof("PrivateIPCache detail is %v", s.PrivateIPCache)
 	}
 	return nil
 }

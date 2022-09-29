@@ -84,6 +84,8 @@ var (
 	powerMsgNonceKey = []byte("powerMsgNonceKey")
 	// taskMsgNonceKey -> nonce
 	taskMsgNonceKey = []byte("taskMsgNonceKey")
+	// --------------- other ---------------
+	adminAddressKey = []byte("adminAddressKey")
 )
 
 const (
@@ -391,4 +393,8 @@ func GetPowerMsgNonceKey() []byte {
 
 func GetTaskMsgNonceKey() []byte {
 	return taskMsgNonceKey
+}
+
+func GetAdminAddressKey() []byte {
+	return adminAddressKey
 }

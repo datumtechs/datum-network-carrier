@@ -17,6 +17,7 @@ import (
 )
 
 func (svr *Server) GetLocalTaskDetailList(ctx context.Context, req *carrierapipb.GetTaskDetailListRequest) (*carrierapipb.GetTaskDetailListResponse, error) {
+
 	pageSize := req.GetPageSize()
 	if pageSize == 0 {
 		pageSize = backend.DefaultPageSize

@@ -30,7 +30,6 @@ func (svr *Server) GetNodeInfo(ctx context.Context, req *emptypb.Empty) (*carrie
 }
 
 func (svr *Server) SetSeedNode(ctx context.Context, req *carrierapipb.SetSeedNodeRequest) (*carrierapipb.SetSeedNodeResponse, error) {
-
 	if "" == strings.Trim(req.GetAddr(), "") {
 		return &carrierapipb.SetSeedNodeResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require addr of seedNode"}, nil
 	}
@@ -98,7 +97,6 @@ func (svr *Server) GetSeedNodeList(ctx context.Context, req *emptypb.Empty) (*ca
 }
 
 func (svr *Server) SetDataNode(ctx context.Context, req *carrierapipb.SetDataNodeRequest) (*carrierapipb.SetDataNodeResponse, error) {
-
 	if "" == strings.Trim(req.GetInternalIp(), "") {
 		return &carrierapipb.SetDataNodeResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require internal Ip"}, nil
 	}
@@ -150,7 +148,6 @@ func (svr *Server) SetDataNode(ctx context.Context, req *carrierapipb.SetDataNod
 }
 
 func (svr *Server) UpdateDataNode(ctx context.Context, req *carrierapipb.UpdateDataNodeRequest) (*carrierapipb.SetDataNodeResponse, error) {
-
 	if "" == strings.Trim(req.GetId(), "") {
 		return &carrierapipb.SetDataNodeResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require id of data node"}, nil
 	}
@@ -221,7 +218,6 @@ func (svr *Server) DeleteDataNode(ctx context.Context, req *carrierapipb.DeleteR
 }
 
 func (svr *Server) GetDataNodeList(ctx context.Context, req *emptypb.Empty) (*carrierapipb.GetRegisteredNodeListResponse, error) {
-
 	list, err := svr.B.GetRegisterNodeList(carrierapipb.PrefixTypeDataNode)
 	if rawdb.IsNoDBNotFoundErr(err) {
 		log.WithError(err).Error("RPC-API:GetDataNodeList failed")
@@ -255,7 +251,6 @@ func (svr *Server) GetDataNodeList(ctx context.Context, req *emptypb.Empty) (*ca
 }
 
 func (svr *Server) SetJobNode(ctx context.Context, req *carrierapipb.SetJobNodeRequest) (*carrierapipb.SetJobNodeResponse, error) {
-
 	if "" == strings.Trim(req.GetInternalIp(), "") {
 		return &carrierapipb.SetJobNodeResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require internal Ip"}, nil
 	}
@@ -308,7 +303,6 @@ func (svr *Server) SetJobNode(ctx context.Context, req *carrierapipb.SetJobNodeR
 }
 
 func (svr *Server) UpdateJobNode(ctx context.Context, req *carrierapipb.UpdateJobNodeRequest) (*carrierapipb.SetJobNodeResponse, error) {
-
 	if "" == strings.Trim(req.GetId(), "") {
 		return &carrierapipb.SetJobNodeResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require id of job node"}, nil
 	}
@@ -414,7 +408,6 @@ func (svr *Server) GetJobNodeList(ctx context.Context, req *emptypb.Empty) (*car
 }
 
 func (svr *Server) GenerateObServerProxyWalletAddress(ctx context.Context, req *emptypb.Empty) (*carrierapipb.GenerateObServerProxyWalletAddressResponse, error) {
-
 	wallet, err := svr.B.GenerateObServerProxyWalletAddress()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:GenerateObServerProxyWalletAddress failed")

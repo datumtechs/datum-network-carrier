@@ -128,6 +128,7 @@ github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6r
 github.com/bgentry/speakeasy v0.1.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kBD4zp0CCIs=
 github.com/bglmmz/chainclient v0.0.1 h1:p37zm39Ef/iTxpF3BvDntLCBaisKwVYGolwZ7vP2k6U=
 github.com/bglmmz/chainclient v0.0.1/go.mod h1:5Gb2Tazp9Rxeb6kBYPW2doSyxwIVwpr8i5Bhadxw7G0=
+github.com/bglmmz/chainclient v0.0.4 h1:5FUDKM/kcGTfWb/FXwIs7t3JI774lyGtqH4QfHBUmEc=
 github.com/bglmmz/chainclient v0.0.4/go.mod h1:5Gb2Tazp9Rxeb6kBYPW2doSyxwIVwpr8i5Bhadxw7G0=
 github.com/bradfitz/go-smtpd v0.0.0-20170404230938-deb6d6237625/go.mod h1:HYsPBTaaSFSlLx/70C2HPIMNZpVV8+vt/A+FMnYP11g=
 github.com/bradfitz/gomemcache v0.0.0-20170208213004-1952afaa557d/go.mod h1:PmM6Mmwb0LSuEubjR8N7PtNe1KxZLtOUHtbeikc5h60=

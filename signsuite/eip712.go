@@ -1,4 +1,5 @@
-package signsuite // recoverEIP712 recovers the public key for eip712 signed data.
+package signsuite
+
 import (
 	"crypto/ecdsa"
 	"encoding/hex"
@@ -10,6 +11,7 @@ import (
 	"strings"
 )
 
+// recoverEIP712 recovers the public key for eip712 signed data.
 func recoverEIP712(signature []byte, data *eip712.TypedData) (string, string, error) {
 	if len(signature) != 65 {
 		return "", "", errors.New("invalid length")

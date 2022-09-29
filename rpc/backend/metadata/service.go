@@ -407,6 +407,7 @@ func (svr *Server) PublishMetadataByTaskResultFile(ctx context.Context, req *car
 }
 
 func (svr *Server) UpdateMetadata(ctx context.Context, req *carrierapipb.UpdateMetadataRequest) (*carriertypespb.SimpleResponse, error) {
+
 	log.Debugf("RPC-API:UpdateMetadata req is:%s", req.String())
 	localIdentityInfo, err := svr.B.GetNodeIdentity()
 	var oldMetadataInfo *types.Metadata

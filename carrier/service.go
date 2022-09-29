@@ -30,6 +30,7 @@ import (
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/urfave/cli/v2"
 	"strconv"
+	"strings"
 	"sync"
 )
 
@@ -59,7 +60,11 @@ type Service struct {
 	payAgent     *tk.PayAgent
 	didService   *did.DIDService
 	policyEngine *policy.PolicyEngine
-	quit         chan struct{}
+	// add by v0.5.1
+	PrivateIPCache          map[string]struct{} // {"ip1":{},"ip2":{}}
+	PrivateIPCacheCacheLock *sync.RWMutex
+	adminIPAddress          string
+	quit                    chan struct{}
 }
 
 // NewService creates a new CarrierServer object (including the
@@ -197,6 +202,10 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 			config.DiscoverServiceConfig.DiscoveryServerIP,
 			config.DiscoverServiceConfig.DiscoveryServerPort,
 		),
+		PrivateIPCache:          map[string]struct{}{"127.0.0.1": {}},
+		PrivateIPCacheCacheLock: &sync.RWMutex{},
+		adminIPAddress:          strings.TrimSpace(cliCtx.String(flags.AdminIpAddress.Name)),
+		//enableGrpcGateWayPrivateCheck: cliCtx.Bool(flags.EnableGrpcGateWayPrivateCheck.Name),
 		quit: make(chan struct{}),
 	}
 

@@ -18,8 +18,9 @@ func (e *RpcBizErr) ErrCode() int32 {
 // common
 var (
 	//OK               = &RpcBizErr{Code: 0, Msg: "OK"}
-	ErrSystemPanic   = &RpcBizErr{Code: 00001, Msg: "System error"}
-	ErrRequireParams = &RpcBizErr{Code: 00002, Msg: "Require params"}
+	ErrSystemPanic      = &RpcBizErr{Code: 00001, Msg: "System error"}
+	ErrRequireParams    = &RpcBizErr{Code: 00002, Msg: "Require params"}
+	ErrRequirePrivateIP = &RpcBizErr{Code: 00003, Msg: "Require private ip"}
 )
 
 // auth
