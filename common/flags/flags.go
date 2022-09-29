@@ -436,6 +436,11 @@ var (
 		Name:  "public-rpc-service",
 		Usage: "Specify the public rpc server interface",
 	}
+
+	NotCheckPrivateIP = &cli.BoolFlag{
+		Name:  "not-check-private-ip",
+		Usage: "Whether to check rpc public and private",
+	}
 )
 
 // DefaultDataDir is the default data directory to use for the databases and other

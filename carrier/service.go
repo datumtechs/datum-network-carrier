@@ -9,6 +9,7 @@ import (
 	"github.com/datumtechs/datum-network-carrier/ach/tk/kms"
 	"github.com/datumtechs/datum-network-carrier/blacklist"
 	"github.com/datumtechs/datum-network-carrier/carrierdb"
+	"github.com/datumtechs/datum-network-carrier/common"
 	"github.com/datumtechs/datum-network-carrier/common/flags"
 	"github.com/datumtechs/datum-network-carrier/consensus/chaincons"
 	"github.com/datumtechs/datum-network-carrier/consensus/twopc"
@@ -61,15 +62,14 @@ type Service struct {
 	didService   *did.DIDService
 	policyEngine *policy.PolicyEngine
 	// add by v0.5.1
-	PrivateIPCache          map[string]struct{} // {"ip1":{},"ip2":{}}
-	PrivateIPCacheCacheLock *sync.RWMutex
-	adminIPAddress          string
-	quit                    chan struct{}
+	privateIP      *common.CarrierPrivateIP
+	adminIPAddress string
+	quit           chan struct{}
 }
 
 // NewService creates a new CarrierServer object (including the
 // initialisation of the common Carrier object)
-func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockIdentityIdsFile, consensusStateFile string) (*Service, error) {
+func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockIdentityIdsFile, consensusStateFile string, privateIP *common.CarrierPrivateIP) (*Service, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	_ = cancel // govet fix for lost cancel. Cancel is handled in service.Stop()
 
@@ -202,9 +202,8 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 			config.DiscoverServiceConfig.DiscoveryServerIP,
 			config.DiscoverServiceConfig.DiscoveryServerPort,
 		),
-		PrivateIPCache:          map[string]struct{}{"127.0.0.1": {}},
-		PrivateIPCacheCacheLock: &sync.RWMutex{},
-		adminIPAddress:          strings.TrimSpace(cliCtx.String(flags.AdminIpAddress.Name)),
+		privateIP:      privateIP,
+		adminIPAddress: strings.TrimSpace(cliCtx.String(flags.AdminIpAddress.Name)),
 		//enableGrpcGateWayPrivateCheck: cliCtx.Bool(flags.EnableGrpcGateWayPrivateCheck.Name),
 		quit: make(chan struct{}),
 	}
