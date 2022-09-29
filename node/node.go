@@ -47,6 +47,7 @@ type CarrierNode struct {
 	stateFeed *event.Feed
 	lock      sync.RWMutex
 	stop      chan struct{} // Channel to wait for termination notifications.
+	privateIP *common.CarrierPrivateIP
 }
 
 // New creates a new node instance, sets up configuration options, and registers
@@ -82,6 +83,10 @@ func New(cliCtx *cli.Context) (*CarrierNode, error) {
 		services:  registry,
 		stateFeed: new(event.Feed),
 		stop:      make(chan struct{}),
+		privateIP: &common.CarrierPrivateIP{
+			PrivateIPCache:          map[string]struct{}{"127.0.0.1": {}},
+			PrivateIPCacheCacheLock: &sync.RWMutex{},
+		},
 	}
 
 	// start db
@@ -251,7 +256,7 @@ func (node *CarrierNode) registerP2P(cliCtx *cli.Context) error {
 func (node *CarrierNode) registerBackendService(carrierConfig *carrier.Config, mockIdentityIdsFile, consensusStateFile string) error {
 	carrierConfig.CarrierDB = node.db
 	carrierConfig.P2P = node.fetchP2P()
-	backendService, err := carrier.NewService(node.ctx, node.cliCtx, carrierConfig, mockIdentityIdsFile, consensusStateFile)
+	backendService, err := carrier.NewService(node.ctx, node.cliCtx, carrierConfig, mockIdentityIdsFile, consensusStateFile, node.privateIP)
 	if err != nil {
 		return errors.Wrap(err, "could not register backend service")
 	}
@@ -303,9 +308,9 @@ func (node *CarrierNode) registerRPCService() error {
 		MaxMsgSize:                    maxMsgSize,
 		MaxSendMsgSize:                maxSendMsgSize,
 		EnableGrpcGateWayPrivateCheck: node.cliCtx.Bool(flags.EnableGrpcGateWayPrivateCheck.Name),
-		PrivateIPCache:                node.fetchBackend().PrivateIPCache,
-		PrivateIPCacheCacheLock:       node.fetchBackend().PrivateIPCacheCacheLock,
+		CarrierPrivateIP:              node.privateIP,
 		PublicRpcService:              publicRpcMap,
+		NotCheckPrivateIP:             node.cliCtx.Bool(flags.NotCheckPrivateIP.Name),
 	})
 	return node.services.RegisterService(rpcService)
 }

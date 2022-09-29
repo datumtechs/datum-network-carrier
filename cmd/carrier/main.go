@@ -64,6 +64,7 @@ var (
 		flags.AdminIpAddress,
 		flags.EnableGrpcGateWayPrivateCheck,
 		flags.PublicRpcService,
+		flags.NotCheckPrivateIP,
 	}
 
 	p2pFlags = []cli.Flag{

@@ -13,6 +13,7 @@ import (
 	"math/rand"
 	"reflect"
 	"strings"
+	"sync"
 )
 
 // Lengths of hashes and addresses in bytes.
@@ -25,8 +26,6 @@ const (
 	OpenMessageSignCheck = true
 	// IdentityIdLength identityId string length
 	IdentityIdLength = 50
-	// NotCheckPrivateIP check rpc call ip
-	NotCheckPrivateIP = false
 )
 
 var (
@@ -413,4 +412,10 @@ func (ma *MixedcaseAddress) ValidChecksum() bool {
 // Original returns the mixed-case input string
 func (ma *MixedcaseAddress) Original() string {
 	return ma.original
+}
+
+// CarrierPrivateIP CarrierPrivateRPC for support rpc private control
+type CarrierPrivateIP struct {
+	PrivateIPCache          map[string]struct{} // {"ip1":{},"ip2":{}}
+	PrivateIPCacheCacheLock *sync.RWMutex
 }

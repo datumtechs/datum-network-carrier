@@ -60,6 +60,7 @@ var appHelpFlagGroups = []flagGroup{
 			flags.AdminIpAddress,
 			flags.EnableGrpcGateWayPrivateCheck,
 			flags.PublicRpcService,
+			flags.NotCheckPrivateIP,
 			flags.DiscoveryServiceHealthCheckInterval,
 		},
 	},

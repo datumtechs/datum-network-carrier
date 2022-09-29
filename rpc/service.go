@@ -70,7 +70,8 @@ type Config struct {
 	MaxSendMsgSize                int
 	EnableGrpcGateWayPrivateCheck bool
 	PrivateIPCache                map[string]struct{} // {"ip1":{},"ip2":{}}
-	PrivateIPCacheCacheLock       *sync.RWMutex
+	CarrierPrivateIP              *common.CarrierPrivateIP
+	NotCheckPrivateIP             bool
 	PublicRpcService              map[int]struct{}
 }
 
@@ -215,7 +216,15 @@ func (s *Service) validatorUnaryConnectionInterceptor(
 	handler grpc.UnaryHandler,
 ) (interface{}, error) {
 	s.logNewClientConnection(ctx)
-	if common.NotCheckPrivateIP {
+	return s.checkRpcServicePrivate(ctx, req, un, handler)
+}
+
+func (s *Service) checkRpcServicePrivate(
+	ctx context.Context,
+	req interface{},
+	un *grpc.UnaryServerInfo,
+	handler grpc.UnaryHandler) (interface{}, error) {
+	if s.cfg.NotCheckPrivateIP {
 		return handler(ctx, req)
 	}
 
@@ -249,14 +258,13 @@ func (s *Service) validatorUnaryConnectionInterceptor(
 		clientIPAndPort := strings.Split(pr.Addr.String(), ":")
 		clientIP = clientIPAndPort[0]
 	}
-	s.cfg.PrivateIPCacheCacheLock.RLock()
-	defer s.cfg.PrivateIPCacheCacheLock.RUnlock()
+	s.cfg.CarrierPrivateIP.PrivateIPCacheCacheLock.RLock()
+	defer s.cfg.CarrierPrivateIP.PrivateIPCacheCacheLock.RUnlock()
 	if _, ok := s.cfg.PrivateIPCache[clientIP]; !ok {
 		return &carriertypespb.SimpleResponse{Status: backend.ErrRequirePrivateIP.ErrCode(), Msg: fmt.Sprintf("%s does not have permission to access %s", clientIP, un.FullMethod)}, nil
 	}
 	return handler(ctx, req)
 }
-
 func (s *Service) logNewClientConnection(ctx context.Context) {
 	/*if featureconfig.Get().DisableGRPCConnectionLogs {
 		return
