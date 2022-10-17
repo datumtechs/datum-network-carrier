@@ -3,6 +3,7 @@ package rpc
 import (
 	"context"
 	"fmt"
+	"github.com/datumtechs/datum-network-carrier/carrierdb"
 	"github.com/datumtechs/datum-network-carrier/common"
 	statefeed "github.com/datumtechs/datum-network-carrier/common/feed/state"
 	"github.com/datumtechs/datum-network-carrier/common/traceutil"
@@ -74,6 +75,7 @@ type Config struct {
 	CarrierPrivateIP              *common.CarrierPrivateIP
 	NotCheckPrivateIP             bool
 	PublicRpcService              map[int]struct{}
+	CarrierDB                     carrierdb.CarrierDB
 }
 
 // NewService instantiates a new RPC service instance that will
@@ -226,6 +228,11 @@ func (s *Service) checkRpcServicePrivate(
 	req interface{},
 	un *grpc.UnaryServerInfo,
 	handler grpc.UnaryHandler) (interface{}, error) {
+	_, err := s.cfg.CarrierDB.QueryIdentity()
+	if nil != err {
+		//log.WithError(err).Warnf("Failed to query local identity")
+		return handler(ctx, req)
+	}
 	if s.cfg.NotCheckPrivateIP {
 		return handler(ctx, req)
 	}

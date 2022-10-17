@@ -311,6 +311,7 @@ func (node *CarrierNode) registerRPCService() error {
 		CarrierPrivateIP:              node.privateIP,
 		PublicRpcService:              publicRpcMap,
 		NotCheckPrivateIP:             node.cliCtx.Bool(flags.NotCheckPrivateIP.Name),
+		CarrierDB:                     node.db,
 	})
 	return node.services.RegisterService(rpcService)
 }
