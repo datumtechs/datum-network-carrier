@@ -1496,7 +1496,11 @@ func (m *Manager) sendNeedExecuteTaskByAction(task *types.NeedExecuteTask) {
 		m.needExecuteTaskCh <- task
 	}(task)
 }
-
+func (m *Manager) sendTaskExecuteStatusToWorkflow(taskStatus *carrierapipb.WorkFlowTaskStatus) {
+	go func(taskStatus *carrierapipb.WorkFlowTaskStatus) {
+		m.taskExecuteResultCh <- taskStatus
+	}(taskStatus)
+}
 func (m *Manager) StoreExecuteTaskStateBeforeExecuteTask(logdesc, taskId, partyId string) error {
 	// Store task exec status
 	if err := m.resourceMng.GetDB().StoreLocalTaskExecuteStatusValRunningByPartyId(taskId, partyId); nil != err {
@@ -1532,7 +1536,11 @@ func (m *Manager) publishBadTaskToDataCenter(task *types.Task, events []*carrier
 
 	m.resourceMng.GetDB().RemoveLocalTask(task.GetTaskId())
 	m.resourceMng.GetDB().RemoveTaskEventList(task.GetTaskId())
-
+	m.sendTaskExecuteStatusToWorkflow(&carrierapipb.WorkFlowTaskStatus{
+		Status:   commonconstantpb.TaskState_TaskState_Failed,
+		TaskId:   task.GetTaskId(),
+		TaskName: task.GetTaskData().GetTaskName(),
+	})
 	return m.resourceMng.GetDB().InsertTask(task)
 }
 
@@ -1540,6 +1548,11 @@ func (m *Manager) fillTaskEventAndFinishedState(task *types.Task, eventList []*c
 	task.GetTaskData().TaskEvents = eventList
 	task.GetTaskData().EndAt = timeutils.UnixMsecUint64()
 	task.GetTaskData().State = state
+	m.sendTaskExecuteStatusToWorkflow(&carrierapipb.WorkFlowTaskStatus{
+		Status:   state,
+		TaskId:   task.GetTaskId(),
+		TaskName: task.GetTaskData().GetTaskName(),
+	})
 	return task
 }
 

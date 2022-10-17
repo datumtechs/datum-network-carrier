@@ -19,6 +19,7 @@ const (
 	TerminateTask
 	UpdateMetadata
 	UpdateIdentityCredential
+	ApplyWorkflow
 )
 
 type IdentityMsgEvent struct{ Msg *IdentityMsg }
@@ -33,6 +34,7 @@ type TaskMsgEvent struct{ Msg *TaskMsg }
 type TaskTerminateMsgEvent struct{ Msg *TaskTerminateMsg }
 type MetadataUpdateMsgEvent struct{ Msg *MetadataUpdateMsg }
 type UpdateIdentityCredentialEvent struct{ Msg *UpdateIdentityCredentialMsg }
+type WorkflowMsgEvent struct{ Msg *WorkflowMsg }
 
 func (msg *IdentityMsgEvent) String() string {
 	result, err := json.Marshal(msg)

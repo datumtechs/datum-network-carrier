@@ -19,6 +19,7 @@ import (
 	"github.com/datumtechs/datum-network-carrier/core/schedule"
 	"github.com/datumtechs/datum-network-carrier/p2p"
 	"github.com/datumtechs/datum-network-carrier/params"
+	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	carriernetmsgcommonpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/common"
 	carriertwopcpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/consensus/twopc"
 	carriernetmsgtaskmngpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/taskmng"
@@ -54,6 +55,7 @@ type Manager struct {
 	localTasksCh             chan types.TaskDataArray
 	needReplayScheduleTaskCh chan *types.NeedReplayScheduleTask
 	needExecuteTaskCh        chan *types.NeedExecuteTask
+	taskExecuteResultCh      chan *carrierapipb.WorkFlowTaskStatus
 	runningTaskCache         map[string]map[string]*types.NeedExecuteTask //  taskId -> {partyId -> task}
 	syncExecuteTaskMonitors  *types.SyncExecuteTaskMonitorQueue
 	quit                     chan struct{}
@@ -77,6 +79,7 @@ func NewTaskManager(
 	needExecuteTaskCh chan *types.NeedExecuteTask,
 	config *params.TaskManagerConfig,
 	policyEngine *policy.PolicyEngine,
+	taskExecuteResultCh chan *carrierapipb.WorkFlowTaskStatus,
 ) (*Manager, error) {
 
 	cache, err := NewTaskmngMsgCache(defaultTaskmngMsgCacheSize)
@@ -98,6 +101,7 @@ func NewTaskManager(
 		eventCh:                  make(chan *carriertypespb.TaskEvent, 800),
 		needReplayScheduleTaskCh: needReplayScheduleTaskCh,
 		needExecuteTaskCh:        needExecuteTaskCh,
+		taskExecuteResultCh:      taskExecuteResultCh,
 		config:                   config,
 		policyEngine:             policyEngine,
 		runningTaskCache:         make(map[string]map[string]*types.NeedExecuteTask, 0), // taskId -> partyId -> needExecuteTask

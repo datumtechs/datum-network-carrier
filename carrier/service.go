@@ -20,6 +20,7 @@ import (
 	"github.com/datumtechs/datum-network-carrier/core/resource"
 	"github.com/datumtechs/datum-network-carrier/core/schedule"
 	"github.com/datumtechs/datum-network-carrier/core/task"
+	"github.com/datumtechs/datum-network-carrier/core/workflow"
 	"github.com/datumtechs/datum-network-carrier/db"
 	"github.com/datumtechs/datum-network-carrier/grpclient"
 	"github.com/datumtechs/datum-network-carrier/handler"
@@ -53,6 +54,7 @@ type Service struct {
 	resourceManager *resource.Manager
 	messageManager  *message.MessageHandler
 	TaskManager     handler.TaskManager
+	WorkflowManager *workflow.Manager
 	authManager     *auth.AuthorityManager
 	scheduler       schedule.Scheduler
 	consulManager   *discovery.ConnectConsul
@@ -157,7 +159,9 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 		}
 	}
 	didService := did.NewDIDService(ethContext, didConfig)
-
+	taskExecuteResultCh := make(chan *carrierapipb.WorkFlowTaskStatus, 0)
+	taskToMessageHandlerCh := make(chan *types.TaskMsg, 0)
+	workflowManager := workflow.NewWorkflowService(config.CarrierDB, taskExecuteResultCh, taskToMessageHandlerCh)
 	taskManager, err := task.NewTaskManager(
 		config.P2P.PirKey(),
 		config.P2P,
@@ -171,6 +175,7 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 		needExecuteTaskCh,
 		config.TaskManagerConfig,
 		policyEngine,
+		taskExecuteResultCh,
 	)
 	if nil != err {
 		return nil, err
@@ -183,8 +188,9 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 		carrierDB:       config.CarrierDB,
 		mempool:         pool,
 		resourceManager: resourceMng,
-		messageManager:  message.NewHandler(pool, resourceMng, taskManager, authManager),
+		messageManager:  message.NewHandler(pool, resourceMng, taskManager, authManager, workflowManager),
 		TaskManager:     taskManager,
+		WorkflowManager: workflowManager,
 		authManager:     authManager,
 		payAgent:        payAgent,
 		didService:      didService,
@@ -271,6 +277,11 @@ func (s *Service) Start() error {
 			log.WithError(err).Errorf("Failed to start the schedule")
 		}
 	}
+	if nil != s.WorkflowManager {
+		if err := s.WorkflowManager.Start(); nil != err {
+			log.WithError(err).Errorf("Failed to start the WorkflowManager")
+		}
+	}
 	if err := s.initServicesWithDiscoveryCenter(); nil != err {
 		log.Fatal(err)
 	}
@@ -320,7 +331,11 @@ func (s *Service) Stop() error {
 			log.WithError(err).Errorf("Failed to deregister discover service")
 		}
 	}
-
+	if nil != s.WorkflowManager {
+		if err := s.WorkflowManager.Stop(); nil != err {
+			log.WithError(err).Errorf("Failed to stop the WorkflowManager")
+		}
+	}
 	// stop service loop gorutine
 	close(s.quit)
 	return nil

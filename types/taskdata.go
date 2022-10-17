@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"github.com/datumtechs/datum-network-carrier/common"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
+	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"io"
 	"sync/atomic"
 )
@@ -145,3 +146,23 @@ func (trfs *TaskResultDataSummary) GetMetadataOption() string { return trfs.Meta
 func (trfs *TaskResultDataSummary) GetDataType() uint32       { return trfs.DataType }
 
 type TaskResultDataSummaryArr []*TaskResultDataSummary
+
+type Workflow struct {
+	WorkflowId   string
+	Desc         string
+	WorkflowName string
+	PolicyType   commonconstantpb.WorkFlowPolicyType
+	Policy       string
+	User         string
+	UserType     commonconstantpb.UserType
+	Sign         []byte
+	Tasks        []*TaskMsg
+	CreateAt     uint64
+}
+
+func (w *Workflow) GetWorkflowId() string {
+	return w.WorkflowId
+}
+func (w *Workflow) GetWorkflowName() string {
+	return w.WorkflowName
+}

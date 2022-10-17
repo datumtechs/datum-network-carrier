@@ -16,6 +16,7 @@ import (
 	"github.com/datumtechs/datum-network-carrier/rpc/backend/metadata"
 	"github.com/datumtechs/datum-network-carrier/rpc/backend/power"
 	"github.com/datumtechs/datum-network-carrier/rpc/backend/task"
+	"github.com/datumtechs/datum-network-carrier/rpc/backend/workflow"
 	"github.com/datumtechs/datum-network-carrier/rpc/backend/yarn"
 	"github.com/datumtechs/datum-network-carrier/rpc/debug"
 	health_check "github.com/datumtechs/datum-network-carrier/service/discovery"
@@ -142,6 +143,7 @@ func (s *Service) Start() error {
 	carrierapipb.RegisterDIDServiceServer(s.grpcServer, &did.Server{B: s.cfg.BackendAPI})
 	carrierapipb.RegisterVcServiceServer(s.grpcServer, &did.Server{B: s.cfg.BackendAPI})
 	carrierapipb.RegisterProposalServiceServer(s.grpcServer, &did.Server{B: s.cfg.BackendAPI})
+	carrierapipb.RegisterWorkFlowServiceServer(s.grpcServer, &workflow.Server{B: s.cfg.BackendAPI})
 	service_discover_health.RegisterHealthServer(s.grpcServer, &health_check.HealthCheck{})
 
 	if s.cfg.EnableDebugRPCEndpoints {

@@ -8,6 +8,7 @@ import (
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
 	"github.com/datumtechs/datum-network-carrier/core/resource"
 	"github.com/datumtechs/datum-network-carrier/core/task"
+	"github.com/datumtechs/datum-network-carrier/core/workflow"
 	"github.com/datumtechs/datum-network-carrier/event"
 	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
@@ -23,19 +24,22 @@ const (
 	defaultMetadataUpdateMsgsCacheSize = 3
 	defaultMetadataAuthMsgsCacheSize   = 3
 	defaultTaskMsgsCacheSize           = 5
+	defaultWorkflowCacheSize           = 3
 
 	defaultBroadcastPowerMsgInterval        = 30 * time.Second
 	defaultBroadcastMetadataMsgInterval     = 30 * time.Second
 	defaultBroadcastMetadataAuthMsgInterval = 30 * time.Second
 	defaultBroadcastTaskMsgInterval         = 10 * time.Second
+	defaultBroadCastWorkflowMsgInterval     = 10 * time.Second
 )
 
 type MessageHandler struct {
 	pool        *Mempool
 	resourceMng *resource.Manager
 	// Send taskMsg to taskManager
-	taskManager *task.Manager
-	authManager *auth.AuthorityManager
+	taskManager     *task.Manager
+	authManager     *auth.AuthorityManager
+	workflowManager *workflow.Manager
 	// internal resource node set (Fighter node grpc client set)
 	msgChannel chan *feed.Event
 	quit       chan struct{}
@@ -47,21 +51,24 @@ type MessageHandler struct {
 	metadataAuthMsgCache   types.MetadataAuthorityMsgArr
 	taskMsgCache           types.TaskMsgArr
 	metadataUpdateMsgCache types.MetadataUpdateMsgArr
+	workflowMsgCache       types.WorkflowMsgArr
 	lockPower              sync.Mutex
 	lockMetadata           sync.Mutex
 	lockMetadataAuth       sync.Mutex
 	lockTask               sync.Mutex
 	lockMetadataUpdate     sync.Mutex
+	lockWorkflow           sync.Mutex
 }
 
-func NewHandler(pool *Mempool, resourceMng *resource.Manager, taskManager *task.Manager, authManager *auth.AuthorityManager) *MessageHandler {
+func NewHandler(pool *Mempool, resourceMng *resource.Manager, taskManager *task.Manager, authManager *auth.AuthorityManager, workflowManager *workflow.Manager) *MessageHandler {
 	m := &MessageHandler{
-		pool:        pool,
-		resourceMng: resourceMng,
-		taskManager: taskManager,
-		authManager: authManager,
-		msgChannel:  make(chan *feed.Event, 5),
-		quit:        make(chan struct{}),
+		pool:            pool,
+		resourceMng:     resourceMng,
+		taskManager:     taskManager,
+		authManager:     authManager,
+		workflowManager: workflowManager,
+		msgChannel:      make(chan *feed.Event, 5),
+		quit:            make(chan struct{}),
 	}
 	return m
 }
@@ -133,12 +140,23 @@ func (m *MessageHandler) recoveryCache() {
 	} else {
 		m.powerMsgCache = powerMsgCache
 	}
+	workflowMsgCache, err := m.resourceMng.GetDB().QueryWorkflowMsgArr()
+	if nil != err {
+		if rawdb.IsNoDBNotFoundErr(err) {
+			log.WithError(err).Errorf("Failed to get workflowMsgCache from QueryWorkflowMsgArr")
+		} else {
+			log.WithError(err).Warnf("Not found workflowMsgCache from QueryWorkflowMsgArr")
+		}
+	} else {
+		m.workflowMsgCache = workflowMsgCache
+	}
 }
 func (m *MessageHandler) loop() {
 	powerTicker := time.NewTicker(defaultBroadcastPowerMsgInterval)
 	metadataTicker := time.NewTicker(defaultBroadcastMetadataMsgInterval)
 	metadataAuthTicker := time.NewTicker(defaultBroadcastMetadataAuthMsgInterval)
 	taskTicker := time.NewTicker(defaultBroadcastTaskMsgInterval)
+	workflowTicker := time.NewTicker(defaultBroadCastWorkflowMsgInterval)
 	for {
 		select {
 		case event := <-m.msgChannel:
@@ -291,6 +309,16 @@ func (m *MessageHandler) loop() {
 					m.metadataUpdateMsgCache = make(types.MetadataUpdateMsgArr, 0)
 				}
 				m.lockMetadataUpdate.Unlock()
+			case types.ApplyWorkflow:
+				msg := event.Data.(*types.WorkflowMsgEvent)
+				m.lockWorkflow.Lock()
+				m.workflowMsgCache = append(m.workflowMsgCache, msg.Msg)
+				m.resourceMng.GetDB().StoreMessageCache(msg.Msg)
+				if len(m.workflowMsgCache) >= defaultWorkflowCacheSize {
+					m.BroadcastWorkflowMsgArr(m.workflowMsgCache)
+					m.workflowMsgCache = make(types.WorkflowMsgArr, 0)
+				}
+				m.lockWorkflow.Unlock()
 			}
 
 		case <-powerTicker.C:
@@ -324,7 +352,16 @@ func (m *MessageHandler) loop() {
 				m.BroadcastTaskMsgArr(m.taskMsgCache)
 				m.taskMsgCache = make(types.TaskMsgArr, 0)
 			}
-
+		case <-workflowTicker.C:
+			if len(m.workflowMsgCache) > 0 {
+				m.BroadcastWorkflowMsgArr(m.workflowMsgCache)
+				m.workflowMsgCache = make(types.WorkflowMsgArr, 0)
+			}
+		case taskMsg := <-m.workflowManager.TaskMsgToMessageManagerCh:
+			m.lockTask.Lock()
+			m.taskMsgCache = append(m.taskMsgCache, taskMsg)
+			m.resourceMng.GetDB().StoreMessageCache(taskMsg) // backup task msg into disk
+			m.lockTask.Unlock()
 		// Err() channel will be closed when unsubscribing.
 		case err := <-m.msgSub.Err():
 			log.Errorf("Received err from msgSub, return loop, err: %s", err)
@@ -960,4 +997,17 @@ func (m *MessageHandler) BroadcastTaskTerminateMsgArr(terminateMsgArr types.Task
 		log.WithError(err).Errorf("Failed to call `BroadcastTaskTerminateMsgArr` on MessageHandler")
 	}
 	return
+}
+
+func (m *MessageHandler) BroadcastWorkflowMsgArr(workflowMsgArr types.WorkflowMsgArr) {
+	for _, v := range workflowMsgArr {
+		err := m.workflowManager.AddWorkflow(v.Data)
+		if err != nil {
+			log.WithError(err).Errorf("Failed to call `BroadcastWorkflowMsgArr` on MessageHandler")
+		} else {
+			if err := m.resourceMng.GetDB().RemoveWorkflowMsg(v.Data.GetWorkflowId()); err != nil {
+				log.WithError(err).Errorf("Remove local workflowMsg fail,workflowId is %s", v.Data.GetWorkflowId())
+			}
+		}
+	}
 }
