@@ -131,9 +131,10 @@ func (m *Manager) loop() {
 }
 
 func (m *Manager) Start() error {
-	m.recoveryCache()
-	go m.loop()
 	log.Info("Started workflowManager ...")
+	m.recoveryCache()
+	log.Info("recoveryCache over ...")
+	go m.loop()
 	return nil
 }
 
@@ -381,6 +382,7 @@ func (m *Manager) recoveryCache() {
 	}(&wg, errCh)
 	// recovery workflowsCache
 	go func(wg *sync.WaitGroup, errCh chan<- error) {
+		defer wg.Done()
 		workflowsCacheKeyPrefix := []byte("workflowsCacheKeyPrefix:")
 		prefixLength := len(workflowsCacheKeyPrefix)
 		if err := m.dataCenter.ForEachKVWithPrefix(workflowsCacheKeyPrefix, func(key, value []byte) error {
@@ -418,6 +420,7 @@ func (m *Manager) recoveryCache() {
 	}(&wg, errCh)
 	// recovery workflowStatusCache
 	go func(wg *sync.WaitGroup, errCh chan<- error) {
+		defer wg.Done()
 		workflowStatusCacheKeyPrefix := []byte("workflowStatusCacheKeyPrefix:")
 		prefixLength := len(workflowStatusCacheKeyPrefix)
 		if err := m.dataCenter.ForEachKVWithPrefix(workflowStatusCacheKeyPrefix, func(key, value []byte) error {
@@ -439,6 +442,7 @@ func (m *Manager) recoveryCache() {
 	}(&wg, errCh)
 	// recovery workflowTaskStatusCache
 	go func(wg *sync.WaitGroup, errCh chan<- error) {
+		defer wg.Done()
 		workflowTaskStatusCacheKeyPrefix := []byte("workflowTaskStatusCacheKeyPrefix:")
 		prefixLength := len(workflowTaskStatusCacheKeyPrefix)
 		if err := m.dataCenter.ForEachKVWithPrefix(workflowTaskStatusCacheKeyPrefix, func(key, value []byte) error {
