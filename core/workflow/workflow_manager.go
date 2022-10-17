@@ -104,6 +104,7 @@ func (m *Manager) loop() {
 				workflow := m.workflowsCache[workflowId]
 				if len(workflow.Tasks) == 0 {
 					m.updateWorkflowStatus(workflowId, commonconstantpb.WorkFlowState_WorkFlowState_Succeed)
+					m.DeleteWorkflowCache(workflowId)
 				} else {
 					if err := m.taskMsgSendToMessageManager(workflow); err != nil {
 						log.Warnf("taskMsgSendToMessageManager fail,%s", err.Error())
@@ -111,9 +112,7 @@ func (m *Manager) loop() {
 				}
 				m.workflowsLock.RUnlock()
 			case commonconstantpb.TaskState_TaskState_Failed:
-				m.workflowsLock.RLock()
-				delete(m.workflowsCache, workflowId)
-				m.workflowsLock.RUnlock()
+				m.DeleteWorkflowCache(workflowId)
 				m.updateWorkflowStatus(workflowId, commonconstantpb.WorkFlowState_WorkFlowState_Failed)
 			}
 		case <-m.quit:
@@ -337,6 +336,14 @@ func (m *Manager) getWorkflowTaskStatusCacheTaskId(workflowId, taskName string) 
 	}
 }
 
+func (m *Manager) DeleteWorkflowCache(workflowId string) {
+	m.workflowsLock.RLock()
+	delete(m.workflowsCache, workflowId)
+	m.workflowsLock.RUnlock()
+	if err := m.dataCenter.RemoveWorkflowCache(workflowId); err != nil {
+		log.WithError(err).Errorf("DeleteWorkflowCache dataCenter.RemoveWorkflowCache fail")
+	}
+}
 func (m *Manager) recoveryCache() {
 	errCh := make(chan error, 4)
 	var wg sync.WaitGroup
