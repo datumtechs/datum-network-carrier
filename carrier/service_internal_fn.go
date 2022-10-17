@@ -265,6 +265,8 @@ func (s *Service) refreshResourceNodes() error {
 			}
 		}
 	}
+	// 127.0.0.1 default add to ipCaches
+	ipCaches["127.0.0.1"] = struct{}{}
 	if !reflect.DeepEqual(s.privateIP.PrivateIPCache, ipCaches) {
 		s.privateIP.PrivateIPCacheCacheLock.Lock()
 		defer s.privateIP.PrivateIPCacheCacheLock.Unlock()
