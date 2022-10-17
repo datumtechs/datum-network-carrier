@@ -65,4 +65,6 @@ var ServiceMethodControlCode = map[string]int{
 	"/carrier.api.TaskService/PublishTaskDeclare":                     62,
 	"/carrier.api.TaskService/TerminateTask":                          63,
 	"/carrier.api.TaskService/EstimateTaskGas":                        64,
+	"/carrier.api.WorkFlowService/PublishWorkFlowDeclare":             65,
+	"/carrier.api.WorkFlowService/QueryWorkFlowStatus":                66,
 }
