@@ -62,6 +62,12 @@ func (m *Manager) AddWorkflow(workflow *types.Workflow) error {
 
 func (m *Manager) GetWorkflowStatus(workflowIds []string) (*carrierapipb.QueryWorkStatusResponse, error) {
 	workflowStatusList := make([]*carrierapipb.WorkFlowStatus, 0)
+	m.workflowStatusLock.RLock()
+	m.workflowTaskStatusLock.RLock()
+	defer func() {
+		m.workflowStatusLock.RUnlock()
+		m.workflowTaskStatusLock.RUnlock()
+	}()
 	for _, workflowId := range workflowIds {
 		if status, ok := m.workflowStatusCache[workflowId]; !ok {
 			log.Errorf("no status information for {%s} was found in workflowStatusCache", workflowId)
@@ -96,7 +102,9 @@ func (m *Manager) loop() {
 	for {
 		select {
 		case result := <-m.taskExecuteResultCh:
+			m.sendToTaskManagerLock.RLock()
 			workflowId := m.sendToTaskManagerCache[result.GetTaskId()]
+			m.sendToTaskManagerLock.RUnlock()
 			m.updateWorkflowTaskStatus(workflowId, result)
 			switch result.GetStatus() {
 			case commonconstantpb.TaskState_TaskState_Succeed:
