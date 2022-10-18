@@ -108,7 +108,7 @@ func (pool *Mempool) Add(msg types.Msg) error {
 			Type: types.UpdateIdentityCredential,
 			Data: &types.UpdateIdentityCredentialEvent{Msg: m},
 		})
-		
+
 	case *types.MetadataRevokeMsg:
 
 		// We've directly injected a replacement metaDataRevokeMsg, notify subsystems
@@ -148,7 +148,11 @@ func (pool *Mempool) Add(msg types.Msg) error {
 			Type: types.TerminateTask,
 			Data: &types.TaskTerminateMsgEvent{Msg: m},
 		})
-
+	case *types.WorkflowMsg:
+		pool.msgFeed.Send(&feed.Event{
+			Type: types.ApplyWorkflow,
+			Data: &types.WorkflowMsgEvent{Msg: m},
+		})
 	default:
 		log.Errorf("Failed to add msg, can not match the msg type")
 		return ErrUnknownMsgType

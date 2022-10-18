@@ -117,4 +117,5 @@ type Backend interface {
 	WithdrawProposal(proposalId *big.Int) (bool, *carrierapipb.TxInfo, error)
 	VoteProposal(proposalId *big.Int) (bool, *carrierapipb.TxInfo, error)
 	EffectProposal(proposalId *big.Int) (bool, *carrierapipb.TxInfo, error)
+	GetWorkflowStatus(workflowIds []string) (*carrierapipb.QueryWorkStatusResponse, error)
 }

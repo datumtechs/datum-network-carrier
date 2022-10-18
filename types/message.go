@@ -18,6 +18,7 @@ const (
 	PREFIX_POWER_ID         = "power:"
 	PREFIX_METADATA_ID      = "metadata:"
 	PREFIX_TASK_ID          = "task:"
+	PREFIX_WORKFLOW_ID      = "workflow:"
 	PREFIX_METADATA_AUTH_ID = "metadataAuth:"
 
 	MSG_IDENTITY                      = "identityMsg"
@@ -33,12 +34,12 @@ const (
 
 	MSG_METADATAAUTHORITY       = "MetadataAuthorityMsg"
 	MSG_METADATAAUTHORITYREVOKE = "MetadataAuthorityRevokeMsg"
-
-	MaxNodeNameLen   = 30 // 30 char
-	MaxNodeIdLen     = 140
-	MaxIdentityIdLen = 140
-	MaxImageUrlLen   = 140
-	MaxDetailsLen    = 280
+	MSG_WORKFLOW                = "workflowMsg"
+	MaxNodeNameLen              = 30 // 30 char
+	MaxNodeIdLen                = 140
+	MaxIdentityIdLen            = 140
+	MaxImageUrlLen              = 140
+	MaxDetailsLen               = 280
 )
 
 type MessageType string
@@ -915,7 +916,7 @@ func NewTaskMessageFromRequest(req *carrierapipb.PublishTaskDeclareRequest) *Tas
 func (msg *TaskMsg) Marshal() ([]byte, error) { return nil, nil }
 func (msg *TaskMsg) Unmarshal(b []byte) error { return nil }
 func (msg *TaskMsg) String() string {
-	return fmt.Sprintf(`{"taskId": %s, "task": %s}`, msg.GetTask().GetTaskId(), msg.GetTask().GetTaskData().String())
+	return fmt.Sprintf(`{"taskId": %s}`, msg.GetTask().GetTaskId())
 }
 func (msg *TaskMsg) MsgType() string { return MSG_TASK }
 
@@ -1214,6 +1215,17 @@ func (s TaskMsgArr) Less(i, j int) bool {
 	return s[i].GetTask().GetTaskData().GetCreateAt() < s[j].GetTask().GetTaskData().GetCreateAt()
 }
 
+type WorkflowMsgArr []*WorkflowMsg
+
+// Len returns the length of s.
+func (s WorkflowMsgArr) Len() int { return len(s) }
+
+// Swap swaps the i'th and the j'th element in s.
+func (s WorkflowMsgArr) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
+func (s WorkflowMsgArr) Less(i, j int) bool {
+	return s[i].Data.CreateAt < s[j].Data.CreateAt
+}
+
 // Len returns the length of s.
 func (s TaskTerminateMsgArr) Len() int { return len(s) }
 
@@ -1427,4 +1439,123 @@ type InputConsumeDataCSV struct {
 	SelectedColumns []string `json:"selected_columns"`
 	ConsumeTypes    []uint8  `json:"consumeTypes"`
 	ConsumeOptions  []string `json:"consumeOptions"`
+}
+
+type WorkflowMsg struct {
+	Data *Workflow
+	// caches
+	hash atomic.Value
+}
+
+func (msg *WorkflowMsg) Marshal() ([]byte, error) { return nil, nil }
+func (msg *WorkflowMsg) Unmarshal(b []byte) error { return nil }
+func (msg *WorkflowMsg) String() string {
+	return fmt.Sprintf(`{"Workflow id": %s}`, msg.Data.GetWorkflowId())
+}
+func (msg *WorkflowMsg) MsgType() string { return MSG_WORKFLOW }
+
+func NewWorkFlowMessageFromRequest(req *carrierapipb.PublishWorkFlowDeclareRequest) *WorkflowMsg {
+	tasks := make([]*TaskMsg, 0)
+	for _, task := range req.GetTaskList() {
+		tasks = append(tasks, &TaskMsg{Data: NewTask(
+			&carriertypespb.TaskPB{
+				TaskId:        "",
+				DataId:        "",
+				DataStatus:    commonconstantpb.DataStatus_DataStatus_Valid,
+				User:          task.GetUser(),
+				UserType:      task.GetUserType(),
+				TaskName:      task.GetTaskName(),
+				Sender:        task.GetSender(),
+				AlgoSupplier:  task.GetAlgoSupplier(),
+				DataSuppliers: task.GetDataSuppliers(),
+				// PowerSuppliers: ,
+				Receivers:                task.GetReceivers(),
+				DataPolicyTypes:          task.GetDataPolicyTypes(),
+				DataPolicyOptions:        task.GetDataPolicyOptions(),
+				PowerPolicyTypes:         task.GetPowerPolicyTypes(),
+				PowerPolicyOptions:       task.GetPowerPolicyOptions(),
+				ReceiverPolicyTypes:      task.GetReceiverPolicyTypes(),
+				ReceiverPolicyOptions:    task.GetReceiverPolicyOptions(),
+				DataFlowPolicyTypes:      task.GetDataFlowPolicyTypes(),
+				DataFlowPolicyOptions:    task.GetDataFlowPolicyOptions(),
+				OperationCost:            task.GetOperationCost(),
+				AlgorithmCode:            task.GetAlgorithmCode(),
+				MetaAlgorithmId:          task.GetMetaAlgorithmId(),
+				AlgorithmCodeExtraParams: task.GetAlgorithmCodeExtraParams(),
+				// PowerResourceOptions:
+				State:    commonconstantpb.TaskState_TaskState_Pending,
+				Reason:   "",
+				Desc:     task.GetDesc(),
+				CreateAt: timeutils.UnixMsecUint64(),
+				EndAt:    0,
+				StartAt:  0,
+				// TaskEvents:
+				Sign: task.GetSign(),
+			}),
+		})
+	}
+	return &WorkflowMsg{
+		Data: &Workflow{
+			WorkflowId:   "",
+			Desc:         req.GetDesc(),
+			WorkflowName: req.GetWorkflowName(),
+			PolicyType:   req.GetPolicyType(),
+			Policy:       req.GetPolicy(),
+			User:         req.GetUser(),
+			UserType:     req.GetUserType(),
+			Sign:         req.GetSign(),
+			Tasks:        tasks,
+			CreateAt:     timeutils.UnixMsecUint64(),
+		},
+	}
+}
+
+func (msg *WorkflowMsg) GenWorkflowId() string {
+	if "" != msg.Data.GetWorkflowId() {
+		return msg.Data.GetWorkflowId()
+	}
+	msg.Data.WorkflowId = PREFIX_WORKFLOW_ID + msg.Hash().Hex()
+	return msg.Data.GetWorkflowId()
+}
+
+func (msg *WorkflowMsg) Hash() common.Hash {
+	if hash := msg.hash.Load(); hash != nil {
+		return hash.(common.Hash)
+	}
+	var buf bytes.Buffer
+	for _, v := range msg.Data.Tasks {
+		buf.Write([]byte(v.GetTaskData().GetUser()))
+		buf.Write(bytesutil.Uint32ToBytes(uint32(v.GetTaskData().GetUserType())))
+		buf.Write([]byte(v.GetTaskData().GetTaskName()))
+		buf.Write([]byte(v.GetTaskData().GetSender().GetNodeName()))
+		buf.Write([]byte(v.GetTaskData().GetSender().GetNodeId()))
+		buf.Write([]byte(v.GetTaskData().GetSender().GetIdentityId()))
+		buf.Write([]byte(v.GetTaskData().GetSender().GetPartyId()))
+		buf.Write([]byte(v.GetTaskData().GetAlgoSupplier().GetNodeName()))
+		buf.Write([]byte(v.GetTaskData().GetAlgoSupplier().GetNodeId()))
+		buf.Write([]byte(v.GetTaskData().GetAlgoSupplier().GetIdentityId()))
+		buf.Write([]byte(v.GetTaskData().GetAlgoSupplier().GetPartyId()))
+		buf.Write(bytesutil.Uint16ToBytes(uint16(len(v.GetTaskData().GetDataSuppliers()))))
+		buf.Write(bytesutil.Uint16ToBytes(uint16(len(v.GetTaskData().GetReceivers()))))
+		buf.Write(bytesutil.Uint32ToBytes(uint32(len(v.GetTaskData().GetDataPolicyTypes()))))
+		buf.Write(bytesutil.Uint32ToBytes(uint32(len(v.GetTaskData().GetDataPolicyOptions()))))
+		buf.Write(bytesutil.Uint32ToBytes(uint32(len(v.GetTaskData().GetPowerPolicyTypes()))))
+		buf.Write(bytesutil.Uint32ToBytes(uint32(len(v.GetTaskData().GetPowerPolicyOptions()))))
+		buf.Write(bytesutil.Uint32ToBytes(uint32(len(v.GetTaskData().GetReceiverPolicyTypes()))))
+		buf.Write(bytesutil.Uint32ToBytes(uint32(len(v.GetTaskData().GetReceiverPolicyOptions()))))
+		buf.Write(bytesutil.Uint32ToBytes(uint32(len(v.GetTaskData().GetDataFlowPolicyTypes()))))
+		buf.Write(bytesutil.Uint32ToBytes(uint32(len(v.GetTaskData().GetDataFlowPolicyOptions()))))
+		buf.Write(bytesutil.Uint32ToBytes(v.GetTaskData().GetOperationCost().GetProcessor()))
+		buf.Write(bytesutil.Uint64ToBytes(v.GetTaskData().GetOperationCost().GetBandwidth()))
+		buf.Write(bytesutil.Uint64ToBytes(v.GetTaskData().GetOperationCost().GetMemory()))
+		buf.Write(bytesutil.Uint64ToBytes(v.GetTaskData().GetOperationCost().GetDuration()))
+		buf.Write([]byte(v.GetTaskData().GetAlgorithmCode()))
+		buf.Write([]byte(v.GetTaskData().GetMetaAlgorithmId()))
+		buf.Write([]byte(v.GetTaskData().GetAlgorithmCodeExtraParams()))
+		buf.Write([]byte(v.GetTaskData().GetDesc()))
+	}
+
+	v := rlputil.RlpHash(buf.Bytes())
+	msg.hash.Store(v)
+	return v
 }
