@@ -159,8 +159,8 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 		}
 	}
 	didService := did.NewDIDService(ethContext, didConfig)
-	taskExecuteResultCh := make(chan *carrierapipb.WorkFlowTaskStatus, 0)
-	taskToMessageHandlerCh := make(chan *types.TaskMsg, 0)
+	taskExecuteResultCh := make(chan *carrierapipb.WorkFlowTaskStatus, 30)
+	taskToMessageHandlerCh := make(chan *types.TaskMsg, 30)
 	workflowManager := workflow.NewWorkflowService(config.CarrierDB, taskExecuteResultCh, taskToMessageHandlerCh)
 	taskManager, err := task.NewTaskManager(
 		config.P2P.PirKey(),

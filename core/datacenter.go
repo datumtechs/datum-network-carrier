@@ -496,7 +496,7 @@ func (dc *DataCenter) RemoveWorkflowCache(workflowId string) error {
 	defer dc.mu.Unlock()
 	return rawdb.RemoveWorkflowCache(dc.db, workflowId)
 }
-func (dc *DataCenter) SaveWorkflowStatusCache(workflowId string, status commonconstantpb.WorkFlowState) error {
+func (dc *DataCenter) SaveWorkflowStatusCache(workflowId string, status *types.WorkflowStatus) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.SaveWorkflowStatusCache(dc.db, workflowId, status)
@@ -510,6 +510,11 @@ func (dc *DataCenter) SaveWorkflowTaskStatusCache(workflowId string, taskState *
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.SaveWorkflowTaskStatusCache(dc.db, workflowId, taskState)
+}
+func (dc *DataCenter) RemoveWorkflowTaskStatusCache(workflowIdTaskName string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.RemoveWorkflowTaskStatusCache(dc.db, workflowIdTaskName)
 }
 func (dc *DataCenter) ForEachKVWithPrefix(prefix []byte, f func(key, value []byte) error) error {
 	dc.mu.Lock()

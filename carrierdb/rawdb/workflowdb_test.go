@@ -1,15 +1,18 @@
 package rawdb
 
 import (
+	"encoding/json"
 	"github.com/datumtechs/datum-network-carrier/db"
 	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/gogo/protobuf/proto"
 	assertPlus "github.com/stretchr/testify/assert"
 	"gotest.tools/assert"
 	"testing"
+	"time"
 )
 
 var database = db.NewMemoryDatabase()
@@ -82,13 +85,17 @@ func TestSaveWorkflowCache(t *testing.T) {
 
 func TestSaveWorkflowStatusCache(t *testing.T) {
 	wfId := "workflow:0xe7bdb5af4de9d851351c680fb0a9bfdff72bdc4ea86da3c2006d6a7a7d335e65"
-	err := SaveWorkflowStatusCache(database, wfId, 1)
-	value, _ := rlp.EncodeToBytes(uint32(1))
-	var workflowState uint32
-	if err := rlp.DecodeBytes(value, &workflowState); err != nil {
-		t.Fatal("rlp.DecodeBytes workflowState fail")
+	workflowStatus := &types.WorkflowStatus{
+		Status:   commonconstantpb.WorkFlowState_WorkFlowState_Running,
+		UpdateAt: time.Now().Unix(),
+	}
+	err := SaveWorkflowStatusCache(database, wfId, workflowStatus)
+	result, err := database.Get(GetWorkflowStatusCacheKeyPrefix(wfId))
+	var workflowState *types.WorkflowStatus
+	if err := json.Unmarshal(result, &workflowState); err != nil {
+		t.Fatal("json.Unmarshal workflowState fail")
 	} else {
-		t.Logf("workflowState is %v", commonconstantpb.WorkFlowState(workflowState))
+		t.Logf("workflowState is %v", workflowStatus)
 	}
 	assertPlus.Nil(t, err)
 }

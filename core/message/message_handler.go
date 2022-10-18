@@ -358,6 +358,7 @@ func (m *MessageHandler) loop() {
 				m.workflowMsgCache = make(types.WorkflowMsgArr, 0)
 			}
 		case taskMsg := <-m.workflowManager.TaskMsgToMessageManagerCh:
+			log.Debugf("come from workflowManager task,taskId is {%s}", taskMsg.GetTaskData().GetTaskId())
 			m.lockTask.Lock()
 			m.taskMsgCache = append(m.taskMsgCache, taskMsg)
 			m.resourceMng.GetDB().StoreMessageCache(taskMsg) // backup task msg into disk

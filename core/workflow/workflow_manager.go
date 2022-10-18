@@ -17,13 +17,20 @@ import (
 	"time"
 )
 
+var (
+	timeout                                               int64 = 72 * 3600
+	defaultRemoveWorkflowExecuteResultSaveTimeoutInterval       = 30 * time.Second
+	workflowTaskStatusCacheKeyPrefix                            = []byte("workflowTaskStatusCacheKeyPrefix:")
+	workflowStatusCacheKeyPrefix                                = []byte("workflowStatusCacheKeyPrefix:")
+)
+
 type Manager struct {
 	taskExecuteResultCh       chan *carrierapipb.WorkFlowTaskStatus // Trigger the channel when saveTask(InsertTask)
 	TaskMsgToMessageManagerCh chan *types.TaskMsg                   // This channel is triggered when a task in the workflow executes successfully
 	dataCenter                carrierdb.CarrierDB
 	sendToTaskManagerCache    map[string]string                                      // {"task1":"workFlowId1","task2":"workFlowId1","task3":"workFlowId2"}
 	workflowsCache            map[string]*types.Workflow                             // {"workflowId1":[],"workflowId2":[]}
-	workflowStatusCache       map[string]commonconstantpb.WorkFlowState              // {"workflowId1":{},"workflowId2":{}}
+	workflowStatusCache       map[string]*types.WorkflowStatus                       // {"workflowId1":{},"workflowId2":{}}
 	workflowTaskStatusCache   map[string]map[string]*carrierapipb.WorkFlowTaskStatus // {"workflowId1":{"taskName":{}}}
 	sendToTaskManagerLock     sync.RWMutex
 	workflowsLock             sync.RWMutex
@@ -40,7 +47,7 @@ func NewWorkflowService(
 	return &Manager{
 		sendToTaskManagerCache:    make(map[string]string, 0),
 		workflowsCache:            make(map[string]*types.Workflow, 0),
-		workflowStatusCache:       make(map[string]commonconstantpb.WorkFlowState, 0),
+		workflowStatusCache:       make(map[string]*types.WorkflowStatus, 0),
 		workflowTaskStatusCache:   make(map[string]map[string]*carrierapipb.WorkFlowTaskStatus, 0),
 		taskExecuteResultCh:       taskExecuteResultCh,
 		TaskMsgToMessageManagerCh: TaskMsgToMessageManagerCh,
@@ -50,6 +57,9 @@ func NewWorkflowService(
 }
 
 func (m *Manager) AddWorkflow(workflow *types.Workflow) error {
+	log.Debugf("AddWorkflow workflowId is:{%s}", workflow.WorkflowId)
+	m.workflowsLock.RLock()
+	defer m.workflowsLock.RUnlock()
 	if workflow.GetWorkflowId() == "" {
 		return fmt.Errorf("workflow name is %s,it's workflow id %s", workflow.GetWorkflowId(), workflow.GetWorkflowName())
 	}
@@ -57,10 +67,12 @@ func (m *Manager) AddWorkflow(workflow *types.Workflow) error {
 	if err != nil {
 		return err
 	}
+	log.Debugf("AddWorkflow successful is:{%s}", workflow.WorkflowId)
 	return nil
 }
 
 func (m *Manager) GetWorkflowStatus(workflowIds []string) (*carrierapipb.QueryWorkStatusResponse, error) {
+	log.Debugf("GetWorkflowStatus workflowIds %v", workflowIds)
 	workflowStatusList := make([]*carrierapipb.WorkFlowStatus, 0)
 	m.workflowStatusLock.RLock()
 	m.workflowTaskStatusLock.RLock()
@@ -85,12 +97,13 @@ func (m *Manager) GetWorkflowStatus(workflowIds []string) (*carrierapipb.QueryWo
 				}
 			}
 			workflowStatus := &carrierapipb.WorkFlowStatus{
-				Status:   status,
+				Status:   status.Status,
 				TaskList: taskStatusList,
 			}
 			workflowStatusList = append(workflowStatusList, workflowStatus)
 		}
 	}
+	log.Debugf("GetWorkflowStatus over workflowIds %v", workflowIds)
 	return &carrierapipb.QueryWorkStatusResponse{
 		Status:             0,
 		Msg:                backend.OK,
@@ -99,9 +112,11 @@ func (m *Manager) GetWorkflowStatus(workflowIds []string) (*carrierapipb.QueryWo
 }
 
 func (m *Manager) loop() {
+	checkExecuteResultTicker := time.NewTicker(defaultRemoveWorkflowExecuteResultSaveTimeoutInterval)
 	for {
 		select {
 		case result := <-m.taskExecuteResultCh:
+			log.Debugf("taskExecuteResultCh result is %v", result)
 			m.sendToTaskManagerLock.RLock()
 			workflowId := m.sendToTaskManagerCache[result.GetTaskId()]
 			m.sendToTaskManagerLock.RUnlock()
@@ -120,9 +135,11 @@ func (m *Manager) loop() {
 				}
 				m.workflowsLock.RUnlock()
 			case commonconstantpb.TaskState_TaskState_Failed:
-				m.DeleteWorkflowCache(workflowId)
 				m.updateWorkflowStatus(workflowId, commonconstantpb.WorkFlowState_WorkFlowState_Failed)
+				m.DeleteWorkflowCache(workflowId)
 			}
+		case <-checkExecuteResultTicker.C:
+			m.removeWorkflowExecuteResultSaveTimeout()
 		case <-m.quit:
 			log.Info("Stopped workflowManager ...")
 			return
@@ -132,6 +149,7 @@ func (m *Manager) loop() {
 
 func (m *Manager) Start() error {
 	log.Info("Started workflowManager ...")
+	m.removeWorkflowExecuteResultSaveTimeout()
 	m.recoveryCache()
 	log.Info("recoveryCache over ...")
 	go m.loop()
@@ -144,6 +162,7 @@ func (m *Manager) Stop() error {
 }
 
 func (m *Manager) sendTaskMsg(tm *types.TaskMsg, workflowId string) {
+	log.Debugf("sendTaskMsg taskId:{%s},workflowId:{%s}", tm.GenTaskId(), workflowId)
 	taskId := tm.GetTaskId()
 	m.sendToTaskManagerLock.Lock()
 	defer m.sendToTaskManagerLock.Unlock()
@@ -178,9 +197,27 @@ func (m *Manager) updateWorkflowTaskStatus(workflowId string, status *carrierapi
 
 func (m *Manager) updateWorkflowStatus(workflowId string, status commonconstantpb.WorkFlowState) {
 	m.workflowStatusLock.Lock()
-	defer m.workflowStatusLock.Unlock()
-	m.workflowStatusCache[workflowId] = status
-	if err := m.dataCenter.SaveWorkflowStatusCache(workflowId, status); err != nil {
+	m.sendToTaskManagerLock.RLock()
+	defer func() {
+		m.workflowStatusLock.Unlock()
+		m.sendToTaskManagerLock.RUnlock()
+	}()
+	workflowStatus := &types.WorkflowStatus{
+		Status:   status,
+		UpdateAt: time.Now().Unix(),
+	}
+	m.workflowStatusCache[workflowId] = workflowStatus
+	workflow, ok := m.workflowsCache[workflowId]
+	if !ok {
+		return
+	}
+	for _, v := range workflow.Tasks {
+		delete(m.sendToTaskManagerCache, v.GetTaskId())
+		if err := m.dataCenter.RemoveSendToTaskManager(v.GetTaskId()); err != nil {
+			log.WithError(err).Errorf("updateWorkflowStatus RemoveSendToTaskManager fail.")
+		}
+	}
+	if err := m.dataCenter.SaveWorkflowStatusCache(workflowId, workflowStatus); err != nil {
 		log.WithError(err).Errorf("updateWorkflowStatus SaveWorkflowStatusCache fail.")
 	}
 }
@@ -188,11 +225,9 @@ func (m *Manager) updateWorkflowStatus(workflowId string, status commonconstantp
 func (m *Manager) taskMsgSendToMessageManager(workflow *types.Workflow) error {
 	workflowId := workflow.GetWorkflowId()
 
-	m.workflowsLock.Lock()
 	m.workflowStatusLock.Lock()
 	m.workflowTaskStatusLock.Lock()
 	defer func() {
-		m.workflowsLock.Unlock()
 		m.workflowStatusLock.Unlock()
 		m.workflowTaskStatusLock.Unlock()
 	}()
@@ -205,8 +240,12 @@ func (m *Manager) taskMsgSendToMessageManager(workflow *types.Workflow) error {
 		return err
 	}
 	m.sendTaskMsg(task, workflowId)
-	m.workflowStatusCache[workflowId] = commonconstantpb.WorkFlowState_WorkFlowState_Running
-	if err := m.dataCenter.SaveWorkflowStatusCache(workflowId, commonconstantpb.WorkFlowState_WorkFlowState_Running); err != nil {
+	workflowStatus := &types.WorkflowStatus{
+		Status:   commonconstantpb.WorkFlowState_WorkFlowState_Running,
+		UpdateAt: time.Now().Unix(),
+	}
+	m.workflowStatusCache[workflowId] = workflowStatus
+	if err := m.dataCenter.SaveWorkflowStatusCache(workflowId, workflowStatus); err != nil {
 		log.WithError(err).Errorf("taskMsgSendToMessageManager SaveWorkflowStatusCache fail.")
 	}
 	//update workflowTaskStatus
@@ -421,17 +460,16 @@ func (m *Manager) recoveryCache() {
 	// recovery workflowStatusCache
 	go func(wg *sync.WaitGroup, errCh chan<- error) {
 		defer wg.Done()
-		workflowStatusCacheKeyPrefix := []byte("workflowStatusCacheKeyPrefix:")
 		prefixLength := len(workflowStatusCacheKeyPrefix)
 		if err := m.dataCenter.ForEachKVWithPrefix(workflowStatusCacheKeyPrefix, func(key, value []byte) error {
 			workflowId := string(key[prefixLength:])
 			log.Debugf("recovery workflowStatusCache workflowId {%s}", workflowId)
-			var workflowState uint32
+			var workflowState *types.WorkflowStatus
 			if len(key) != 0 && len(value) != 0 {
-				if err := rlp.DecodeBytes(value, &workflowState); err != nil {
+				if err := json.Unmarshal(value, &workflowState); err != nil {
 					return err
 				} else {
-					m.workflowStatusCache[workflowId] = commonconstantpb.WorkFlowState(workflowState)
+					m.workflowStatusCache[workflowId] = workflowState
 				}
 			}
 			return nil
@@ -443,7 +481,6 @@ func (m *Manager) recoveryCache() {
 	// recovery workflowTaskStatusCache
 	go func(wg *sync.WaitGroup, errCh chan<- error) {
 		defer wg.Done()
-		workflowTaskStatusCacheKeyPrefix := []byte("workflowTaskStatusCacheKeyPrefix:")
 		prefixLength := len(workflowTaskStatusCacheKeyPrefix)
 		if err := m.dataCenter.ForEachKVWithPrefix(workflowTaskStatusCacheKeyPrefix, func(key, value []byte) error {
 			workflowIdTaskName := string(key[prefixLength:])
@@ -481,5 +518,53 @@ func (m *Manager) recoveryCache() {
 	}
 	if len(errStrs) != 0 {
 		log.Fatalf("recover workflow state failed: \n%s", strings.Join(errStrs, "\n"))
+	}
+}
+
+func (m *Manager) removeWorkflowExecuteResultSaveTimeout() {
+	prefixLength := len(workflowStatusCacheKeyPrefix)
+	saveRemoveWorkflowIds := make(map[string]struct{}, 0)
+	// remove workflowStatusCache
+	if err := m.dataCenter.ForEachKVWithPrefix(workflowStatusCacheKeyPrefix, func(key, value []byte) error {
+		workflowId := string(key[prefixLength:])
+		log.Debugf("recovery workflowStatusCache workflowId {%s}", workflowId)
+		var workflowState *types.WorkflowStatus
+		if len(key) != 0 && len(value) != 0 {
+			if err := json.Unmarshal(value, &workflowState); err != nil {
+				log.WithError(err).Errorf("removeWorkflowExecuteResultSaveTimeout json.Unmarshal workflowState fail")
+			} else {
+				if (time.Now().Unix()-workflowState.UpdateAt) > timeout && (workflowState.Status == commonconstantpb.WorkFlowState_WorkFlowState_Running || workflowState.Status == commonconstantpb.WorkFlowState_WorkFlowState_Failed) {
+					saveRemoveWorkflowIds[workflowId] = struct{}{}
+					return m.dataCenter.RemoveWorkflowStatusCache(workflowId)
+				}
+			}
+		}
+		return nil
+	}); err != nil {
+		log.WithError(err).Errorf("removeWorkflowExecuteResultSaveTimeout workflowStatusCache fail")
+	}
+	//remove workflowTaskStatusCache
+	prefixLength = len(workflowTaskStatusCacheKeyPrefix)
+	if err := m.dataCenter.ForEachKVWithPrefix(workflowTaskStatusCacheKeyPrefix, func(key, value []byte) error {
+		workflowIdTaskName := string(key[prefixLength:])
+		workflowId, taskName := workflowIdTaskName[:75], workflowIdTaskName[75:]
+		log.Debugf("recovery workflowTaskStatusCache,workflowId{%s},taskName{%s}", workflowId, taskName)
+		var taskState carrierapipb.WorkFlowTaskStatus
+		if len(key) != 0 && len(value) != 0 {
+			if err := proto.Unmarshal(value, &taskState); err != nil {
+				log.WithError(err).Errorf("removeWorkflowExecuteResultSaveTimeout json.Unmarshal workflowState fail")
+			} else {
+				workflowIdTaskName := string(key[prefixLength:])
+				workflowId := workflowIdTaskName[:75]
+				if _, ok := saveRemoveWorkflowIds[workflowId]; ok {
+					if err := m.dataCenter.RemoveWorkflowTaskStatusCache(workflowIdTaskName); err != nil {
+						log.Warnf("removeWorkflowExecuteResultSaveTimeout RemoveWorkflowTaskStatusCache fail,workflowIdTaskName %s", workflowIdTaskName)
+					}
+				}
+			}
+		}
+		return nil
+	}); err != nil {
+		log.WithError(err).Errorf("removeWorkflowExecuteResultSaveTimeout workflowTaskStatusCache fail")
 	}
 }

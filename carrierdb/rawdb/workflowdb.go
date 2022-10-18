@@ -1,9 +1,9 @@
 package rawdb
 
 import (
+	"encoding/json"
 	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
 	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
-	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/gogo/protobuf/proto"
@@ -64,9 +64,9 @@ func RemoveWorkflowCache(db KeyValueStore, workflowId string) error {
 	return db.Delete(key)
 }
 
-func SaveWorkflowStatusCache(db KeyValueStore, workflowId string, status commonconstantpb.WorkFlowState) error {
+func SaveWorkflowStatusCache(db KeyValueStore, workflowId string, status *types.WorkflowStatus) error {
 	key := GetWorkflowStatusCacheKeyPrefix(workflowId)
-	val, err := rlp.EncodeToBytes(uint32(status))
+	val, err := json.Marshal(status)
 	if nil != err {
 		return err
 	}
@@ -92,6 +92,18 @@ func SaveWorkflowTaskStatusCache(db KeyValueStore, workflowId string, taskState 
 		return err
 	}
 	return db.Put(key, val)
+}
+
+func RemoveWorkflowTaskStatusCache(db KeyValueStore, workflowIdTaskName string) error {
+	key := GetWorkflowStatusCacheKeyPrefix(workflowIdTaskName)
+	has, err := db.Has(key)
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return err
+	case IsDBNotFoundErr(err), nil == err && !has:
+		return nil
+	}
+	return db.Delete(key)
 }
 
 func ForEachKVWithPrefix(db KeyValueStore, prefix []byte, f func(key, value []byte) error) error {

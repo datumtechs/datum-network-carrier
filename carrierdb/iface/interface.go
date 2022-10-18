@@ -98,9 +98,10 @@ type LocalStoreCarrierDB interface {
 	RemoveSendToTaskManager(taskId string) error
 	SaveWorkflowCache(workflow *carriertypespb.Workflow) error
 	RemoveWorkflowCache(workflowId string) error
-	SaveWorkflowStatusCache(workflowId string, status commonconstantpb.WorkFlowState) error
+	SaveWorkflowStatusCache(workflowId string, status *types.WorkflowStatus) error
 	RemoveWorkflowStatusCache(workflowId string) error
 	SaveWorkflowTaskStatusCache(workflowId string, taskState *carrierapipb.WorkFlowTaskStatus) error
+	RemoveWorkflowTaskStatusCache(workflowIdTaskName string) error
 	ForEachKVWithPrefix(prefix []byte, f func(key, value []byte) error) error
 }
 

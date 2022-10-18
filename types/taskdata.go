@@ -166,3 +166,8 @@ func (w *Workflow) GetWorkflowId() string {
 func (w *Workflow) GetWorkflowName() string {
 	return w.WorkflowName
 }
+
+type WorkflowStatus struct {
+	Status   commonconstantpb.WorkFlowState
+	UpdateAt int64
+}

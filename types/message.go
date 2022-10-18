@@ -1536,7 +1536,6 @@ func (msg *WorkflowMsg) Hash() common.Hash {
 		buf.Write([]byte(v.GetTaskData().GetAlgoSupplier().GetIdentityId()))
 		buf.Write([]byte(v.GetTaskData().GetAlgoSupplier().GetPartyId()))
 		buf.Write(bytesutil.Uint16ToBytes(uint16(len(v.GetTaskData().GetDataSuppliers()))))
-		buf.Write(bytesutil.Uint16ToBytes(uint16(len(v.GetTaskData().GetPowerSuppliers()))))
 		buf.Write(bytesutil.Uint16ToBytes(uint16(len(v.GetTaskData().GetReceivers()))))
 		buf.Write(bytesutil.Uint32ToBytes(uint32(len(v.GetTaskData().GetDataPolicyTypes()))))
 		buf.Write(bytesutil.Uint32ToBytes(uint32(len(v.GetTaskData().GetDataPolicyOptions()))))
@@ -1553,7 +1552,6 @@ func (msg *WorkflowMsg) Hash() common.Hash {
 		buf.Write([]byte(v.GetTaskData().GetAlgorithmCode()))
 		buf.Write([]byte(v.GetTaskData().GetMetaAlgorithmId()))
 		buf.Write([]byte(v.GetTaskData().GetAlgorithmCodeExtraParams()))
-		buf.Write(bytesutil.Uint32ToBytes(uint32(v.GetTaskData().GetState())))
 		buf.Write([]byte(v.GetTaskData().GetDesc()))
 	}
 

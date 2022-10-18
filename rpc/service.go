@@ -71,7 +71,6 @@ type Config struct {
 	MaxMsgSize                    int
 	MaxSendMsgSize                int
 	EnableGrpcGateWayPrivateCheck bool
-	PrivateIPCache                map[string]struct{} // {"ip1":{},"ip2":{}}
 	CarrierPrivateIP              *common.CarrierPrivateIP
 	NotCheckPrivateIP             bool
 	PublicRpcService              map[int]struct{}
@@ -269,7 +268,8 @@ func (s *Service) checkRpcServicePrivate(
 	}
 	s.cfg.CarrierPrivateIP.PrivateIPCacheCacheLock.RLock()
 	defer s.cfg.CarrierPrivateIP.PrivateIPCacheCacheLock.RUnlock()
-	if _, ok := s.cfg.PrivateIPCache[clientIP]; !ok {
+	if _, ok := s.cfg.CarrierPrivateIP.PrivateIPCache[clientIP]; !ok {
+		log.Warnf("PrivateIPCache is %v,clientIP is %s", s.cfg.CarrierPrivateIP.PrivateIPCache, clientIP)
 		return &carriertypespb.SimpleResponse{Status: backend.ErrRequirePrivateIP.ErrCode(), Msg: fmt.Sprintf("%s does not have permission to access %s", clientIP, un.FullMethod)}, nil
 	}
 	return handler(ctx, req)
