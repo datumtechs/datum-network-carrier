@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"fmt"
+	"github.com/datumtechs/datum-network-carrier/blacklist"
 	"github.com/datumtechs/datum-network-carrier/p2p/encoder"
 	"github.com/datumtechs/datum-network-carrier/p2p/peers"
 	"github.com/datumtechs/datum-network-carrier/p2p/peers/scorers"
@@ -37,6 +38,11 @@ type TestP2P struct {
 	Digest          [4]byte
 	peers           *peers.Status
 	LocalMetadata   *carrierp2ppbv1.MetaData
+}
+
+func (p *TestP2P) AddBlackList(blacklist *blacklist.IdentityBackListCache) {
+	//TODO implement me
+	panic("implement me")
 }
 
 // NewTestP2P initializes a new p2p test service.
@@ -389,4 +395,3 @@ func (p *TestP2P) InterceptSecured(network.Direction, peer.ID, network.ConnMulti
 func (p *TestP2P) InterceptUpgraded(network.Conn) (allow bool, reason control.DisconnectReason) {
 	return true, 0
 }
-

@@ -300,11 +300,179 @@ func (m *TaskMsg) GetData() *TaskPB {
 	return nil
 }
 
+type Workflow struct {
+	WorkflowId           string                      `protobuf:"bytes,1,opt,name=WorkflowId,proto3" json:"WorkflowId,omitempty"`
+	Desc                 string                      `protobuf:"bytes,2,opt,name=Desc,proto3" json:"Desc,omitempty"`
+	WorkflowName         string                      `protobuf:"bytes,3,opt,name=WorkflowName,proto3" json:"WorkflowName,omitempty"`
+	PolicyType           constant.WorkFlowPolicyType `protobuf:"varint,4,opt,name=PolicyType,proto3,enum=common.constant.WorkFlowPolicyType" json:"PolicyType,omitempty"`
+	Policy               string                      `protobuf:"bytes,5,opt,name=Policy,proto3" json:"Policy,omitempty"`
+	User                 string                      `protobuf:"bytes,6,opt,name=User,proto3" json:"User,omitempty"`
+	UserType             constant.UserType           `protobuf:"varint,7,opt,name=UserType,proto3,enum=common.constant.UserType" json:"UserType,omitempty"`
+	Sign                 []byte                      `protobuf:"bytes,8,opt,name=Sign,proto3" json:"Sign,omitempty"`
+	Tasks                []*TaskMsg                  `protobuf:"bytes,9,rep,name=Tasks,proto3" json:"Tasks,omitempty"`
+	CreateAt             uint64                      `protobuf:"varint,10,opt,name=CreateAt,proto3" json:"CreateAt,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                    `json:"-"`
+	XXX_unrecognized     []byte                      `json:"-"`
+	XXX_sizecache        int32                       `json:"-"`
+}
+
+func (m *Workflow) Reset()         { *m = Workflow{} }
+func (m *Workflow) String() string { return proto.CompactTextString(m) }
+func (*Workflow) ProtoMessage()    {}
+func (*Workflow) Descriptor() ([]byte, []int) {
+	return fileDescriptor_f52bf967876dc695, []int{4}
+}
+func (m *Workflow) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *Workflow) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_Workflow.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *Workflow) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Workflow.Merge(m, src)
+}
+func (m *Workflow) XXX_Size() int {
+	return m.Size()
+}
+func (m *Workflow) XXX_DiscardUnknown() {
+	xxx_messageInfo_Workflow.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Workflow proto.InternalMessageInfo
+
+func (m *Workflow) GetWorkflowId() string {
+	if m != nil {
+		return m.WorkflowId
+	}
+	return ""
+}
+
+func (m *Workflow) GetDesc() string {
+	if m != nil {
+		return m.Desc
+	}
+	return ""
+}
+
+func (m *Workflow) GetWorkflowName() string {
+	if m != nil {
+		return m.WorkflowName
+	}
+	return ""
+}
+
+func (m *Workflow) GetPolicyType() constant.WorkFlowPolicyType {
+	if m != nil {
+		return m.PolicyType
+	}
+	return constant.WorkFlowPolicyType_Unknown_Policy
+}
+
+func (m *Workflow) GetPolicy() string {
+	if m != nil {
+		return m.Policy
+	}
+	return ""
+}
+
+func (m *Workflow) GetUser() string {
+	if m != nil {
+		return m.User
+	}
+	return ""
+}
+
+func (m *Workflow) GetUserType() constant.UserType {
+	if m != nil {
+		return m.UserType
+	}
+	return constant.UserType_User_Unknown
+}
+
+func (m *Workflow) GetSign() []byte {
+	if m != nil {
+		return m.Sign
+	}
+	return nil
+}
+
+func (m *Workflow) GetTasks() []*TaskMsg {
+	if m != nil {
+		return m.Tasks
+	}
+	return nil
+}
+
+func (m *Workflow) GetCreateAt() uint64 {
+	if m != nil {
+		return m.CreateAt
+	}
+	return 0
+}
+
+type WorkflowMsg struct {
+	Data                 *Workflow `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}  `json:"-"`
+	XXX_unrecognized     []byte    `json:"-"`
+	XXX_sizecache        int32     `json:"-"`
+}
+
+func (m *WorkflowMsg) Reset()         { *m = WorkflowMsg{} }
+func (m *WorkflowMsg) String() string { return proto.CompactTextString(m) }
+func (*WorkflowMsg) ProtoMessage()    {}
+func (*WorkflowMsg) Descriptor() ([]byte, []int) {
+	return fileDescriptor_f52bf967876dc695, []int{5}
+}
+func (m *WorkflowMsg) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *WorkflowMsg) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_WorkflowMsg.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *WorkflowMsg) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_WorkflowMsg.Merge(m, src)
+}
+func (m *WorkflowMsg) XXX_Size() int {
+	return m.Size()
+}
+func (m *WorkflowMsg) XXX_DiscardUnknown() {
+	xxx_messageInfo_WorkflowMsg.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_WorkflowMsg proto.InternalMessageInfo
+
+func (m *WorkflowMsg) GetData() *Workflow {
+	if m != nil {
+		return m.Data
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*PowerMsg)(nil), "carrier.types.PowerMsg")
 	proto.RegisterType((*MetadataMsg)(nil), "carrier.types.MetadataMsg")
 	proto.RegisterType((*MetadataAuthorityMsg)(nil), "carrier.types.MetadataAuthorityMsg")
 	proto.RegisterType((*TaskMsg)(nil), "carrier.types.TaskMsg")
+	proto.RegisterType((*Workflow)(nil), "carrier.types.Workflow")
+	proto.RegisterType((*WorkflowMsg)(nil), "carrier.types.WorkflowMsg")
 }
 
 func init() {
@@ -312,35 +480,45 @@ func init() {
 }
 
 var fileDescriptor_f52bf967876dc695 = []byte{
-	// 440 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x74, 0x92, 0xc1, 0x6e, 0xd3, 0x40,
-	0x10, 0x86, 0xb5, 0x60, 0xda, 0x64, 0x0d, 0x05, 0xad, 0x40, 0x4a, 0x0b, 0x32, 0x51, 0x4e, 0xe1,
-	0x50, 0x5b, 0x0a, 0x15, 0x27, 0x2e, 0xed, 0xcd, 0x48, 0x45, 0x95, 0x29, 0x17, 0x2e, 0xd6, 0xda,
-	0x3b, 0x8a, 0xdd, 0xb0, 0x5e, 0x6b, 0x77, 0xac, 0x2a, 0x2f, 0xc2, 0x33, 0x71, 0xe4, 0x11, 0x50,
-	0x5e, 0x81, 0x17, 0x40, 0xbb, 0xb6, 0x9b, 0xd8, 0x82, 0x53, 0x26, 0x33, 0xbf, 0x67, 0xbe, 0x7f,
-	0x76, 0xe8, 0x22, 0xe7, 0x5a, 0x97, 0xa0, 0x23, 0xdc, 0xd6, 0x60, 0x22, 0x09, 0xc6, 0xf0, 0x35,
-	0x14, 0xbc, 0x12, 0xdf, 0x41, 0x87, 0xb5, 0x56, 0xa8, 0xd8, 0xb3, 0x4e, 0x13, 0x3a, 0xcd, 0xd9,
-	0x22, 0x57, 0x52, 0xaa, 0x2a, 0xca, 0x55, 0x65, 0x90, 0x57, 0x18, 0x75, 0xe5, 0x14, 0xaa, 0x46,
-	0xb6, 0x9f, 0x9c, 0xbd, 0x19, 0xb7, 0x45, 0x2e, 0x38, 0xf2, 0x7f, 0x57, 0x91, 0x9b, 0xcd, 0xbe,
-	0xba, 0xc8, 0xe8, 0xe4, 0x46, 0xdd, 0x83, 0xbe, 0x36, 0x6b, 0x76, 0x4a, 0x27, 0xb5, 0x8d, 0xd3,
-	0x52, 0xcc, 0xc8, 0x9c, 0x2c, 0xa7, 0xc9, 0xb1, 0xfb, 0x1f, 0x0b, 0x16, 0x50, 0xff, 0x4e, 0x65,
-	0x69, 0xa5, 0x04, 0xd8, 0xea, 0x23, 0x57, 0x9d, 0xde, 0xa9, 0xec, 0xb3, 0x12, 0x10, 0x0b, 0xf6,
-	0x9a, 0x4e, 0x73, 0x0d, 0x1c, 0x21, 0xe5, 0x38, 0x7b, 0x3c, 0x27, 0x4b, 0x2f, 0x99, 0xb4, 0x89,
-	0x4b, 0x5c, 0xfc, 0x20, 0xd4, 0xbf, 0xee, 0xa0, 0xec, 0x9c, 0xb7, 0xd4, 0xef, 0x19, 0xf7, 0xa3,
-	0x68, 0x9f, 0x8a, 0x05, 0x8b, 0xe9, 0x8b, 0x07, 0x81, 0x69, 0xa4, 0xe4, 0x7a, 0xeb, 0x46, 0xfa,
-	0xab, 0x20, 0x1c, 0xac, 0x27, 0xec, 0xdb, 0x7e, 0x69, 0x55, 0xc9, 0x73, 0x39, 0x4c, 0x0c, 0xc1,
-	0xbc, 0x11, 0xd8, 0x1f, 0x42, 0x5f, 0xf6, 0x1d, 0x2e, 0x1b, 0x2c, 0x94, 0x2e, 0x71, 0x6b, 0x09,
-	0x97, 0x07, 0x00, 0xbc, 0xc1, 0x62, 0x8f, 0x79, 0x22, 0x0f, 0xf4, 0xb1, 0x60, 0x8c, 0x7a, 0x8d,
-	0x01, 0xdd, 0x6d, 0xc4, 0xc5, 0xec, 0x03, 0x9d, 0xda, 0xdf, 0xd4, 0x22, 0xba, 0x65, 0x9c, 0xac,
-	0x4e, 0xc3, 0xf6, 0x1d, 0xc3, 0xfe, 0x1d, 0xc3, 0xaf, 0x06, 0xf4, 0xed, 0xb6, 0x86, 0x64, 0xd2,
-	0x74, 0x11, 0xbb, 0xa0, 0x9e, 0x1d, 0xe6, 0x30, 0xfd, 0xd5, 0xfc, 0x3f, 0x56, 0x1f, 0x40, 0x13,
-	0xa7, 0xb6, 0x04, 0xa6, 0x5c, 0x57, 0xb3, 0x27, 0x73, 0xb2, 0x7c, 0x9a, 0xb8, 0x78, 0xe8, 0xfa,
-	0x68, 0xe4, 0xfa, 0x82, 0x1e, 0xdf, 0x72, 0xb3, 0xb1, 0x3e, 0xdf, 0x51, 0xcf, 0xb6, 0x74, 0xde,
-	0xfc, 0xd5, 0xab, 0xd1, 0x44, 0xab, 0xba, 0xb9, 0x4a, 0x9c, 0xe4, 0xea, 0xd3, 0xcf, 0x5d, 0x40,
-	0x7e, 0xed, 0x02, 0xf2, 0x7b, 0x17, 0x90, 0x6f, 0x1f, 0xd7, 0x25, 0x16, 0x4d, 0x66, 0x5d, 0x45,
-	0x82, 0x63, 0x23, 0x11, 0xf2, 0xc2, 0xb4, 0xe1, 0x79, 0x05, 0x78, 0xaf, 0xf4, 0xe6, 0xbc, 0x3f,
-	0xbc, 0x3a, 0x8b, 0x06, 0x37, 0x98, 0x1d, 0xb9, 0xdb, 0x7b, 0xff, 0x37, 0x00, 0x00, 0xff, 0xff,
-	0x29, 0x04, 0x9c, 0x06, 0x10, 0x03, 0x00, 0x00,
+	// 602 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x54, 0x51, 0x6b, 0xd4, 0x4c,
+	0x14, 0x25, 0xed, 0xb6, 0x4d, 0x6e, 0xfa, 0xf5, 0x93, 0x41, 0x6b, 0x5a, 0x25, 0x2e, 0xf1, 0x65,
+	0x45, 0x9b, 0x40, 0xac, 0x3e, 0x88, 0x2f, 0x6d, 0x45, 0x88, 0xd0, 0x52, 0xa6, 0x15, 0xc1, 0x97,
+	0x65, 0x92, 0x8c, 0xbb, 0xe9, 0x6e, 0x32, 0xcb, 0xcc, 0x84, 0x65, 0xff, 0x88, 0xbf, 0xc9, 0x47,
+	0x7f, 0x82, 0xf4, 0xc9, 0x77, 0xff, 0x80, 0xcc, 0x24, 0xd3, 0x6d, 0xd6, 0x8a, 0x4f, 0x39, 0x33,
+	0xf7, 0xe4, 0xde, 0x73, 0xcf, 0x81, 0x81, 0x20, 0x23, 0x9c, 0x17, 0x94, 0x47, 0x72, 0x31, 0xa3,
+	0x22, 0x2a, 0xa9, 0x10, 0x64, 0x44, 0xc7, 0xa4, 0xca, 0xa7, 0x94, 0x87, 0x33, 0xce, 0x24, 0x43,
+	0xff, 0xb5, 0x9c, 0x50, 0x73, 0xf6, 0x83, 0x8c, 0x95, 0x25, 0xab, 0xa2, 0x8c, 0x55, 0x42, 0x92,
+	0x4a, 0x46, 0x6d, 0x79, 0x48, 0xab, 0xba, 0x6c, 0x7e, 0xd9, 0x7f, 0xbc, 0xda, 0x56, 0x92, 0x9c,
+	0x48, 0x72, 0x77, 0x55, 0x12, 0x31, 0x59, 0x56, 0x83, 0x14, 0xec, 0x73, 0x36, 0xa7, 0xfc, 0x54,
+	0x8c, 0xd0, 0x1e, 0xd8, 0x33, 0x85, 0x87, 0x45, 0xee, 0x59, 0x7d, 0x6b, 0xe0, 0xe0, 0x2d, 0x7d,
+	0x4e, 0x72, 0xe4, 0x83, 0x7b, 0xc5, 0xd2, 0x61, 0xc5, 0x72, 0xaa, 0xaa, 0x6b, 0xba, 0xea, 0x5c,
+	0xb1, 0xf4, 0x8c, 0xe5, 0x34, 0xc9, 0xd1, 0x23, 0x70, 0x32, 0x4e, 0x89, 0xa4, 0x43, 0x22, 0xbd,
+	0xf5, 0xbe, 0x35, 0xe8, 0x61, 0xbb, 0xb9, 0x38, 0x92, 0xc1, 0x57, 0x0b, 0xdc, 0xd3, 0x56, 0x94,
+	0x9a, 0xf3, 0x04, 0x5c, 0xa3, 0x71, 0x39, 0x0a, 0xcc, 0x55, 0x92, 0xa3, 0x04, 0xee, 0xdd, 0x10,
+	0x44, 0x5d, 0x96, 0x84, 0x2f, 0xf4, 0x48, 0x37, 0xf6, 0xc3, 0x8e, 0x3d, 0xa1, 0x69, 0x7b, 0xd1,
+	0xb0, 0xf0, 0xff, 0x65, 0xf7, 0xa2, 0x2b, 0xac, 0xb7, 0x22, 0xec, 0x97, 0x05, 0xf7, 0x4d, 0x87,
+	0xa3, 0x5a, 0x8e, 0x19, 0x2f, 0xe4, 0x42, 0x29, 0x1c, 0xdc, 0x12, 0x40, 0x6a, 0x39, 0x5e, 0xca,
+	0xdc, 0x29, 0x6f, 0xf1, 0x93, 0x1c, 0x21, 0xe8, 0xd5, 0x82, 0xf2, 0xd6, 0x11, 0x8d, 0xd1, 0x6b,
+	0x70, 0xd4, 0x77, 0xa8, 0x24, 0x6a, 0x33, 0x76, 0xe2, 0xbd, 0xb0, 0xc9, 0x31, 0x34, 0x39, 0x86,
+	0x1f, 0x05, 0xe5, 0x97, 0x8b, 0x19, 0xc5, 0x76, 0xdd, 0x22, 0x74, 0x08, 0x3d, 0x35, 0x4c, 0xcb,
+	0x74, 0xe3, 0xfe, 0x5f, 0x56, 0xbd, 0x11, 0x8a, 0x35, 0x5b, 0x29, 0x10, 0xc5, 0xa8, 0xf2, 0x36,
+	0xfa, 0xd6, 0x60, 0x1b, 0x6b, 0xdc, 0xdd, 0x7a, 0x73, 0x65, 0xeb, 0x43, 0xd8, 0xba, 0x24, 0x62,
+	0xa2, 0xf6, 0x7c, 0x06, 0x3d, 0xd5, 0x52, 0xef, 0xe6, 0xc6, 0x0f, 0x56, 0x26, 0x2a, 0xd6, 0xf9,
+	0x31, 0xd6, 0x94, 0xe0, 0xe7, 0x1a, 0xd8, 0x9f, 0x18, 0x9f, 0x7c, 0x99, 0xb2, 0x39, 0xf2, 0x01,
+	0x0c, 0x4e, 0x6e, 0x02, 0x5c, 0xde, 0x28, 0x4d, 0xef, 0xa8, 0xc8, 0x8c, 0x2b, 0x0a, 0xa3, 0x00,
+	0xb6, 0x0d, 0xe3, 0x8c, 0x94, 0x8d, 0x31, 0x0e, 0xee, 0xdc, 0xa1, 0x13, 0x80, 0x73, 0x36, 0x2d,
+	0xb2, 0x85, 0xf2, 0x43, 0xfb, 0xb0, 0x13, 0x3f, 0xfd, 0xc3, 0x3a, 0xf5, 0xcb, 0xfb, 0x29, 0x9b,
+	0x2f, 0xa9, 0xf8, 0xd6, 0x6f, 0x68, 0x17, 0x36, 0x9b, 0x93, 0xb6, 0xc4, 0xc1, 0xed, 0x49, 0x89,
+	0x52, 0xa6, 0x6b, 0x3f, 0x1c, 0xac, 0x31, 0x7a, 0x05, 0xb6, 0x09, 0xc2, 0xdb, 0xfa, 0x67, 0x52,
+	0x06, 0xa9, 0x56, 0x17, 0xca, 0x73, 0xbb, 0xf1, 0x5c, 0x61, 0xf4, 0x02, 0x36, 0x94, 0x61, 0xc2,
+	0x73, 0xfa, 0xeb, 0x03, 0x37, 0xde, 0xbd, 0xc3, 0xcc, 0x53, 0x31, 0xc2, 0x0d, 0x09, 0xed, 0x83,
+	0x7d, 0xd2, 0x06, 0xe2, 0x41, 0x13, 0x90, 0x39, 0x07, 0x6f, 0xc0, 0x35, 0xae, 0xa8, 0x90, 0x9e,
+	0x77, 0x42, 0x7a, 0xb8, 0xd2, 0xd7, 0x30, 0x9b, 0x98, 0x8e, 0x3f, 0x7c, 0xbb, 0xf6, 0xad, 0xef,
+	0xd7, 0xbe, 0xf5, 0xe3, 0xda, 0xb7, 0x3e, 0xbf, 0x1d, 0x15, 0x72, 0x5c, 0xa7, 0x6a, 0xa5, 0x28,
+	0x27, 0xb2, 0x2e, 0x25, 0xcd, 0xc6, 0xa2, 0x81, 0x07, 0x15, 0x95, 0x73, 0xc6, 0x27, 0x07, 0xe6,
+	0x7d, 0x98, 0xa5, 0x51, 0xe7, 0xa9, 0x48, 0x37, 0xf5, 0x13, 0xf1, 0xf2, 0x77, 0x00, 0x00, 0x00,
+	0xff, 0xff, 0x9c, 0xf5, 0xe7, 0x93, 0xb7, 0x04, 0x00, 0x00,
 }
 
 func (m *PowerMsg) Marshal() (dAtA []byte, err error) {
@@ -549,6 +727,143 @@ func (m *TaskMsg) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *Workflow) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Workflow) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *Workflow) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.CreateAt != 0 {
+		i = encodeVarintMessagehandler(dAtA, i, uint64(m.CreateAt))
+		i--
+		dAtA[i] = 0x50
+	}
+	if len(m.Tasks) > 0 {
+		for iNdEx := len(m.Tasks) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Tasks[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintMessagehandler(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x4a
+		}
+	}
+	if len(m.Sign) > 0 {
+		i -= len(m.Sign)
+		copy(dAtA[i:], m.Sign)
+		i = encodeVarintMessagehandler(dAtA, i, uint64(len(m.Sign)))
+		i--
+		dAtA[i] = 0x42
+	}
+	if m.UserType != 0 {
+		i = encodeVarintMessagehandler(dAtA, i, uint64(m.UserType))
+		i--
+		dAtA[i] = 0x38
+	}
+	if len(m.User) > 0 {
+		i -= len(m.User)
+		copy(dAtA[i:], m.User)
+		i = encodeVarintMessagehandler(dAtA, i, uint64(len(m.User)))
+		i--
+		dAtA[i] = 0x32
+	}
+	if len(m.Policy) > 0 {
+		i -= len(m.Policy)
+		copy(dAtA[i:], m.Policy)
+		i = encodeVarintMessagehandler(dAtA, i, uint64(len(m.Policy)))
+		i--
+		dAtA[i] = 0x2a
+	}
+	if m.PolicyType != 0 {
+		i = encodeVarintMessagehandler(dAtA, i, uint64(m.PolicyType))
+		i--
+		dAtA[i] = 0x20
+	}
+	if len(m.WorkflowName) > 0 {
+		i -= len(m.WorkflowName)
+		copy(dAtA[i:], m.WorkflowName)
+		i = encodeVarintMessagehandler(dAtA, i, uint64(len(m.WorkflowName)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Desc) > 0 {
+		i -= len(m.Desc)
+		copy(dAtA[i:], m.Desc)
+		i = encodeVarintMessagehandler(dAtA, i, uint64(len(m.Desc)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.WorkflowId) > 0 {
+		i -= len(m.WorkflowId)
+		copy(dAtA[i:], m.WorkflowId)
+		i = encodeVarintMessagehandler(dAtA, i, uint64(len(m.WorkflowId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *WorkflowMsg) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *WorkflowMsg) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *WorkflowMsg) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.Data != nil {
+		{
+			size, err := m.Data.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintMessagehandler(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintMessagehandler(dAtA []byte, offset int, v uint64) int {
 	offset -= sovMessagehandler(v)
 	base := offset
@@ -641,6 +956,73 @@ func (m *MetadataAuthorityMsg) Size() (n int) {
 }
 
 func (m *TaskMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Data != nil {
+		l = m.Data.Size()
+		n += 1 + l + sovMessagehandler(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *Workflow) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.WorkflowId)
+	if l > 0 {
+		n += 1 + l + sovMessagehandler(uint64(l))
+	}
+	l = len(m.Desc)
+	if l > 0 {
+		n += 1 + l + sovMessagehandler(uint64(l))
+	}
+	l = len(m.WorkflowName)
+	if l > 0 {
+		n += 1 + l + sovMessagehandler(uint64(l))
+	}
+	if m.PolicyType != 0 {
+		n += 1 + sovMessagehandler(uint64(m.PolicyType))
+	}
+	l = len(m.Policy)
+	if l > 0 {
+		n += 1 + l + sovMessagehandler(uint64(l))
+	}
+	l = len(m.User)
+	if l > 0 {
+		n += 1 + l + sovMessagehandler(uint64(l))
+	}
+	if m.UserType != 0 {
+		n += 1 + sovMessagehandler(uint64(m.UserType))
+	}
+	l = len(m.Sign)
+	if l > 0 {
+		n += 1 + l + sovMessagehandler(uint64(l))
+	}
+	if len(m.Tasks) > 0 {
+		for _, e := range m.Tasks {
+			l = e.Size()
+			n += 1 + l + sovMessagehandler(uint64(l))
+		}
+	}
+	if m.CreateAt != 0 {
+		n += 1 + sovMessagehandler(uint64(m.CreateAt))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *WorkflowMsg) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1217,6 +1599,429 @@ func (m *TaskMsg) Unmarshal(dAtA []byte) error {
 			}
 			if m.Data == nil {
 				m.Data = &TaskPB{}
+			}
+			if err := m.Data.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipMessagehandler(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthMessagehandler
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *Workflow) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowMessagehandler
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Workflow: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Workflow: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field WorkflowId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMessagehandler
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMessagehandler
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMessagehandler
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.WorkflowId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Desc", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMessagehandler
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMessagehandler
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMessagehandler
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Desc = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field WorkflowName", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMessagehandler
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMessagehandler
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMessagehandler
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.WorkflowName = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PolicyType", wireType)
+			}
+			m.PolicyType = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMessagehandler
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.PolicyType |= constant.WorkFlowPolicyType(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Policy", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMessagehandler
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMessagehandler
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMessagehandler
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Policy = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field User", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMessagehandler
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMessagehandler
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMessagehandler
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.User = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 7:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UserType", wireType)
+			}
+			m.UserType = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMessagehandler
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.UserType |= constant.UserType(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 8:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Sign", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMessagehandler
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthMessagehandler
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMessagehandler
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Sign = append(m.Sign[:0], dAtA[iNdEx:postIndex]...)
+			if m.Sign == nil {
+				m.Sign = []byte{}
+			}
+			iNdEx = postIndex
+		case 9:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Tasks", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMessagehandler
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthMessagehandler
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthMessagehandler
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Tasks = append(m.Tasks, &TaskMsg{})
+			if err := m.Tasks[len(m.Tasks)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 10:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CreateAt", wireType)
+			}
+			m.CreateAt = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMessagehandler
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.CreateAt |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipMessagehandler(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthMessagehandler
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *WorkflowMsg) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowMessagehandler
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: WorkflowMsg: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: WorkflowMsg: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Data", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMessagehandler
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthMessagehandler
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthMessagehandler
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Data == nil {
+				m.Data = &Workflow{}
 			}
 			if err := m.Data.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err

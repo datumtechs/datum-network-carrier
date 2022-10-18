@@ -84,7 +84,7 @@ func New(cliCtx *cli.Context) (*CarrierNode, error) {
 		stateFeed: new(event.Feed),
 		stop:      make(chan struct{}),
 		privateIP: &common.CarrierPrivateIP{
-			PrivateIPCache:          map[string]struct{}{"127.0.0.1": {}},
+			PrivateIPCache:          make(map[string]struct{}, 0),
 			PrivateIPCacheCacheLock: &sync.RWMutex{},
 		},
 	}
@@ -311,6 +311,7 @@ func (node *CarrierNode) registerRPCService() error {
 		CarrierPrivateIP:              node.privateIP,
 		PublicRpcService:              publicRpcMap,
 		NotCheckPrivateIP:             node.cliCtx.Bool(flags.NotCheckPrivateIP.Name),
+		CarrierDB:                     node.db,
 	})
 	return node.services.RegisterService(rpcService)
 }

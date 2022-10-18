@@ -1600,6 +1600,31 @@ func StoreMessageCache(db KeyValueStore, value interface{}) error {
 		if nil != err {
 			return fmt.Errorf("marshal metadataMsg failed, %s", err)
 		}
+	case *types.WorkflowMsg:
+		key = GetWorkflowMsgKey(v.GenWorkflowId())
+		taskList := make([]*carriertypespb.TaskMsg, 0)
+		for _, v := range v.Data.Tasks {
+			taskList = append(taskList, &carriertypespb.TaskMsg{
+				Data: v.GetTaskData(),
+			})
+		}
+		val, err = proto.Marshal(&carriertypespb.WorkflowMsg{
+			Data: &carriertypespb.Workflow{
+				WorkflowId:   v.Data.GetWorkflowId(),
+				Desc:         v.Data.Desc,
+				WorkflowName: v.Data.GetWorkflowName(),
+				PolicyType:   v.Data.PolicyType,
+				Policy:       v.Data.Policy,
+				User:         v.Data.User,
+				UserType:     v.Data.UserType,
+				Sign:         v.Data.Sign,
+				Tasks:        taskList,
+				CreateAt:     v.Data.CreateAt,
+			},
+		})
+		if nil != err {
+			return fmt.Errorf("marshal workflowMsg failed, %s", err)
+		}
 	}
 	return db.Put(key, val)
 }

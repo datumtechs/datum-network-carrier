@@ -1,0 +1,415 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "carrier/api/workflow_rpc_api.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/carrier/v1/workflow/getStatus": {
+      "post": {
+        "summary": "查询工作流状态",
+        "operationId": "WorkFlowService_QueryWorkFlowStatus",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiQueryWorkStatusResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiQueryWorkStatusRequest"
+            }
+          }
+        ],
+        "tags": [
+          "WorkFlowService"
+        ]
+      }
+    },
+    "/carrier/v1/workflow/publish": {
+      "post": {
+        "summary": "发布工作流",
+        "operationId": "WorkFlowService_PublishWorkFlowDeclare",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiPublishWorkFlowDeclareResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiPublishWorkFlowDeclareRequest"
+            }
+          }
+        ],
+        "tags": [
+          "WorkFlowService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "apiPublishTaskDeclareRequest": {
+      "type": "object",
+      "properties": {
+        "task_name": {
+          "type": "string"
+        },
+        "user": {
+          "type": "string"
+        },
+        "user_type": {
+          "$ref": "#/definitions/constantUserType"
+        },
+        "sender": {
+          "$ref": "#/definitions/typesTaskOrganization"
+        },
+        "algo_supplier": {
+          "$ref": "#/definitions/typesTaskOrganization"
+        },
+        "data_suppliers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/typesTaskOrganization"
+          }
+        },
+        "receivers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/typesTaskOrganization"
+          }
+        },
+        "data_policy_types": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "data_policy_options": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "power_policy_types": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "power_policy_options": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "receiver_policy_types": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "receiver_policy_options": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "data_flow_policy_types": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "data_flow_policy_options": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "operation_cost": {
+          "$ref": "#/definitions/typesTaskResourceCostDeclare"
+        },
+        "algorithm_code": {
+          "type": "string"
+        },
+        "meta_algorithm_id": {
+          "type": "string"
+        },
+        "algorithm_code_extra_params": {
+          "type": "string"
+        },
+        "sign": {
+          "type": "string",
+          "format": "byte"
+        },
+        "desc": {
+          "type": "string"
+        }
+      },
+      "title": "发布任务 req"
+    },
+    "apiPublishWorkFlowDeclareRequest": {
+      "type": "object",
+      "properties": {
+        "desc": {
+          "type": "string"
+        },
+        "workflow_name": {
+          "type": "string"
+        },
+        "policy_type": {
+          "$ref": "#/definitions/constantWorkFlowPolicyType"
+        },
+        "policy": {
+          "type": "string"
+        },
+        "task_list": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiPublishTaskDeclareRequest"
+          }
+        },
+        "user": {
+          "type": "string"
+        },
+        "user_type": {
+          "$ref": "#/definitions/constantUserType"
+        },
+        "sign": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "apiPublishWorkFlowDeclareResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        }
+      }
+    },
+    "apiQueryWorkStatusRequest": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "apiQueryWorkStatusResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "workflow_status_list": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiWorkFlowStatus"
+          }
+        }
+      }
+    },
+    "apiWorkFlowStatus": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "$ref": "#/definitions/constantWorkFlowState"
+        },
+        "task_list": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiWorkFlowTaskStatus"
+          }
+        }
+      }
+    },
+    "apiWorkFlowTaskStatus": {
+      "type": "object",
+      "properties": {
+        "task_id": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/definitions/constantTaskState"
+        },
+        "task_name": {
+          "type": "string"
+        }
+      }
+    },
+    "constantTaskState": {
+      "type": "string",
+      "enum": [
+        "TaskState_Unknown",
+        "TaskState_Pending",
+        "TaskState_Running",
+        "TaskState_Failed",
+        "TaskState_Succeed"
+      ],
+      "default": "TaskState_Unknown",
+      "title": "task的状态"
+    },
+    "constantUserType": {
+      "type": "string",
+      "enum": [
+        "User_Unknown",
+        "User_1",
+        "User_2",
+        "User_3"
+      ],
+      "default": "User_Unknown"
+    },
+    "constantWorkFlowPolicyType": {
+      "type": "string",
+      "enum": [
+        "Unknown_Policy",
+        "Ordinary_Policy"
+      ],
+      "default": "Unknown_Policy",
+      "title": "工作流策略类型"
+    },
+    "constantWorkFlowState": {
+      "type": "string",
+      "enum": [
+        "WorkFlowState_Unknown",
+        "WorkFlowState_Pending",
+        "WorkFlowState_Running",
+        "WorkFlowState_Failed",
+        "WorkFlowState_Succeed"
+      ],
+      "default": "WorkFlowState_Unknown",
+      "title": "工作流状态"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "type_url": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "runtimeError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "typesTaskOrganization": {
+      "type": "object",
+      "properties": {
+        "party_id": {
+          "type": "string"
+        },
+        "node_name": {
+          "type": "string",
+          "title": "org name"
+        },
+        "node_id": {
+          "type": "string",
+          "title": "the node_id for org"
+        },
+        "identity_id": {
+          "type": "string",
+          "title": "the identity for org"
+        }
+      },
+      "title": "任务下的组织信息"
+    },
+    "typesTaskResourceCostDeclare": {
+      "type": "object",
+      "properties": {
+        "memory": {
+          "type": "string",
+          "format": "uint64",
+          "title": "任务所需的内存 (单位: byte)"
+        },
+        "processor": {
+          "type": "integer",
+          "format": "int64",
+          "title": "任务所需的核数 (单位: 个)"
+        },
+        "bandwidth": {
+          "type": "string",
+          "format": "uint64",
+          "title": "任务所需的带宽 (单位: bps)"
+        },
+        "duration": {
+          "type": "string",
+          "format": "uint64",
+          "title": "任务所需的运行时长 (单位: ms)"
+        }
+      },
+      "title": "任务需要花费的资源声明"
+    }
+  }
+}

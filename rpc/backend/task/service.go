@@ -228,7 +228,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *carrierapipb.Pub
 		log.Errorf("RPC-API:PublishTaskDeclare failed, check sign failed, sign is empty")
 		return &carrierapipb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require sign"}, nil
 	}
-	err = checkTaskReqPowerPolicy(req.GetPowerPolicyTypes(), req.GetPowerPolicyOptions())
+	err = CheckTaskReqPowerPolicy(req.GetPowerPolicyTypes(), req.GetPowerPolicyOptions())
 	if err != nil {
 		return &carrierapipb.PublishTaskDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: err.Error()}, nil
 	}
@@ -432,19 +432,19 @@ func (svr *Server) EstimateTaskGas(ctx context.Context, req *carrierapipb.Estima
 	}, nil
 }
 
-func checkTaskReqPowerPolicy(powerPolicyTypes []uint32, powerPolicyOptions []string) error {
+func CheckTaskReqPowerPolicy(powerPolicyTypes []uint32, powerPolicyOptions []string) error {
 	checkRepeat := make(map[string]struct{}, 0)
 	for idx, policyType := range powerPolicyTypes {
 		if policyType == types.TASK_POWER_POLICY_FIXED_ORGANIZATION_PROVIDE {
 			policyOption := powerPolicyOptions[idx]
 			var option *types.TaskPowerPolicyFixedOrganizationProvide
 			if err := json.Unmarshal([]byte(policyOption), &option); err != nil {
-				return errors.New(fmt.Sprintf("checkTaskReqPowerPolicy json Unmarshal %s fail", policyOption))
+				return errors.New(fmt.Sprintf("CheckTaskReqPowerPolicy json Unmarshal %s fail", policyOption))
 			}
 			if _, ok := checkRepeat[option.GetIdentityId()]; !ok {
 				checkRepeat[option.GetIdentityId()] = struct{}{}
 			} else {
-				return errors.New(fmt.Sprintf("checkTaskReqPowerPolicy have repeat IdentityId %s", option.IdentityId))
+				return errors.New(fmt.Sprintf("CheckTaskReqPowerPolicy have repeat IdentityId %s", option.IdentityId))
 			}
 		}
 	}

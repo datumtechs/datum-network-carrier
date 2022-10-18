@@ -69,12 +69,14 @@ type LocalStoreCarrierDB interface {
 	RemoveMetadataAuthMsg(metadataAuthId string) error
 	RemoveAllMetadataAuthMsg() error
 	RemoveTaskMsg(taskId string) error
+	RemoveWorkflowMsg(workflowId string) error
 	RemoveAllTaskMsg() error
 	QueryPowerMsgArr() (types.PowerMsgArr, error)
 	QueryMetadataMsgArr() (types.MetadataMsgArr, error)
 	QueryMetadataUpdateMsgArr() (types.MetadataUpdateMsgArr, error)
 	QueryMetadataAuthorityMsgArr() (types.MetadataAuthorityMsgArr, error)
 	QueryTaskMsgArr() (types.TaskMsgArr, error)
+	QueryWorkflowMsgArr() (types.WorkflowMsgArr, error)
 	// add by v0.4.0 carrier internal wallet's privateKey
 	SaveOrgPriKey(priKey string) error
 	// FindOrgPriKey does not return ErrNotFound if the organization wallet not found.
@@ -92,6 +94,15 @@ type LocalStoreCarrierDB interface {
 	IncreaseTaskMsgNonce() (uint64, error)
 	SaveAdminAddress(address string) error
 	QueryAdminAddress() (string, error)
+	SaveSendToTaskManager(taskId, workflowId string) error
+	RemoveSendToTaskManager(taskId string) error
+	SaveWorkflowCache(workflow *carriertypespb.Workflow) error
+	RemoveWorkflowCache(workflowId string) error
+	SaveWorkflowStatusCache(workflowId string, status *types.WorkflowStatus) error
+	RemoveWorkflowStatusCache(workflowId string) error
+	SaveWorkflowTaskStatusCache(workflowId string, taskState *carrierapipb.WorkFlowTaskStatus) error
+	RemoveWorkflowTaskStatusCache(workflowIdTaskName string) error
+	ForEachKVWithPrefix(prefix []byte, f func(key, value []byte) error) error
 }
 
 type MetadataCarrierDB interface {
@@ -229,6 +240,7 @@ type TaskCarrierDB interface {
 	StoreTaskBullet(bullet *types.TaskBullet) error
 	RemoveTaskBullet(taskId string) error
 	ForEachTaskBullets(f func(key, value []byte) error) error
+	QueryTaskResultDataSummary(taskId string) (*types.TaskResultDataSummary, error)
 }
 
 type ForConsensusDB interface {

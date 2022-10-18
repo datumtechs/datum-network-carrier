@@ -1487,38 +1487,7 @@ func (s *CarrierAPIBackend) StoreTaskResultDataSummary(taskId, originId, dataHas
 }
 
 func (s *CarrierAPIBackend) QueryTaskResultDataSummary(taskId string) (*types.TaskResultDataSummary, error) {
-	summarry, err := s.carrier.carrierDB.QueryTaskUpResulData(taskId)
-	if nil != err {
-		log.WithError(err).Errorf("Failed query taskUpResultData on CarrierAPIBackend.QueryTaskResultDataSummary(), taskId: {%s}", taskId)
-		return nil, err
-	}
-	dataResourceDataUpload, err := s.carrier.carrierDB.QueryDataResourceDataUpload(summarry.GetOriginId())
-	if nil != err {
-		log.WithError(err).Errorf("Failed query dataResourceDataUpload on CarrierAPIBackend.QueryTaskResultDataSummary(), taskId: {%s}, originId: {%s}",
-			taskId, summarry.GetOriginId())
-		return nil, err
-	}
-
-	localMetadata, err := s.carrier.carrierDB.QueryInternalMetadataById(summarry.GetMetadataId())
-	if nil != err {
-		log.WithError(err).Errorf("Failed query local metadata on CarrierAPIBackend.QueryTaskResultDataSummary(), taskId: {%s}, originId: {%s}, metadataId: {%s}",
-			taskId, summarry.GetOriginId(), dataResourceDataUpload.GetMetadataId())
-		return nil, err
-	}
-
-	// taskId, metadataId, originId, metadataName, dataHash, metadataOption, nodeId, extra string, dataType uint32
-	return types.NewTaskResultDataSummary(
-		summarry.GetTaskId(),
-		dataResourceDataUpload.GetMetadataId(),
-		dataResourceDataUpload.GetOriginId(),
-		localMetadata.GetData().GetMetadataName(),
-		dataResourceDataUpload.GetDataHash(),
-		dataResourceDataUpload.GetMetadataOption(),
-		dataResourceDataUpload.GetNodeId(),
-		summarry.GetExtra(),
-		dataResourceDataUpload.GetDataType(),
-	), nil
-
+	return s.carrier.carrierDB.QueryTaskResultDataSummary(taskId)
 }
 
 func (s *CarrierAPIBackend) QueryTaskResultDataSummaryList() (types.TaskResultDataSummaryArr, error) {
@@ -1571,4 +1540,8 @@ func (s *CarrierAPIBackend) EstimateTaskGas(taskSponsorAddress string, tkItemLis
 // EstimateTaskGas
 func (s *CarrierAPIBackend) GetQueryDataNodeClientByNodeId(nodeId string) (*grpclient.DataNodeClient, bool) {
 	return s.carrier.resourceManager.QueryDataNodeClient(nodeId)
+}
+
+func (s *CarrierAPIBackend) GetWorkflowStatus(workflowIds []string) (*carrierapipb.QueryWorkStatusResponse, error) {
+	return s.carrier.WorkflowManager.GetWorkflowStatus(workflowIds)
 }

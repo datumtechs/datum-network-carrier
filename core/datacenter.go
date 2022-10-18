@@ -7,6 +7,7 @@ import (
 	"github.com/datumtechs/datum-network-carrier/db"
 	"github.com/datumtechs/datum-network-carrier/grpclient"
 	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
+	carriertypespb "github.com/datumtechs/datum-network-carrier/pb/carrier/types"
 	commonconstantpb "github.com/datumtechs/datum-network-carrier/pb/common/constant"
 	"github.com/datumtechs/datum-network-carrier/types"
 	"github.com/sirupsen/logrus"
@@ -356,6 +357,12 @@ func (dc *DataCenter) RemoveTaskMsg(taskId string) error {
 	return rawdb.RemoveTaskMsg(dc.db, taskId)
 }
 
+func (dc *DataCenter) RemoveWorkflowMsg(workflowId string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.RemoveWorkflowMsg(dc.db, workflowId)
+}
+
 func (dc *DataCenter) RemoveAllTaskMsg() error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
@@ -390,6 +397,11 @@ func (dc *DataCenter) QueryTaskMsgArr() (types.TaskMsgArr, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.QueryTaskMsgArr(dc.db)
+}
+func (dc *DataCenter) QueryWorkflowMsgArr() (types.WorkflowMsgArr, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.QueryWorkflowMsgArr(dc.db)
 }
 
 // about msg nonce
@@ -463,4 +475,83 @@ func (dc *DataCenter) Stop() {
 	dc.wg.Wait()
 	dc.client.Close()
 	log.Info("Datacenter manager stopped")
+}
+func (dc *DataCenter) SaveSendToTaskManager(taskId, workflowId string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.SaveSendToTaskManager(dc.db, taskId, workflowId)
+}
+func (dc *DataCenter) RemoveSendToTaskManager(taskId string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.RemoveSendToTaskManager(dc.db, taskId)
+}
+func (dc *DataCenter) SaveWorkflowCache(workflow *carriertypespb.Workflow) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.SaveWorkflowCache(dc.db, workflow)
+}
+func (dc *DataCenter) RemoveWorkflowCache(workflowId string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.RemoveWorkflowCache(dc.db, workflowId)
+}
+func (dc *DataCenter) SaveWorkflowStatusCache(workflowId string, status *types.WorkflowStatus) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.SaveWorkflowStatusCache(dc.db, workflowId, status)
+}
+func (dc *DataCenter) RemoveWorkflowStatusCache(workflowId string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.RemoveWorkflowStatusCache(dc.db, workflowId)
+}
+func (dc *DataCenter) SaveWorkflowTaskStatusCache(workflowId string, taskState *carrierapipb.WorkFlowTaskStatus) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.SaveWorkflowTaskStatusCache(dc.db, workflowId, taskState)
+}
+func (dc *DataCenter) RemoveWorkflowTaskStatusCache(workflowIdTaskName string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.RemoveWorkflowTaskStatusCache(dc.db, workflowIdTaskName)
+}
+func (dc *DataCenter) ForEachKVWithPrefix(prefix []byte, f func(key, value []byte) error) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.ForEachKVWithPrefix(dc.db, prefix, f)
+}
+
+func (dc *DataCenter) QueryTaskResultDataSummary(taskId string) (*types.TaskResultDataSummary, error) {
+	summarry, err := dc.QueryTaskUpResulData(taskId)
+	if nil != err {
+		log.WithError(err).Errorf("Failed query taskUpResultData on CarrierAPIBackend.QueryTaskResultDataSummary(), taskId: {%s}", taskId)
+		return nil, err
+	}
+	dataResourceDataUpload, err := dc.QueryDataResourceDataUpload(summarry.GetOriginId())
+	if nil != err {
+		log.WithError(err).Errorf("Failed query dataResourceDataUpload on CarrierAPIBackend.QueryTaskResultDataSummary(), taskId: {%s}, originId: {%s}",
+			taskId, summarry.GetOriginId())
+		return nil, err
+	}
+
+	localMetadata, err := dc.QueryInternalMetadataById(summarry.GetMetadataId())
+	if nil != err {
+		log.WithError(err).Errorf("Failed query local metadata on CarrierAPIBackend.QueryTaskResultDataSummary(), taskId: {%s}, originId: {%s}, metadataId: {%s}",
+			taskId, summarry.GetOriginId(), dataResourceDataUpload.GetMetadataId())
+		return nil, err
+	}
+
+	// taskId, metadataId, originId, metadataName, dataHash, metadataOption, nodeId, extra string, dataType uint32
+	return types.NewTaskResultDataSummary(
+		summarry.GetTaskId(),
+		dataResourceDataUpload.GetMetadataId(),
+		dataResourceDataUpload.GetOriginId(),
+		localMetadata.GetData().GetMetadataName(),
+		dataResourceDataUpload.GetDataHash(),
+		dataResourceDataUpload.GetMetadataOption(),
+		dataResourceDataUpload.GetNodeId(),
+		summarry.GetExtra(),
+		dataResourceDataUpload.GetDataType(),
+	), nil
 }

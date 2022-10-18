@@ -3,6 +3,7 @@ package rpc
 import (
 	"context"
 	"fmt"
+	"github.com/datumtechs/datum-network-carrier/carrierdb"
 	"github.com/datumtechs/datum-network-carrier/common"
 	statefeed "github.com/datumtechs/datum-network-carrier/common/feed/state"
 	"github.com/datumtechs/datum-network-carrier/common/traceutil"
@@ -16,6 +17,7 @@ import (
 	"github.com/datumtechs/datum-network-carrier/rpc/backend/metadata"
 	"github.com/datumtechs/datum-network-carrier/rpc/backend/power"
 	"github.com/datumtechs/datum-network-carrier/rpc/backend/task"
+	"github.com/datumtechs/datum-network-carrier/rpc/backend/workflow"
 	"github.com/datumtechs/datum-network-carrier/rpc/backend/yarn"
 	"github.com/datumtechs/datum-network-carrier/rpc/debug"
 	health_check "github.com/datumtechs/datum-network-carrier/service/discovery"
@@ -69,10 +71,10 @@ type Config struct {
 	MaxMsgSize                    int
 	MaxSendMsgSize                int
 	EnableGrpcGateWayPrivateCheck bool
-	PrivateIPCache                map[string]struct{} // {"ip1":{},"ip2":{}}
 	CarrierPrivateIP              *common.CarrierPrivateIP
 	NotCheckPrivateIP             bool
 	PublicRpcService              map[int]struct{}
+	CarrierDB                     carrierdb.CarrierDB
 }
 
 // NewService instantiates a new RPC service instance that will
@@ -142,6 +144,7 @@ func (s *Service) Start() error {
 	carrierapipb.RegisterDIDServiceServer(s.grpcServer, &did.Server{B: s.cfg.BackendAPI})
 	carrierapipb.RegisterVcServiceServer(s.grpcServer, &did.Server{B: s.cfg.BackendAPI})
 	carrierapipb.RegisterProposalServiceServer(s.grpcServer, &did.Server{B: s.cfg.BackendAPI})
+	carrierapipb.RegisterWorkFlowServiceServer(s.grpcServer, &workflow.Server{B: s.cfg.BackendAPI})
 	service_discover_health.RegisterHealthServer(s.grpcServer, &health_check.HealthCheck{})
 
 	if s.cfg.EnableDebugRPCEndpoints {
@@ -224,6 +227,11 @@ func (s *Service) checkRpcServicePrivate(
 	req interface{},
 	un *grpc.UnaryServerInfo,
 	handler grpc.UnaryHandler) (interface{}, error) {
+	_, err := s.cfg.CarrierDB.QueryIdentity()
+	if nil != err {
+		//log.WithError(err).Warnf("Failed to query local identity")
+		return handler(ctx, req)
+	}
 	if s.cfg.NotCheckPrivateIP {
 		return handler(ctx, req)
 	}
@@ -260,7 +268,8 @@ func (s *Service) checkRpcServicePrivate(
 	}
 	s.cfg.CarrierPrivateIP.PrivateIPCacheCacheLock.RLock()
 	defer s.cfg.CarrierPrivateIP.PrivateIPCacheCacheLock.RUnlock()
-	if _, ok := s.cfg.PrivateIPCache[clientIP]; !ok {
+	if _, ok := s.cfg.CarrierPrivateIP.PrivateIPCache[clientIP]; !ok {
+		log.Warnf("PrivateIPCache is %v,clientIP is %s", s.cfg.CarrierPrivateIP.PrivateIPCache, clientIP)
 		return &carriertypespb.SimpleResponse{Status: backend.ErrRequirePrivateIP.ErrCode(), Msg: fmt.Sprintf("%s does not have permission to access %s", clientIP, un.FullMethod)}, nil
 	}
 	return handler(ctx, req)
