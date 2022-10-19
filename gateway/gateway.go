@@ -91,6 +91,7 @@ func (g *Gateway) Start() error {
 		carrierapipb.RegisterPowerServiceHandler,
 		carrierapipb.RegisterYarnServiceHandler,
 		carrierapipb.RegisterTaskServiceHandler,
+		carrierapipb.RegisterWorkFlowServiceHandler,
 	}
 	if g.enableDebugRPCEndpoints {
 		handlers = append(handlers, carrierrpcdebugpbv1.RegisterDebugHandler)

@@ -55,10 +55,17 @@ const (
 			"partyId": "p0",
 			"taskId": "task:0x43b3d8c65b877adfd05a77dc6b3bb1ad27e4727edbccb3cc76ffd51f78794479",
 			"inputType": 1, // 输入数据的类型，0:unknown, 1:origin_data, 2:psi_output, 3:model
-			"keyColumnName": "id",
-			"selectedColumnNames": ["name", "age", "point"]
 		}"
 	*/
+	TASK_DATA_POLICY_DIR_WITH_TASKRESULTDATA = 30002
+	/**
+	"{
+		"partyId": "p0",
+		"taskId": "task:0x43b3d8c65b877adfd05a77dc6b3bb1ad27e4727edbccb3cc76ffd51f78794479",
+		"inputType": 3 // 输入数据的类型，0:unknown, 1:origin_data, 2:psi_output, 3:model
+	}"
+	*/
+
 	TASK_DATA_POLICY_IS_CSV_HAVE_CONSUME = 40001
 	/*
 		"{
@@ -322,7 +329,7 @@ func (p *TaskMetadataPolicyBINARY) QueryInputType() uint32 {
 
 /**
 TASK_DATA_POLICY_CSV_WITH_TASKRESULTDATA
-value: 1
+value: 30001
 example:
 
 			{
@@ -357,6 +364,35 @@ func (p *TaskMetadataPolicyCSVWithTaskResultData) QueryKeyColumnName() string {
 }
 func (p *TaskMetadataPolicyCSVWithTaskResultData) QuerySelectedColumnNames() []string {
 	return p.SelectedColumnNames
+}
+
+/**
+TASK_DATA_POLICY_DIR_WITH_TASKRESULTDATA
+value: 30002
+example:
+
+			{
+				"partyId": "p0",
+				"taskId": "task:0x43b3d8c65b877adfd05a77dc6b3bb1ad27e4727edbccb3cc76ffd51f78794479",
+				"inputType": 1, // 输入数据的类型，0:unknown, 1:origin_data, 2:psi_output, 3:model
+			}
+
+
+*/
+type TaskMetadataPolicyDIRWithTaskResultData struct {
+	PartyId   string `json:"partyId"`
+	TaskId    string `json:"taskId"`
+	InputType uint32 `json:"inputType"`
+}
+
+func (p *TaskMetadataPolicyDIRWithTaskResultData) GetPartyId() string {
+	return p.PartyId
+}
+func (p *TaskMetadataPolicyDIRWithTaskResultData) GetTaskId() string {
+	return p.TaskId
+}
+func (p *TaskMetadataPolicyDIRWithTaskResultData) QueryInputType() uint32 {
+	return p.InputType
 }
 
 // ==================================================================== power policy option ====================================================================

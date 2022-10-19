@@ -234,7 +234,7 @@
     "apiQueryWorkStatusRequest": {
       "type": "object",
       "properties": {
-        "workflow_id": {
+        "workflow_ids": {
           "type": "array",
           "items": {
             "type": "string"

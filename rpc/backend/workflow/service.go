@@ -154,6 +154,7 @@ func (svr *Server) PublishWorkFlowDeclare(ctx context.Context, req *carrierapipb
 		errMsg := fmt.Sprintf("%s, workflowId: {%s}", backend.ErrPublishTaskMsg.Error(), workflowId)
 		return &carrierapipb.PublishWorkFlowDeclareResponse{Status: backend.ErrPublishTaskMsg.ErrCode(), Msg: errMsg}, nil
 	}
+	log.Infof("PublishWorkFlowDeclare workflowName %s,workflowId %s", workflowMsg.Data.GetWorkflowName(), workflowId)
 	return &carrierapipb.PublishWorkFlowDeclareResponse{
 		Status: 0,
 		Msg:    backend.OK,
@@ -162,7 +163,7 @@ func (svr *Server) PublishWorkFlowDeclare(ctx context.Context, req *carrierapipb
 }
 
 func (svr *Server) QueryWorkFlowStatus(ctx context.Context, req *carrierapipb.QueryWorkStatusRequest) (*carrierapipb.QueryWorkStatusResponse, error) {
-	return svr.B.GetWorkflowStatus(req.GetWorkflowId())
+	return svr.B.GetWorkflowStatus(req.GetWorkflowIds())
 }
 
 func checkWorkflowTaskListReferTo(req *carrierapipb.PublishWorkFlowDeclareRequest) bool {
@@ -178,23 +179,28 @@ func checkWorkflowTaskListReferTo(req *carrierapipb.PublishWorkFlowDeclareReques
 		for _, s := range v.Reference {
 			referTo = append(referTo, s.Target)
 		}
+		if _, ok := referToGraph[v.Origin]; ok {
+			log.Warnf("taskName %s repet,please check", v.Origin)
+			return true
+		}
 		referToGraph[v.Origin] = referTo
 	}
 	dependencyOrder := directedAcyclicGraphTopologicalSort(referToGraph)
 	if len(dependencyOrder) == 0 {
 		return true
-	} else {
-		updateTaskListOrder := make([]*carrierapipb.PublishTaskDeclareRequest, 0)
-		for index := range dependencyOrder {
-			taskNameOrder := dependencyOrder[len(dependencyOrder)-index-1]
-			for _, taskDetail := range req.GetTaskList() {
-				if taskNameOrder == taskDetail.GetTaskName() {
-					updateTaskListOrder = append(updateTaskListOrder, taskDetail)
-				}
+	}
+
+	updateTaskListOrder := make([]*carrierapipb.PublishTaskDeclareRequest, 0)
+	for index := range dependencyOrder {
+		taskNameOrder := dependencyOrder[len(dependencyOrder)-index-1]
+		for _, taskDetail := range req.GetTaskList() {
+			if taskNameOrder == taskDetail.GetTaskName() {
+				updateTaskListOrder = append(updateTaskListOrder, taskDetail)
 			}
 		}
-		req.TaskList = updateTaskListOrder
 	}
+	log.Debugf("updateTaskListOrder result:%v", updateTaskListOrder)
+	req.TaskList = updateTaskListOrder
 	return false
 }
 
@@ -209,7 +215,7 @@ func directedAcyclicGraphTopologicalSort(graph map[string][]string) []string {
 
 		return -> [aTask eTask cTask bTask dTask]
 	*/
-	// 初始化所有顶点入度为0
+	// Initialize the in-degree of all vertices as 0
 	inDegrees := make(map[string]uint32, 0)
 	for k, _ := range graph {
 		inDegrees[k] = 0
@@ -217,11 +223,11 @@ func directedAcyclicGraphTopologicalSort(graph map[string][]string) []string {
 
 	for _, v := range graph {
 		for _, n := range v {
-			//计算每个顶点的入度
+			//Calculate the in-degree of each vertex
 			inDegrees[n] += 1
 		}
 	}
-	// 筛选入度为0的顶点
+	//Filter vertices with in-degree 0
 	inDegreesEqualZero := make([]string, 0)
 	for k, v := range inDegrees {
 		if v == 0 {
@@ -233,21 +239,21 @@ func directedAcyclicGraphTopologicalSort(graph map[string][]string) []string {
 		if len(inDegreesEqualZero) == 0 {
 			break
 		}
-		// 默认从最后一个删除
+		// Delete from last by default
 		theLastOne := inDegreesEqualZero[len(inDegreesEqualZero)-1]
 		seq = append(seq, theLastOne)
 		inDegreesEqualZero = inDegreesEqualZero[:len(inDegreesEqualZero)-1]
 		for _, v := range graph[theLastOne] {
-			//  移除其所有指向
+			//  remove all references to it
 			inDegrees[v] -= 1
 			if inDegrees[v] == 0 {
-				//  再次筛选入度为0的顶点
+				//  Filter again vertices with in-degree 0
 				inDegreesEqualZero = append(inDegreesEqualZero, v)
 			}
 		}
 	}
 	if len(seq) == len(inDegrees) {
-		// 如果循环结束后存在非0入度的顶点说明图中有环
+		// If there are vertices with non-zero in-degree after the loop ends, there is a cycle in the graph
 		return seq
 	} else {
 		log.Warnf("directedAcyclicGraphTopologicalSort include ring,please check %v", graph)
