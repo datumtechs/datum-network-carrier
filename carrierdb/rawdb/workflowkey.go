@@ -31,3 +31,17 @@ func GetWorkflowTaskStatusCacheKeyPrefix(workflowId, taskName string) []byte {
 func QueryWorkflowMsgKey() []byte {
 	return workflowMsgKeyPrefix
 }
+
+func QuerySendToTaskManagerCacheKeyPrefix() []byte {
+	return sendToTaskManagerCacheKeyPrefix
+}
+
+func QueryWorkflowsCacheKeyPrefix() []byte {
+	return workflowsCacheKeyPrefix
+}
+func QueryWorkflowStatusCacheKeyPrefix() []byte {
+	return workflowStatusCacheKeyPrefix
+}
+func QueryWorkflowTaskStatusCacheKeyPrefix() []byte {
+	return workflowTaskStatusCacheKeyPrefix
+}
