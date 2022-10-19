@@ -1540,6 +1540,8 @@ func (m *Manager) publishBadTaskToDataCenter(task *types.Task, events []*carrier
 		Status:   commonconstantpb.TaskState_TaskState_Failed,
 		TaskId:   task.GetTaskId(),
 		TaskName: task.GetTaskData().GetTaskName(),
+		StartAt:  task.GetTaskData().GetStartAt(),
+		EndAt:    task.GetTaskData().GetEndAt(),
 	})
 	return m.resourceMng.GetDB().InsertTask(task)
 }
@@ -1552,6 +1554,8 @@ func (m *Manager) fillTaskEventAndFinishedState(task *types.Task, eventList []*c
 		Status:   state,
 		TaskId:   task.GetTaskId(),
 		TaskName: task.GetTaskData().GetTaskName(),
+		StartAt:  task.GetTaskData().GetStartAt(),
+		EndAt:    task.GetTaskData().GetEndAt(),
 	})
 	return task
 }

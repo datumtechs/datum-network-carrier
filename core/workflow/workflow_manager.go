@@ -19,7 +19,7 @@ import (
 
 var (
 	timeout                                               int64 = 72 * 3600
-	defaultRemoveWorkflowExecuteResultSaveTimeoutInterval       = 30 * time.Second
+	defaultRemoveWorkflowExecuteResultSaveTimeoutInterval       = 60 * time.Second
 	workflowTaskStatusCacheKeyPrefix                            = []byte("workflowTaskStatusCacheKeyPrefix:")
 	workflowStatusCacheKeyPrefix                                = []byte("workflowStatusCacheKeyPrefix:")
 )
@@ -93,6 +93,8 @@ func (m *Manager) GetWorkflowStatus(workflowIds []string) (*carrierapipb.QueryWo
 						TaskId:   status.GetTaskId(),
 						Status:   status.GetStatus(),
 						TaskName: status.GetTaskName(),
+						StartAt:  status.GetStartAt(),
+						EndAt:    status.GetEndAt(),
 					})
 				}
 			}
@@ -231,9 +233,6 @@ func (m *Manager) taskMsgSendToMessageManager(workflow *types.Workflow) error {
 		m.workflowStatusLock.Unlock()
 		m.workflowTaskStatusLock.Unlock()
 	}()
-	if _, ok := m.workflowsCache[workflowId]; ok {
-		return fmt.Errorf("workflowId %s alerady exits workflowsCache", workflowId)
-	}
 	// equivalent to pop and check defer to task execute result
 	task, err := m.assemblyTaskParameters(workflow)
 	if err != nil {
@@ -254,6 +253,8 @@ func (m *Manager) taskMsgSendToMessageManager(workflow *types.Workflow) error {
 		Status:   task.GetState(),
 		TaskId:   task.GetTaskId(),
 		TaskName: task.GetTaskName(),
+		StartAt:  task.GetStartAt(),
+		EndAt:    task.GetEndAt(),
 	}
 	workflowTaskStatus[task.GetTaskName()] = statusWorkflowTask
 	m.workflowTaskStatusCache[workflowId] = workflowTaskStatus
