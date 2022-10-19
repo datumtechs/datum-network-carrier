@@ -1009,6 +1009,7 @@ func (m *MessageHandler) BroadcastWorkflowMsgArr(workflowMsgArr types.WorkflowMs
 			if err := m.resourceMng.GetDB().RemoveWorkflowMsg(v.Data.GetWorkflowId()); err != nil {
 				log.WithError(err).Errorf("Remove local workflowMsg fail,workflowId is %s", v.Data.GetWorkflowId())
 			}
+			log.Debugf("AddWorkflow successful is:{%s}", v.Data.WorkflowId)
 		}
 	}
 }
