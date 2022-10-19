@@ -3,7 +3,7 @@ package carrier
 import (
 	"context"
 	"fmt"
-	"github.com/bglmmz/chainclient"
+	"github.com/datumtechs/chainclient"
 	"github.com/datumtechs/datum-network-carrier/ach/auth"
 	"github.com/datumtechs/datum-network-carrier/ach/tk"
 	"github.com/datumtechs/datum-network-carrier/ach/tk/kms"

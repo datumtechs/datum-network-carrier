@@ -1,7 +1,7 @@
 package tk
 
 import (
-	"github.com/bglmmz/chainclient"
+	"github.com/datumtechs/chainclient"
 	"github.com/datumtechs/datum-network-carrier/carrierdb"
 	"github.com/datumtechs/datum-network-carrier/core"
 	"github.com/datumtechs/datum-network-carrier/db"

@@ -5,10 +5,10 @@ go 1.18
 require (
 	contrib.go.opencensus.io/exporter/jaeger v0.2.1
 	github.com/aliyun/alibaba-cloud-sdk-go v1.61.1545
-	github.com/bglmmz/chainclient v0.0.4
 	github.com/btcsuite/btcd v0.21.0-beta
 	github.com/btcsuite/btcutil v1.0.2
 	github.com/d4l3k/messagediff v1.2.1
+	github.com/datumtechs/chainclient v0.2.0
 	github.com/datumtechs/did-sdk-go v0.0.18
 	github.com/ethereum/go-ethereum v1.10.21
 	github.com/ferranbt/fastssz v0.0.0-20210526181520-7df50c8568f8
@@ -70,6 +70,7 @@ require (
 	github.com/VictoriaMetrics/fastcache v1.6.0 // indirect
 	github.com/armon/go-metrics v0.0.0-20180917152333-f0300d1749da // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
+	github.com/bglmmz/chainclient v0.0.4 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.2.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/cheekybits/genny v1.0.0 // indirect
@@ -199,6 +200,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
+//replace github.com/bglmmz/chainclient => github.com/bglmmz/chainclient
 //replace github.com/bglmmz/chainclient => D:\github.com\bglmmz\chainclient
 
 //replace github.com/datumtechs/did-sdk-go => D:\github.com\datumtechs\did-sdk-go
