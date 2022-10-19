@@ -246,6 +246,10 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 
 func (s *Service) Start() error {
 
+	if err := s.initServicesWithDiscoveryCenter(); nil != err {
+		log.Fatal(err)
+	}
+
 	if nil != s.authManager {
 		if err := s.authManager.Start(); nil != err {
 			log.WithError(err).Errorf("Failed to start the authManager")
@@ -282,9 +286,7 @@ func (s *Service) Start() error {
 			log.WithError(err).Errorf("Failed to start the WorkflowManager")
 		}
 	}
-	if err := s.initServicesWithDiscoveryCenter(); nil != err {
-		log.Fatal(err)
-	}
+
 	go s.loop()
 	return nil
 }
