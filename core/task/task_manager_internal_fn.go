@@ -1757,7 +1757,20 @@ func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types
 					}
 					inputDataArr = append(inputDataArr, inputData)
 				}
+			case types.TASK_DATA_POLICY_DIR_WITH_TASKRESULTDATA:
+				var dataPolicy *types.TaskMetadataPolicyDIRWithTaskResultData
+				if err := json.Unmarshal([]byte(localTask.GetTaskData().GetDataPolicyOptions()[i]), &dataPolicy); nil != err {
+					return "", fmt.Errorf("can not unmarshal dataPolicyOption, %s, taskId: {%s}, partyId: {%s}", err, localTask.GetTaskId(), partyId)
+				}
 
+				if dataPolicy.GetPartyId() == partyId {
+					inputData, err := m.metadataInputDIRWithTaskResultData(dataPolicy)
+					if nil != err {
+						return "", fmt.Errorf("can not unmarshal metadataInputDIRWithTaskResultData, %s, taskId: {%s}, partyId: {%s}, taskId of taskResultData: {%s}",
+							err, localTask.GetTaskId(), partyId, dataPolicy.GetTaskId())
+					}
+					inputDataArr = append(inputDataArr, inputData)
+				}
 			case types.TASK_DATA_POLICY_BINARY:
 				var dataPolicy *types.TaskMetadataPolicyBINARY
 				if err := json.Unmarshal([]byte(localTask.GetTaskData().GetDataPolicyOptions()[i]), &dataPolicy); nil != err {
@@ -2092,6 +2105,38 @@ func (m *Manager) metadataInputCSVWithTaskResultData(task *types.NeedExecuteTask
 		DataPath:        dataPath,
 		KeyColumn:       dataPolicy.QueryKeyColumnName(),
 		SelectedColumns: dataPolicy.QuerySelectedColumnNames(),
+	}, nil
+}
+
+func (m *Manager) metadataInputDIRWithTaskResultData(dataPolicy *types.TaskMetadataPolicyDIRWithTaskResultData) (*types.InputDataDIR, error) {
+	summarry, err := m.resourceMng.GetDB().QueryTaskUpResulData(dataPolicy.GetTaskId())
+	if nil != err {
+		return nil, fmt.Errorf("cannot query taskUpResultData, %s", err)
+	}
+
+	metadata, err := m.resourceMng.GetDB().QueryInternalMetadataById(summarry.GetMetadataId())
+	if nil != err {
+		return nil, fmt.Errorf("cannot query internalMetadata, %s", err)
+	}
+
+	if types.IsNotDIRdata(metadata.GetData().GetDataType()) {
+		return nil, fmt.Errorf("dataType of metadata is not `DIR`, dataType: %s", metadata.GetData().GetDataType().String())
+	}
+
+	var metadataOption *types.MetadataOptionDIR
+	if err := json.Unmarshal([]byte(metadata.GetData().GetMetadataOption()), &metadataOption); nil != err {
+		return nil, fmt.Errorf("can not unmarshal `DIR` metadataOption, %s", err)
+	}
+
+	dirPath := metadataOption.GetDirPath()
+	if strings.Trim(dirPath, "") == "" {
+		return nil, fmt.Errorf("dirPath is empty")
+	}
+	return &types.InputDataDIR{
+		InputType:  dataPolicy.QueryInputType(),
+		AccessType: uint32(metadata.GetData().GetLocationType()),
+		DataType:   uint32(metadata.GetData().GetDataType()),
+		DataPath:   metadataOption.GetDirPath(),
 	}, nil
 }
 

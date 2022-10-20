@@ -36,15 +36,6 @@ package types
 //  }
 //]
 
-type PSIParams struct {
-	InputType           uint32   `json:"inputType"`
-	KeyColumnName       string   `json:"keyColumnName"`
-	SelectedColumnNames []string `json:"selectedColumnNames"`
-}
-type MODELParams struct {
-	InputType uint32 `json:"inputType"`
-}
-
 type ReferTo struct {
 	Target           string   `json:"target"`
 	DependPartyId    []string `json:"dependPartyId"`

@@ -1,7 +1,9 @@
 package workflow
 
 import (
+	"encoding/json"
 	carrierapipb "github.com/datumtechs/datum-network-carrier/pb/carrier/api"
+	"github.com/datumtechs/datum-network-carrier/types"
 	"gotest.tools/assert"
 	"testing"
 )
@@ -84,4 +86,8 @@ func TestCheckWorkflowTaskListReferTo(t *testing.T) {
 		assert.Equal(t, true, result)
 		t.Logf("taskList %v", testReq.TaskList)
 	}
+	test := "{\"inputType\": 1, \"keyColumnName\": \"12\", \"selectedColumnNames\": []}"
+	var p *types.TaskMetadataPolicyCSVWithTaskResultData
+	_ = json.Unmarshal([]byte(test), &p)
+	t.Logf("%v,%s", p, p.PartyId)
 }
