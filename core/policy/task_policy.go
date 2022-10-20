@@ -38,14 +38,6 @@ func (pe *PolicyEngine) FetchMetedataIdByPartyIdAndOptionFromDataPolicy(partyId 
 		if policy.GetPartyId() == partyId {
 			return policy.GetMetadataId(), nil
 		}
-	case types.TASK_DATA_POLICY_IS_CSV_HAVE_CONSUME:
-		var policy *types.TaskMetadataPolicyCsvConsume
-		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
-			return "", err
-		}
-		if policy.GetPartyId() == partyId {
-			return policy.GetMetadataId(), nil
-		}
 	case types.TASK_DATA_POLICY_CSV_WITH_TASKRESULTDATA:
 		var policy *types.TaskMetadataPolicyCSVWithTaskResultData
 		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
@@ -61,6 +53,14 @@ func (pe *PolicyEngine) FetchMetedataIdByPartyIdAndOptionFromDataPolicy(partyId 
 			}
 			return resultData.GetMetadataId(), nil
 		}
+	case types.TASK_DATA_POLICY_IS_CSV_HAVE_CONSUME:
+		var policy *types.TaskMetadataPolicyCsvConsume
+		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
+			return "", err
+		}
+		if policy.GetPartyId() == partyId {
+			return policy.GetMetadataId(), nil
+		}
 	case types.TASK_DATA_POLICY_DIR:
 		var policy *types.TaskMetadataPolicyDIR
 		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
@@ -68,6 +68,21 @@ func (pe *PolicyEngine) FetchMetedataIdByPartyIdAndOptionFromDataPolicy(partyId 
 		}
 		if policy.GetPartyId() == partyId {
 			return policy.GetMetadataId(), nil
+		}
+	case types.TASK_DATA_POLICY_DIR_WITH_TASKRESULTDATA:
+		var policy *types.TaskMetadataPolicyDIRWithTaskResultData
+		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
+			return "", err
+		}
+		if policy.GetPartyId() == partyId {
+			resultData, err := pe.db.QueryTaskUpResulData(policy.GetTaskId())
+			if rawdb.IsNoDBNotFoundErr(err) {
+				return "", err
+			}
+			if rawdb.IsDBNotFoundErr(err) {
+				return IgnoreMetadataId, nil
+			}
+			return resultData.GetMetadataId(), nil
 		}
 	case types.TASK_DATA_POLICY_BINARY:
 		var policy *types.TaskMetadataPolicyBINARY
@@ -137,6 +152,19 @@ func (pe *PolicyEngine) FetchAllMetedataIdByOptionFromDataPolicy(policyType uint
 		}
 
 		return policy.GetMetadataId(), nil
+	case types.TASK_DATA_POLICY_DIR_WITH_TASKRESULTDATA:
+		var policy *types.TaskMetadataPolicyDIRWithTaskResultData
+		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
+			return "", err
+		}
+		resultData, err := pe.db.QueryTaskUpResulData(policy.GetTaskId())
+		if rawdb.IsNoDBNotFoundErr(err) {
+			return "", err
+		}
+		if rawdb.IsDBNotFoundErr(err) {
+			return IgnoreMetadataId, nil
+		}
+		return resultData.GetMetadataId(), nil
 	case types.TASK_DATA_POLICY_BINARY:
 		var policy *types.TaskMetadataPolicyBINARY
 		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
@@ -215,6 +243,28 @@ func (pe *PolicyEngine) FetchMetedataNameByPartyIdAndOptionFromDataPolicy(partyI
 		}
 		if policy.GetPartyId() == partyId {
 			return policy.GetMetadataName(), nil
+		}
+	case types.TASK_DATA_POLICY_DIR_WITH_TASKRESULTDATA:
+		var policy *types.TaskMetadataPolicyDIRWithTaskResultData
+		if err := json.Unmarshal([]byte(policyOption), &policy); nil != err {
+			return "", err
+		}
+		if policy.GetPartyId() == partyId {
+			resultData, err := pe.db.QueryTaskUpResulData(policy.GetTaskId())
+			if rawdb.IsNoDBNotFoundErr(err) {
+				return "", err
+			}
+			if rawdb.IsDBNotFoundErr(err) {
+				return IgnoreMetadataId, nil
+			}
+			metadata, err := pe.db.QueryInternalMetadataById(resultData.GetMetadataId())
+			if rawdb.IsNoDBNotFoundErr(err) {
+				return "", err
+			}
+			if rawdb.IsDBNotFoundErr(err) {
+				return IgnoreMetadataName, nil
+			}
+			return metadata.GetData().GetMetadataName(), nil
 		}
 	case types.TASK_DATA_POLICY_BINARY:
 		var policy *types.TaskMetadataPolicyBINARY

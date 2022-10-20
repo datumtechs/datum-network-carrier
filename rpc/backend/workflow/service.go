@@ -163,7 +163,7 @@ func (svr *Server) PublishWorkFlowDeclare(ctx context.Context, req *carrierapipb
 }
 
 func (svr *Server) QueryWorkFlowStatus(ctx context.Context, req *carrierapipb.QueryWorkStatusRequest) (*carrierapipb.QueryWorkStatusResponse, error) {
-	return svr.B.GetWorkflowStatus(req.GetWorkflowId())
+	return svr.B.GetWorkflowStatus(req.GetWorkflowIds())
 }
 
 func checkWorkflowTaskListReferTo(req *carrierapipb.PublishWorkFlowDeclareRequest) bool {
@@ -189,7 +189,7 @@ func checkWorkflowTaskListReferTo(req *carrierapipb.PublishWorkFlowDeclareReques
 	if len(dependencyOrder) == 0 {
 		return true
 	}
-	log.Debugf("dependencyOrder result:%v", dependencyOrder)
+
 	updateTaskListOrder := make([]*carrierapipb.PublishTaskDeclareRequest, 0)
 	for index := range dependencyOrder {
 		taskNameOrder := dependencyOrder[len(dependencyOrder)-index-1]
@@ -199,7 +199,7 @@ func checkWorkflowTaskListReferTo(req *carrierapipb.PublishWorkFlowDeclareReques
 			}
 		}
 	}
-	log.Debugf("updateTaskListOrder lenghth:%d", len(updateTaskListOrder))
+	log.Debugf("updateTaskListOrder result:%v", updateTaskListOrder)
 	req.TaskList = updateTaskListOrder
 	return false
 }
