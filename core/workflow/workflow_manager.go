@@ -66,7 +66,7 @@ func (m *Manager) AddWorkflow(workflow *types.Workflow) error {
 	if workflow.GetWorkflowId() == "" {
 		return fmt.Errorf("workflow name is %s,it's workflow id %s", workflow.GetWorkflowId(), workflow.GetWorkflowName())
 	}
-	return m.taskMsgSendToMessageManager(workflow)
+	return m.taskMsgSendToMessageManager(workflow, true)
 }
 
 func (m *Manager) GetWorkflowStatus(workflowIds []string) (*carrierapipb.QueryWorkStatusResponse, error) {
@@ -111,6 +111,46 @@ func (m *Manager) GetWorkflowStatus(workflowIds []string) (*carrierapipb.QueryWo
 	}, nil
 }
 
+func (m *Manager) GetAllWorkflowDetails() (*carrierapipb.QueryWorkflowDetailsResponse, error) {
+	workflowList := make([]*carriertypespb.Workflow, 0)
+	workflowsBackupCacheKeyPrefix := rawdb.QueryWorkflowsBackupCacheKeyPrefix()
+	prefixLength := len(workflowsBackupCacheKeyPrefix)
+	if err := m.dataCenter.ForEachKVWithPrefix(workflowsBackupCacheKeyPrefix, func(key, value []byte) error {
+		workflowId := string(key[prefixLength:])
+		log.Debugf("reovery workflowsBackupCache workflowId {%s}", workflowId)
+		var workflow carriertypespb.Workflow
+		if len(key) != 0 && len(value) != 0 {
+			if err := proto.Unmarshal(value, &workflow); err != nil {
+				return err
+			} else {
+				taskList := make([]*carriertypespb.TaskMsg, 0)
+				for _, v := range workflow.Tasks {
+					taskList = append(taskList, &carriertypespb.TaskMsg{Data: v.GetData()})
+				}
+
+				workflowList = append(workflowList, &carriertypespb.Workflow{
+					WorkflowId:   workflow.GetWorkflowId(),
+					Desc:         workflow.GetDesc(),
+					WorkflowName: workflow.GetWorkflowName(),
+					PolicyType:   workflow.GetPolicyType(),
+					Policy:       workflow.GetPolicy(),
+					User:         workflow.GetUser(),
+					UserType:     workflow.GetUserType(),
+					Sign:         workflow.GetSign(),
+					Tasks:        taskList,
+					CreateAt:     workflow.GetCreateAt(),
+				})
+			}
+		}
+		return nil
+	}); err != nil {
+		log.WithError(err).Errorf("GetAllWorkflowDetails ForEachKVWithPrefix fail.")
+	}
+	return &carrierapipb.QueryWorkflowDetailsResponse{
+		WorkflowDetailsList: workflowList,
+	}, nil
+}
+
 func (m *Manager) loop() {
 	checkExecuteResultTicker := time.NewTicker(defaultRemoveWorkflowExecuteResultSaveTimeoutInterval)
 	for {
@@ -131,7 +171,7 @@ func (m *Manager) loop() {
 					m.updateWorkflowStatus(workflowId, commonconstantpb.WorkFlowState_WorkFlowState_Succeed)
 					m.DeleteWorkflowCache(workflowId)
 				} else {
-					if err := m.taskMsgSendToMessageManager(workflow); err != nil {
+					if err := m.taskMsgSendToMessageManager(workflow, false); err != nil {
 						log.Warnf("taskMsgSendToMessageManager fail,%s", err.Error())
 					}
 				}
@@ -143,7 +183,7 @@ func (m *Manager) loop() {
 					m.adjustTasksList(workflowId, result.TaskName)
 				}
 				if len(workflow.Tasks) != 0 {
-					if err := m.taskMsgSendToMessageManager(workflow); err != nil {
+					if err := m.taskMsgSendToMessageManager(workflow, false); err != nil {
 						log.Warnf("taskMsgSendToMessageManager fail,%s", err.Error())
 					}
 				} else {
@@ -239,7 +279,7 @@ func (m *Manager) updateWorkflowStatus(workflowId string, status commonconstantp
 	}
 }
 
-func (m *Manager) taskMsgSendToMessageManager(workflow *types.Workflow) error {
+func (m *Manager) taskMsgSendToMessageManager(workflow *types.Workflow, isFirst bool) error {
 	workflowId := workflow.GetWorkflowId()
 	// equivalent to pop and check defer to task execute result
 	task, err := m.assemblyTaskParameters(workflow)
@@ -292,7 +332,7 @@ func (m *Manager) taskMsgSendToMessageManager(workflow *types.Workflow) error {
 			Data: v.GetTaskData(),
 		})
 	}
-	if err := m.dataCenter.SaveWorkflowCache(&carriertypespb.Workflow{
+	workflowPB := &carriertypespb.Workflow{
 		WorkflowId:   workflow.GetWorkflowId(),
 		Desc:         workflow.Desc,
 		WorkflowName: workflow.GetWorkflowName(),
@@ -303,8 +343,14 @@ func (m *Manager) taskMsgSendToMessageManager(workflow *types.Workflow) error {
 		Sign:         workflow.Sign,
 		Tasks:        taskList,
 		CreateAt:     workflow.CreateAt,
-	}); err != nil {
+	}
+	if err := m.dataCenter.SaveWorkflowCache(workflowPB); err != nil {
 		log.WithError(err).Errorf("taskMsgSendToMessageManager SaveWorkflowCache fail.")
+	}
+	if isFirst {
+		if err := m.dataCenter.SaveWorkflowCacheBackup(workflowPB); err != nil {
+			log.WithError(err).Errorf("taskMsgSendToMessageManager SaveWorkflowCacheBackup fail.")
+		}
 	}
 	return nil
 }
@@ -312,6 +358,7 @@ func (m *Manager) taskMsgSendToMessageManager(workflow *types.Workflow) error {
 func (m *Manager) assemblyTaskParameters(workflow *types.Workflow) (*types.TaskMsg, error) {
 	task := workflow.Tasks[0]
 	task.GenTaskId()
+	log.Infof("assemblyTaskParameters begin taskId {%s},DataPolicyTypes {%v},DataPolicyOptions %s", task.GetTaskId(), task.GetTaskData().GetDataPolicyTypes(), task.GetTaskData().GetDataPolicyOptions())
 	switch workflow.PolicyType {
 	case commonconstantpb.WorkFlowPolicyType_Ordinary_Policy:
 		// Check if the current task has dependencies
@@ -343,7 +390,7 @@ func (m *Manager) assemblyTaskParameters(workflow *types.Workflow) (*types.TaskM
 						switch dependParamsType {
 						case types.TASK_DATA_POLICY_CSV_WITH_TASKRESULTDATA:
 							var taskResultParams *types.TaskMetadataPolicyCSVWithTaskResultData
-							if err := json.Unmarshal([]byte(params), taskResultParams); err != nil {
+							if err := json.Unmarshal([]byte(params), &taskResultParams); err != nil {
 								log.WithError(err).Errorf("json Unmarshal fail,%s, dependParamsType:%d", params, dependParamsType)
 								return nil, err
 							}
@@ -381,10 +428,14 @@ func (m *Manager) assemblyTaskParameters(workflow *types.Workflow) (*types.TaskM
 				}
 			}
 		}
-		log.Infof("assemblyTaskParameters taskId {%s},DataPolicyTypes {%v},DataPolicyOptions %s", task.GetTaskId(), task.GetTaskData().GetDataPolicyTypes(), task.GetTaskData().GetDataPolicyOptions())
+
 	default:
 		return nil, fmt.Errorf("unknown workflow policy type %s", workflow.PolicyType.String())
 	}
+	if len(task.GetTaskData().GetDataPolicyTypes()) != len(task.GetTaskData().GetDataPolicyOptions()) || len(task.GetTaskData().GetDataPolicyTypes()) != len(task.GetTaskData().GetDataSuppliers()) {
+		return nil, fmt.Errorf("assemblyTaskParameters fail")
+	}
+	log.Infof("assemblyTaskParameters over taskId {%s},DataPolicyTypes {%v},DataPolicyOptions %s", task.GetTaskId(), task.GetTaskData().GetDataPolicyTypes(), task.GetTaskData().GetDataPolicyOptions())
 	return task, nil
 }
 
@@ -408,6 +459,9 @@ func (m *Manager) DeleteWorkflowCache(workflowId string) {
 	m.workflowsLock.Unlock()
 	if err := m.dataCenter.RemoveWorkflowCache(workflowId); err != nil {
 		log.WithError(err).Errorf("DeleteWorkflowCache dataCenter.RemoveWorkflowCache fail")
+	}
+	if err := m.dataCenter.RemoveWorkflowCacheBackup(workflowId); err != nil {
+		log.WithError(err).Errorf("DeleteWorkflowCache dataCenter.RemoveWorkflowCacheBackup fail")
 	}
 }
 func (m *Manager) recoveryCache() {

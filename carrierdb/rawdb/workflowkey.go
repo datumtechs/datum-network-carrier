@@ -4,6 +4,7 @@ var (
 	workflowMsgKeyPrefix             = []byte("workflowMsgKeyPrefix:")
 	sendToTaskManagerCacheKeyPrefix  = []byte("sendToTaskManagerCacheKeyPrefix:")
 	workflowsCacheKeyPrefix          = []byte("workflowsCacheKeyPrefix:")
+	workflowsBackupCacheKeyPrefix    = []byte("workflowsBackupCacheKeyPrefix:")
 	workflowStatusCacheKeyPrefix     = []byte("workflowStatusCacheKeyPrefix:")
 	workflowTaskStatusCacheKeyPrefix = []byte("workflowTaskStatusCacheKeyPrefix:")
 )
@@ -18,6 +19,10 @@ func GetSendToTaskManagerCacheKeyPrefix(taskId string) []byte {
 
 func GetWorkflowsCacheKeyPrefix(workflowId string) []byte {
 	return append(workflowsCacheKeyPrefix, []byte(workflowId)...)
+}
+
+func GetWorkflowsBackupCacheKeyPrefix(workflowId string) []byte {
+	return append(workflowsBackupCacheKeyPrefix, []byte(workflowId)...)
 }
 
 func GetWorkflowStatusCacheKeyPrefix(workflowId string) []byte {
@@ -44,4 +49,8 @@ func QueryWorkflowStatusCacheKeyPrefix() []byte {
 }
 func QueryWorkflowTaskStatusCacheKeyPrefix() []byte {
 	return workflowTaskStatusCacheKeyPrefix
+}
+
+func QueryWorkflowsBackupCacheKeyPrefix() []byte {
+	return workflowsBackupCacheKeyPrefix
 }

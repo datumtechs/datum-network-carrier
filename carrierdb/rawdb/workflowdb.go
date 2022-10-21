@@ -156,3 +156,25 @@ func QueryWorkflowMsgArr(db KeyValueStore) (types.WorkflowMsgArr, error) {
 	}
 	return arr, nil
 }
+
+func SaveWorkflowCacheBackup(db KeyValueStore, workflow *carriertypespb.Workflow) error {
+	//carriertypespb.Workflow
+	key := GetWorkflowsBackupCacheKeyPrefix(workflow.GetWorkflowId())
+	val, err := proto.Marshal(workflow)
+	if nil != err {
+		return err
+	}
+	return db.Put(key, val)
+}
+
+func RemoveWorkflowCacheBackup(db KeyValueStore, workflowId string) error {
+	key := GetWorkflowsBackupCacheKeyPrefix(workflowId)
+	has, err := db.Has(key)
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return err
+	case IsDBNotFoundErr(err), nil == err && !has:
+		return nil
+	}
+	return db.Delete(key)
+}

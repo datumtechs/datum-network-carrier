@@ -1545,3 +1545,7 @@ func (s *CarrierAPIBackend) GetQueryDataNodeClientByNodeId(nodeId string) (*grpc
 func (s *CarrierAPIBackend) GetWorkflowStatus(workflowIds []string) (*carrierapipb.QueryWorkStatusResponse, error) {
 	return s.carrier.WorkflowManager.GetWorkflowStatus(workflowIds)
 }
+
+func (s *CarrierAPIBackend) GetAllWorkflowDetails() (*carrierapipb.QueryWorkflowDetailsResponse, error) {
+	return s.carrier.WorkflowManager.GetAllWorkflowDetails()
+}
