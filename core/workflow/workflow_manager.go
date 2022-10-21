@@ -59,10 +59,11 @@ func NewWorkflowService(
 func (m *Manager) AddWorkflow(workflow *types.Workflow) error {
 	log.Debugf("AddWorkflow workflowId is:{%s}", workflow.WorkflowId)
 	m.workflowsLock.RLock()
-	if _, ok := m.workflowsCache[workflow.WorkflowId]; ok {
+	_, ok := m.workflowsCache[workflow.WorkflowId]
+	m.workflowsLock.RUnlock()
+	if ok {
 		return fmt.Errorf("AddWorkflow WorkflowId {%s} alerady exits", workflow.WorkflowId)
 	}
-	m.workflowsLock.RUnlock()
 	if workflow.GetWorkflowId() == "" {
 		return fmt.Errorf("workflow name is %s,it's workflow id %s", workflow.GetWorkflowId(), workflow.GetWorkflowName())
 	}
@@ -178,18 +179,20 @@ func (m *Manager) loop() {
 			case commonconstantpb.TaskState_TaskState_Failed:
 				// a=>b, c=>d
 				// tasks = {b,d,a,c} or {b,a,c,d}
-				if len(workflow.Tasks) != 0 {
-					log.Debugf("m.taskExecuteResultCh status is fail,workflowId %s", workflowId)
-					m.adjustTasksList(workflowId, result.TaskName)
-				}
-				if len(workflow.Tasks) != 0 {
-					if err := m.taskMsgSendToMessageManager(workflow, false); err != nil {
-						log.Warnf("taskMsgSendToMessageManager fail,%s", err.Error())
-					}
-				} else {
-					m.updateWorkflowStatus(workflowId, commonconstantpb.WorkFlowState_WorkFlowState_Failed)
-					m.DeleteWorkflowCache(workflowId)
-				}
+				//if len(workflow.Tasks) != 0 {
+				//	log.Debugf("m.taskExecuteResultCh status is fail,workflowId %s", workflowId)
+				//	m.adjustTasksList(workflowId, result.TaskName)
+				//}
+				//if len(workflow.Tasks) != 0 {
+				//	if err := m.taskMsgSendToMessageManager(workflow, false); err != nil {
+				//		log.Warnf("taskMsgSendToMessageManager fail,%s", err.Error())
+				//	}
+				//} else {
+				//	m.updateWorkflowStatus(workflowId, commonconstantpb.WorkFlowState_WorkFlowState_Failed)
+				//	m.DeleteWorkflowCache(workflowId)
+				//}
+				m.updateWorkflowStatus(workflowId, commonconstantpb.WorkFlowState_WorkFlowState_Failed)
+				m.DeleteWorkflowCache(workflowId)
 			}
 		case <-checkExecuteResultTicker.C:
 			m.removeWorkflowExecuteResultSaveTimeout()
@@ -312,6 +315,7 @@ func (m *Manager) taskMsgSendToMessageManager(workflow *types.Workflow, isFirst 
 		StartAt:  task.GetStartAt(),
 		EndAt:    task.GetEndAt(),
 	}
+
 	if statusDetails, ok := m.workflowTaskStatusCache[workflowId]; ok {
 		statusDetails[task.GetTaskName()] = statusWorkflowTask
 		m.workflowTaskStatusCache[workflowId] = statusDetails
@@ -320,6 +324,7 @@ func (m *Manager) taskMsgSendToMessageManager(workflow *types.Workflow, isFirst 
 		statusDetails[task.GetTaskName()] = statusWorkflowTask
 		m.workflowTaskStatusCache[workflowId] = statusDetails
 	}
+
 	if err := m.dataCenter.SaveWorkflowTaskStatusCache(workflowId, statusWorkflowTask); err != nil {
 		log.WithError(err).Errorf("updateWorkflowTaskStatus SaveWorkflowTaskStatusCache fail.")
 	}
@@ -432,9 +437,7 @@ func (m *Manager) assemblyTaskParameters(workflow *types.Workflow) (*types.TaskM
 	default:
 		return nil, fmt.Errorf("unknown workflow policy type %s", workflow.PolicyType.String())
 	}
-	if len(task.GetTaskData().GetDataPolicyTypes()) != len(task.GetTaskData().GetDataPolicyOptions()) || len(task.GetTaskData().GetDataPolicyTypes()) != len(task.GetTaskData().GetDataSuppliers()) {
-		return nil, fmt.Errorf("assemblyTaskParameters fail")
-	}
+
 	log.Infof("assemblyTaskParameters over taskId {%s},DataPolicyTypes {%v},DataPolicyOptions %s", task.GetTaskId(), task.GetTaskData().GetDataPolicyTypes(), task.GetTaskData().GetDataPolicyOptions())
 	return task, nil
 }

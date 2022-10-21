@@ -404,13 +404,13 @@ func (dc *DataCenter) QueryWorkflowMsgArr() (types.WorkflowMsgArr, error) {
 	return rawdb.QueryWorkflowMsgArr(dc.db)
 }
 func (dc *DataCenter) SaveWorkflowCacheBackup(workflow *carriertypespb.Workflow) error {
-	dc.mu.RUnlock()
-	defer dc.mu.RUnlock()
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
 	return rawdb.SaveWorkflowCacheBackup(dc.db, workflow)
 }
 func (dc *DataCenter) RemoveWorkflowCacheBackup(workflowId string) error {
-	dc.mu.RUnlock()
-	defer dc.mu.RUnlock()
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
 	return rawdb.RemoveWorkflowCacheBackup(dc.db, workflowId)
 }
 
