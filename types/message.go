@@ -1345,14 +1345,14 @@ Example:
       "party_id": "data1",    # 本方party_id
       "input_data": [
         {
-            "input_type": 1,     # 输入数据的类型. 0: unknown, 1: origin_data, 2: psi_output 3: model
+            "input_type": 1,     # 输入数据的类型，(算法用标识数据使用方式). 0: unknown, 1:origin_data, 2:model
             "data_type": 1,      # 数据的格式. 0:unknown, 1:csv, 2:folder, 3:xls, 4:txt, 5:json, 6:mysql, 7:bin
             "data_path": "path/to/data",  # 数据所在的本地路径
             "key_column": "col1",  # ID列名
             "selected_columns": ["col2", "col3"]  # 自变量(特征列名)
         },
         {
-            "input_type": 2,     # 输入数据的类型. 0: unknown, 1: origin_data, 2: psi_output 3: model
+            "input_type": 2,     # 输入数据的类型，(算法用标识数据使用方式). 0: unknown, 1:origin_data, 2:model
             "data_type": 1,
             "data_path": "path/to/data1/psi_result.csv",
             "key_column": "",
@@ -1383,7 +1383,7 @@ type SelfCfgParams struct {
 
 /**
 {
-    "input_type": 3,  # 输入数据的类型，(算法用标识数据使用方式). 0:unknown, 1:origin_data, 2:psi_output, 3:model
+    "input_type": 3,  # 输入数据的类型，(算法用标识数据使用方式). 0:unknown, 1:origin_data, 2:model
     "access_type": 1, # 访问数据的方式，(fighter用决定是否预先加载数据). 0:unknown, 1:local, 2:url
     "data_type": 0,   # 数据的格式，(算法用标识数据格式). 0:unknown, 1:csv, 2:dir, 3:binary, 4:xls, 5:xlsx, 6:txt, 7:json
     "data_path": "/task_result/task:0xdeefff3434..556/"  # 数据所在的本地路径
@@ -1398,7 +1398,7 @@ type InputDataDIR struct {
 
 /**
 {
-    "input_type": 3,  # 输入数据的类型，(算法用标识数据使用方式). 0:unknown, 1:origin_data, 2:psi_output, 3:model
+    "input_type": 3,  # 输入数据的类型，(算法用标识数据使用方式). 0:unknown, 1:origin_data, 2:model
     "access_type": 1, # 访问数据的方式，(fighter用决定是否预先加载数据). 0:unknown, 1:local, 2:url
     "data_type": 0,   # 数据的格式，(算法用标识数据格式). 0:unknown, 1:csv, 2:dir, 3:binary, 4:xls, 5:xlsx, 6:txt, 7:json
     "data_path": "/task_result/task:0xdeefff3434..556/"  # 数据所在的本地路径
@@ -1413,7 +1413,7 @@ type InputDataBINARY struct {
 
 /**
 {
-   "input_type": 1,  # 输入数据的类型，(算法用标识数据使用方式). 0:unknown, 1:origin_data, 2:psi_output, 3:model
+   "input_type": 1,  # 输入数据的类型，(算法用标识数据使用方式). 0:unknown, 1:origin_data, 2:model
    "access_type": 1, # 访问数据的方式，(fighter用决定是否预先加载数据). 0:unknown, 1:local, 2:url
    "data_type": 0,   # 数据的格式，(算法用标识数据格式). 0:unknown, 1:csv, 2:binary, 3:dir, 4:xls, 5:xlsx, 6:txt, 7:json
    "data_path": "/metadata/20220427_预测银行数据.csv",  # 数据所在的本地路径

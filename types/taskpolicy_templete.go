@@ -21,7 +21,7 @@ const (
 		"partyId": "p0",
 		"metadataId": "metadata:0xf7396b9a6be9c20...c54880c2d",
 		"metadataName": "aaa",
-		"inputType": 1, // 输入数据的类型，0:unknown, 1:origin_data, 2:psi_output, 3:model
+		"inputType": 1, // 输入数据的类型，(算法用标识数据使用方式). 0:unknown, 1:origin_data, 2:model
 		"keyColumn": 1,
 		"selectedColumns": [1, 2, 3]
 	}"
@@ -32,7 +32,7 @@ const (
 		"partyId": "p0",
 		"metadataId": "metadata:0xf7396b9a6be9c20...c54880c2d",
 		"metadataName": "aaa",
-		"inputType": 3 // 输入数据的类型，0:unknown, 1:origin_data, 2:psi_output, 3:model
+		"inputType": 3 // 输入数据的类型，(算法用标识数据使用方式). 0:unknown, 1:origin_data, 2:model
 	}"
 	*/
 	TASK_DATA_POLICY_BINARY = 3 // binary
@@ -41,7 +41,7 @@ const (
 		"partyId": "p0",
 		"metadataId": "metadata:0xf7396b9a6be9c20...c54880c2d",
 		"metadataName": "aaa",
-		"inputType": 1 // 输入数据的类型，0:unknown, 1:origin_data, 2:psi_output, 3:model
+		"inputType": 1 // 输入数据的类型，(算法用标识数据使用方式). 0:unknown, 1:origin_data, 2:model
 	}"
 	*/
 	TASK_DATA_POLICY_XLS  = 4 // xls
@@ -54,7 +54,7 @@ const (
 		"{
 			"partyId": "p0",
 			"taskId": "task:0x43b3d8c65b877adfd05a77dc6b3bb1ad27e4727edbccb3cc76ffd51f78794479",
-			"inputType": 1, // 输入数据的类型，0:unknown, 1:origin_data, 2:psi_output, 3:model
+			"inputType": 1, // 输入数据的类型，(算法用标识数据使用方式). 0:unknown, 1:origin_data, 2:model
 		}"
 	*/
 	TASK_DATA_POLICY_DIR_WITH_TASKRESULTDATA = 30002
@@ -62,7 +62,7 @@ const (
 	"{
 		"partyId": "p0",
 		"taskId": "task:0x43b3d8c65b877adfd05a77dc6b3bb1ad27e4727edbccb3cc76ffd51f78794479",
-		"inputType": 3 // 输入数据的类型，0:unknown, 1:origin_data, 2:psi_output, 3:model
+		"inputType": 3 // 输入数据的类型，(算法用标识数据使用方式). 0:unknown, 1:origin_data, 2:model
 	}"
 	*/
 
@@ -72,7 +72,7 @@ const (
 			"partyId": "p0",
 			"metadataId": "metadata:0xf7396b9a6be9c20...c54880c2d",
 			"metadataName": "aaa",
-			"inputType": 1, // 输入数据的类型，0:unknown, 1:origin_data, 2:psi_output, 3:model
+			"inputType": 1, // 输入数据的类型，(算法用标识数据使用方式). 0:unknown, 1:origin_data, 2:model
 			"keyColumn": 1,
 			"selectedColumns": [1, 2, 3],
 			"consumeTypes": [],  // 消费该元数据的方式类型说明, 0: unknown, 1: metadataAuth, 2: ERC20, 3: ERC721, ...
@@ -148,7 +148,7 @@ example:
 				"partyId": "p0",
 				"metadataId": "metadata:0x2843e8103c...6c537c7",
 				"metadataName": "bbb",
-				"inputType": 3 // 输入数据的类型，0:unknown, 1:origin_data, 2:psi_output, 3:model
+				"inputType": 3 // 输入数据的类型，(算法用标识数据使用方式). 0:unknown, 1:origin_data, 2:model
 			}
 
 
@@ -182,7 +182,7 @@ example:
 				"partyId": "p0",
 				"metadataId": "metadata:0xf7396b9a6be9c20...c54880c2d",
 				"metadataName": "aaa",
-				"inputType": 1, // 输入数据的类型，0:unknown, 1:origin_data, 2:psi_output, 3:model
+				"inputType": 1, // 输入数据的类型，(算法用标识数据使用方式). 0:unknown, 1:origin_data, 2:model
 				"keyColumn": 1,
 				"selectedColumns": [1, 2, 3]
 			}
@@ -268,7 +268,7 @@ example:
 				"partyId": "p0",
 				"metadataId": "metadata:0x2843e8103c...6c537c7",
 				"metadataName": "bbb",
-				"inputType": 3 // 输入数据的类型，0:unknown, 1:origin_data, 2:psi_output, 3:model
+				"inputType": 3 // 输入数据的类型，(算法用标识数据使用方式). 0:unknown, 1:origin_data, 2:model
 			}
 
 
@@ -302,7 +302,7 @@ example:
 				"partyId": "p0",
 				"metadataId": "metadata:0x2843e8103c...6c537c7",
 				"metadataName": "bbb",
-				"inputType": 3 // 输入数据的类型，0:unknown, 1:origin_data, 2:psi_output, 3:model
+				"inputType": 3 // 输入数据的类型，(算法用标识数据使用方式). 0:unknown, 1:origin_data, 2:model
 			}
 
 
@@ -335,7 +335,7 @@ example:
 			{
 				"partyId": "p0",
 				"taskId": "task:0x43b3d8c65b877adfd05a77dc6b3bb1ad27e4727edbccb3cc76ffd51f78794479",
-				"inputType": 1, // 输入数据的类型，0:unknown, 1:origin_data, 2:psi_output, 3:model
+				"inputType": 1, // 输入数据的类型，(算法用标识数据使用方式). 0:unknown, 1:origin_data, 2:model
 				"keyColumnName": "id",
 				"selectedColumnNames": ["name", "age", "point"]
 			}
@@ -374,7 +374,7 @@ example:
 			{
 				"partyId": "p0",
 				"taskId": "task:0x43b3d8c65b877adfd05a77dc6b3bb1ad27e4727edbccb3cc76ffd51f78794479",
-				"inputType": 1, // 输入数据的类型，0:unknown, 1:origin_data, 2:psi_output, 3:model
+				"inputType": 1, // 输入数据的类型，(算法用标识数据使用方式). 0:unknown, 1:origin_data, 2:model
 			}
 
 

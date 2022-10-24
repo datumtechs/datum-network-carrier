@@ -1674,7 +1674,7 @@ func (m *Manager) makeReqCfgParams(task *types.NeedExecuteTask, localTask *types
 		"part_id": "p0",
 	    "input_data": [
 	          {
-	              "input_type": 3,  # 输入数据的类型，(算法用标识数据使用方式). 0:unknown, 1:origin_data, 2:psi_output, 3:model
+	              "input_type": 3,  # 输入数据的类型，(算法用标识数据使用方式). 0:unknown, 1:origin_data, 2:model
 	              "access_type": 1, # 访问数据的方式，(fighter用决定是否预先加载数据). 0:unknown, 1:local, 2:url
 	              "data_type": 0,   # 数据的格式，(算法用标识数据格式). 0:unknown, 1:csv, 2:dir, 3:binary, 4:xls, 5:xlsx, 6:txt, 7:json
 	              "data_path": "/task_result/task:0xdeefff3434..556/"  # 数据所在的本地路径
