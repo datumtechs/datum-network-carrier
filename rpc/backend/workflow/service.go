@@ -10,11 +10,14 @@ import (
 	"github.com/datumtechs/datum-network-carrier/rpc/backend/task"
 	"github.com/datumtechs/datum-network-carrier/signsuite"
 	"github.com/datumtechs/datum-network-carrier/types"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"strings"
 )
 
 func (svr *Server) PublishWorkFlowDeclare(ctx context.Context, req *carrierapipb.PublishWorkFlowDeclareRequest) (*carrierapipb.PublishWorkFlowDeclareResponse, error) {
 	identity, err := svr.B.GetNodeIdentity()
+	reqStr, _ := json.Marshal(req)
+	log.Infof("PublishWorkFlowDeclare req is : %s", reqStr)
 	//  check policy include ring
 	if checkWorkflowTaskListReferTo(req) {
 		log.Errorf("RPC-API:PublishWorkFlowDeclare failed, checkWorkflowTaskListReferTo return is true,{%s}", req.Policy)
@@ -64,19 +67,6 @@ func (svr *Server) PublishWorkFlowDeclare(ctx context.Context, req *carrierapipb
 		if len(v.GetReceivers()) == 0 {
 			log.Errorf("RPC-API:PublishWorkFlowDeclare failed, check receivers failed, receivers is empty,taskName: {%s}", v.GetTaskName())
 			return &carrierapipb.PublishWorkFlowDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require receivers"}, nil
-		}
-		// about dataPolicy
-		if len(v.GetDataPolicyTypes()) == 0 {
-			log.Errorf("RPC-API:PublishWorkFlowDeclare failed, check DataPolicyType failed, dataPolicyTypes len is %d,taskName: {%s}", len(v.GetDataPolicyTypes()), v.GetTaskName())
-			return &carrierapipb.PublishWorkFlowDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown dataPolicyTypes"}, nil
-		}
-		if len(v.GetDataPolicyOptions()) == 0 {
-			log.Errorf("RPC-API:PublishWorkFlowDeclare failed, check DataPolicyOption failed, dataPolicyOptions len is %d,taskName: {%s}", len(v.GetDataPolicyOptions()), v.GetTaskName())
-			return &carrierapipb.PublishWorkFlowDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require dataPolicyOptions"}, nil
-		}
-		if len(v.GetDataPolicyTypes()) != len(v.GetDataPolicyOptions()) || len(v.GetDataPolicyTypes()) != len(v.GetDataSuppliers()) {
-			log.Errorf("RPC-API:PublishWorkFlowDeclare failed, invalid dataPolicys len,taskName: {%s}", v.GetTaskName())
-			return &carrierapipb.PublishWorkFlowDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "invalid dataPolicys len"}, nil
 		}
 		// about powerPolicy
 		if len(v.GetPowerPolicyTypes()) == 0 {
@@ -166,6 +156,10 @@ func (svr *Server) QueryWorkFlowStatus(ctx context.Context, req *carrierapipb.Qu
 	return svr.B.GetWorkflowStatus(req.GetWorkflowIds())
 }
 
+func (svr *Server) QueryAllWorkFlowDetails(ctx context.Context, req *emptypb.Empty) (*carrierapipb.QueryWorkflowDetailsResponse, error) {
+	return svr.B.GetAllWorkflowDetails()
+}
+
 func checkWorkflowTaskListReferTo(req *carrierapipb.PublishWorkFlowDeclareRequest) bool {
 	policy := req.GetPolicy()
 	var wp *types.WorkflowPolicy
@@ -187,20 +181,20 @@ func checkWorkflowTaskListReferTo(req *carrierapipb.PublishWorkFlowDeclareReques
 	}
 	dependencyOrder := directedAcyclicGraphTopologicalSort(referToGraph)
 	if len(dependencyOrder) == 0 {
+		log.Warnf("there is a circular dependency on the workflow policy, please check")
 		return true
 	}
-
-	updateTaskListOrder := make([]*carrierapipb.PublishTaskDeclareRequest, 0)
-	for index := range dependencyOrder {
-		taskNameOrder := dependencyOrder[len(dependencyOrder)-index-1]
-		for _, taskDetail := range req.GetTaskList() {
-			if taskNameOrder == taskDetail.GetTaskName() {
-				updateTaskListOrder = append(updateTaskListOrder, taskDetail)
-			}
-		}
-	}
-	log.Debugf("updateTaskListOrder result:%v", updateTaskListOrder)
-	req.TaskList = updateTaskListOrder
+	//updateTaskListOrder := make([]*carrierapipb.PublishTaskDeclareRequest, 0)
+	//for index := range dependencyOrder {
+	//	taskNameOrder := dependencyOrder[len(dependencyOrder)-index-1]
+	//	for _, taskDetail := range req.GetTaskList() {
+	//		if taskNameOrder == taskDetail.GetTaskName() {
+	//			updateTaskListOrder = append(updateTaskListOrder, taskDetail)
+	//		}
+	//	}
+	//}
+	//log.Debugf("updateTaskListOrder result:%v", updateTaskListOrder)
+	//req.TaskList = updateTaskListOrder
 	return false
 }
 

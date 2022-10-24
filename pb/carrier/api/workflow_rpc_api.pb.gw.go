@@ -22,6 +22,7 @@ import (
 	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 // Suppress "imported and not used" errors
@@ -101,6 +102,24 @@ func local_request_WorkFlowService_QueryWorkFlowStatus_0(ctx context.Context, ma
 
 }
 
+func request_WorkFlowService_QueryAllWorkFlowDetails_0(ctx context.Context, marshaler runtime.Marshaler, client WorkFlowServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq emptypb.Empty
+	var metadata runtime.ServerMetadata
+
+	msg, err := client.QueryAllWorkFlowDetails(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_WorkFlowService_QueryAllWorkFlowDetails_0(ctx context.Context, marshaler runtime.Marshaler, server WorkFlowServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq emptypb.Empty
+	var metadata runtime.ServerMetadata
+
+	msg, err := server.QueryAllWorkFlowDetails(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
 // RegisterWorkFlowServiceHandlerServer registers the http handlers for service WorkFlowService to "mux".
 // UnaryRPC     :call WorkFlowServiceServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
@@ -150,6 +169,29 @@ func RegisterWorkFlowServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		}
 
 		forward_WorkFlowService_QueryWorkFlowStatus_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("GET", pattern_WorkFlowService_QueryAllWorkFlowDetails_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_WorkFlowService_QueryAllWorkFlowDetails_0(rctx, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_WorkFlowService_QueryAllWorkFlowDetails_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -234,6 +276,26 @@ func RegisterWorkFlowServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 
 	})
 
+	mux.Handle("GET", pattern_WorkFlowService_QueryAllWorkFlowDetails_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_WorkFlowService_QueryAllWorkFlowDetails_0(rctx, inboundMarshaler, client, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_WorkFlowService_QueryAllWorkFlowDetails_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
 	return nil
 }
 
@@ -241,10 +303,14 @@ var (
 	pattern_WorkFlowService_PublishWorkFlowDeclare_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"carrier", "v1", "workflow", "publish"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_WorkFlowService_QueryWorkFlowStatus_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"carrier", "v1", "workflow", "getStatus"}, "", runtime.AssumeColonVerbOpt(true)))
+
+	pattern_WorkFlowService_QueryAllWorkFlowDetails_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"carrier", "v1", "workflow", "getAllWorkflowDetails"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (
 	forward_WorkFlowService_PublishWorkFlowDeclare_0 = runtime.ForwardResponseMessage
 
 	forward_WorkFlowService_QueryWorkFlowStatus_0 = runtime.ForwardResponseMessage
+
+	forward_WorkFlowService_QueryAllWorkFlowDetails_0 = runtime.ForwardResponseMessage
 )
