@@ -403,6 +403,16 @@ func (dc *DataCenter) QueryWorkflowMsgArr() (types.WorkflowMsgArr, error) {
 	defer dc.mu.RUnlock()
 	return rawdb.QueryWorkflowMsgArr(dc.db)
 }
+func (dc *DataCenter) SaveWorkflowCacheBackup(workflow *carriertypespb.Workflow) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.SaveWorkflowCacheBackup(dc.db, workflow)
+}
+func (dc *DataCenter) RemoveWorkflowCacheBackup(workflowId string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.RemoveWorkflowCacheBackup(dc.db, workflowId)
+}
 
 // about msg nonce
 func (dc *DataCenter) QueryIdentityMsgNonce() (uint64, error) {
@@ -517,8 +527,6 @@ func (dc *DataCenter) RemoveWorkflowTaskStatusCache(workflowIdTaskName string) e
 	return rawdb.RemoveWorkflowTaskStatusCache(dc.db, workflowIdTaskName)
 }
 func (dc *DataCenter) ForEachKVWithPrefix(prefix []byte, f func(key, value []byte) error) error {
-	dc.mu.Lock()
-	defer dc.mu.Unlock()
 	return rawdb.ForEachKVWithPrefix(dc.db, prefix, f)
 }
 
