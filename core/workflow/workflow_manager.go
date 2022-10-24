@@ -616,7 +616,7 @@ func (m *Manager) removeWorkflowExecuteResultSaveTimeout() {
 				if (now-workflowState.UpdateAt) > timeout && (workflowState.Status == commonconstantpb.WorkFlowState_WorkFlowState_Succeed || workflowState.Status == commonconstantpb.WorkFlowState_WorkFlowState_Failed) {
 					log.Warnf("workflowId save status time,%s,now is {%d},workflowState.UpdateAt {%d}", workflowId, now, workflowState.UpdateAt)
 					saveRemoveWorkflowIds[workflowId] = struct{}{}
-					return m.dataCenter.RemoveWorkflowStatusCache(workflowId, false)
+					return m.dataCenter.RemoveWorkflowStatusCache(workflowId)
 				}
 			}
 		}
@@ -639,7 +639,7 @@ func (m *Manager) removeWorkflowExecuteResultSaveTimeout() {
 				workflowIdTaskName := string(key[prefixLength:])
 				workflowId := workflowIdTaskName[:75]
 				if _, ok := saveRemoveWorkflowIds[workflowId]; ok {
-					if err := m.dataCenter.RemoveWorkflowTaskStatusCache(workflowIdTaskName, false); err != nil {
+					if err := m.dataCenter.RemoveWorkflowTaskStatusCache(workflowIdTaskName); err != nil {
 						log.Warnf("removeWorkflowExecuteResultSaveTimeout RemoveWorkflowTaskStatusCache fail,workflowIdTaskName %s", workflowIdTaskName)
 					}
 				}
