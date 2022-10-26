@@ -10,6 +10,7 @@ import (
 	"github.com/datumtechs/datum-network-carrier/rpc/backend/task"
 	"github.com/datumtechs/datum-network-carrier/signsuite"
 	"github.com/datumtechs/datum-network-carrier/types"
+	"github.com/status-im/keycard-go/hexutils"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"strings"
 )
@@ -127,6 +128,7 @@ func (svr *Server) PublishWorkFlowDeclare(ctx context.Context, req *carrierapipb
 		return &carrierapipb.PublishWorkFlowDeclareResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require sign"}, nil
 	}
 	workflowMsg := types.NewWorkFlowMessageFromRequest(req)
+	log.Infof("workflowMsg.Hash is {%s},req.GetSign is {%s}", workflowMsg.Hash().Hex(), hexutils.BytesToHex(req.GetSign()))
 	from, _, err := signsuite.Sender(req.GetUserType(), workflowMsg.Hash(), req.GetSign())
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:PublishWorkFlowDeclare failed, cannot fetch sender from sign, userType: {%s}, user: {%s}",
