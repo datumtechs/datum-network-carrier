@@ -1523,6 +1523,11 @@ func (msg *WorkflowMsg) Hash() common.Hash {
 		return hash.(common.Hash)
 	}
 	var buf bytes.Buffer
+	buf.Write([]byte(msg.Data.User))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(msg.Data.UserType)))
+	buf.Write([]byte(msg.Data.WorkflowName))
+	buf.Write(bytesutil.Uint32ToBytes(uint32(msg.Data.PolicyType)))
+	buf.Write([]byte(msg.Data.Policy))
 	for _, v := range msg.Data.Tasks {
 		buf.Write([]byte(v.GetTaskData().GetUser()))
 		buf.Write(bytesutil.Uint32ToBytes(uint32(v.GetTaskData().GetUserType())))
