@@ -326,7 +326,7 @@ func (gc *GrpcClient) ListTask(ctx context.Context, request *datacenterapipb.Lis
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}
 	// TODO: Requests take too long, consider stream processing
-	ctx, cancel := context.WithTimeout(ctx, SixHundredSecondGrpcRequestTimeout)
+	ctx, cancel := context.WithTimeout(ctx, TweentySecondGrpcRequestTimeout)
 	defer cancel()
 	return gc.taskService.ListTask(ctx, request, RPCMaxCallRecvMsgSize)
 }
