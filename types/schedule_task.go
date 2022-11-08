@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/datumtechs/datum-network-carrier/common/timeutils"
 	carriernetmsgcommonpb "github.com/datumtechs/datum-network-carrier/pb/carrier/netmsg/common"
@@ -149,8 +150,15 @@ func (rsr *ReplayScheduleResult) String() string {
 		rsr.taskId, errStr, resourceStr)
 }
 
+//type TaskConsumeOptioner interface {
+//	GetQueryId() string // The query Id used to query the consumption status of the task
+//	MarshalJSON() ([]byte, error)
+//	UnmarshalJSON(b []byte) error
+//}
+
 // v 0.4.0
-type DatatokenPaySpec struct {
+type DatatokenPayTK20Spec struct {
+	QueryId string `json:"queryId"` // The query Id used to query the consumption status of the task
 	// task state in contract
 	// constant int8 private NOTEXIST = -1;
 	// constant int8 private BEGIN = 0;
@@ -162,10 +170,43 @@ type DatatokenPaySpec struct {
 	GasUsed uint64 `json:"gasUsed"` // prepay gas used about task
 }
 
-func (s *DatatokenPaySpec) GetConsumed() int32 { return s.Consumed }
+func (s *DatatokenPayTK20Spec) MarshalJSON() ([]byte, error) {
+	b, err := json.Marshal(s)
+	if nil != err {
+		return nil, err
+	}
+	return b, nil
+}
 
-//func (s *DatatokenPaySpec) GetGasEstimated() uint64 { return s.GasEstimated }
-func (s *DatatokenPaySpec) GetGasUsed() uint64 { return s.GasUsed }
+func (s *DatatokenPayTK20Spec) UnmarshalJSON(b []byte) error {
+	if err := json.Unmarshal(b, &s); nil != err {
+		return err
+	}
+	return nil
+}
+func (s *DatatokenPayTK20Spec) GetQueryId() string { return s.QueryId }
+func (s *DatatokenPayTK20Spec) GetConsumed() int32 { return s.Consumed }
+
+//func (s *datatokenPayTK20Spec) GetGasEstimated() uint64 { return s.GasEstimated }
+func (s *DatatokenPayTK20Spec) GetGasUsed() uint64 { return s.GasUsed }
+
+type TaskConsumeSpec struct {
+	consumeTypes   []uint8  // 0: unknown, 1: metadataAuth, 2: tk20, 3: tk721
+	consumeOptions []string // option json arr
+}
+
+func NewTaskConsumeSpec(conSumeTypes []uint8, consumeOptions []string) *TaskConsumeSpec {
+	return &TaskConsumeSpec{
+		consumeTypes:   conSumeTypes,
+		consumeOptions: consumeOptions,
+	}
+}
+func (s *TaskConsumeSpec) SetConsumeTypes(consumeTypes []uint8) { s.consumeTypes = consumeTypes }
+func (s *TaskConsumeSpec) SetConsumeOptions(consumeOptions []string) {
+	s.consumeOptions = consumeOptions
+}
+func (s *TaskConsumeSpec) GetConsumeTypes() []uint8    { return s.consumeTypes }
+func (s *TaskConsumeSpec) GetConsumeOptions() []string { return s.consumeOptions }
 
 // Tasks to be executed (local and remote, which have been completed by consensus and can be executed by issuing fighter)
 type NeedExecuteTask struct {
@@ -178,8 +219,7 @@ type NeedExecuteTask struct {
 	localResource          *PrepareVoteResource
 	resources              *carriertwopcpb.ConfirmTaskPeerInfo
 	taskId                 string
-	consumeQueryId         string // The query Id used to query the consumption status of the task
-	consumeSpec            string // Consumption special of the task  (json format)
+	consumeSpec            *TaskConsumeSpec // Consumption special of the task
 	err                    error
 }
 
@@ -221,8 +261,7 @@ func (net *NeedExecuteTask) GetTaskId() string                                 {
 func (net *NeedExecuteTask) GetConsStatus() TaskActionStatus                   { return net.status }
 func (net *NeedExecuteTask) GetLocalResource() *PrepareVoteResource            { return net.localResource }
 func (net *NeedExecuteTask) GetResources() *carriertwopcpb.ConfirmTaskPeerInfo { return net.resources }
-func (net *NeedExecuteTask) GetConsumeQueryId() string                         { return net.consumeQueryId }
-func (net *NeedExecuteTask) GetConsumeSpec() string                            { return net.consumeSpec }
+func (net *NeedExecuteTask) GetConsumeSpec() *TaskConsumeSpec                  { return net.consumeSpec }
 func (net *NeedExecuteTask) GetErr() error                                     { return net.err }
 func (net *NeedExecuteTask) String() string {
 	localIdentityStr := "{}"
@@ -241,10 +280,9 @@ func (net *NeedExecuteTask) String() string {
 		net.GetRemotePID(), net.GetLocalTaskRole().String(), localIdentityStr, net.GetRemoteTaskRole().String(), remoteIdentityStr, net.GetTaskId(), localResourceStr, confirmTaskPeerInfoString(net.GetResources()), net.GetErr())
 }
 
-func (net *NeedExecuteTask) SetConsumeQueryId(consumeQueryId string) {
-	net.consumeQueryId = consumeQueryId
+func (net *NeedExecuteTask) SetConsumeSpec(consumeSpec *TaskConsumeSpec) {
+	net.consumeSpec = consumeSpec
 }
-func (net *NeedExecuteTask) SetConsumeSpec(consumeSpec string) { net.consumeSpec = consumeSpec }
 
 type ExecuteTaskMonitor struct {
 	taskId  string

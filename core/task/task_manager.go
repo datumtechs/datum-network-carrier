@@ -162,6 +162,44 @@ func (m *Manager) recoveryNeedExecuteTask() {
 				taskErr,
 			)
 			// TODO 需要添加根据 consumeSpec 中的一些状态， 决定是否在重新启动时，是否继续做的某些事 ...
+			// add consumeSpec
+			conSumeTypes := make([]uint8, 0)
+			consumeOptions := make([]string, 0)
+			for consumeType, _ := range dataConsumeOptionsCache {
+				switch consumeType {
+				case types.ConsumeTk20:
+
+					taskIdBigInt, err := hexutil.DecodeBig("0x" + strings.TrimLeft(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID+"0x"), "\x00"))
+					if nil != err {
+						return fmt.Errorf("cannot decode taskId to big.Int when init consumeSpec by tk20, %s", err)
+					}
+
+					conSumeTypes = append(conSumeTypes, consumeType)
+					spec := &types.DatatokenPayTK20Spec{
+						QueryId: taskIdBigInt.String(),
+						// task state in contract
+						// constant int8 private NOTEXIST = -1;
+						// constant int8 private BEGIN = 0;
+						// constant int8 private PREPAY = 1;
+						// constant int8 private SETTLE = 2;
+						// constant int8 private END = 3;
+						Consumed: int32(-1),
+						//GasEstimated: 0,
+						GasUsed: 0,
+					}
+					b, err := spec.MarshalJSON()
+					if nil != err {
+						return fmt.Errorf("cannot json marshal consumeSpec by tk20, %s", err)
+					}
+
+					consumeOptions = append(consumeOptions, string(b))
+				default:
+					// do nothings...
+				}
+			}
+
+			task.SetConsumeSpec(types.NewTaskConsumeSpec(conSumeTypes, consumeOptions))
+
 			task.SetConsumeQueryId(res.GetConsumeQueryId())
 			task.SetConsumeSpec(res.GetConsumeSpec())
 

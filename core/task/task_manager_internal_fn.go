@@ -420,23 +420,26 @@ func (m *Manager) beginConsumeByTk20(task *types.NeedExecuteTask, localTask *typ
 			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskIdBigInt, txHash.String(), state)
 
 		// update consumeSpec into needExecuteTask
-		if "" == strings.Trim(task.GetConsumeSpec(), "") {
-			return fmt.Errorf("consumeSpec about task is empty on beginConsumeByTk20(), consumeSpec: %s", task.GetConsumeSpec())
+		if nil == task.GetConsumeSpec() {
+			return fmt.Errorf("consumeSpec about task is empty on beginConsumeByTk20()")
 		}
-		var consumeSpec *types.DatatokenPaySpec
-		if err := json.Unmarshal([]byte(task.GetConsumeSpec()), &consumeSpec); nil != err {
-			return fmt.Errorf("cannot json unmarshal consumeSpec on beginConsumeByTk20(), consumeSpec: %s, %s", task.GetConsumeSpec(), err)
-		}
+		for i, typ := range task.GetConsumeSpec().GetConsumeTypes() {
+			if typ == types.ConsumeTk20 {
+				var consumeSpec *types.DatatokenPayTK20Spec
+				if err := consumeSpec.UnmarshalJSON([]byte(task.GetConsumeSpec().GetConsumeOptions()[i])); nil != err {
+					return fmt.Errorf("cannot json unmarshal consumeSpec on beginConsumeByTk20(), consumeSpec: %s, %s", task.GetConsumeSpec().GetConsumeOptions()[i], err)
+				}
+				consumeSpec.Consumed = int32(state)
+				//consumeSpec.GasEstimated = gasLimit
+				consumeSpec.GasUsed = receipt.GasUsed
 
-		consumeSpec.Consumed = int32(state)
-		//consumeSpec.GasEstimated = gasLimit
-		consumeSpec.GasUsed = receipt.GasUsed
-
-		b, err := json.Marshal(consumeSpec)
-		if nil != err {
-			return fmt.Errorf("connot json marshal task consumeSpec on beginConsumeByTk20(), consumeSpec: %v, %s", consumeSpec, err)
+				b, err := consumeSpec.MarshalJSON()
+				if nil != err {
+					return fmt.Errorf("connot json marshal task consumeSpec on beginConsumeByTk20(), consumeSpec: %v, %s", consumeSpec, err)
+				}
+				task.GetConsumeSpec().GetConsumeOptions()[i] = string(b)
+			}
 		}
-		task.SetConsumeSpec(string(b))
 		// update needExecuteTask into cache
 		m.updateNeedExecuteTaskCache(task)
 
@@ -788,6 +791,11 @@ func (m *Manager) endConsumeByTk20(task *types.NeedExecuteTask, localTask *types
 	switch task.GetLocalTaskRole() {
 	case commonconstantpb.TaskRole_TaskRole_Sender:
 
+		if task.GetLocalTaskOrganization().GetPartyId() != localTask.GetTaskSender().GetPartyId() {
+			return fmt.Errorf("this partyId is not task sender on endConsumeByTk20(), partyId: %s, sender partyId: %s",
+				task.GetLocalTaskOrganization().GetPartyId(), localTask.GetTaskSender().GetPartyId())
+		}
+
 		// fetch tk20
 		metadataIds := make([]string, 0)
 		metadataIdCache := make(map[string]struct{}, 0)
@@ -817,21 +825,20 @@ func (m *Manager) endConsumeByTk20(task *types.NeedExecuteTask, localTask *types
 		}
 
 		// query consumeSpec of task
-		var consumeSpec *types.DatatokenPaySpec
-
-		if "" == strings.Trim(task.GetConsumeSpec(), "") {
-			return fmt.Errorf("consumeSpec about task is empty on endConsumeByTk20(), consumeSpec: %s", task.GetConsumeSpec())
+		if nil == task.GetConsumeSpec() {
+			return fmt.Errorf("consumeSpec about task is empty on endConsumeByTk20()")
 		}
-
-		if err := json.Unmarshal([]byte(task.GetConsumeSpec()), &consumeSpec); nil != err {
-			return fmt.Errorf("cannot json unmarshal consumeSpec on endConsumeByTk20(), consumeSpec: %s, %s", task.GetConsumeSpec(), err)
+		var consumeSpec *types.DatatokenPayTK20Spec
+		for i, typ := range task.GetConsumeSpec().GetConsumeTypes() {
+			if typ == types.ConsumeTk20 {
+				if err := consumeSpec.UnmarshalJSON([]byte(task.GetConsumeSpec().GetConsumeOptions()[i])); nil != err {
+					return fmt.Errorf("cannot json unmarshal consumeSpec on endConsumeByTk20(), consumeSpec: %s, %s", task.GetConsumeSpec().GetConsumeOptions()[i], err)
+				}
+			}
 		}
-
-		if task.GetLocalTaskOrganization().GetPartyId() != localTask.GetTaskSender().GetPartyId() {
-			return fmt.Errorf("this partyId is not task sender on endConsumeByTk20(), partyId: %s, sender partyId: %s",
-				task.GetLocalTaskOrganization().GetPartyId(), localTask.GetTaskSender().GetPartyId())
+		if nil == consumeSpec {
+			return fmt.Errorf("not found consumeSpec about task is empty on endConsumeByTk20()")
 		}
-
 		// check task state in contract
 		//
 		// If the state of the contract is not "prepay",
@@ -996,7 +1003,6 @@ func (m *Manager) endConsumeByMetadataAuth(task *types.NeedExecuteTask, localTas
 func (m *Manager) driveTaskForExecute(task *types.NeedExecuteTask, localTask *types.Task) error {
 
 	// 1、 consume the resource of task
-	// TODO 打开这里 ...
 	if err := m.beginConsumeMetadataOrPower(task, localTask); nil != err {
 		return err
 	}
@@ -1309,7 +1315,6 @@ func (m *Manager) publishFinishedTaskToDataCenter(task *types.NeedExecuteTask, l
 		}
 
 		// 1、settle metadata or power usage.
-		// TODO 打开这里 ...
 		if err := m.endConsumeMetadataOrPower(task, localTask); nil != err {
 			log.WithError(err).Errorf("Failed to settle consume metadata or power on publishFinishedTaskToDataCenter, taskId: {%s}, partyId: {%s}, taskState: {%s}",
 				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskState.String())
@@ -1347,7 +1352,6 @@ func (m *Manager) publishFinishedTaskToDataCenter(task *types.NeedExecuteTask, l
 func (m *Manager) sendTaskResultMsgToTaskSender(task *types.NeedExecuteTask, localTask *types.Task) {
 
 	// 1、settle metadata or power usage.
-	// TODO 打开这里 ...
 	if err := m.endConsumeMetadataOrPower(task, localTask); nil != err {
 		log.WithError(err).Errorf("Failed to settle consume metadata or power on sendTaskResultMsgToTaskSender, taskId: {%s},  partyId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
@@ -2175,41 +2179,51 @@ func (m *Manager) makeTerminateTaskReq(task *types.NeedExecuteTask) (*fighterpbt
 	}, nil
 }
 
-func (m *Manager) initConsumeSpecByConsumeOption(task *types.NeedExecuteTask) {
-	// add consumeSpec
-	switch m.config.MetadataConsumeOption {
-	case 1: // use metadataAuth
-		// pass
-	case 2: // use datatoken
-		taskIdBigInt, err := hexutil.DecodeBig("0x" + strings.TrimLeft(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID+"0x"), "\x00"))
-		if nil != err {
-			log.WithError(err).Errorf("cannot decode taskId to big.Int on initConsumeSpecByConsumeOption()")
-			return
-		}
-		// store consumeSpec into needExecuteTask
-		consumeSpec := &types.DatatokenPaySpec{
-			// task state in contract
-			// constant int8 private NOTEXIST = -1;
-			// constant int8 private BEGIN = 0;
-			// constant int8 private PREPAY = 1;
-			// constant int8 private SETTLE = 2;
-			// constant int8 private END = 3;
-			Consumed: int32(-1),
-			//GasEstimated: 0,
-			GasUsed: 0,
-		}
+func (m *Manager) initConsumeSpecByConsumeOption(task *types.NeedExecuteTask, localTask *types.Task) error {
 
-		b, err := json.Marshal(consumeSpec)
-		if nil != err {
-			log.WithError(err).Errorf("cannot json marshal task consumeSpec on initConsumeSpecByConsumeOption(), consumeSpec: %v, %s", consumeSpec, err)
-			return
-		}
-		task.SetConsumeQueryId(taskIdBigInt.String())
-		task.SetConsumeSpec(string(b))
+	dataConsumeOptionsCache, err := m.fetchConsumeOption(localTask)
 
-		//default: // use nothing
-		//	// pass
+	if nil != err {
+		return err
 	}
+	// add consumeSpec
+	conSumeTypes := make([]uint8, 0)
+	consumeOptions := make([]string, 0)
+	for consumeType, _ := range dataConsumeOptionsCache {
+		switch consumeType {
+		case types.ConsumeTk20:
+
+			taskIdBigInt, err := hexutil.DecodeBig("0x" + strings.TrimLeft(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID+"0x"), "\x00"))
+			if nil != err {
+				return fmt.Errorf("cannot decode taskId to big.Int when init consumeSpec by tk20, %s", err)
+			}
+
+			conSumeTypes = append(conSumeTypes, consumeType)
+			spec := &types.DatatokenPayTK20Spec{
+				QueryId: taskIdBigInt.String(),
+				// task state in contract
+				// constant int8 private NOTEXIST = -1;
+				// constant int8 private BEGIN = 0;
+				// constant int8 private PREPAY = 1;
+				// constant int8 private SETTLE = 2;
+				// constant int8 private END = 3;
+				Consumed: int32(-1),
+				//GasEstimated: 0,
+				GasUsed: 0,
+			}
+			b, err := spec.MarshalJSON()
+			if nil != err {
+				return fmt.Errorf("cannot json marshal consumeSpec by tk20, %s", err)
+			}
+
+			consumeOptions = append(consumeOptions, string(b))
+		default:
+			// do nothings...
+		}
+	}
+
+	task.SetConsumeSpec(types.NewTaskConsumeSpec(conSumeTypes, consumeOptions))
+	return nil
 }
 
 func (m *Manager) addNeedExecuteTaskCacheAndminotor(task *types.NeedExecuteTask, when int64) {
@@ -2686,8 +2700,11 @@ func (m *Manager) handleNeedExecuteTask(task *types.NeedExecuteTask) {
 		return
 	}
 
-	// init consumeSpec of NeedExecuteTask first (by v0.4.0)
-	m.initConsumeSpecByConsumeOption(task)
+	// init consumeSpec of NeedExecuteTask first (add by v0.4.0, update by v0.5.1 fix)
+	if err := m.initConsumeSpecByConsumeOption(task, localTask); nil != err {
+		log.WithError(err).Errorf("call handleNeedExecuteTask failed")
+		return
+	}
 
 	switch task.GetConsStatus() {
 	// sender and partner to handle needExecuteTask when consensus succeed.

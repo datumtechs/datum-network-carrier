@@ -1,4 +1,4 @@
 [submodule "proto/armada-common"]
 	path = proto/armada-common
 	url = https://github.com/datumtechs/datum-network-armada-common.git
-	branch = v0.5.0
+	branch = v0.5.1_fix_2022_11_08_rm_metadataConsumeOption
