@@ -636,6 +636,13 @@ func StoreNeedExecuteTask(db KeyValueStore, task *types.NeedExecuteTask) error {
 	if nil != task.GetErr() {
 		errStr = task.GetErr().Error()
 	}
+
+	conSumeTypes := make([]uint32, len(task.GetConsumeSpec().GetConsumeTypes()))
+	consumeOptions := make([]string, len(task.GetConsumeSpec().GetConsumeTypes()))
+	for i, _ := range task.GetConsumeSpec().GetConsumeTypes() {
+		conSumeTypes[i] = uint32(task.GetConsumeSpec().GetConsumeTypes()[i])
+		consumeOptions[i] = task.GetConsumeSpec().GetConsumeOptions()[i]
+	}
 	val, err := proto.Marshal(&carriertypespb.NeedExecuteTask{
 		RemotePid:              task.GetRemotePID().String(),
 		LocalTaskRole:          task.GetLocalTaskRole(),
@@ -650,10 +657,12 @@ func StoreNeedExecuteTask(db KeyValueStore, task *types.NeedExecuteTask) error {
 			Port:    task.GetLocalResource().GetPort(),
 			PartyId: task.GetLocalResource().GetPartyId(),
 		},
-		Resources:      task.GetResources(),
-		ErrStr:         errStr,
-		ConsumeQueryId: task.GetConsumeQueryId(),
-		ConsumeSpec:    task.GetConsumeSpec(),
+		Resources: task.GetResources(),
+		ErrStr:    errStr,
+		ConsumeSpec: &carriertypespb.TaskConsumeSpec{
+			ConsumeTypes:   conSumeTypes,
+			ConsumeOptions: consumeOptions,
+		},
 	})
 	if nil != err {
 		return fmt.Errorf("marshal needExecuteTask failed, %s", err)

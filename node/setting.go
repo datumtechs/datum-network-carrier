@@ -39,7 +39,7 @@ func SetCarrierConfig(ctx *cli.Context, cfg *carrier.Config) {
 		DiscoveryServiceHealthCheckDeregister: ctx.Int(flags.DiscoveryServiceHealthCheckDeregister.Name),
 	}
 	cfg.TaskManagerConfig = &params.TaskManagerConfig{
-		MetadataConsumeOption:          ctx.Int(flags.TaskMetadataConsumeOption.Name),
+		//MetadataConsumeOption:          ctx.Int(flags.TaskMetadataConsumeOption.Name),
 		NeedReplayScheduleTaskChanSize: ctx.Int(flags.TaskReplayScheduleChanSize.Name),
 		NeedExecuteTaskChanSize:        ctx.Int(flags.TaskNeedExecuteChanSize.Name),
 		//TaskConsResultChanSize:         ctx.Int(flags.TaskConsResultChanSize.Name),

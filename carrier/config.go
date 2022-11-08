@@ -10,16 +10,16 @@ import (
 var DefaultConfig = Config{
 	DatabaseCache: 768,
 	DiscoverServiceConfig: &params.DiscoverServiceConfig{
-		DiscoveryServerIP: "",
-		DiscoveryServerPort: 0,
-		DiscoveryServiceId: "",
-		DiscoveryServiceName: "carrierService",
-		DiscoveryServerTags: []string{"carrier"},
-		DiscoveryServiceHealthCheckInterval: 3000,
+		DiscoveryServerIP:                     "",
+		DiscoveryServerPort:                   0,
+		DiscoveryServiceId:                    "",
+		DiscoveryServiceName:                  "carrierService",
+		DiscoveryServerTags:                   []string{"carrier"},
+		DiscoveryServiceHealthCheckInterval:   3000,
 		DiscoveryServiceHealthCheckDeregister: 10000,
 	},
 	TaskManagerConfig: &params.TaskManagerConfig{
-		MetadataConsumeOption:          0,
+		//MetadataConsumeOption:          0,
 		NeedReplayScheduleTaskChanSize: 600,
 		NeedExecuteTaskChanSize:        600,
 		//TaskConsResultChanSize:         600,

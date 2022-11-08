@@ -128,7 +128,7 @@ var (
 		flags.TaskReplayScheduleChanSize,
 		flags.TaskNeedExecuteChanSize,
 		//flags.TaskConsResultChanSize,
-		flags.TaskMetadataConsumeOption,
+		//flags.TaskMetadataConsumeOption,
 	}
 
 	// add v0.5.0

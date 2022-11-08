@@ -414,11 +414,11 @@ var (
 	//	Value: 600,
 	//}
 
-	TaskMetadataConsumeOption = &cli.IntFlag{
-		Name:  "task.metadata-consume-option",
-		Usage: "Metadata consumption options for tasks (default 0, 0 mean nothing, 1 mean metadataAuth, 2 mean datatoken)",
-		Value: 0,
-	}
+	//TaskMetadataConsumeOption = &cli.IntFlag{
+	//	Name:  "task.metadata-consume-option",
+	//	Usage: "Metadata consumption options for tasks (default 0, 0 mean nothing, 1 mean metadataAuth, 2 mean datatoken)",
+	//	Value: 0,
+	//}
 
 	AdminIpAddress = &cli.StringFlag{
 		Name:  "admin-ip-address",

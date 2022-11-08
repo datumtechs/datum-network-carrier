@@ -1145,13 +1145,13 @@ github.com/prysmaticlabs/ethereumapis v0.0.0-20210311175904-cf9f64632dd4 h1:6qCW
 github.com/prysmaticlabs/ethereumapis v0.0.0-20210311175904-cf9f64632dd4/go.mod h1:7PScMYRV0tzumbo5iDa/iVfj42Pw1qYxBe9daF6OMsQ=
 github.com/prysmaticlabs/go-bitfield v0.0.0-20200322041314-62c2aee71669/go.mod h1:hCwmef+4qXWjv0jLDbQdWnL0Ol7cS7/lCSS26WR+u6s=
 github.com/prysmaticlabs/go-bitfield v0.0.0-20210108222456-8e92c3709aa0/go.mod h1:hCwmef+4qXWjv0jLDbQdWnL0Ol7cS7/lCSS26WR+u6s=
-github.com/prysmaticlabs/go-bitfield v0.0.0-20210809151128-385d8c5e3fb7 h1:0tVE4tdWQK9ZpYygoV7+vS6QkDvQVySboMVEIxBJmXw=
-github.com/prysmaticlabs/go-bitfield v0.0.0-20210809151128-385d8c5e3fb7/go.mod h1:wmuf/mdK4VMD+jA9ThwcUKjg3a2XWM9cVfFYjDyY4j4=
+github.com/prysmaticlabs/go-bitfield v0.0.0-20210706153858-5cb5ce8bdbfe h1:9rrmgQval2GOmtMAgGLdqcCEZLraNaN3k2mY+07cx64=
+github.com/prysmaticlabs/go-bitfield v0.0.0-20210706153858-5cb5ce8bdbfe/go.mod h1:wmuf/mdK4VMD+jA9ThwcUKjg3a2XWM9cVfFYjDyY4j4=
 github.com/prysmaticlabs/prombbolt v0.0.0-20210126082820-9b7adba6db7c/go.mod h1:ZRws458tYHS/Zs936OQ6oCrL+Ict5O4Xpwve1UQ6C9M=
 github.com/prysmaticlabs/protoc-gen-go-cast v0.0.0-20210504233148-1e141af6a0a1 h1:k7CCMwN7VooQ7GhfySnaVyI4/9+QbhJTdasoC6VOZOI=
 github.com/prysmaticlabs/protoc-gen-go-cast v0.0.0-20210504233148-1e141af6a0a1/go.mod h1:au9l1XcWNEKixIlSRzEe54fYGhyELWgJJIxKu8W75Mc=
-github.com/prysmaticlabs/prysm v1.4.4 h1:vgtnaMaTpKHPRcFNbndLH+qf5NWNMykTmnCHFDvH/4o=
-github.com/prysmaticlabs/prysm v1.4.4/go.mod h1:+Xic0k6yDCyUvF4G9opCAxwGmrjXzG40Akk4Q1Dyipg=
+github.com/prysmaticlabs/prysm v1.4.1 h1:+P5XNtDRk1Xhv0HezbYkn/ymaxUlu+gcmdWFdXD++98=
+github.com/prysmaticlabs/prysm v1.4.1/go.mod h1:ALgg96qkF3iPSxPNKkcdtrxEXPj9em7vcnT+6Hvs0Xg=
 github.com/r3labs/sse v0.0.0-20210224172625-26fe804710bc/go.mod h1:S8xSOnV3CgpNrWd0GQ/OoQfMtlg2uPRSuTzcSGrzwK8=
 github.com/rcrowley/go-metrics v0.0.0-20181016184325-3113b8401b8a/go.mod h1:bCqnVzQkZxMG4s8nGwiZ5l3QUCyqpo9Y+/ZMZ9VjZe4=
 github.com/rcrowley/go-metrics v0.0.0-20190826022208-cac0b30c2563/go.mod h1:bCqnVzQkZxMG4s8nGwiZ5l3QUCyqpo9Y+/ZMZ9VjZe4=
