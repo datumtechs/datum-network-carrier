@@ -2702,7 +2702,7 @@ func (m *Manager) handleNeedExecuteTask(task *types.NeedExecuteTask) {
 
 	// init consumeSpec of NeedExecuteTask first (add by v0.4.0, update by v0.5.1 fix)
 	if err := m.initConsumeSpecByConsumeOption(task, localTask); nil != err {
-		log.WithError(err).Errorf("call handleNeedExecuteTask failed")
+		log.WithError(err).Errorf("call initConsumeSpecByConsumeOption failed")
 		return
 	}
 
