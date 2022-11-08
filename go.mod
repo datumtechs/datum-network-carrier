@@ -42,8 +42,8 @@ require (
 	github.com/prometheus/client_golang v1.9.0
 	github.com/prysmaticlabs/eth2-types v0.0.0-20210303084904-c9735a06829d
 	github.com/prysmaticlabs/ethereumapis v0.0.0-20210311175904-cf9f64632dd4
-	github.com/prysmaticlabs/go-bitfield v0.0.0-20210515192923-def021850363
-	github.com/prysmaticlabs/prysm v1.4.0
+	github.com/prysmaticlabs/go-bitfield v0.0.0-20210809151128-385d8c5e3fb7
+	github.com/prysmaticlabs/prysm v1.4.4
 	github.com/rs/cors v1.8.0
 	github.com/shirou/gopsutil v3.21.4-0.20210419000835-c7a38de76ee5+incompatible
 	github.com/sirupsen/logrus v1.8.1
