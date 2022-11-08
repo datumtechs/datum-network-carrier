@@ -47,6 +47,7 @@ require (
 	github.com/rs/cors v1.8.0
 	github.com/shirou/gopsutil v3.21.4-0.20210419000835-c7a38de76ee5+incompatible
 	github.com/sirupsen/logrus v1.8.1
+	github.com/status-im/keycard-go v0.0.0-20200402102358-957c09536969
 	github.com/stretchr/testify v1.7.2
 	github.com/syndtr/goleveldb v1.0.1-0.20220614013038-64ee5596c38a
 	github.com/trailofbits/go-mutexasserts v0.0.0-20200708152505-19999e7d3cef
