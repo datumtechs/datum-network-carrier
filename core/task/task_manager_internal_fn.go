@@ -2217,6 +2217,7 @@ func (m *Manager) initConsumeSpecByConsumeOption(task *types.NeedExecuteTask, lo
 			}
 
 			consumeOptions = append(consumeOptions, string(b))
+			break
 		default:
 			// do nothings...
 		}
