@@ -2187,18 +2187,22 @@ func (m *Manager) initConsumeSpecByConsumeOption(task *types.NeedExecuteTask, lo
 		return err
 	}
 	// add consumeSpec
-	conSumeTypes := make([]uint8, 0)
+	consumeTypes := make([]uint8, 0)
 	consumeOptions := make([]string, 0)
+	consumeTypeCache := make(map[uint8]struct{}, 0)
 	for consumeType, _ := range dataConsumeOptionsCache {
 		switch consumeType {
 		case types.ConsumeTk20:
+			// skip tk20 consumeType, if it is existed.
+			if _, ok := consumeTypeCache[consumeType]; ok {
+				continue
+			}
 
 			taskIdBigInt, err := hexutil.DecodeBig("0x" + strings.TrimLeft(strings.Trim(task.GetTaskId(), types.PREFIX_TASK_ID+"0x"), "\x00"))
 			if nil != err {
 				return fmt.Errorf("cannot decode taskId to big.Int when init consumeSpec by tk20, %s", err)
 			}
 
-			conSumeTypes = append(conSumeTypes, consumeType)
 			spec := &types.DatatokenPayTK20Spec{
 				QueryId: taskIdBigInt.String(),
 				// task state in contract
@@ -2216,14 +2220,15 @@ func (m *Manager) initConsumeSpecByConsumeOption(task *types.NeedExecuteTask, lo
 				return fmt.Errorf("cannot json marshal consumeSpec by tk20, %s", err)
 			}
 
+			consumeTypes = append(consumeTypes, consumeType)
 			consumeOptions = append(consumeOptions, string(b))
-			break
+			consumeTypeCache[consumeType] = struct{}{}
 		default:
 			// do nothings...
 		}
 	}
 
-	task.SetConsumeSpec(types.NewTaskConsumeSpec(conSumeTypes, consumeOptions))
+	task.SetConsumeSpec(types.NewTaskConsumeSpec(consumeTypes, consumeOptions))
 	return nil
 }
 
